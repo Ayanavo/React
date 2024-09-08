@@ -1,38 +1,62 @@
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { createColumnHelper, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table";
-import React, { useState } from "react";
+import { CheckCircledIcon, CrossCircledIcon } from "@radix-ui/react-icons";
+import { createColumnHelper, flexRender, getCoreRowModel, SortingState, useReactTable } from "@tanstack/react-table";
+import React, { useEffect, useState } from "react";
 
 type User = {
+  userId: number;
   id: number;
-  name: string;
-  age: number;
+  title: string;
+  completed: boolean;
 };
 function table() {
   const columnHelper = createColumnHelper<User>();
-  const [data] = useState([
-    { id: 1, name: "John Doe", age: 30 },
-    { id: 2, name: "Jane Smith", age: 28 },
-    { id: 3, name: "Alice Johnson", age: 35 },
-  ]);
+  const [data, setData] = useState([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
 
-  const columns = [
-    columnHelper.accessor("id", {
-      header: () => "ID",
-      cell: (info) => info.getValue(),
-    }),
-    columnHelper.accessor("name", {
-      header: () => "Name",
-      cell: (info) => info.getValue(),
-    }),
-    columnHelper.accessor("age", {
-      header: () => "Age",
-      cell: (info) => info.getValue(),
-    }),
+  useEffect(() => {
+    // Fetch data from an API or other source here
+    const fetchData = async () => {
+      try {
+        // Fetch data from an API or other source
+        const response = await fetch("https://jsonplaceholder.typicode.com/todos/");
+        const users = await response.json();
+        setData(users);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const columnConfig: { key: string; label: string }[] = [
+    { key: "userId", label: "User Id" },
+    { key: "id", label: "ID" },
+    { key: "title", label: "Title" },
+    { key: "completed", label: "Completed" },
   ];
 
-  const tableBody = useReactTable({ data: data, columns, debugTable: true, getCoreRowModel: getCoreRowModel() });
+  const createColumns = (config: any[]) => {
+    return config.map((column) =>
+      columnHelper.accessor(column.key, {
+        header: () => column.label,
+        cell: (info) => {
+          const value = info.getValue();
+          if (typeof value === "boolean") {
+            return value ? <CheckCircledIcon /> : <CrossCircledIcon />;
+          }
+          return value;
+        },
+      })
+    );
+  };
+
+  const columns = createColumns(columnConfig);
+
+  const tableBody = useReactTable({ data: data, columns, debugTable: true, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel() });
   return (
-    <Table className="table-auto w-screen">
+    <Table className="w-full">
       <TableCaption>A list of all available data.</TableCaption>
       <TableHeader>
         {tableBody.getHeaderGroups().map((column) => (

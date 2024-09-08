@@ -18,7 +18,7 @@ function menu() {
         <div className="absolute cursor-pointer rounded-full -right-3 top-4 z-10 border-2 p-1 bg-[#BAA7FF]" onClick={closeDrawer}>
           <ArrowLeftIcon />
         </div>
-        <div className="mt-6 flex flex-1 flex-col justify-between min-h-screen">
+        <div className="mt-6 flex flex-col justify-between h-screen">
           <div>
             {NavList.map(({ route, icon, label }, i: number) => {
               return (
