@@ -10,7 +10,7 @@ function icons({ icon, color }: { icon: string; color: string }) {
   }
 
   return (
-    <div style={{ display: "flex", gap: "10px", color: color ?? "000000" }}>
+    <div className="flex gap-2" style={{ color: color ?? "000000" }}>
       <IconComponent />
     </div>
   );
