@@ -1,13 +1,29 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import "@ayanavo/locusjs";
-import { FormProvider, useForm } from "react-hook-form";
-import { FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import React from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { FormProvider, useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import z from "zod";
+
+// Define validation schema using Zod
+const formSchema = z.object({
+  username: z.string().min(2, {
+    message: "Username must be at least 2 characters.",
+  }),
+  password: z.string().min(6, {
+    message: "Password must be at least 6 characters.",
+  }),
+});
 
 function login() {
+  //form builder function
+  const navigate = useNavigate();
   const form = useForm({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       username: "",
       password: "",
@@ -17,6 +33,8 @@ function login() {
   function onSubmit(data: any) {
     // Handle form submission logic here
     console.log(data);
+    localStorage.setItem("user", JSON.stringify(data));
+    navigate("/");
   }
 
   return (
@@ -39,19 +57,21 @@ function login() {
                       <FormControl>
                         <Input id="name" {...field} />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
                 <div className="flex flex-col space-y-1.5">
                   <FormField
                     control={form.control}
-                    name="username"
+                    name="password"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel htmlFor="password">Password</FormLabel>
                         <FormControl>
                           <Input id="password" type="password" {...field} />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />

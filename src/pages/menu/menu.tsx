@@ -20,26 +20,25 @@ function menu() {
         </div>
         <div className="mt-6 flex flex-1 flex-col justify-between min-h-screen">
           <div>
-            {NavList.map(({ route, icon, label }) => {
+            {NavList.map(({ route, icon, label }, i: number) => {
               return (
-                <Link to={route}>
-                  <a
-                    className="flex transform items-center rounded-lg mx-4 px-3 py-2 text-white-600 transition-colors duration-300 hover:bg-violet-400 hover:text-gray-700 "
-                    href="#">
-                    <IconsComponent icon={icon} color={"#EEEEEE"} />
-                    <span className="mx-2 text-sm font-medium text-[#EEEEEE]">{label}</span>
-                  </a>
+                <Link
+                  key={i}
+                  to={route}
+                  className="flex transform items-center rounded-lg mx-4 px-3 py-2 text-white-600 transition-colors duration-300 hover:bg-violet-400 hover:text-gray-700 ">
+                  <IconsComponent icon={icon} color={"#EEEEEE"} />
+                  <span className="mx-2 text-sm font-medium text-[#EEEEEE]">{label}</span>
                 </Link>
               );
             })}
           </div>
-          <Link to="/login">
-            <a className="flex transform items-center rounded-lg mx-4 px-3 py-2 text-white-600 transition-colors duration-300 hover:bg-violet-400 hover:text-gray-700 " href="#">
-              <div className="flex gap-2">
-                <ExitIcon className="text-[#EEEEEE]" />
-              </div>
-              <span className="mx-2 text-sm font-medium  text-[#EEEEEE]">Sign Out</span>
-            </a>
+          <Link
+            className="flex transform items-center rounded-lg mx-4 px-3 py-2 text-white-600 transition-colors duration-300 hover:bg-violet-400 hover:text-gray-700 "
+            to="/login">
+            <div className="flex gap-2">
+              <ExitIcon className="text-[#EEEEEE]" />
+            </div>
+            <span className="mx-2 text-sm font-medium  text-[#EEEEEE]">Sign Out</span>
           </Link>
         </div>
       </div>
