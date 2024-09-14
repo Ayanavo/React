@@ -10,7 +10,9 @@ function menu() {
   type NavItem = { label: string; icon: string; route: string };
   const NavList: Array<NavItem> = [
     { label: "Dasboard", icon: "DashboardIcon", route: "/" },
-    { label: "Table", icon: "TableIcon", route: "/table" },
+    { label: "Log", icon: "TableIcon", route: "/table" },
+    { label: "Activity", icon: "CalendarIcon", route: "/activities" },
+    { label: "Profile", icon: "AvatarIcon", route: "/profile" },
   ];
   return (
     <div className="{`w-96 bg-violet-900 ` }">

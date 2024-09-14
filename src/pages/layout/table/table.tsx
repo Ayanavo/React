@@ -1,7 +1,9 @@
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { CheckCircledIcon, CrossCircledIcon } from "@radix-ui/react-icons";
-import { createColumnHelper, flexRender, getCoreRowModel, SortingState, useReactTable } from "@tanstack/react-table";
+import { ArrowDownIcon, ArrowUpIcon, CaretSortIcon, CheckCircledIcon, CrossCircledIcon, EyeNoneIcon } from "@radix-ui/react-icons";
+import { createColumnHelper, flexRender, getCoreRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
 import React, { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 type User = {
   userId: number;
@@ -15,6 +17,8 @@ function table() {
   const [sorting, setSorting] = useState<SortingState>([]);
 
   useEffect(() => {
+    console.log("sorting", sorting);
+
     // Fetch data from an API or other source here
     const fetchData = async () => {
       try {
@@ -28,7 +32,7 @@ function table() {
     };
 
     fetchData();
-  }, []);
+  }, [sorting]);
 
   const columnConfig: { key: string; label: string }[] = [
     { key: "userId", label: "User Id" },
@@ -54,27 +58,62 @@ function table() {
 
   const columns = createColumns(columnConfig);
 
-  const tableBody = useReactTable({ data: data, columns, debugTable: true, state: { sorting }, onSortingChange: setSorting, getCoreRowModel: getCoreRowModel() });
+  const tableBody = useReactTable({
+    data: data,
+    columns,
+    debugTable: true,
+    state: { sorting: sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
   return (
     <Table className="w-full">
       <TableCaption>A list of all available data.</TableCaption>
-      <TableHeader>
+      <TableHeader className="bg-muted/50">
         {tableBody.getHeaderGroups().map((column) => (
           <TableRow key={column.id}>
             {column.headers.map((headers) => (
-              <TableHead className="w-[100px]">{flexRender(headers.column.columnDef.header, headers.getContext())}</TableHead>
+              <TableHead className="w-[100px]">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="m-2 font-bold hover:bg-primary/20 active:bg-primary/30 focus-visible:bg-primary/20 px-2">
+                      {flexRender(headers.column.columnDef.header, headers.getContext())}
+                      <CaretSortIcon className="h-4 w-4 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-40">
+                    <DropdownMenuItem className="flex items-center cursor-pointer" onClick={() => setSorting([{ id: headers.column.id, desc: false }])}>
+                      <ArrowUpIcon className="h-4 w-4 ml-2" />
+                      Ascending
+                    </DropdownMenuItem>
+                    <DropdownMenuItem className="flex items-center cursor-pointer" onClick={() => setSorting([{ id: headers.column.id, desc: true }])}>
+                      <ArrowDownIcon className="h-4 w-4 ml-2" />
+                      Descending
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="flex items-center cursor-pointer" onClick={headers.column.getToggleVisibilityHandler()}>
+                      <EyeNoneIcon className="h-4 w-4 ml-2" />
+                      Hide Column
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableHead>
             ))}
           </TableRow>
         ))}
       </TableHeader>
       <TableBody>
-        {tableBody.getRowModel().rows.map((row) => (
-          <TableRow key={row.id}>
-            {row.getVisibleCells().map((cell) => (
-              <TableCell className="font-medium">{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
-            ))}
-          </TableRow>
-        ))}
+        {tableBody
+          .getRowModel()
+          .rows.slice(0, 10)
+          .map((row) => (
+            <TableRow key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <TableCell className="font-medium">{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+              ))}
+            </TableRow>
+          ))}
       </TableBody>
     </Table>
   );
