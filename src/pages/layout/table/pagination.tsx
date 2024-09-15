@@ -29,11 +29,20 @@ function pagination({
             <PaginationItem>
               <PaginationPrevious onClick={() => tableBody.previousPage()} className={`cursor-pointer ${!tableBody.getCanPreviousPage() && "disabledlink"}`} />
             </PaginationItem>
-            <PaginationItem>
-              <PaginationLink className="cursor-pointer" onClick={() => setPagination((old) => ({ ...old, pageIndex: 0 }))}>
-                1
-              </PaginationLink>
-            </PaginationItem>
+            {Array(tableBody.getPageCount())
+              .fill(0)
+              .map((_, index) => {
+                if (index <= 4) {
+                  return (
+                    <PaginationItem>
+                      <PaginationLink className="cursor-pointer" onClick={() => setPagination((old) => ({ ...old, pageIndex: index }))}>
+                        {index + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+              })}
+
             <PaginationItem>
               <PaginationEllipsis />
             </PaginationItem>
