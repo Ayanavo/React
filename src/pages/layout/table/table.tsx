@@ -1,27 +1,20 @@
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import PaginationComponent from "./pagination";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowDownIcon, ArrowUpIcon, CaretSortIcon, CheckCircledIcon, CrossCircledIcon, EyeNoneIcon } from "@radix-ui/react-icons";
-import { createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, SortingState, useReactTable } from "@tanstack/react-table";
+import { createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import "./table.css";
-
-type User = {
-  userId: number;
-  id: number;
-  title: string;
-  completed: boolean;
-};
+import { User } from "./user.model";
 
 function table() {
   const columnHelper = createColumnHelper<User>();
   const [data, setData] = useState([]);
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
 
   useEffect(() => {
-    console.log("sorting", sorting);
-
     // Fetch data from an API or other source here
     const fetchData = async () => {
       try {
@@ -65,8 +58,9 @@ function table() {
     data: data,
     columns,
     debugTable: true,
-    state: { sorting: sorting },
+    state: { sorting: sorting, pagination: pagination },
     onSortingChange: setSorting,
+    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -74,7 +68,7 @@ function table() {
   return (
     <>
       <Table className="w-full">
-        {/* <TableCaption>A list of all available data.</TableCaption> */}
+        <TableCaption>A list of all available data.</TableCaption>
         <TableHeader className="bg-muted/50">
           {tableBody.getHeaderGroups().map((column) => (
             <TableRow key={column.id}>
@@ -118,31 +112,7 @@ function table() {
           ))}
         </TableBody>
       </Table>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
-          <Pagination>
-            <span className="text-sm text-gray-700 dark:text-gray-400">
-              <span className="font-semibold text-gray-900 dark:text-white">{tableBody.getRowModel().rows.length}</span> -{" "}
-              <span className="font-semibold text-gray-900 dark:text-white">{tableBody.getRowModel().rows.length}</span> of{" "}
-              <span className="font-semibold text-gray-900 dark:text-white">{tableBody.getRowCount()}</span> Items
-            </span>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious onClick={() => tableBody.previousPage()} className={`${!tableBody.getCanPreviousPage() && "disabledlink"}`} />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink>1</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext onClick={() => tableBody.nextPage()} className={`${!tableBody.getCanNextPage() && "disabledlink"}`} />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
-      </div>
+      <PaginationComponent tableBody={tableBody} pagination={pagination} setPagination={setPagination} />
     </>
   );
 }
