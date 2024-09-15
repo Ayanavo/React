@@ -5,6 +5,7 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import { ArrowDownIcon, ArrowUpIcon, CaretSortIcon, CheckCircledIcon, CrossCircledIcon, EyeNoneIcon } from "@radix-ui/react-icons";
 import { createColumnHelper, flexRender, getCoreRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
 import React, { useEffect, useState } from "react";
+import { Table as TableModel } from "@tanstack/react-table";
 import "./table.css";
 import { User } from "./user.model";
 
@@ -44,7 +45,13 @@ function table() {
         cell: (info) => {
           const value = info.getValue();
           if (typeof value === "boolean") {
-            return value ? <CheckCircledIcon /> : <CrossCircledIcon />;
+            return (
+              <div className="flex justify-center items-center h-full">
+                {value ?
+                  <CheckCircledIcon className="h-5 w-5 text-green-500" />
+                : <CrossCircledIcon className="h-5 w-5 text-red-500" />}
+              </div>
+            );
           }
           return value;
         },
@@ -54,7 +61,7 @@ function table() {
 
   const columns = createColumns(columnConfig);
 
-  const tableBody = useReactTable({
+  const tableBody: TableModel<User> = useReactTable({
     data: data,
     columns,
     debugTable: true,
@@ -67,13 +74,13 @@ function table() {
   });
   return (
     <>
-      <Table className="w-full">
+      <Table className="w-full overflow-auto">
         <TableCaption>A list of all available data.</TableCaption>
         <TableHeader className="bg-muted/50">
           {tableBody.getHeaderGroups().map((column) => (
             <TableRow key={column.id}>
               {column.headers.map((headers) => (
-                <TableHead className="w-[100px]">
+                <TableHead className="w-[100px] text-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" className="m-2 font-bold hover:bg-primary/20 active:bg-primary/30 focus-visible:bg-primary/20 px-2">
@@ -106,7 +113,7 @@ function table() {
           {tableBody.getRowModel().rows.map((row) => (
             <TableRow key={row.id}>
               {row.getVisibleCells().map((cell) => (
-                <TableCell className="font-medium">{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                <TableCell className="font-medium truncate max-w-[200px] text-center">{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
               ))}
             </TableRow>
           ))}
