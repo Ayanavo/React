@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
-import { arrayMove, horizontalListSortingStrategy, SortableContext, useSortable } from "@dnd-kit/sortable";
+import { DndContext } from "@dnd-kit/core";
+import { horizontalListSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import { ArrowDownIcon, ArrowUpIcon, CaretSortIcon, CheckCircledIcon, CrossCircledIcon, EyeNoneIcon } from "@radix-ui/react-icons";
 import {
   createColumnHelper,
@@ -12,16 +12,14 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  Header,
   PaginationState,
   SortingState,
   Table as TableModel,
   useReactTable,
 } from "@tanstack/react-table";
-import React, { CSSProperties, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import PaginationComponent from "./pagination";
 import "./table.css";
-import { CSS } from "@dnd-kit/utilities";
 import { User } from "./user.model";
 
 function table() {
@@ -148,48 +146,50 @@ function table() {
     enableRowSelection: true,
   });
   return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-3xl font-bold mb-6 text-start">Finances</h1>
+    <div className="flex flex-col h-screen overflow-hidden">
+      <div className="flex-none p-3">
+        <h1 className="text-3xl font-bold mb-6 text-start">Columns</h1>
+      </div>
       <Table className="w-full overflow-auto">
         <TableCaption>A list of all available data.</TableCaption>
         <TableHeader className="bg-muted/50">
           {tableBody.getHeaderGroups().map((column) => (
             <TableRow key={column.id}>
-              <DndContext>
-                <SortableContext items={column.headers} strategy={horizontalListSortingStrategy}>
-                  {column.headers.map((headers) => (
-                    <TableHead className="w-[100px] ">
-                      {headers.isPlaceholder ?
-                        null
-                      : headers.column.getCanSort() ?
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="font-bold hover:bg-primary/20 active:bg-primary/30 focus-visible:bg-primary/20 px-2">
-                              {flexRender(headers.column.columnDef.header, headers.getContext())}
-                              <CaretSortIcon className="h-4 w-4 ml-2" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" className="w-40">
-                            <DropdownMenuItem className="flex items-center cursor-pointer" onClick={() => setSorting([{ id: headers.column.id, desc: false }])}>
-                              <ArrowUpIcon className="h-4 w-4 ml-2" />
-                              Ascending
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="flex items-center cursor-pointer" onClick={() => setSorting([{ id: headers.column.id, desc: true }])}>
-                              <ArrowDownIcon className="h-4 w-4 ml-2" />
-                              Descending
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="flex items-center cursor-pointer" onClick={headers.column.getToggleVisibilityHandler()}>
-                              <EyeNoneIcon className="h-4 w-4 ml-2" />
-                              Hide Column
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      : flexRender(headers.column.columnDef.header, headers.getContext())}
-                    </TableHead>
-                  ))}
-                </SortableContext>
-              </DndContext>
+              {/* <DndContext> */}
+              {/* <SortableContext items={column.headers} strategy={horizontalListSortingStrategy}> */}
+              {column.headers.map((headers) => (
+                <TableHead className="w-[100px] ">
+                  {headers.isPlaceholder ?
+                    null
+                  : headers.column.getCanSort() ?
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="font-bold hover:bg-primary/20 active:bg-primary/30 focus-visible:bg-primary/20 px-2">
+                          {flexRender(headers.column.columnDef.header, headers.getContext())}
+                          <CaretSortIcon className="h-4 w-4 ml-2" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-40">
+                        <DropdownMenuItem className="flex items-center cursor-pointer" onClick={() => setSorting([{ id: headers.column.id, desc: false }])}>
+                          <ArrowUpIcon className="h-4 w-4 ml-2" />
+                          Ascending
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="flex items-center cursor-pointer" onClick={() => setSorting([{ id: headers.column.id, desc: true }])}>
+                          <ArrowDownIcon className="h-4 w-4 ml-2" />
+                          Descending
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="flex items-center cursor-pointer" onClick={headers.column.getToggleVisibilityHandler()}>
+                          <EyeNoneIcon className="h-4 w-4 ml-2" />
+                          Hide Column
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  : flexRender(headers.column.columnDef.header, headers.getContext())}
+                </TableHead>
+              ))}
+              {/* </SortableContext> */}
+              {/* </DndContext> */}
             </TableRow>
           ))}
         </TableHeader>

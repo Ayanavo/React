@@ -1,7 +1,8 @@
-import React from "react";
+import { cn } from "@/lib/utils";
 import * as RadixIcons from "@radix-ui/react-icons";
+import React from "react";
 
-function icons({ icon, color }: { icon: string; color: string }) {
+function icons({ icon, color, customClass }: { icon: string; color: string; customClass?: string }) {
   const IconComponent = RadixIcons[icon as keyof typeof RadixIcons] as React.ElementType;
 
   // Return a fallback if the icon doesn't exist
@@ -10,8 +11,8 @@ function icons({ icon, color }: { icon: string; color: string }) {
   }
 
   return (
-    <div className="flex gap-2" style={{ color: color ?? "000000" }}>
-      <IconComponent />
+    <div className={cn("flex gap-2", customClass)}>
+      <IconComponent className="transition-colors duration-300 group-hover:text-white" style={{ color }} />
     </div>
   );
 }

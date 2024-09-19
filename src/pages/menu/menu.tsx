@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ExitIcon, HamburgerMenuIcon } from "@radix-ui/react-icons";
-import React, { useState } from "react";
+import { HamburgerMenuIcon } from "@radix-ui/react-icons";
+import React from "react";
 import { Link } from "react-router-dom";
 import IconsComponent from "../../common/icons";
 
@@ -26,10 +26,10 @@ function menu({ isExpanded, setIsExpanded }: { isExpanded: boolean; setIsExpande
             key={i}
             to={route}
             className={cn(
-              "flex items-center rounded-lg px-3 py-2 text-gray-700 transition-colors duration-300 hover:bg-gray-200",
+              "group flex items-center rounded-lg px-3 py-2 text-gray-700  hover:bg-black hover:text-white",
               "focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
             )}>
-            <IconsComponent icon={icon} color={"#000000"} />
+            <IconsComponent icon={icon} color={"currentColor"} />
             <span className={cn("ml-3 text-sm font-medium", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>{label}</span>
           </Link>
         ))}
@@ -37,11 +37,11 @@ function menu({ isExpanded, setIsExpanded }: { isExpanded: boolean; setIsExpande
       <nav className="absolute bottom-4 left-0 right-0 mt-16 flex flex-col space-y-2 p-2">
         <Link
           className={cn(
-            " flex items-center rounded-lg px-3 py-2 text-gray-700 transition-colors duration-300 hover:bg-gray-200",
+            "group flex items-center rounded-lg px-3 py-2 text-gray-700  hover:bg-black hover:text-white",
             "focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
           )}
           to="/login">
-          <IconsComponent icon={"ExitIcon"} color={"#000000"} />
+          <IconsComponent icon={"ExitIcon"} color={"currentColor"} />
           <span className={cn("ml-3 text-sm font-medium", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>Sign Out</span>
         </Link>
       </nav>
