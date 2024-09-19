@@ -34,7 +34,7 @@ function pagination({
               .map((_, index) => {
                 if (index <= 4) {
                   return (
-                    <PaginationItem>
+                    <PaginationItem key={index}>
                       <PaginationLink className="cursor-pointer" onClick={() => setPagination((old) => ({ ...old, pageIndex: index }))}>
                         {index + 1}
                       </PaginationLink>
@@ -56,7 +56,7 @@ function pagination({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-40">
                   {[10, 20, 30, 50, 100].map((size) => (
-                    <DropdownMenuItem className="flex items-center cursor-pointer" onClick={() => setPagination((old) => ({ ...old, pageSize: size }))}>
+                    <DropdownMenuItem key={size} className="flex items-center cursor-pointer" onClick={() => setPagination((old) => ({ ...old, pageSize: size }))}>
                       {size}
                     </DropdownMenuItem>
                   ))}
