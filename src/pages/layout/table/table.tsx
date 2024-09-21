@@ -3,7 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowDownIcon, ArrowUpIcon, CaretSortIcon, CheckCircledIcon, CrossCircledIcon, EyeNoneIcon } from "@radix-ui/react-icons";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CaretSortIcon,
+  CheckCircledIcon,
+  CrossCircledIcon,
+  DotsHorizontalIcon,
+  EyeNoneIcon,
+  EyeOpenIcon,
+  Pencil1Icon,
+  PlusIcon,
+  TrashIcon,
+} from "@radix-ui/react-icons";
 import {
   createColumnHelper,
   flexRender,
@@ -16,6 +28,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PaginationComponent from "./pagination";
 import "./table.css";
 import { User } from "./user.model";
@@ -26,6 +39,7 @@ function table() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
+  const navigate = useNavigate();
   // const [columnOrder, setColumnOrder] = useState<string[]>([]);
 
   useEffect(() => {
@@ -44,22 +58,59 @@ function table() {
     fetchData();
   }, [sorting]);
 
-  const columnConfig: { key: keyof User | "select"; label: string }[] = [
+  const columnConfig: { key: keyof User | "select" | "action"; label: string }[] = [
     { key: "select", label: "Select" },
     { key: "userId", label: "User Id" },
     { key: "id", label: "ID" },
     { key: "title", label: "Title" },
     { key: "completed", label: "Completed" },
+    { key: "action", label: "Action" },
   ];
 
   const createColumns = (config: typeof columnConfig) => {
     return config.map((column) => {
+      if (column.key === "action") {
+        return columnHelper.display({
+          id: "action",
+          header: column.label,
+          cell: ({ row }) => (
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="h-8 w-8 p-0 border-2 dropdown-menu-trigger relative transform transition-transform duration-200 ease-in-out  group-hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ">
+                    <span className="sr-only">Open menu</span>
+                    <div className="absolute inset-0 bg-white rounded transform scale-75 transition-transform duration-200 ease-in-out group-hover:scale-100"></div>
+                    <DotsHorizontalIcon className="h-4 w-4 relative z-10 transform transition-transform duration-200 ease-in-out" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[160px]">
+                  <DropdownMenuItem onSelect={() => navigate(`/update/${row.original.id}`)}>
+                    <Pencil1Icon className="h-4 w-4 mr-2" />
+                    <span>Edit</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => navigate(`/details/${row.original.id}`)}>
+                    <EyeOpenIcon className="h-4 w-4 mr-2" />
+                    <span>View</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <TrashIcon className="h-4 w-4 mr-2" />
+                    <span>Delete</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ),
+        });
+      }
       if (column.key === "select") {
         return columnHelper.display({
           id: "select",
           header: ({ table }) => (
             <div className="p-2">
-              <Checkbox checked={table.getIsAllPageRowsSelected()} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} aria-label="Select all" />
+              <Checkbox aria-label="Select all" checked={table.getIsAllPageRowsSelected()} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} />
             </div>
           ),
           cell: ({ row }) => <Checkbox key={column.key} checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />,
@@ -74,11 +125,11 @@ function table() {
             return (
               <div className="flex justify-right h-full">
                 {value ?
-                  <Badge variant="default" key={column.key} className="flex justify-evenly cursor-default text-green-500 bg-green-200 hover:bg-inherit">
+                  <Badge variant="default" key={column.key} className="flex justify-evenly cursor-default text-green-500 bg-green-200 hover:bg-inherit/50">
                     <CheckCircledIcon key={column.key} className="h-4 w-4 " />
                     <div>Completed</div>
                   </Badge>
-                : <Badge variant="default" key={column.key} className="flex justify-evenly cursor-default text-red-500 bg-red-200 hover:bg-inherit">
+                : <Badge variant="default" key={column.key} className="flex justify-evenly cursor-default text-red-500 bg-red-200 hover:bg-inherit/50">
                     <CrossCircledIcon key={column.key} className="h-4 w-4 " />
                     <div>Not Completed</div>
                   </Badge>
@@ -145,9 +196,14 @@ function table() {
   });
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <div className="flex-none p-3">
+      <div className="flex-none p-3 flex justify-between items-center">
         <h1 className="text-3xl font-bold mb-6 text-start">Columns</h1>
+        <Button onClick={() => navigate("/create")} className="flex items-center space-x-2">
+          <PlusIcon className="h-4 w-4" />
+          <span>Create Record</span>
+        </Button>
       </div>
+
       <Table className="w-full overflow-auto">
         <TableCaption>A list of all available data.</TableCaption>
         <TableHeader className="bg-muted/50">
@@ -167,18 +223,18 @@ function table() {
                           <CaretSortIcon className="h-4 w-4 ml-2" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" className="w-40">
+                      <DropdownMenuContent align="start" className="w-[160px]">
                         <DropdownMenuItem className="flex items-center cursor-pointer" onClick={() => setSorting([{ id: headers.column.id, desc: false }])}>
-                          <ArrowUpIcon className="h-4 w-4 ml-2" />
+                          <ArrowUpIcon className="h-4 w-4 mr-2" />
                           Ascending
                         </DropdownMenuItem>
                         <DropdownMenuItem className="flex items-center cursor-pointer" onClick={() => setSorting([{ id: headers.column.id, desc: true }])}>
-                          <ArrowDownIcon className="h-4 w-4 ml-2" />
+                          <ArrowDownIcon className="h-4 w-4 mr-2" />
                           Descending
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="flex items-center cursor-pointer" onClick={headers.column.getToggleVisibilityHandler()}>
-                          <EyeNoneIcon className="h-4 w-4 ml-2" />
+                          <EyeNoneIcon className="h-4 w-4 mr-2" />
                           Hide Column
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -193,7 +249,7 @@ function table() {
         </TableHeader>
         <TableBody>
           {tableBody.getRowModel().rows.map((row) => (
-            <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+            <TableRow className="group cursor-pointer hover:bg-muted/50" key={row.id} data-state={row.getIsSelected() && "selected"}>
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id} className="font-medium truncate max-w-[200px] pr-0 pl-4">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
