@@ -3,8 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DndContext } from "@dnd-kit/core";
-import { horizontalListSortingStrategy, SortableContext } from "@dnd-kit/sortable";
 import { ArrowDownIcon, ArrowUpIcon, CaretSortIcon, CheckCircledIcon, CrossCircledIcon, EyeNoneIcon } from "@radix-ui/react-icons";
 import {
   createColumnHelper,
@@ -28,7 +26,7 @@ function table() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
-  const [columnOrder, setColumnOrder] = useState<string[]>([]);
+  // const [columnOrder, setColumnOrder] = useState<string[]>([]);
 
   useEffect(() => {
     // Fetch data from an API or other source here
@@ -136,7 +134,7 @@ function table() {
   const tableBody: TableModel<User> = useReactTable({
     data: data,
     columns,
-    state: { sorting: sorting, pagination: pagination, rowSelection: rowSelection, columnOrder: columnOrder },
+    state: { sorting: sorting, pagination: pagination, rowSelection: rowSelection },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onRowSelectionChange: setRowSelection,
