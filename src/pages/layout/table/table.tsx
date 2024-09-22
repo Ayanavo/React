@@ -200,7 +200,7 @@ function table() {
         <h1 className="text-3xl font-bold mb-6 text-start">Columns</h1>
         <Button onClick={() => navigate("/create")} className="flex items-center space-x-2">
           <PlusIcon className="h-4 w-4" />
-          <span>Create Record</span>
+          <span>Add Record</span>
         </Button>
       </div>
 
@@ -208,7 +208,7 @@ function table() {
         <TableCaption>A list of all available data.</TableCaption>
         <TableHeader className="bg-muted/50">
           {tableBody.getHeaderGroups().map((column) => (
-            <TableRow key={column.id}>
+            <TableRow>
               {/* <DndContext> */}
               {/* <SortableContext items={column.headers} strategy={horizontalListSortingStrategy}> */}
               {column.headers.map((headers) => (
