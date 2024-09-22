@@ -10,6 +10,8 @@ import DateComponent from "../../../shared/controls/date";
 import DropdownComponent from "../../../shared/controls/dropdown";
 import EmailComponent from "../../../shared/controls/email";
 import TextComponent from "../../../shared/controls/text";
+import RadioComponent from "../../../shared/controls/radio";
+import TextareaComponent from "../../../shared/controls/textarea";
 
 type FormObj = {
   username: string;
@@ -57,6 +59,8 @@ function FormBuilder() {
             <BooleanComponent form={form} />
             <DateComponent form={form} />
             <CheckboxComponent form={form} />
+            <TextareaComponent form={form} />
+            <RadioComponent form={form} />
           </form>
         </FormProvider>
       </CardContent>

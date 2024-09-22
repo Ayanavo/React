@@ -1,17 +1,17 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 
-function text({ form }: { form: any }) {
+function textarea({ form }: { form: any }) {
   return (
     <FormField
       control={form.control}
-      name="username"
+      name="textarea"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Username</FormLabel>
+          <FormLabel>Comments</FormLabel>
           <FormControl>
-            <Input {...field} />
+            <Textarea {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -20,4 +20,4 @@ function text({ form }: { form: any }) {
   );
 }
 
-export default text;
+export default textarea;
