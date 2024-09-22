@@ -14,6 +14,7 @@ import RadioComponent from "../../../shared/controls/radio";
 import TextareaComponent from "../../../shared/controls/textarea";
 import PasswordComponent from "../../../shared/controls/password";
 import FileComponent from "../../../shared/controls/file";
+import formJson from "./form.json";
 
 type FormObj = {
   username: string;
@@ -45,6 +46,7 @@ function FormBuilder() {
     console.log(res);
     navigate("/table");
   };
+  console.log(formJson);
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -55,16 +57,32 @@ function FormBuilder() {
       <CardContent>
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            <TextComponent form={form} />
-            <DropdownComponent form={form} />
-            <EmailComponent form={form} />
-            <BooleanComponent form={form} />
-            <DateComponent form={form} />
-            <CheckboxComponent form={form} />
-            <TextareaComponent form={form} />
-            <RadioComponent form={form} />
-            <PasswordComponent form={form} />
-            <FileComponent form={form} />
+            {formJson.map((field) => {
+              switch (field.type) {
+                case "text":
+                  return <TextComponent form={form} />;
+                case "textarea":
+                  return <TextareaComponent form={form} />;
+                case "boolean":
+                  return <BooleanComponent form={form} />;
+                case "dropdown":
+                  return <DropdownComponent form={form} />;
+                case "email":
+                  return <EmailComponent form={form} />;
+                case "radio":
+                  return <RadioComponent form={form} />;
+                case "checkbox":
+                  return <CheckboxComponent form={form} />;
+                case "password":
+                  return <PasswordComponent form={form} />;
+                case "file":
+                  return <FileComponent form={form} />;
+                case "date":
+                  return <DateComponent form={form} />;
+                default:
+                  return <>Unidentified field</>;
+              }
+            })}
           </form>
         </FormProvider>
       </CardContent>
