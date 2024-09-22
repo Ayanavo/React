@@ -2,14 +2,14 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import React from "react";
 
-function text({ form }: { form: any }) {
+function email({ form }: { form: any }) {
   return (
     <FormField
       control={form.control}
-      name="username"
+      name="email"
       render={({ field }) => (
         <FormItem>
-          <FormLabel htmlFor="name">Username</FormLabel>
+          <FormLabel htmlFor="email">Email</FormLabel>
           <FormControl>
             <Input {...field} />
           </FormControl>
@@ -20,4 +20,4 @@ function text({ form }: { form: any }) {
   );
 }
 
-export default text;
+export default email;
