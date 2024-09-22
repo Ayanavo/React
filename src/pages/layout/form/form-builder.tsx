@@ -12,6 +12,8 @@ import EmailComponent from "../../../shared/controls/email";
 import TextComponent from "../../../shared/controls/text";
 import RadioComponent from "../../../shared/controls/radio";
 import TextareaComponent from "../../../shared/controls/textarea";
+import PasswordComponent from "../../../shared/controls/password";
+import FileComponent from "../../../shared/controls/file";
 
 type FormObj = {
   username: string;
@@ -61,6 +63,8 @@ function FormBuilder() {
             <CheckboxComponent form={form} />
             <TextareaComponent form={form} />
             <RadioComponent form={form} />
+            <PasswordComponent form={form} />
+            <FileComponent form={form} />
           </form>
         </FormProvider>
       </CardContent>

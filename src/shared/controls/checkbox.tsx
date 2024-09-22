@@ -1,8 +1,9 @@
 import { FormField, FormItem, FormControl, FormLabel, FormDescription } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import React from "react";
+import { FieldValue } from "react-hook-form";
 
-function checkbox({ form }: { form: any }) {
+function checkbox({ form }: { form: FieldValue<any> }) {
   const items = [
     { id: "react", label: "React" },
     { id: "vue", label: "Vue" },

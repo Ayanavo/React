@@ -1,8 +1,9 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import React from "react";
+import { FieldValue } from "react-hook-form";
 
-function text({ form }: { form: any }) {
+function text({ form }: { form: FieldValue<any> }) {
   return (
     <FormField
       control={form.control}

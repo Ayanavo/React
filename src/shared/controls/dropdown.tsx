@@ -1,8 +1,9 @@
 import { FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import React from "react";
+import { FieldValue } from "react-hook-form";
 
-function dropdown({ form }: { form: any }) {
+function dropdown({ form }: { form: FieldValue<any> }) {
   return (
     <FormField
       control={form.control}

@@ -6,8 +6,9 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon } from "@radix-ui/react-icons";
 import React from "react";
+import { FieldValue } from "react-hook-form";
 
-function date({ form }: { form: any }) {
+function date({ form }: { form: FieldValue<any> }) {
   return (
     <FormField
       control={form.control}

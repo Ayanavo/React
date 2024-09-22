@@ -2,8 +2,9 @@ import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/f
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import React from "react";
+import { FieldValue } from "react-hook-form";
 
-function boolean({ form }: { form: any }) {
+function boolean({ form }: { form: FieldValue<any> }) {
   return (
     <FormField
       control={form.control}
