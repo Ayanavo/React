@@ -60,21 +60,21 @@ function FormBuilder() {
             {formJson.map((field) => {
               switch (field.type) {
                 case "text":
-                  return <TextComponent form={form} schema={field} />;
+                  return <TextComponent form={form} schema={field as keyof typeof TextComponent} />;
                 case "textarea":
-                  return <TextareaComponent form={form} schema={field} />;
+                  return <TextareaComponent form={form} schema={field as keyof typeof TextareaComponent} />;
                 case "boolean":
                   return <BooleanComponent form={form} />;
                 case "dropdown":
                   return <DropdownComponent form={form} />;
                 case "email":
-                  return <EmailComponent form={form} schema={field} />;
+                  return <EmailComponent form={form} schema={field as keyof typeof EmailComponent} />;
                 case "radio":
-                  return <RadioComponent form={form} schema={field} />;
+                  return <RadioComponent form={form} schema={field as keyof typeof RadioComponent} />;
                 case "checkbox":
                   return <CheckboxComponent form={form} />;
                 case "password":
-                  return <PasswordComponent form={form} schema={field} />;
+                  return <PasswordComponent form={form} schema={field as keyof typeof PasswordComponent} />;
                 case "file":
                   return <FileComponent form={form} />;
                 case "date":
