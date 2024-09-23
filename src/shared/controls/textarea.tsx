@@ -6,6 +6,7 @@ import { FieldValue } from "react-hook-form";
 type TextareaSchema = {
   name: string;
   label: string;
+  placeholder: string;
   type: "textarea";
   validation: { required: boolean };
 };
@@ -19,7 +20,7 @@ function textarea({ form, schema }: { form: FieldValue<any>; schema: TextareaSch
         <FormItem>
           <FormLabel>{schema.label}</FormLabel>
           <FormControl>
-            <Textarea {...field} />
+            <Textarea placeholder={schema.placeholder} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

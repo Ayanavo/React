@@ -3,22 +3,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import React from "react";
 import { FieldValue } from "react-hook-form";
 
-function dropdown({ form }: { form: FieldValue<any> }) {
+type DropdownSchema = {
+  name: string;
+  label: string;
+  type: "list";
+  options: Array<{ label: string; value: string }>;
+  validation: { required: boolean };
+};
+
+function dropdown({ form, schema }: { form: FieldValue<any>; schema: DropdownSchema }) {
   return (
     <FormField
       control={form.control}
-      name="email"
+      name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Select</FormLabel>
+          <FormLabel>{schema.label}</FormLabel>
           <Select onValueChange={field.onChange} defaultValue={field.value}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-              <SelectItem value="system">System</SelectItem>
+              {schema.options.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </FormItem>

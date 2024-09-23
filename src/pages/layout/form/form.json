@@ -18,8 +18,9 @@
     "validation": { "required": true, "minLength": 8 }
   },
   {
-    "name": "comments",
-    "label": "Comments",
+    "name": "description",
+    "label": "Description",
+    "placeholder": "Enter your message here...",
     "type": "textarea",
     "validation": { "required": false }
   },
@@ -33,5 +34,18 @@
       { "label": "Other", "value": "other" }
     ],
     "validation": { "required": true }
+  },
+  {
+    "name": "terms",
+    "label": "I agree to the terms and conditions",
+    "type": "boolean",
+    "validation": { "required": true }
+  },
+  {
+    "name": "comments",
+    "label": "Comments",
+    "placeholder": "Enter your message here...",
+    "type": "html",
+    "validation": { "required": false }
   }
 ]

@@ -4,11 +4,18 @@ import { Switch } from "@/components/ui/switch";
 import React from "react";
 import { FieldValue } from "react-hook-form";
 
-function boolean({ form }: { form: FieldValue<any> }) {
+type BooleanSchema = {
+  name: string;
+  label: string;
+  type: "boolean";
+  validation: { required: boolean };
+};
+
+function boolean({ form, schema }: { form: FieldValue<any>; schema: BooleanSchema }) {
   return (
     <FormField
       control={form.control}
-      name="status"
+      name={schema.name}
       render={({ field }) => (
         <FormItem>
           <div className="flex items-center justify-between space-x-2">
@@ -16,7 +23,7 @@ function boolean({ form }: { form: FieldValue<any> }) {
               <Switch id="status" checked={field.value} onCheckedChange={field.onChange} />
             </FormControl>
             <Label className="flex-grow m-0" htmlFor="status">
-              Currently works
+              {schema.label}
             </Label>
             <FormMessage />
           </div>

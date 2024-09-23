@@ -14,6 +14,7 @@ import RadioComponent from "../../../shared/controls/radio";
 import TextareaComponent from "../../../shared/controls/textarea";
 import PasswordComponent from "../../../shared/controls/password";
 import FileComponent from "../../../shared/controls/file";
+import EditorComponent from "../../../shared/controls/editor";
 import formJson from "./form.json";
 
 type FormObj = {
@@ -46,7 +47,6 @@ function FormBuilder() {
     console.log(res);
     navigate("/table");
   };
-  console.log(formJson);
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
@@ -60,27 +60,29 @@ function FormBuilder() {
             {formJson.map((field) => {
               switch (field.type) {
                 case "text":
-                  return <TextComponent form={form} schema={field as keyof typeof TextComponent} />;
+                  return <TextComponent key={field.name} form={form} schema={field as keyof typeof TextComponent} />;
                 case "textarea":
-                  return <TextareaComponent form={form} schema={field as keyof typeof TextareaComponent} />;
+                  return <TextareaComponent key={field.name} form={form} schema={field as keyof typeof TextareaComponent} />;
                 case "boolean":
-                  return <BooleanComponent form={form} />;
+                  return <BooleanComponent key={field.name} form={form} schema={field as keyof typeof BooleanComponent} />;
                 case "dropdown":
-                  return <DropdownComponent form={form} />;
+                  return <DropdownComponent key={field.name} form={form} schema={field as keyof typeof DropdownComponent} />;
                 case "email":
-                  return <EmailComponent form={form} schema={field as keyof typeof EmailComponent} />;
+                  return <EmailComponent key={field.name} form={form} schema={field as keyof typeof EmailComponent} />;
                 case "radio":
-                  return <RadioComponent form={form} schema={field as keyof typeof RadioComponent} />;
+                  return <RadioComponent key={field.name} form={form} schema={field as keyof typeof RadioComponent} />;
                 case "checkbox":
-                  return <CheckboxComponent form={form} />;
+                  return <CheckboxComponent key={field.name} form={form} />;
                 case "password":
-                  return <PasswordComponent form={form} schema={field as keyof typeof PasswordComponent} />;
+                  return <PasswordComponent key={field.name} form={form} schema={field as keyof typeof PasswordComponent} />;
                 case "file":
-                  return <FileComponent form={form} />;
+                  return <FileComponent key={field.name} form={form} />;
                 case "date":
-                  return <DateComponent form={form} />;
+                  return <DateComponent key={field.name} form={form} />;
+                case "html":
+                  return <EditorComponent key={field.name} form={form} schema={field as keyof typeof EditorComponent} />;
                 default:
-                  return <>Unidentified field</>;
+                  return <>Unidentified field type: {field.type}</>;
               }
             })}
           </form>
