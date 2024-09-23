@@ -2,15 +2,20 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import React from "react";
 import { FieldValue } from "react-hook-form";
-
-function email({ form }: { form: FieldValue<any> }) {
+type EmailSchema = {
+  name: string;
+  label: string;
+  type: "email";
+  validation: { required: boolean };
+};
+function email({ form, schema }: { form: FieldValue<any>; schema: EmailSchema }) {
   return (
     <FormField
       control={form.control}
-      name="email"
+      name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel htmlFor="email">Email</FormLabel>
+          <FormLabel>{schema.label}</FormLabel>
           <FormControl>
             <Input {...field} />
           </FormControl>

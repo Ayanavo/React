@@ -3,27 +3,28 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import React from "react";
 import { FieldValue } from "react-hook-form";
 
-function radio({ form }: { form: FieldValue<any> }) {
-  const items = [
-    { id: "react", label: "React" },
-    { id: "vue", label: "Vue" },
-    { id: "angular", label: "Angular" },
-    { id: "svelte", label: "Svelte" },
-  ] as const;
+type RadioSchema = {
+  name: string;
+  label: string;
+  type: "radio";
+  options: Array<{ label: string; value: string }>;
+  validation: { required: boolean };
+};
 
+function radio({ form, schema }: { form: FieldValue<any>; schema: RadioSchema }) {
   return (
     <FormField
       control={form.control}
-      name="radio"
+      name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Username</FormLabel>
+          <FormLabel>{schema.label}</FormLabel>
           <FormControl>
             <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
-              {items.map((item) => (
-                <FormItem key={item.id} className="flex items-center space-x-3 space-y-0">
+              {schema.options.map((item) => (
+                <FormItem key={item.value} className="flex items-center space-x-3 space-y-0">
                   <FormControl>
-                    <RadioGroupItem value={item.id} />
+                    <RadioGroupItem value={item.value} />
                   </FormControl>
                   <FormLabel className="font-normal">{item.label}</FormLabel>
                 </FormItem>

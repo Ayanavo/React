@@ -3,14 +3,21 @@ import { Textarea } from "@/components/ui/textarea";
 import React from "react";
 import { FieldValue } from "react-hook-form";
 
-function textarea({ form }: { form: FieldValue<any> }) {
+type TextareaSchema = {
+  name: string;
+  label: string;
+  type: "textarea";
+  validation: { required: boolean };
+};
+
+function textarea({ form, schema }: { form: FieldValue<any>; schema: TextareaSchema }) {
   return (
     <FormField
       control={form.control}
-      name="textarea"
+      name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Comments</FormLabel>
+          <FormLabel>{schema.label}</FormLabel>
           <FormControl>
             <Textarea {...field} />
           </FormControl>

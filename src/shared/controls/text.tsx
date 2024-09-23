@@ -2,15 +2,21 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import React from "react";
 import { FieldValue } from "react-hook-form";
+type TextSchema = {
+  name: string;
+  label: string;
+  type: "text";
+  validation: { required: boolean };
+};
 
-function text({ form }: { form: FieldValue<any> }) {
+function text({ form, schema }: { form: FieldValue<any>; schema: TextSchema }) {
   return (
     <FormField
       control={form.control}
-      name="username"
+      name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Username</FormLabel>
+          <FormLabel>{schema.label}</FormLabel>
           <FormControl>
             <Input {...field} />
           </FormControl>

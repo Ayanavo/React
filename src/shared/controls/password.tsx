@@ -4,16 +4,22 @@ import { Input } from "@/components/ui/input";
 import { EyeClosedIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import React, { useState } from "react";
 import { FieldValue } from "react-hook-form";
+type PasswordSchema = {
+  name: string;
+  label: string;
+  type: "password";
+  validation: { required: boolean; minLength?: number; maxLength?: number };
+};
 
-function password({ form }: { form: FieldValue<any> }) {
+function password({ form, schema }: { form: FieldValue<any>; schema: PasswordSchema }) {
   const [showPassword, setShowPassword] = useState(false);
   return (
     <FormField
       control={form.control}
-      name="status"
+      name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Password</FormLabel>
+          <FormLabel>{schema.label}</FormLabel>
           <div className="relative">
             <FormControl>
               <Input type={!showPassword ? "password" : "text"} {...field} />
