@@ -1,7 +1,7 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import React from "react";
 import { FieldValue } from "react-hook-form";
-import ReactQuill, { ReactQuillProps, Quill } from "react-quill";
+import ReactQuill, { ReactQuillProps } from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import "./custom.scss";
 type EditorSchema = {
