@@ -5,6 +5,7 @@ import { FieldValue } from "react-hook-form";
 type EmailSchema = {
   name: string;
   label: string;
+  placeholder: string;
   type: "email";
   validation: { required: boolean };
 };
@@ -17,7 +18,7 @@ function email({ form, schema }: { form: FieldValue<any>; schema: EmailSchema })
         <FormItem>
           <FormLabel>{schema.label}</FormLabel>
           <FormControl>
-            <Input {...field} />
+            <Input {...field} placeholder={schema.placeholder} />
           </FormControl>
           <FormMessage />
         </FormItem>

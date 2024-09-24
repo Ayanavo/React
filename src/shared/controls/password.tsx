@@ -7,6 +7,7 @@ import { FieldValue } from "react-hook-form";
 type PasswordSchema = {
   name: string;
   label: string;
+  placeholder: string;
   type: "password";
   validation: { required: boolean; minLength?: number; maxLength?: number };
 };
@@ -22,7 +23,7 @@ function password({ form, schema }: { form: FieldValue<any>; schema: PasswordSch
           <FormLabel>{schema.label}</FormLabel>
           <div className="relative">
             <FormControl>
-              <Input type={!showPassword ? "password" : "text"} {...field} />
+              <Input type={!showPassword ? "password" : "text"} {...field} placeholder={schema.placeholder} />
             </FormControl>
             <Button
               type="button"

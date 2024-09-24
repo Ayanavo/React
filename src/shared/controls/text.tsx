@@ -5,6 +5,7 @@ import { FieldValue } from "react-hook-form";
 type TextSchema = {
   name: string;
   label: string;
+  placeholder: string;
   type: "text";
   validation: { required: boolean };
 };
@@ -18,7 +19,7 @@ function text({ form, schema }: { form: FieldValue<any>; schema: TextSchema }) {
         <FormItem>
           <FormLabel>{schema.label}</FormLabel>
           <FormControl>
-            <Input {...field} />
+            <Input {...field} placeholder={schema.placeholder} />
           </FormControl>
           <FormMessage />
         </FormItem>

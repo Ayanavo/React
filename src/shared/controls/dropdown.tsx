@@ -6,6 +6,7 @@ import { FieldValue } from "react-hook-form";
 type DropdownSchema = {
   name: string;
   label: string;
+  placeholder: string;
   type: "list";
   options: Array<{ label: string; value: string }>;
   validation: { required: boolean };
@@ -21,7 +22,7 @@ function dropdown({ form, schema }: { form: FieldValue<any>; schema: DropdownSch
           <FormLabel>{schema.label}</FormLabel>
           <Select onValueChange={field.onChange} defaultValue={field.value}>
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue placeholder={schema.placeholder} />
             </SelectTrigger>
             <SelectContent>
               {schema.options.map((option) => (
