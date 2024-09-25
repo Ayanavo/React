@@ -37,7 +37,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   file: FileComponent,
   date: DateComponent,
   html: EditorComponent,
-  phone: PhoneComponent,
+  tel: PhoneComponent,
 };
 
 function FormBuilder() {

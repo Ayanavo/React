@@ -6,7 +6,7 @@ type PhoneSchema = {
   name: string;
   label: string;
   placeholder: string;
-  type: "phone";
+  type: "tel";
   validation: { required: boolean };
 };
 function phone({ form, schema }: { form: FieldValue<any>; schema: PhoneSchema }) {

@@ -16,16 +16,22 @@
                 "validation": { "required": true }
               },
               {
+                "name": "password",
+                "label": "Password",
+                "type": "password",
+                "validation": { "required": true, "minLength": 8 }
+              },
+              {
                 "name": "email",
                 "label": "Email",
                 "type": "email",
                 "validation": { "required": true, "email": true }
               },
               {
-                "name": "password",
-                "label": "Password",
-                "type": "password",
-                "validation": { "required": true, "minLength": 8 }
+                "name": "phone",
+                "label": "Phone",
+                "type": "tel",
+                "validation": { "required": true, "pattern": "^\\d{10}$" }
               },
               {
                 "name": "description",
