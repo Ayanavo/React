@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DevTool } from "@hookform/devtools";
 import React, { useEffect, useState } from "react";
@@ -15,17 +15,14 @@ import EditorComponent from "../../../shared/controls/editor";
 import EmailComponent from "../../../shared/controls/email";
 import FileComponent from "../../../shared/controls/file";
 import PasswordComponent from "../../../shared/controls/password";
+import PhoneComponent from "../../../shared/controls/phone";
 import RadioComponent from "../../../shared/controls/radio";
 import TextComponent from "../../../shared/controls/text";
 import TextareaComponent from "../../../shared/controls/textarea";
 import formJson from "./form.json";
 
 type FormObj = {
-  username: string;
-  email: string;
-  status: boolean;
-  date: Date;
-  skills: string[];
+  [key: string]: string | boolean | Date | string[];
 };
 
 const componentMap: Record<string, React.ComponentType<any>> = {
@@ -40,6 +37,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   file: FileComponent,
   date: DateComponent,
   html: EditorComponent,
+  phone: PhoneComponent,
 };
 
 function FormBuilder() {
@@ -56,6 +54,13 @@ function FormBuilder() {
     navigate("/table");
   };
 
+  const getColumn = {
+    1: "grid-cols-1",
+    2: "grid-cols-1 md:grid-cols-2",
+    3: "grid-cols-1 md:grid-cols-2 lg:grid-cols-3",
+    undefined: "grid-cols-1",
+  };
+
   const renderField = (field: any) => {
     const Component = componentMap[field.type as keyof typeof componentMap];
     return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
@@ -66,7 +71,7 @@ function FormBuilder() {
   }
 
   return (
-    <Tabs className="w-full max-w-4xl mx-auto" defaultValue={defaultTab}>
+    <Tabs className="w-full max-w-6xl mx-auto" defaultValue={defaultTab}>
       <TabsList className={`grid w-full grid-cols-3`}>
         {formJson.map((tab) => (
           <TabsTrigger key={tab.tabId} value={tab.tabId}>
@@ -78,24 +83,20 @@ function FormBuilder() {
         <form onSubmit={form.handleSubmit(onSubmit)}>
           {formJson.map((tab) => (
             <TabsContent key={tab.tabId} value={tab.tabId}>
-              {tab.blocks.map((block, blockIndex) => (
+              {tab.sections.map((section, blockIndex) => (
                 <Card key={blockIndex} className="mb-6">
                   <CardHeader className="space-y-1">
-                    <CardTitle>{block.blockLabel}</CardTitle>
+                    <CardTitle>{section.sectionLabel}</CardTitle>
                     <CardDescription>Please fill in your details for this section.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">{block.fields.map(renderField)}</div>
+                    <div className={`grid ${getColumn[section.colType as keyof typeof getColumn]} gap-4`}>{section.blocks?.map((block) => block.fields.map(renderField))}</div>
                   </CardContent>
-                  {blockIndex === tab.blocks.length - 1 && (
-                    <CardFooter>
-                      <Button type="submit" className="w-full">
-                        Submit
-                      </Button>
-                    </CardFooter>
-                  )}
                 </Card>
               ))}
+              <Button type="submit" className="w-full">
+                Submit
+              </Button>
             </TabsContent>
           ))}
         </form>
