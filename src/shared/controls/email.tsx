@@ -28,7 +28,7 @@ function email({ form, schema }: { form: FieldValue<any>; schema: EmailSchema })
   return (
     <div className="space-y-4">
       {fields.map((field, index) => (
-        <div key={field.id} className="flex items-end space-x-2">
+        <div key={field.id} className="relative">
           <FormField
             control={form.control}
             name={`${schema.name}.${index}.email`}
@@ -46,20 +46,17 @@ function email({ form, schema }: { form: FieldValue<any>; schema: EmailSchema })
             control={form.control}
             name={`${schema.name}.${index}.isPrimary`}
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="absolute right-2 top-3/4 -translate-y-1/2">
                 <FormControl>
-                  <RadioGroup onValueChange={() => setPrimaryEmail(index)} value={field.value} className="flex items-center space-x-2">
+                  <RadioGroup onValueChange={() => setPrimaryEmail(index)} value={field.value} className="flex items-center ">
                     <RadioGroupItem value="true" checked={field.value === true} />
                   </RadioGroup>
                 </FormControl>
               </FormItem>
             )}
           />
-          {index > 0 && (
-            <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} className="mb-2">
-              <TrashIcon className="h-4 w-4" />
-              <span className="sr-only">Remove email field</span>
-            </Button>
+          {!!index && (
+            <TrashIcon className="absolute -right-5 top-3/4 -translate-y-1/2 w-4 text-destructive hover:text-destructive/90 cursor-pointer" onClick={() => remove(index)} />
           )}
         </div>
       ))}
