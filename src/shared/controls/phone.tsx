@@ -62,7 +62,7 @@ function phone({ form, schema }: { form: FieldValue<any>; schema: PhoneSchema })
       ))}
       <Button type="button" variant="outline" size="sm" onClick={() => append({ phone: "", isPrimary: false })} className="mt-2">
         <PlusCircledIcon className="mr-2 h-4 w-4" />
-        Add Phone
+        Add more
       </Button>
     </div>
   );

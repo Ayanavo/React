@@ -19,6 +19,8 @@ import PhoneComponent from "../../../shared/controls/phone";
 import RadioComponent from "../../../shared/controls/radio";
 import TextComponent from "../../../shared/controls/text";
 import TextareaComponent from "../../../shared/controls/textarea";
+import ColorComponent from "../../../shared/controls/color";
+import RatingComponent from "../../../shared/controls/rating";
 import formJson from "./form.json";
 
 type FormObj = {
@@ -38,6 +40,8 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   date: DateComponent,
   html: EditorComponent,
   tel: PhoneComponent,
+  color: ColorComponent,
+  rating: RatingComponent,
 };
 
 function FormBuilder() {
@@ -72,7 +76,7 @@ function FormBuilder() {
 
   return (
     <Tabs className="w-full max-w-6xl mx-auto" defaultValue={defaultTab}>
-      <TabsList className={`grid w-full grid-cols-3`}>
+      <TabsList className={`grid w-full grid-cols-4`}>
         {formJson.map((tab) => (
           <TabsTrigger key={tab.tabId} value={tab.tabId}>
             {tab.tabLabel}

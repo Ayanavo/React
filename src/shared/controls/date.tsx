@@ -8,14 +8,22 @@ import { CalendarIcon } from "@radix-ui/react-icons";
 import React from "react";
 import { FieldValue } from "react-hook-form";
 
-function date({ form }: { form: FieldValue<any> }) {
+type DateSchema = {
+  name: string;
+  label: string;
+  placeholder: string;
+  type: "date";
+  validation: { required: boolean };
+};
+
+function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
   return (
     <FormField
       control={form.control}
-      name="date"
+      name={schema.name}
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          <FormLabel>Date</FormLabel>
+          <FormLabel>{schema.label}</FormLabel>
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>

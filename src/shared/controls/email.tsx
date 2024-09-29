@@ -61,8 +61,8 @@ function email({ form, schema }: { form: FieldValue<any>; schema: EmailSchema })
         </div>
       ))}
       <Button type="button" variant="outline" size="sm" onClick={() => append({ email: "", isPrimary: false })} className="mt-2">
-        <PlusCircledIcon className="mr-2 h-4 w-4" />
-        Add Email
+        <PlusCircledIcon className=" mr-2 h-4 w-4" />
+        Add more
       </Button>
     </div>
   );
