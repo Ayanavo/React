@@ -1,17 +1,23 @@
-import { FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { UploadIcon } from "@radix-ui/react-icons";
 import React, { useRef } from "react";
 import { FieldValue } from "react-hook-form";
 
-function file({ form }: { form: FieldValue<any> }) {
+type FileSchema = {
+  name: string;
+  label: string;
+  validation: { required: boolean; maxSize: "16Mb" };
+};
+
+function file({ form, schema }: { form: FieldValue<any>; schema: FileSchema }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   return (
     <FormField
       control={form.control}
-      name="file"
+      name={schema.name}
       render={() => (
         <FormItem>
-          <FormLabel>File</FormLabel>
+          <FormLabel>{schema.label}</FormLabel>
           <div
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
@@ -26,10 +32,11 @@ function file({ form }: { form: FieldValue<any> }) {
               <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
                 <span className="font-semibold">Click to upload</span> or drag and drop
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Max Size {schema.validation.maxSize || "500Mb"}</p>
             </div>
             <input ref={inputRef} id="dropzone-file" type="file" className="hidden" />
           </div>
+          <FormMessage />
         </FormItem>
       )}
     />

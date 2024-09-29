@@ -221,6 +221,16 @@
                 "validation": { "required": true }
               }
             ]
+          },
+          {
+            "fields": [
+              {
+                "name": "upload",
+                "label": "Attachments",
+                "type": "file",
+                "validation": { "required": true, "maxSize": "32Kb" }
+              }
+            ]
           }
         ]
       }
