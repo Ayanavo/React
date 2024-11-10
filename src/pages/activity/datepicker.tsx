@@ -1,9 +1,9 @@
 import { Calendar } from "@/components/ui/calendar";
 import React from "react";
+import { SelectSingleEventHandler } from "react-day-picker";
 
-function datepicker() {
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
-  return <Calendar mode="single" selected={date} onSelect={setDate} />;
+function datepicker({ onSendData, date }: { onSendData: any; date: Date }) {
+  return <Calendar mode="single" selected={date} onSelect={onSendData as SelectSingleEventHandler} />;
 }
 
 export default datepicker;

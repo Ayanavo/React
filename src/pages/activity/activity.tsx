@@ -1,35 +1,76 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Separator } from "@/components/ui/separator";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionGridPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import { GearIcon } from "@radix-ui/react-icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import React, { useState } from "react";
-import DatePickerComponent from "./datepicker";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import ActivityComponent from "./activity-list";
 import moment from "moment";
-import { GearIcon } from "@radix-ui/react-icons";
-import { Separator } from "@/components/ui/separator";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
+import ActivityComponent from "./activity-list";
+import DatePickerComponent from "./datepicker";
 
 function activity() {
   const events = [
-    { title: "Jane Feedback", start: "2023-09-12T08:00:00", end: "2023-09-12T09:30:00" },
-    { title: "Design System", start: "2023-09-12T09:30:00", end: "2023-09-12T11:00:00" },
-    { title: "Daily Sync", start: "2023-09-12T11:00:00", end: "2023-09-12T11:30:00" },
-    { title: "Break", start: "2023-09-12T11:30:00", end: "2023-09-12T12:00:00" },
-    { title: "Asie's Birthday", start: "2023-09-14T18:00:00", end: "2023-09-14T20:00:00" },
+    { title: "Jane Feedback", date: "2023-09-12T08:00:00" },
+    { title: "Design System", date: "2023-09-12T09:30:00" },
+    { title: "Daily Sync", date: "2023-09-12T11:00:00" },
+    { title: "Break", date: "2023-09-12T11:30:00" },
+    { title: "Asie's Birthday", date: "2023-09-14T18:00:00" },
   ];
   const [showEventPopover, setShowEventPopover] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
+  const calendarRef = useRef<FullCalendar | null>(null);
+  const [activeMonth, setActiveMonth] = useState("");
+  const [date, setDate] = React.useState<Date>(new Date());
+  useEffect(() => {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      const currentMonth = moment(calendarApi.getDate()).format("MMMM YYYY");
+      setActiveMonth(currentMonth);
+      calendarApi.gotoDate(date);
+    }
+  });
 
-  const handleDateClick = (arg: { date: Date }) => {
+  function handleDateClick(arg: { date: Date }) {
     setSelectedDate(arg.date);
     // setShowEventPopover(true);
     console.log(arg);
-  };
+  }
+
+  function handleView(view: string) {
+    const calendarApi = calendarRef.current?.getApi();
+    calendarApi && calendarApi.changeView(view);
+  }
+
+  function handleAlignment(event: SyntheticEvent<HTMLButtonElement>) {
+    const calendarApi = calendarRef.current?.getApi();
+    switch ((event.target as HTMLButtonElement).value) {
+      case "today":
+        calendarApi && calendarApi.today();
+        break;
+      case "prev":
+        calendarApi && calendarApi.prev();
+        break;
+      case "next":
+        calendarApi && calendarApi.next();
+        break;
+    }
+  }
+
+  function handleDatesSet() {
+    if (calendarRef.current) {
+      const calendarApi = calendarRef.current.getApi();
+      const currentDate = calendarApi.getDate();
+      const currentMonth = moment(currentDate).format("MMMM YYYY");
+      setActiveMonth(currentMonth);
+    }
+  }
 
   // const renderEventContent = (eventInfo: {
   //   timeText: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined;
@@ -51,8 +92,8 @@ function activity() {
       </header>
       <main className="flex-grow p-4 sm:p-6 md:p-8 overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="flex h-screen overflow-hidden bg-white">
-          <ResizablePanel minSize={20} className="w-[270px] p-4">
-            <DatePickerComponent />
+          <ResizablePanel minSize={17} className="w-[270px] p-4">
+            <DatePickerComponent onSendData={setDate} date={date} />
             <Separator />
             <ActivityComponent events={events} />
           </ResizablePanel>
@@ -60,36 +101,42 @@ function activity() {
           <ResizablePanel defaultSize={83} minSize={50} className="flex-1 p-4">
             <div className="mb-4 flex justify-between items-center">
               <div className="flex items-center space-x-2">
-                <h1 className="text-3xl font-bold">{moment().format("MMMM YYYY")}</h1>
-                <Button variant="outline">Today</Button>
-                <Button variant="outline" size="icon">
+                <h1 className="text-3xl font-bold">{activeMonth}</h1>
+                <Button variant="outline" value={"today"} onClick={handleAlignment}>
+                  Today
+                </Button>
+                <Button variant="outline" size="icon" value={"prev"} onClick={handleAlignment}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <Button variant="outline" size="icon">
+                <Button variant="outline" size="icon" value={"next"} onClick={handleAlignment}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
               <div className="flex items-center space-x-2">
                 <GearIcon className="cursor-pointer" />
-                <ToggleGroup className="gap-0" type="single" variant="outline">
-                  <ToggleGroupItem className="rounded-r-none" value="day">
+                <ToggleGroup className="gap-0" type="single" variant="outline" onValueChange={handleView}>
+                  <ToggleGroupItem className="rounded-r-none" value="dayGridDay">
                     Day
                   </ToggleGroupItem>
-                  <ToggleGroupItem className="rounded-none border-x-0" value="week">
+                  <ToggleGroupItem className="rounded-none border-x-0" value="dayGridWeek">
                     Week
                   </ToggleGroupItem>
-                  <ToggleGroupItem className="rounded-l-none" value="month">
+                  <ToggleGroupItem className="rounded-l-none" value="dayGridMonth">
                     Month
                   </ToggleGroupItem>
                 </ToggleGroup>
               </div>
             </div>
             <FullCalendar
-              plugins={[dayGridPlugin, interactionGridPlugin]}
+              ref={calendarRef}
+              plugins={[dayGridPlugin, timeGridPlugin, interactionGridPlugin]}
               initialView="dayGridMonth"
               events={events}
               dateClick={handleDateClick}
+              datesSet={handleDatesSet}
               headerToolbar={false}
+              editable={true}
+              selectable={true}
               height="calc(100vh - 120px)"
             />
           </ResizablePanel>
