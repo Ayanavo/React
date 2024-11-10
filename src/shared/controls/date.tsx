@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon } from "@radix-ui/react-icons";
+import { CalendarIcon } from "lucide-react";
 import React from "react";
-import { FieldValue } from "react-hook-form";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { FieldValues, UseFormReturn } from "react-hook-form";
 
 type DateSchema = {
   name: string;
@@ -16,7 +17,16 @@ type DateSchema = {
   validation: { required: boolean };
 };
 
-function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
+function date({ form, schema }: { form: UseFormReturn<FieldValues>; schema: DateSchema }) {
+  const handleDateChange = (date: Date | null) => {
+    form.setValue(schema.name, date);
+  };
+
+  const handleTodayClick = () => {
+    const today = new Date();
+    form.setValue(schema.name, today);
+  };
+
   return (
     <FormField
       control={form.control}
@@ -34,13 +44,26 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
               </FormControl>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
+              <DatePicker
+                showTimeSelect
+                showYearDropdown
+                scrollableYearDropdown
+                inline
                 selected={field.value}
-                onSelect={field.onChange}
-                // disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                initialFocus
+                onChange={handleDateChange}
+                calendarClassName="bg-white border-none"
+                wrapperClassName="w-full"
+                popperClassName="react-datepicker-popper"
+                dayClassName={(date) => (date && field.value && date.getTime() === field.value.getTime() ? "bg-black text-white" : "text-black hover:bg-gray-200")}
+                monthClassName={() => "react-datepicker__month"}
+                monthYearClassName={() => "react-datepicker__month-year"}
               />
+
+              <div className="p-3 border-t border-border">
+                <Button variant="default" className="w-full bg-black hover:bg-gray-800 text-white" onClick={handleTodayClick}>
+                  Today
+                </Button>
+              </div>
             </PopoverContent>
           </Popover>
           <FormMessage />

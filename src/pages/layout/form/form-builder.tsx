@@ -21,10 +21,11 @@ import TextComponent from "../../../shared/controls/text";
 import TextareaComponent from "../../../shared/controls/textarea";
 import ColorComponent from "../../../shared/controls/color";
 import RatingComponent from "../../../shared/controls/rating";
+import NumberComponent from "../../../shared/controls/number";
 import formJson from "./form.json";
 
 type FormObj = {
-  [key: string]: string | boolean | Date | string[];
+  [key: string]: string | boolean | Date | number | string[];
 };
 
 const componentMap: Record<string, React.ComponentType<any>> = {
@@ -42,6 +43,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   tel: PhoneComponent,
   color: ColorComponent,
   rating: RatingComponent,
+  number: NumberComponent,
 };
 
 function FormBuilder() {
@@ -51,7 +53,7 @@ function FormBuilder() {
   }, []);
   const navigate = useNavigate();
   const form = useForm<FormObj>({
-    defaultValues: { username: "", email: "", status: false, date: new Date(), skills: ["angular"] },
+    defaultValues: { username: "", email: "", ifce: 0, status: false, date: new Date(), skills: ["angular"] },
   });
   const onSubmit = (res: FormObj) => {
     console.log(res);

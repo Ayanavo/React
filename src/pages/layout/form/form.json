@@ -162,7 +162,7 @@
               {
                 "name": "ifce",
                 "label": "IFCE",
-                "type": "text",
+                "type": "number",
                 "validation": {
                   "required": true,
                   "pattern": "^\\d{3}$"
