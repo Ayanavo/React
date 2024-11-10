@@ -8,7 +8,7 @@ import interactionGridPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { GearIcon } from "@radix-ui/react-icons";
-import { Popover, PopoverContent, PopoverTrigger } from "@radix-ui/react-popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
 import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
@@ -28,6 +28,8 @@ function activity() {
   const calendarRef = useRef<FullCalendar | null>(null);
   const [activeMonth, setActiveMonth] = useState("");
   const [date, setDate] = React.useState<Date>(new Date());
+  const [grid, setGrid] = React.useState<string>("dayGridMonth");
+
   useEffect(() => {
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
@@ -46,6 +48,7 @@ function activity() {
   function handleView(view: string) {
     const calendarApi = calendarRef.current?.getApi();
     calendarApi && calendarApi.changeView(view);
+    setGrid(view);
   }
 
   function handleAlignment(event: SyntheticEvent<HTMLButtonElement>) {
@@ -93,7 +96,9 @@ function activity() {
       <main className="flex-grow p-4 sm:p-6 md:p-8 overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="flex h-screen overflow-hidden bg-white">
           <ResizablePanel minSize={17} className="w-[270px] p-4">
-            <DatePickerComponent onSendData={setDate} date={date} />
+            <div className="pl-0">
+              <DatePickerComponent onSendData={setDate} date={date} />
+            </div>
             <Separator />
             <ActivityComponent events={events} />
           </ResizablePanel>
@@ -113,8 +118,20 @@ function activity() {
                 </Button>
               </div>
               <div className="flex items-center space-x-2">
-                <GearIcon className="cursor-pointer" />
-                <ToggleGroup className="gap-0" type="single" variant="outline" onValueChange={handleView}>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <GearIcon className="cursor-pointer" />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-60" align="end">
+                    <div className="grid gap-4">
+                      <div className="space-y-2">
+                        <h4 className="font-medium leading-none">Settings</h4>
+                        <p className="text-sm text-muted-foreground">Set apis.</p>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <ToggleGroup className="gap-0" type="single" value={grid} variant="outline" onValueChange={handleView}>
                   <ToggleGroupItem className="rounded-r-none" value="dayGridDay">
                     Day
                   </ToggleGroupItem>
