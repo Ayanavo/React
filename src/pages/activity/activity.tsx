@@ -11,6 +11,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import ActivityComponent from "./activity-list";
 import moment from "moment";
 import { GearIcon } from "@radix-ui/react-icons";
+import { Separator } from "@/components/ui/separator";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 
 function activity() {
   const events = [
@@ -48,13 +50,14 @@ function activity() {
         <h1 className="text-3xl font-bold mb-6 text-start">Activity</h1>
       </header>
       <main className="flex-grow p-4 sm:p-6 md:p-8 overflow-hidden">
-        <div className="flex h-screen overflow-hidden bg-white">
-          <div className="w-[270px] p-4">
+        <ResizablePanelGroup direction="horizontal" className="flex h-screen overflow-hidden bg-white">
+          <ResizablePanel defaultSize={17} className="w-[270px] p-4">
             <DatePickerComponent />
+            <Separator />
             <ActivityComponent events={events} />
-          </div>
-
-          <div className="flex-1 p-4">
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={83} className="flex-1 p-4">
             <div className="mb-4 flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <h1 className="text-3xl font-bold">{moment().format("MMMM YYYY")}</h1>
@@ -89,7 +92,7 @@ function activity() {
               headerToolbar={false}
               height="calc(100vh - 120px)"
             />
-          </div>
+          </ResizablePanel>
           <Popover open={showEventPopover} onOpenChange={setShowEventPopover}>
             <PopoverTrigger asChild>
               <Button className="hidden">Add Schedule</Button>
@@ -114,7 +117,7 @@ function activity() {
               </div>
             </PopoverContent>
           </Popover>
-        </div>
+        </ResizablePanelGroup>
       </main>
     </div>
   );
