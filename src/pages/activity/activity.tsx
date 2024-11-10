@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -8,9 +9,8 @@ import interactionGridPlugin, { DateClickArg } from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { GearIcon } from "@radix-ui/react-icons";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import moment, { Moment } from "moment";
+import moment from "moment";
 import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
 import ActivityComponent from "./activity-list";
 import DatePickerComponent from "./datepicker";
