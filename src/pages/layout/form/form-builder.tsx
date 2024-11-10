@@ -23,6 +23,7 @@ import ColorComponent from "../../../shared/controls/color";
 import RatingComponent from "../../../shared/controls/rating";
 import NumberComponent from "../../../shared/controls/number";
 import formJson from "./form.json";
+import moment from "moment";
 
 type FormObj = {
   [key: string]: string | boolean | Date | number | string[];
@@ -53,7 +54,7 @@ function FormBuilder() {
   }, []);
   const navigate = useNavigate();
   const form = useForm<FormObj>({
-    defaultValues: { username: "", email: "", ifce: 0, status: false, date: new Date(), skills: ["angular"] },
+    defaultValues: { username: "", email: "", ifce: 0, status: false, expiryDate: new Date(moment("15.11.1999", "DD.MM.YYYY").format()), skills: ["angular"] },
   });
   const onSubmit = (res: FormObj) => {
     console.log(res);

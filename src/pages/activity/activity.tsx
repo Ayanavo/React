@@ -39,7 +39,7 @@ function activity() {
       setActiveMonth(currentMonth);
       calendarApi.gotoDate(date);
     }
-  });
+  }, [date]);
 
   function handleDateClick(arg: DateClickArg) {
     setSelectedDate(moment(arg.date));
@@ -68,6 +68,8 @@ function activity() {
   }
 
   function handleDatesSet() {
+    console.log("multiple call on view change");
+
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       const currentDate = calendarApi.getDate();

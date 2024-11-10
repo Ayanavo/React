@@ -3,12 +3,14 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import moment from "moment";
 import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import TextComponent from "../../shared/controls/text";
 import ColorComponent from "../../shared/controls/color";
+import TextComponent from "../../shared/controls/text";
+import DateComponent from "../../shared/controls/date";
 
 export default function event({ setIsOpen, isOpen, momentValue }: { setIsOpen: (arg: boolean) => void; isOpen: boolean; momentValue: moment.Moment }) {
-  const form = useForm<{ name: string }>({
-    defaultValues: { name: "" },
+  const defaultValues = { date: new Date(momentValue.toISOString()) };
+  const form = useForm<{ name: string; date: Date }>({
+    defaultValues: defaultValues,
   });
 
   function onSubmit() {
@@ -21,7 +23,7 @@ export default function event({ setIsOpen, isOpen, momentValue }: { setIsOpen: (
   }
 
   useEffect(() => {
-    form.reset();
+    form.reset(defaultValues);
   }, [isOpen]);
 
   return (
@@ -34,15 +36,26 @@ export default function event({ setIsOpen, isOpen, momentValue }: { setIsOpen: (
           <DialogTitle>Add Event</DialogTitle>
         </DialogHeader>
         <DialogDescription>
-          Event date: {momentValue.format("MMMM Do, YYYY")}
           <FormProvider {...form}>
             <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
+              <DateComponent
+                form={form}
+                schema={{
+                  name: "date",
+                  label: "Date",
+                  placeholder: "",
+                  type: "date",
+                  validation: {
+                    required: true,
+                  },
+                }}
+              />
               <TextComponent
                 form={form}
                 schema={{
                   name: "name",
-                  label: "Event name",
-                  placeholder: "",
+                  label: "Event Title",
+                  placeholder: "New event title",
                   type: "text",
                   validation: {
                     required: false,
