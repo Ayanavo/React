@@ -51,13 +51,13 @@ function activity() {
       </header>
       <main className="flex-grow p-4 sm:p-6 md:p-8 overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="flex h-screen overflow-hidden bg-white">
-          <ResizablePanel defaultSize={17} className="w-[270px] p-4">
+          <ResizablePanel minSize={20} className="w-[270px] p-4">
             <DatePickerComponent />
             <Separator />
             <ActivityComponent events={events} />
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={83} className="flex-1 p-4">
+          <ResizablePanel defaultSize={83} minSize={50} className="flex-1 p-4">
             <div className="mb-4 flex justify-between items-center">
               <div className="flex items-center space-x-2">
                 <h1 className="text-3xl font-bold">{moment().format("MMMM YYYY")}</h1>
