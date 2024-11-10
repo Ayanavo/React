@@ -7,7 +7,7 @@ import { CalendarIcon } from "lucide-react";
 import React from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { FieldValue, FieldValues, UseFormReturn } from "react-hook-form";
+import { FieldValue } from "react-hook-form";
 
 type DateSchema = {
   name: string;
