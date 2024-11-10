@@ -4,16 +4,17 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { Separator } from "@/components/ui/separator";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionGridPlugin from "@fullcalendar/interaction";
+import interactionGridPlugin, { DateClickArg } from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { GearIcon } from "@radix-ui/react-icons";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import moment from "moment";
+import moment, { Moment } from "moment";
 import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
 import ActivityComponent from "./activity-list";
 import DatePickerComponent from "./datepicker";
+import EventComponent from "./event";
 
 function activity() {
   const events = [
@@ -24,11 +25,12 @@ function activity() {
     { title: "Asie's Birthday", date: "2023-09-14T18:00:00" },
   ];
   const [showEventPopover, setShowEventPopover] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<moment.Moment>(moment());
   const calendarRef = useRef<FullCalendar | null>(null);
   const [activeMonth, setActiveMonth] = useState("");
-  const [date, setDate] = React.useState<Date>(new Date());
-  const [grid, setGrid] = React.useState<string>("dayGridMonth");
+  const [date, setDate] = useState<Date>(new Date());
+  const [grid, setGrid] = useState<string>("dayGridMonth");
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
   useEffect(() => {
     if (calendarRef.current) {
@@ -39,10 +41,9 @@ function activity() {
     }
   });
 
-  function handleDateClick(arg: { date: Date }) {
-    setSelectedDate(arg.date);
-    // setShowEventPopover(true);
-    console.log(arg);
+  function handleDateClick(arg: DateClickArg) {
+    setSelectedDate(moment(arg.date));
+    setIsOpen(true);
   }
 
   function handleView(view: string) {
@@ -94,6 +95,7 @@ function activity() {
         <h1 className="text-3xl font-bold mb-6 text-start">Activity</h1>
       </header>
       <main className="flex-grow p-4 sm:p-6 md:p-8 overflow-hidden">
+        <EventComponent setIsOpen={setIsOpen} isOpen={isOpen} momentValue={selectedDate} />
         <ResizablePanelGroup direction="horizontal" className="flex h-screen overflow-hidden bg-white">
           <ResizablePanel minSize={17} className="w-[270px] p-4">
             <div className="pl-0">
