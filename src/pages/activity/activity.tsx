@@ -23,8 +23,8 @@ function activity() {
   const [showEventPopover, setShowEventPopover] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
 
-  const handleDateClick = (arg: { date: React.SetStateAction<Date> }) => {
-    // setSelectedDate(arg.date);
+  const handleDateClick = (arg: { date: Date }) => {
+    setSelectedDate(arg.date);
     // setShowEventPopover(true);
     console.log(arg);
   };
