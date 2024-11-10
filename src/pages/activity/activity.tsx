@@ -26,19 +26,19 @@ function activity() {
     // setShowEventPopover(true);
   };
 
-  const renderEventContent = (eventInfo: {
-    timeText: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined;
-    event: {
-      title: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined;
-    };
-  }) => {
-    return (
-      <>
-        <b>{eventInfo.timeText}</b>
-        <i>{eventInfo.event.title}</i>
-      </>
-    );
-  };
+  // const renderEventContent = (eventInfo: {
+  //   timeText: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined;
+  //   event: {
+  //     title: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined;
+  //   };
+  // }) => {
+  //   return (
+  //     <>
+  //       <b>{eventInfo.timeText}</b>
+  //       <i>{eventInfo.event.title}</i>
+  //     </>
+  //   );
+  // };
   return (
     <div className="flex flex-col min-h-screen">
       <header className="fixed flex-none p-3">
