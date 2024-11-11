@@ -4,7 +4,6 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Cross1Icon } from "@radix-ui/react-icons";
 import { Popover, PopoverTrigger } from "@radix-ui/react-popover";
-import { XIcon } from "lucide-react";
 import React, { useEffect } from "react";
 import { FieldValue } from "react-hook-form";
 
@@ -41,7 +40,7 @@ export default function chip({ form, schema }: { form: FieldValue<any>; schema: 
   return (
     <FormField
       name={schema.name}
-      render={({ field }) => (
+      render={() => (
         <FormItem>
           <FormLabel>{schema.label}</FormLabel>
 
