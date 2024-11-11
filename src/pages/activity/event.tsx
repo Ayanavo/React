@@ -83,7 +83,7 @@ export default function event({ setIsOpen, isOpen, momentValue }: { setIsOpen: (
                 schema={{
                   name: "participants",
                   label: "Participants",
-                  placeholder: "Add participants (comma-separated)",
+                  placeholder: "Add participants",
                   type: "text",
                   validation: {
                     required: false,

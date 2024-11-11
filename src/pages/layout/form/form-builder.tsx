@@ -22,6 +22,7 @@ import TextareaComponent from "../../../shared/controls/textarea";
 import ColorComponent from "../../../shared/controls/color";
 import RatingComponent from "../../../shared/controls/rating";
 import NumberComponent from "../../../shared/controls/number";
+import ChipComponent from "../../../shared/controls/chip";
 import formJson from "./form.json";
 import moment from "moment";
 
@@ -45,6 +46,7 @@ const componentMap: Record<string, React.ComponentType<any>> = {
   color: ColorComponent,
   rating: RatingComponent,
   number: NumberComponent,
+  chip: ChipComponent,
 };
 
 function FormBuilder() {

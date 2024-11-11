@@ -78,6 +78,11 @@ function activity() {
     }
   }
 
+  function recalculateCalendar() {
+    const calendarApi = calendarRef.current?.getApi();
+    calendarApi && calendarApi.updateSize();
+  }
+
   // const renderEventContent = (eventInfo: {
   //   timeText: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined;
   //   event: {
@@ -98,7 +103,7 @@ function activity() {
       </header>
       <main className="flex-grow p-4 sm:p-6 md:p-8 overflow-hidden">
         <EventComponent setIsOpen={setIsOpen} isOpen={isOpen} momentValue={selectedDate} />
-        <ResizablePanelGroup direction="horizontal" className="flex h-screen overflow-hidden bg-white">
+        <ResizablePanelGroup onLayout={recalculateCalendar} direction="horizontal" className="flex h-screen overflow-hidden bg-white">
           <ResizablePanel minSize={17} className="w-[270px] p-4">
             <div className="pl-0">
               <DatePickerComponent onSendData={setDate} date={date} />
