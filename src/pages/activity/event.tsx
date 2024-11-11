@@ -6,9 +6,11 @@ import { FormProvider, useForm } from "react-hook-form";
 import ColorComponent from "../../shared/controls/color";
 import TextComponent from "../../shared/controls/text";
 import DateComponent from "../../shared/controls/date";
+import TextAreaComponent from "../../shared/controls/textarea";
+import ChipComponent from "../../shared/controls/chip";
 
 export default function event({ setIsOpen, isOpen, momentValue }: { setIsOpen: (arg: boolean) => void; isOpen: boolean; momentValue: moment.Moment }) {
-  const defaultValues = { date: new Date(momentValue.toISOString()) };
+  const defaultValues = { color: "#BA0000", date: new Date(momentValue.toISOString()) };
   const form = useForm<{ name: string; date: Date }>({
     defaultValues: defaultValues,
   });
@@ -63,6 +65,32 @@ export default function event({ setIsOpen, isOpen, momentValue }: { setIsOpen: (
                 }}
               />
 
+              <TextComponent
+                form={form}
+                schema={{
+                  name: "location",
+                  label: "Location",
+                  placeholder: "",
+                  type: "text",
+                  validation: {
+                    required: false,
+                  },
+                }}
+              />
+
+              <ChipComponent
+                form={form}
+                schema={{
+                  name: "participants",
+                  label: "Participants",
+                  placeholder: "Add participants (comma-separated)",
+                  type: "text",
+                  validation: {
+                    required: false,
+                  },
+                }}
+              />
+
               <ColorComponent
                 form={form}
                 schema={{
@@ -70,6 +98,19 @@ export default function event({ setIsOpen, isOpen, momentValue }: { setIsOpen: (
                   label: "Event color",
                   placeholder: "",
                   type: "color",
+                  validation: {
+                    required: false,
+                  },
+                }}
+              />
+
+              <TextAreaComponent
+                form={form}
+                schema={{
+                  name: "description",
+                  label: "Description",
+                  placeholder: "Add a description for the event",
+                  type: "textarea",
                   validation: {
                     required: false,
                   },
