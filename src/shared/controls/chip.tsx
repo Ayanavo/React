@@ -52,6 +52,11 @@ export default function chip({ form, schema }: { form: FieldValue<any>; schema: 
                   placeholder={schema.placeholder}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
+                  onBlur={() => {
+                    if (inputValue.trim() !== "") {
+                      addChip(inputValue);
+                    }
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
