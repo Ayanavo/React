@@ -2,8 +2,10 @@ import { Button } from "@/components/ui/button";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import moment from "moment";
 import React from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -45,6 +47,17 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <DatePicker
+                renderCustomHeader={({ date, decreaseMonth, increaseMonth, prevMonthButtonDisabled, nextMonthButtonDisabled }) => (
+                  <div className="flex justify-evenly">
+                    <button onClick={decreaseMonth} disabled={prevMonthButtonDisabled}>
+                      <ChevronLeftIcon />
+                    </button>
+                    <div>{moment(date).format("MMMM YYYY")}</div>
+                    <button onClick={increaseMonth} disabled={nextMonthButtonDisabled}>
+                      <ChevronRightIcon />
+                    </button>
+                  </div>
+                )}
                 showTimeSelect
                 showYearDropdown
                 scrollableYearDropdown
