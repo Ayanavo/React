@@ -108,7 +108,7 @@ function activity() {
             <div className="pl-0">
               <DatePickerComponent onSendData={setDate} date={date} />
             </div>
-            <Separator />
+
             <ActivityComponent events={events} />
           </ResizablePanel>
           <ResizableHandle withHandle />
