@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import moment from "moment";
 import React from "react";
@@ -12,27 +13,28 @@ function datepicker({ onSendData, date }: { onSendData: any; date: Date }) {
     //   onSelect={onSendData as SelectSingleEventHandler}
     // />
     <DatePicker
-      className="mt-[50px] rounded-md border"
+      className="mt-56"
       renderCustomHeader={({ date, decreaseMonth, increaseMonth, prevMonthButtonDisabled, nextMonthButtonDisabled }) => (
-        <div className=" flex justify-evenly font-bold">
-          <button onClick={decreaseMonth} disabled={prevMonthButtonDisabled}>
-            <ChevronLeftIcon />
-          </button>
-          <div>{moment(date).format("MMMM YYYY")}</div>
-          <button onClick={increaseMonth} disabled={nextMonthButtonDisabled}>
-            <ChevronRightIcon />
-          </button>
+        <div className="flex justify-evenly pt-1 relative items-center">
+          <div className="space-x-7 flex items-center">
+            <Button variant="outline" size="icon" className="size-7 opacity-50 hover:opacity-100" onClick={decreaseMonth} disabled={prevMonthButtonDisabled}>
+              <ChevronLeftIcon />
+            </Button>
+            <div className="text-sm font-medium" aria-live="polite">
+              {moment(date).format("MMMM YYYY")}
+            </div>
+            <Button variant="outline" size="icon" className="size-7 opacity-50 hover:opacity-100" onClick={increaseMonth} disabled={nextMonthButtonDisabled}>
+              <ChevronRightIcon />
+            </Button>
+          </div>
         </div>
       )}
       inline
       selected={date}
       onChange={onSendData}
-      calendarClassName="bg-white border-none"
+      calendarClassName="bg-white rounded-md border font-sans"
       wrapperClassName="w-full"
-      popperClassName="react-datepicker-popper"
-      dayClassName={(day) => (day.getDate() === date.getDate() ? "bg-black text-white hover:bg-black" : "text-black hover:bg-gray-200")}
-      monthClassName={() => "react-datepicker__month"}
-      monthYearClassName={() => "react-datepicker__month-year"}
+      dayClassName={(day) => (day.getDate() === date.getDate() ? "bg-black text-white hover:!bg-black" : "text-black hover:bg-gray-200")}
     />
   );
 }
