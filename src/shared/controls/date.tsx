@@ -48,14 +48,18 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
             <PopoverContent className="w-auto p-0" align="start">
               <DatePicker
                 renderCustomHeader={({ date, decreaseMonth, increaseMonth, prevMonthButtonDisabled, nextMonthButtonDisabled }) => (
-                  <div className="flex justify-evenly">
-                    <button onClick={decreaseMonth} disabled={prevMonthButtonDisabled}>
-                      <ChevronLeftIcon />
-                    </button>
-                    <div>{moment(date).format("MMMM YYYY")}</div>
-                    <button onClick={increaseMonth} disabled={nextMonthButtonDisabled}>
-                      <ChevronRightIcon />
-                    </button>
+                  <div className="flex justify-evenly pt-1 relative items-center">
+                    <div className="space-x-7 flex items-center">
+                      <Button variant="outline" size="icon" className="size-7 opacity-50 hover:opacity-100" onClick={decreaseMonth} disabled={prevMonthButtonDisabled}>
+                        <ChevronLeftIcon />
+                      </Button>
+                      <div className="text-sm font-medium" aria-live="polite">
+                        {moment(date).format("MMMM YYYY")}
+                      </div>
+                      <Button variant="outline" size="icon" className="size-7 opacity-50 hover:opacity-100" onClick={increaseMonth} disabled={nextMonthButtonDisabled}>
+                        <ChevronRightIcon />
+                      </Button>
+                    </div>
                   </div>
                 )}
                 showTimeSelect
@@ -64,10 +68,10 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
                 inline
                 selected={field.value}
                 onChange={handleDateChange}
-                calendarClassName="bg-white border-none"
+                calendarClassName="bg-white font-sans"
                 wrapperClassName="w-full"
                 popperClassName="react-datepicker-popper"
-                dayClassName={(date) => (date && field.value && date.getTime() === field.value.getTime() ? "bg-black text-white" : "text-black hover:bg-gray-200")}
+                dayClassName={(day) => (day.toLocaleDateString() === field.value.toLocaleDateString() ? "bg-black text-white hover:!bg-black" : "text-black hover:bg-gray-200")}
                 monthClassName={() => "react-datepicker__month"}
                 monthYearClassName={() => "react-datepicker__month-year"}
               />

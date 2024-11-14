@@ -34,7 +34,7 @@ function datepicker({ onSendData, date }: { onSendData: any; date: Date }) {
       onChange={onSendData}
       calendarClassName="bg-white rounded-md border font-sans"
       wrapperClassName="w-full"
-      dayClassName={(day) => (day.getDate() === date.getDate() ? "bg-black text-white hover:!bg-black" : "text-black hover:bg-gray-200")}
+      dayClassName={(day) => (day.toLocaleDateString() === date.toLocaleDateString() ? "bg-black text-white hover:!bg-black" : "text-black hover:bg-gray-200")}
     />
   );
 }
