@@ -3,6 +3,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import moment from "moment";
 import React from "react";
 import DatePicker from "react-datepicker";
+import "/src/shared/controls/datepicker.scss";
 
 function datepicker({ onSendData, date }: { onSendData: any; date: Date }) {
   return (
@@ -33,8 +34,6 @@ function datepicker({ onSendData, date }: { onSendData: any; date: Date }) {
       selected={date}
       onChange={onSendData}
       calendarClassName="bg-white rounded-md border font-sans"
-      wrapperClassName="w-full"
-      dayClassName={(day) => (day.toLocaleDateString() === date.toLocaleDateString() ? "bg-black text-white hover:!bg-black" : "text-black hover:bg-gray-200")}
     />
   );
 }

@@ -71,3 +71,28 @@
 .custom-quill-ghost .ql-editor p {
   margin-bottom: 0px;
 }
+
+//react-date-picker
+.react-datepicker__header--custom {
+  background-color: white;
+}
+
+.react-datepicker__header--time {
+  background-color: white;
+  border-radius: 0;
+  padding-bottom: 8px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.react-datepicker__time {
+  .react-datepicker__time-box {
+    width: fit-content;
+    ul.react-datepicker__time-list {
+      li.react-datepicker__time-list-item--selected {
+        background-color: black;
+        color: white;
+      }
+    }
+  }
+}

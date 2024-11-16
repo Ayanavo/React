@@ -8,8 +8,10 @@ import { CalendarIcon } from "lucide-react";
 import moment from "moment";
 import React from "react";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+
 import { FieldValue } from "react-hook-form";
+import "./custom.scss";
+import "./datepicker.scss";
 
 type DateSchema = {
   name: string;
@@ -69,11 +71,7 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
                 selected={field.value}
                 onChange={handleDateChange}
                 calendarClassName="bg-white font-sans"
-                wrapperClassName="w-full"
-                popperClassName="react-datepicker-popper"
-                dayClassName={(day) => (day.toLocaleDateString() === field.value.toLocaleDateString() ? "bg-black text-white hover:!bg-black" : "text-black hover:bg-gray-200")}
-                monthClassName={() => "react-datepicker__month"}
-                monthYearClassName={() => "react-datepicker__month-year"}
+                timeClassName={(time) => (time.getTime() === field.value.getTime() ? "bg-black text-white hover:!bg-black" : "text-black hover:bg-gray-200 active:bg-gray-200")}
               />
 
               <div className="p-3 border-t border-border">
