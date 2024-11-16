@@ -14,6 +14,7 @@ import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
 import ActivityComponent from "./activity-list";
 import DatePickerComponent from "./datepicker";
 import EventComponent from "./event";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 function activity() {
   const events = [
@@ -165,11 +166,11 @@ function activity() {
               height="calc(100vh - 120px)"
             />
           </ResizablePanel>
-          <Popover open={showEventPopover} onOpenChange={setShowEventPopover}>
-            <PopoverTrigger asChild>
+          <Dialog open={showEventPopover} onOpenChange={setShowEventPopover}>
+            <DialogTrigger asChild>
               <Button className="hidden">Add Schedule</Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80">
+            </DialogTrigger>
+            <DialogContent className="w-80" onInteractOutside={(e) => e.preventDefault()}>
               <div className="space-y-4">
                 <h3 className="font-semibold">Add Schedule</h3>
                 <Input type="text" placeholder="Event title" />
@@ -187,8 +188,8 @@ function activity() {
                   <Button onClick={() => setShowEventPopover(false)}>Save</Button>
                 </div>
               </div>
-            </PopoverContent>
-          </Popover>
+            </DialogContent>
+          </Dialog>
         </ResizablePanelGroup>
       </main>
     </div>

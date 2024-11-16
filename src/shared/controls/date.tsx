@@ -47,7 +47,7 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
               <DatePicker
                 renderCustomHeader={({ date, decreaseMonth, increaseMonth, prevMonthButtonDisabled, nextMonthButtonDisabled }) => (
                   <div className="flex justify-evenly pt-1 relative items-center">
