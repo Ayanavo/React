@@ -15,6 +15,8 @@ import ActivityComponent from "./activity-list";
 import DatePickerComponent from "./datepicker";
 import EventComponent from "./event";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { HolidayEvent } from "../../shared/services/activity";
+import googleCalendarPlugin from "@fullcalendar/google-calendar";
 
 function activity() {
   const events = [
@@ -31,6 +33,18 @@ function activity() {
   const [date, setDate] = useState<Date>(new Date());
   const [grid, setGrid] = useState<string>("dayGridMonth");
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const { isPending, data } = HolidayEvent();
+
+  const HolidayList =
+    data?.data.items.map(({ summary, start, end }: { summary: string; start: { date: string }; end?: { date: string } }) => {
+      return {
+        title: summary,
+        start: start.date,
+        ...(end && { end: end?.date }),
+        allDay: false,
+        color: "red",
+      };
+    }) ?? [];
 
   useEffect(() => {
     if (calendarRef.current) {
@@ -153,18 +167,20 @@ function activity() {
                 </ToggleGroup>
               </div>
             </div>
-            <FullCalendar
-              ref={calendarRef}
-              plugins={[dayGridPlugin, timeGridPlugin, interactionGridPlugin]}
-              initialView="dayGridMonth"
-              events={events}
-              dateClick={handleDateClick}
-              datesSet={handleDatesSet}
-              headerToolbar={false}
-              editable={true}
-              selectable={true}
-              height="calc(100vh - 120px)"
-            />
+            {!isPending && (
+              <FullCalendar
+                ref={calendarRef}
+                plugins={[dayGridPlugin, timeGridPlugin, interactionGridPlugin, googleCalendarPlugin]}
+                initialView="dayGridMonth"
+                events={HolidayList}
+                dateClick={handleDateClick}
+                datesSet={handleDatesSet}
+                headerToolbar={false}
+                editable={true}
+                selectable={true}
+                height="calc(100vh - 120px)"
+              />
+            )}
           </ResizablePanel>
           <Dialog open={showEventPopover} onOpenChange={setShowEventPopover}>
             <DialogTrigger asChild>

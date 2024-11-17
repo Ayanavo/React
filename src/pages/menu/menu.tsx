@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { HamburgerMenuIcon } from "@radix-ui/react-icons";
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import IconsComponent from "../../common/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -27,12 +27,12 @@ function menu({ isExpanded, setIsExpanded }: { isExpanded: boolean; setIsExpande
           <TooltipProvider disableHoverableContent key={i}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link
+                <NavLink
                   className={cn("group flex items-center rounded-lg p-2 text-gray-700  hover:bg-black hover:text-white", isExpanded ? "space-x-5" : "justify-center h-10 w-10")}
                   to={route}>
                   <IconsComponent customClass="h-5 w-5" icon={icon} />
                   <span className={cn("font-semibold", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>{label}</span>
-                </Link>
+                </NavLink>
               </TooltipTrigger>
               {!isExpanded && (
                 <TooltipContent side="right">
@@ -47,12 +47,12 @@ function menu({ isExpanded, setIsExpanded }: { isExpanded: boolean; setIsExpande
         <TooltipProvider disableHoverableContent>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Link
+              <NavLink
                 className={cn("group flex items-center rounded-lg p-2 text-gray-700 hover:bg-black hover:text-white", isExpanded ? "space-x-5" : "justify-center h-10 w-10")}
                 to="/login">
                 <IconsComponent customClass="h-5 w-5" icon="ExitIcon" />
                 <span className={cn("font-semibold", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>Sign Out</span>
-              </Link>
+              </NavLink>
             </TooltipTrigger>
             {!isExpanded && (
               <TooltipContent side="right">
