@@ -16,7 +16,6 @@ import DatePickerComponent from "./datepicker";
 import EventComponent from "./event";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { HolidayEvent } from "../../shared/services/activity";
-import googleCalendarPlugin from "@fullcalendar/google-calendar";
 
 function activity() {
   const events = [
@@ -42,7 +41,8 @@ function activity() {
         start: start.date,
         ...(end && { end: end?.date }),
         allDay: false,
-        color: "red",
+        color: "#b9d2fa",
+        textColor: "black",
       };
     }) ?? [];
 
@@ -97,19 +97,6 @@ function activity() {
     calendarApi && calendarApi.updateSize();
   }
 
-  // const renderEventContent = (eventInfo: {
-  //   timeText: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined;
-  //   event: {
-  //     title: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | React.ReactPortal | null | undefined;
-  //   };
-  // }) => {
-  //   return (
-  //     <>
-  //       <b>{eventInfo.timeText}</b>
-  //       <i>{eventInfo.event.title}</i>
-  //     </>
-  //   );
-  // };
   return (
     <div className="flex flex-col min-h-screen ">
       <header className="fixed flex-none p-3">
@@ -170,9 +157,22 @@ function activity() {
             {!isPending && (
               <FullCalendar
                 ref={calendarRef}
-                plugins={[dayGridPlugin, timeGridPlugin, interactionGridPlugin, googleCalendarPlugin]}
+                plugins={[dayGridPlugin, timeGridPlugin, interactionGridPlugin]}
+                dayHeaderContent={(args) => {
+                  switch (args.view.type) {
+                    case "dayGridDay":
+                      return moment(args.date).format("DD dddd");
+                    case "dayGridWeek":
+                      return moment(args.date).format("DD ddd");
+                    case "dayGridMonth":
+                      return moment(args.date).format("ddd");
+                  }
+                }}
+                eventDisplay="block"
+                eventClassNames="bg-slate-300"
                 initialView="dayGridMonth"
                 events={HolidayList}
+                eventTimeFormat={{ hour: "2-digit", minute: "2-digit", meridiem: true }}
                 dateClick={handleDateClick}
                 datesSet={handleDatesSet}
                 headerToolbar={false}

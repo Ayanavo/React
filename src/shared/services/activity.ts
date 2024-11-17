@@ -5,7 +5,7 @@ const BASE_CALENDAR_URL = "https://www.googleapis.com/calendar/v3/calendars";
 const BASE_CALENDAR_ID_FOR_PUBLIC_HOLIDAY = "holiday@group.v.calendar.google.com";
 const API_KEY = "AIzaSyC9Sx3wIqJfi6Uf_1BIOLn-2EOKrTCYcSY";
 const CALENDAR_REGION = "en.indian";
-const TIME_ZONE = "Asia/Kolkata";
+// const TIME_ZONE = "Asia/Kolkata";
 
 export function HolidayEvent() {
   return useQuery({
