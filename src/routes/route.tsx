@@ -8,6 +8,7 @@ import LoginComponent from "@/pages/auth/login/login";
 import DashboardComponent from "@/pages/dashboard/dashboard";
 import ActivityComponent from "@/pages/activity/activity";
 import ProfileComponent from "@/pages/profile/profile";
+import SettingsComponent from "@/pages/settings/settings";
 import UpdateComponent from "../pages/layout/update/update";
 import CreateComponent from "../pages/layout/update/create";
 
@@ -20,6 +21,7 @@ export const Router = () => {
         <Route path="table" element={<TableComponent />} />
         <Route path="activities" element={<ActivityComponent />} />
         <Route path="profile" element={<ProfileComponent />} />
+        <Route path="settings" element={<SettingsComponent />} />
         <Route path="create" element={<CreateComponent />} />
         <Route path="details/:id" element={<DetailComponent />} />
         <Route path="update/:id" element={<UpdateComponent />} />

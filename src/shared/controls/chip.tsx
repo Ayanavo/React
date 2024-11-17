@@ -70,7 +70,7 @@ export default function chip({ form, schema }: { form: FieldValue<any>; schema: 
           <FormMessage />
 
           {chips.map((chip) => (
-            <Badge key={chip} variant="secondary" className="h-7 px-3 mx-1">
+            <Badge key={chip} variant="outline" className="h-7 px-3 mx-1 bg-[#F6F6F7] font-medium text-[#F6F6F7] text-sm">
               {chip}
               <Button variant="ghost" size="sm" className="h-4 w-4 p-0 ml-2" onClick={() => removeChip(chip)}>
                 <Cross1Icon className="h-3 w-3" />
