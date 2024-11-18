@@ -7,12 +7,6 @@ import "/src/shared/controls/datepicker.scss";
 
 function datepicker({ onSendData, date }: { onSendData: any; date: Date }) {
   return (
-    // <Calendar
-    //   className="w-full max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-auto mt-[50px] rounded-md border"
-    //   mode="single"
-    //   selected={date}
-    //   onSelect={onSendData as SelectSingleEventHandler}
-    // />
     <DatePicker
       className="mt-56"
       renderCustomHeader={({ date, decreaseMonth, increaseMonth, prevMonthButtonDisabled, nextMonthButtonDisabled }) => (

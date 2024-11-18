@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
@@ -11,20 +12,13 @@ import { GearIcon } from "@radix-ui/react-icons";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
 import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
+import { HolidayEvent } from "../../shared/services/activity";
 import ActivityComponent from "./activity-list";
 import DatePickerComponent from "./datepicker";
 import EventComponent from "./event";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { HolidayEvent } from "../../shared/services/activity";
+import "./fullcalendar.scss";
 
 function activity() {
-  const events = [
-    { title: "Jane Feedback", date: "2023-09-12T08:00:00" },
-    { title: "Design System", date: "2023-09-12T09:30:00" },
-    { title: "Daily Sync", date: "2023-09-12T11:00:00" },
-    { title: "Break", date: "2023-09-12T11:30:00" },
-    { title: "Asie's Birthday", date: "2023-09-14T18:00:00" },
-  ];
   const [showEventPopover, setShowEventPopover] = useState(false);
   const [selectedDate, setSelectedDate] = useState<moment.Moment>(moment());
   const calendarRef = useRef<FullCalendar | null>(null);
@@ -40,7 +34,7 @@ function activity() {
         title: summary,
         start: start.date,
         ...(end && { end: end?.date }),
-        allDay: false,
+        allDay: true,
         color: "#b9d2fa",
         textColor: "black",
       };
@@ -102,7 +96,7 @@ function activity() {
       <header className="fixed flex-none p-3">
         <h1 className="text-3xl font-bold mb-6 text-start">Activity</h1>
       </header>
-      <main className="flex-grow p-4 sm:p-6 md:p-8 overflow-hidden">
+      <main className="flex-grow py-4 sm:py-6 md:py-8 overflow-hidden">
         <EventComponent setIsOpen={setIsOpen} isOpen={isOpen} momentValue={selectedDate} />
         <ResizablePanelGroup onLayout={recalculateCalendar} direction="horizontal" className="flex h-screen overflow-hidden bg-white">
           <ResizablePanel minSize={17} className="w-[270px] p-4">
@@ -110,7 +104,11 @@ function activity() {
               <DatePickerComponent onSendData={setDate} date={date} />
             </div>
 
-            <ActivityComponent events={events} />
+            <ActivityComponent
+              events={HolidayList.filter(
+                (events) => moment(events.start).month() === moment(activeMonth, "MMMM YYYY").month() && moment(events.start).year() === moment(activeMonth, "MMMM YYYY").year()
+              )}
+            />
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel defaultSize={83} minSize={50} className="flex-1 p-4">
@@ -155,31 +153,33 @@ function activity() {
               </div>
             </div>
             {!isPending && (
-              <FullCalendar
-                ref={calendarRef}
-                plugins={[dayGridPlugin, timeGridPlugin, interactionGridPlugin]}
-                dayHeaderContent={(args) => {
-                  switch (args.view.type) {
-                    case "dayGridDay":
-                      return moment(args.date).format("DD dddd");
-                    case "dayGridWeek":
-                      return moment(args.date).format("DD ddd");
-                    case "dayGridMonth":
-                      return moment(args.date).format("ddd");
-                  }
-                }}
-                eventDisplay="block"
-                eventClassNames="bg-slate-300"
-                initialView="dayGridMonth"
-                events={HolidayList}
-                eventTimeFormat={{ hour: "2-digit", minute: "2-digit", meridiem: true }}
-                dateClick={handleDateClick}
-                datesSet={handleDatesSet}
-                headerToolbar={false}
-                editable={true}
-                selectable={true}
-                height="calc(100vh - 120px)"
-              />
+              <div className="calendar-wrapper">
+                <FullCalendar
+                  ref={calendarRef}
+                  plugins={[dayGridPlugin, timeGridPlugin, interactionGridPlugin]}
+                  dayHeaderContent={(args) => {
+                    switch (args.view.type) {
+                      case "dayGridDay":
+                        return moment(args.date).format("DD dddd");
+                      case "dayGridWeek":
+                        return moment(args.date).format("DD ddd");
+                      case "dayGridMonth":
+                        return moment(args.date).format("ddd");
+                    }
+                  }}
+                  eventDisplay="block"
+                  eventClassNames="bg-slate-300 "
+                  initialView="dayGridMonth"
+                  events={HolidayList}
+                  eventTimeFormat={{ hour: "2-digit", minute: "2-digit", meridiem: true }}
+                  dateClick={handleDateClick}
+                  datesSet={handleDatesSet}
+                  headerToolbar={false}
+                  editable={true}
+                  selectable={true}
+                  height="calc(100vh - 120px)"
+                />
+              </div>
             )}
           </ResizablePanel>
           <Dialog open={showEventPopover} onOpenChange={setShowEventPopover}>
