@@ -2,9 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authAnonymous } from "@/shared/services/auth";
 import "@ayanavo/locusjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import { useMutation } from "@tanstack/react-query";
+import firebase from "firebase/compat/app";
 import { MailCheckIcon } from "lucide-react";
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
@@ -22,6 +25,16 @@ const formSchema = z.object({
 });
 
 function login() {
+  const mutation = useMutation<firebase.auth.UserCredential, Error, string>({
+    mutationFn: authAnonymous,
+    onSuccess: (res) => {
+      console.log("Data submitted successfully:", res);
+    },
+    onError: (error) => {
+      console.error("Submission failed:", error);
+    },
+  });
+
   //form builder function
   const navigate = useNavigate();
   const form = useForm({
@@ -95,11 +108,11 @@ function login() {
               </div>
 
               <div className="grid grid-cols-2 gap-10">
-                <Button type="button" variant="outline">
+                <Button type="button" variant="outline" onClick={() => mutation.mutate("google")}>
                   <MailCheckIcon className="mr-2 h-4 w-4" />
                   Google
                 </Button>
-                <Button type="button" variant="outline">
+                <Button type="button" variant="outline" onClick={() => mutation.mutate("github")}>
                   <GitHubLogoIcon className="mr-2 h-4 w-4" />
                   Github
                 </Button>
