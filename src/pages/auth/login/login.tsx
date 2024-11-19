@@ -3,10 +3,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import "@ayanavo/locusjs";
-import React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import { MailCheckIcon } from "lucide-react";
+import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import z from "zod";
 
 // Define validation schema using Zod
@@ -42,7 +44,7 @@ function login() {
       <Card className="w-[350px] ">
         <CardHeader>
           <CardTitle>Login</CardTitle>
-          <CardDescription>Deploy your new project in one-click.</CardDescription>
+          <CardDescription>Enter your credentials to access your account.</CardDescription>
         </CardHeader>
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -78,8 +80,37 @@ function login() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-between">
-              <Button type="submit">Submit</Button>
+            <CardFooter className="flex flex-col items-center gap-2">
+              <Button className="w-full" type="submit">
+                Submit
+              </Button>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-muted-foreground"></div>
+                </div>
+
+                <div className="relative flex justify-center">
+                  <span className="bg-background px-3 text-xs uppercase text-muted-foreground">Or continue with</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-10">
+                <Button type="button" variant="outline">
+                  <MailCheckIcon className="mr-2 h-4 w-4" />
+                  Google
+                </Button>
+                <Button type="button" variant="outline">
+                  <GitHubLogoIcon className="mr-2 h-4 w-4" />
+                  Github
+                </Button>
+              </div>
+
+              <p className="text-sm text-gray-500">
+                Don&apos;t have an account?{" "}
+                <Link to="/register" className="text-blue-500 hover:underline" preventScrollReset={true}>
+                  Sign up
+                </Link>
+              </p>
             </CardFooter>
           </form>
         </FormProvider>

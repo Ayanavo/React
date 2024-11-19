@@ -10,7 +10,7 @@ function icons({ icon, customClass }: { icon: string; customClass?: string }) {
     return <RadixIcons.Cross1Icon />;
   }
 
-  return <IconComponent className={cn("transition-colors duration-300 group-hover:text-white", customClass)} />;
+  return <IconComponent className={cn("transition-colors duration-300", customClass)} />;
 }
 
 export default icons;
