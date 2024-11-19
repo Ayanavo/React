@@ -28,6 +28,7 @@ function login() {
   const mutation = useMutation<firebase.auth.UserCredential, Error, string>({
     mutationFn: authAnonymous,
     onSuccess: (res) => {
+      navigate("/dashboard");
       console.log("Data submitted successfully:", res);
     },
     onError: (error) => {
@@ -49,7 +50,7 @@ function login() {
     // Handle form submission logic here
     console.log(data);
     localStorage.setItem("user", JSON.stringify(data));
-    navigate("/");
+    navigate("/dashboard");
   }
 
   return (
