@@ -2,16 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import showToast from "@/hooks/toast";
 import { authAnonymous } from "@/shared/services/auth";
 import "@ayanavo/locusjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useMutation } from "@tanstack/react-query";
 import firebase from "firebase/compat/app";
-import { MailCheckIcon } from "lucide-react";
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import GoogleIcon from "@/assets/google.svg";
 import z from "zod";
 
 // Define validation schema using Zod
@@ -28,8 +29,11 @@ function login() {
   const mutation = useMutation<firebase.auth.UserCredential, Error, string>({
     mutationFn: authAnonymous,
     onSuccess: (res) => {
+      localStorage.setItem("access_token", (res.credential?.toJSON() as { accessToken: string })["accessToken"]);
       navigate("/dashboard");
-      console.log("Data submitted successfully:", res);
+      showToast({
+        description: "Successfully logged in",
+      });
     },
     onError: (error) => {
       console.error("Submission failed:", error);
@@ -110,7 +114,8 @@ function login() {
 
               <div className="grid grid-cols-2 gap-10">
                 <Button type="button" variant="outline" onClick={() => mutation.mutate("google")}>
-                  <MailCheckIcon className="mr-2 h-4 w-4" />
+                  {/* <img src={GoogleIcon} alt="My Icon" className="mr-2 h-4 w-4" /> */}
+                  <GoogleIcon className="mr-2 h-4 w-4" />
                   Google
                 </Button>
                 <Button type="button" variant="outline" onClick={() => mutation.mutate("github")}>
