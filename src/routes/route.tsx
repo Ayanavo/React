@@ -17,7 +17,7 @@ export const Router = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginComponent />} />
-      <Route path="/registration" element={<RegistrationComponent />} />
+      <Route path="/register" element={<RegistrationComponent />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route caseSensitive path="/dashboard" element={<DashboardComponent />} />

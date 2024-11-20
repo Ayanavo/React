@@ -1,3 +1,4 @@
+import GoogleIcon from "@/assets/google.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -12,7 +13,6 @@ import firebase from "firebase/compat/app";
 import React from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import GoogleIcon from "@/assets/google.svg";
 import z from "zod";
 
 // Define validation schema using Zod
@@ -44,10 +44,6 @@ function login() {
   const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
   });
 
   function onSubmit(data: any) {
@@ -114,8 +110,9 @@ function login() {
 
               <div className="grid grid-cols-2 gap-10">
                 <Button type="button" variant="outline" onClick={() => mutation.mutate("google")}>
-                  {/* <img src={GoogleIcon} alt="My Icon" className="mr-2 h-4 w-4" /> */}
-                  <GoogleIcon className="mr-2 h-4 w-4" />
+                  <span className="mr-2 h-4 w-4">
+                    <GoogleIcon />
+                  </span>
                   Google
                 </Button>
                 <Button type="button" variant="outline" onClick={() => mutation.mutate("github")}>
