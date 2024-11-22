@@ -21,7 +21,12 @@ function FormBuilder() {
   }, []);
   const navigate = useNavigate();
   const form = generateControl(
-    formJson.map((tab) => tab.sections.map((json) => json.blocks.map((block) => block.fields))).flat(Infinity) as Array<{ validation: any; name: string; label: string }>
+    formJson.map((tab) => tab.sections.map((json) => json.blocks.map((block) => block.fields))).flat(Infinity) as Array<{
+      validation: any;
+      name: string;
+      label: string;
+      type: string;
+    }>
   );
   const onSubmit = (res: FormObj) => {
     console.log(res);

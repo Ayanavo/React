@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z, { ZodType } from "zod";
-function validation(formschema: Array<{ validation: any; name: string; label: string }>): ZodType<any> {
+function validation(formschema: Array<{ validation: any; name: string; label: string; type: string }>): ZodType<any> {
   return z.object(
     formschema.reduce((acc: { [index: string]: any }, field) => {
       if (field.validation?.required) {
@@ -28,7 +28,15 @@ function validation(formschema: Array<{ validation: any; name: string; label: st
         acc[field.name] = z.string().url({
           message: `${field.label} must be a valid URL`,
         });
+      } else if (field.type === "number") {
+        acc[field.name] = z.number();
+      } else if (field.type === "boolean") {
+        acc[field.name] = z.boolean();
+      } else if (field.type === "date") {
+        acc[field.name] = z.date();
       } else {
+        console.log(field.name);
+
         acc[field.name] = z.string();
       }
       return acc;
@@ -36,7 +44,7 @@ function validation(formschema: Array<{ validation: any; name: string; label: st
   );
 }
 
-export default function generateControl(formSchema: Array<{ validation: any; name: string; label: string; default?: any }>) {
+export default function generateControl(formSchema: Array<{ validation: any; name: string; label: string; type: string; default?: any }>) {
   return useForm({
     resolver: zodResolver(validation(formSchema)),
     defaultValues: formSchema.reduce((acc: { [index: string]: any }, val) => {
