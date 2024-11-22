@@ -74,6 +74,7 @@ export default [
                 name: "terms",
                 label: "I agree to the terms and conditions",
                 type: "boolean",
+                default: false,
                 validation: { required: true },
               },
             ],
