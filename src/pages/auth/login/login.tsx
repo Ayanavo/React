@@ -3,26 +3,33 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/form/field-map";
+import generateControl from "@/pages/layout/form/validation";
 import { authAnonymous } from "@/shared/services/auth";
 import "@ayanavo/locusjs";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useMutation } from "@tanstack/react-query";
 import firebase from "firebase/compat/app";
 import React from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import z from "zod";
 
-// Define validation schema using Zod
-const formSchema = z.object({
-  email: z.string().min(1, { message: "Email is required" }).email({
-    message: "Email pattern is invalid.",
-  }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters.",
-  }),
-});
+const formSchemaObj = [
+  {
+    name: "email",
+    label: "Email",
+    type: "email",
+    validation: { required: true },
+    field_prop: {
+      single: true,
+    },
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    validation: { required: true },
+  },
+];
 
 function login() {
   const mutation = useMutation<firebase.auth.UserCredential, Error, string>({
@@ -41,12 +48,7 @@ function login() {
 
   //form builder function
   const navigate = useNavigate();
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      password: "",
-    },
-  });
+  const form = generateControl(formSchemaObj);
   function renderField(field: {
     type: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined;
     name: React.Key | null | undefined;
@@ -71,25 +73,7 @@ function login() {
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent>
-              <div className="grid w-full items-center gap-4">
-                {[
-                  {
-                    name: "email",
-                    label: "Email",
-                    type: "email",
-                    validation: { required: true },
-                    field_prop: {
-                      single: true,
-                    },
-                  },
-                  {
-                    name: "password",
-                    label: "Password",
-                    type: "password",
-                    validation: { required: true },
-                  },
-                ].map(renderField)}
-              </div>
+              <div className="grid w-full items-center gap-4">{formSchemaObj.map(renderField)}</div>
             </CardContent>
             <CardFooter className="flex flex-col items-center gap-2">
               <Button className="w-full" type="submit">

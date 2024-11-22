@@ -81,9 +81,7 @@ function registration() {
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent>
-              <div className="grid w-full items-center gap-4">
-                <div>{formSchemaObj.map(renderField)}</div>
-              </div>
+              <div className="grid w-full items-center gap-4">{formSchemaObj.map(renderField)}</div>
             </CardContent>
 
             <CardFooter className="flex flex-col items-center gap-2">

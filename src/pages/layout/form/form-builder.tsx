@@ -3,13 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DevTool } from "@hookform/devtools";
 import React, { useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { componentMap } from "./field-map";
 import formJson from "./form.json";
-import moment from "moment";
+import generateControl from "./validation";
 
 type FormObj = {
   [key: string]: string | boolean | Date | number | string[];
@@ -21,9 +20,9 @@ function FormBuilder() {
     formJson.length > 0 && setDefaultTab(formJson[0].tabId);
   }, []);
   const navigate = useNavigate();
-  const form = useForm<FormObj>({
-    defaultValues: { ifce: 0, status: false, expiryDate: new Date(moment("15.11.1999", "DD.MM.YYYY").format()), skills: ["angular"] },
-  });
+  const form = generateControl(
+    formJson[0].sections.map((json) => json.blocks.map((block) => block.fields)).flat(Infinity) as Array<{ validation: any; name: string; label: string }>
+  );
   const onSubmit = (res: FormObj) => {
     console.log(res);
     navigate("/table");
@@ -76,7 +75,6 @@ function FormBuilder() {
           ))}
         </form>
       </FormProvider>
-      <DevTool control={form.control} />
     </Tabs>
   );
 }

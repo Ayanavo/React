@@ -16,9 +16,20 @@ function validation(formschema: Array<{ validation: any; name: string; label: st
   );
 }
 
-export default function generateControl(formSchema: Array<{ validation: any; name: string; label: string }>) {
+export default function generateControl(formSchema: Array<{ validation: any; name: string; label: string; default?: any }>) {
+  // console.log(
+  //   formSchema,
+  //   formSchema.reduce((acc: { [index: string]: any }, val) => {
+  //     acc[val.name] = val.default ?? "";
+  //     return acc;
+  //   }, {})
+  // );
+
   return useForm({
     resolver: zodResolver(validation(formSchema)),
-    defaultValues: { title: "", fname: "", lname: "" },
+    defaultValues: formSchema.reduce((acc: { [index: string]: any }, val) => {
+      acc[val.name] = val.default ?? "";
+      return acc;
+    }, {}),
   });
 }
