@@ -19,7 +19,7 @@ function editor({ form, schema }: { form: FieldValue<any>; schema: EditorSchema 
         [{ align: "" }, { align: "center" }, { align: "right" }, { align: "justify" }],
         ["bold", "italic", "underline", "strike"],
         [{ list: "ordered" }, { list: "bullet" }],
-        [{ lineHeight: ["1", "1.5", "2", "2.5", "3"] }],
+        // [{ lineHeight: ["1", "1.5", "2", "2.5", "3"] }],
         ["clean"],
       ],
     },

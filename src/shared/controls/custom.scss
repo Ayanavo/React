@@ -38,10 +38,10 @@
   outline-offset: 2px;
 }
 .custom-quill-ghost .ql-container {
-  border: none;
+  border: none !important;
 }
 .custom-quill-ghost .ql-toolbar {
-  border: none;
+  border: none !important;
   padding: 0px;
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
