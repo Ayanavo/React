@@ -1,9 +1,8 @@
 import GoogleIcon from "@/assets/google.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import showToast from "@/hooks/toast";
+import { componentMap } from "@/pages/layout/form/field-map";
 import { authAnonymous } from "@/shared/services/auth";
 import "@ayanavo/locusjs";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,8 +16,8 @@ import z from "zod";
 
 // Define validation schema using Zod
 const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+  email: z.string().min(1, { message: "Email is required" }).email({
+    message: "Email pattern is invalid.",
   }),
   password: z.string().min(6, {
     message: "Password must be at least 6 characters.",
@@ -44,8 +43,17 @@ function login() {
   const navigate = useNavigate();
   const form = useForm({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      password: "",
+    },
   });
-
+  function renderField(field: {
+    type: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined;
+    name: React.Key | null | undefined;
+  }) {
+    const Component = componentMap[field.type as keyof typeof componentMap];
+    return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
+  }
   function onSubmit(data: any) {
     // Handle form submission logic here
     console.log(data);
@@ -64,34 +72,23 @@ function login() {
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent>
               <div className="grid w-full items-center gap-4">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="name">Username</FormLabel>
-                      <FormControl>
-                        <Input id="name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex flex-col space-y-1.5">
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="password">Password</FormLabel>
-                        <FormControl>
-                          <Input id="password" type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                {[
+                  {
+                    name: "email",
+                    label: "Email",
+                    type: "email",
+                    validation: { required: true },
+                    field_prop: {
+                      single: true,
+                    },
+                  },
+                  {
+                    name: "password",
+                    label: "Password",
+                    type: "password",
+                    validation: { required: true },
+                  },
+                ].map(renderField)}
               </div>
             </CardContent>
             <CardFooter className="flex flex-col items-center gap-2">

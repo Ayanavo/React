@@ -1,36 +1,75 @@
+import GoogleIcon from "@/assets/google.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import showToast from "@/hooks/toast";
+import { componentMap } from "@/pages/layout/form/field-map";
+import generateControl from "@/pages/layout/form/validation";
+import { authAnonymous } from "@/shared/services/auth";
+import { DevTool } from "@hookform/devtools";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import { useMutation } from "@tanstack/react-query";
+import firebase from "firebase/compat/app";
 import React from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import z from "zod";
 
-const formSchema = z.object({
-  username: z
-    .string()
-    .min(1, {
-      message: "Username is required",
-    })
-    .min(2, {
-      message: "Username must be at least 2 characters.",
-    }),
-  email: z.string().min(1, { message: "Email is required" }).email({
-    message: "Email pattern is invalid.",
-  }),
-});
+const formSchemaObj = [
+  {
+    name: "title",
+    type: "dropdown",
+    label: "Title",
+    options: [
+      { label: "Mr.", value: "Mr." },
+      { label: "Mrs.", value: "Mrs." },
+      { label: "Ms.", value: "Ms." },
+      { label: "Dr.", value: "Dr." },
+      { label: "Prof.", value: "Prof." },
+    ],
+    validation: { required: true },
+  },
+  {
+    name: "fname",
+    label: "First Name",
+    type: "text",
+    validation: { required: true },
+  },
+  {
+    name: "lname",
+    label: "Last Name",
+    type: "text",
+    validation: { required: true },
+  },
+];
+
 function registration() {
   const navigate = useNavigate();
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-  });
-  function onSubmit(data: any) {
-    // Handle form submission logic here
-    console.log(data);
-    navigate("/login");
+  const form = generateControl(formSchemaObj);
+
+  function renderField(field: {
+    type: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined;
+    name: React.Key | null | undefined;
+  }) {
+    const Component = componentMap[field.type as keyof typeof componentMap];
+    return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
+  const onSubmit = (res: any) => {
+    console.log(res);
+    navigate("/login");
+  };
+
+  const mutation = useMutation<firebase.auth.UserCredential, Error, string>({
+    mutationFn: authAnonymous,
+    onSuccess: (res) => {
+      localStorage.setItem("access_token", (res.credential?.toJSON() as { accessToken: string })["accessToken"]);
+      navigate("/dashboard");
+      showToast({
+        description: "Registered Successfully",
+      });
+    },
+    onError: (error) => {
+      console.error("Submission failed:", error);
+    },
+  });
 
   return (
     <div className="flex justify-center items-center min-h-screen">
@@ -43,34 +82,7 @@ function registration() {
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent>
               <div className="grid w-full items-center gap-4">
-                <FormField
-                  control={form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel htmlFor="name">Username</FormLabel>
-                      <FormControl>
-                        <Input id="name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex flex-col space-y-1.5">
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel htmlFor="email">Email</FormLabel>
-                        <FormControl>
-                          <Input id="email" type="email" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                <div>{formSchemaObj.map(renderField)}</div>
               </div>
             </CardContent>
 
@@ -82,6 +94,23 @@ function registration() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-muted-foreground"></div>
                 </div>
+
+                <div className="relative flex justify-center">
+                  <span className="bg-background px-3 text-xs uppercase text-muted-foreground">Or register with</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-10">
+                <Button type="button" variant="outline" onClick={() => mutation.mutate("google")}>
+                  <span className="mr-2 h-4 w-4">
+                    <GoogleIcon />
+                  </span>
+                  Google
+                </Button>
+                <Button type="button" variant="outline" onClick={() => mutation.mutate("github")}>
+                  <GitHubLogoIcon className="mr-2 h-4 w-4" />
+                  Github
+                </Button>
               </div>
 
               <p className="text-sm text-gray-500">
@@ -93,6 +122,7 @@ function registration() {
             </CardFooter>
           </form>
         </FormProvider>
+        <DevTool control={form.control} />
       </Card>
     </div>
   );

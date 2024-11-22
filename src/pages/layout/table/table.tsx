@@ -68,13 +68,13 @@ function table() {
   ];
 
   const createColumns = (config: typeof columnConfig) => {
-    return config.map((column) => {
+    return config.map((column, index) => {
       if (column.key === "action") {
         return columnHelper.display({
           id: "action",
           header: column.label,
           cell: ({ row }) => (
-            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <div key={index} className="opacity-0 group-hover:opacity-100 transition-opacity">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -109,7 +109,7 @@ function table() {
         return columnHelper.display({
           id: "select",
           header: ({ table }) => (
-            <div className="p-2">
+            <div key={index} className="p-2">
               <Checkbox aria-label="Select all" checked={table.getIsAllPageRowsSelected()} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} />
             </div>
           ),
@@ -123,7 +123,7 @@ function table() {
 
           if (typeof value === "boolean") {
             return (
-              <div className="flex justify-right h-full">
+              <div key={index} className="flex justify-right h-full">
                 {value ?
                   <Badge variant="default" key={column.key} className="flex justify-evenly cursor-default text-green-500 bg-green-200 hover:bg-inherit/50">
                     <CheckCircledIcon key={column.key} className="h-4 w-4 " />
@@ -208,11 +208,11 @@ function table() {
         <TableCaption>A list of all available data.</TableCaption>
         <TableHeader className="bg-muted/50">
           {tableBody.getHeaderGroups().map((column) => (
-            <TableRow>
+            <TableRow key={column.id}>
               {/* <DndContext> */}
               {/* <SortableContext items={column.headers} strategy={horizontalListSortingStrategy}> */}
               {column.headers.map((headers) => (
-                <TableHead className="w-[100px] ">
+                <TableHead key={headers.id} className="w-[100px] ">
                   {headers.isPlaceholder ?
                     null
                   : headers.column.getCanSort() ?
@@ -249,7 +249,7 @@ function table() {
         </TableHeader>
         <TableBody>
           {tableBody.getRowModel().rows.map((row) => (
-            <TableRow className="group cursor-pointer hover:bg-muted/50" key={row.id} data-state={row.getIsSelected() && "selected"}>
+            <TableRow key={row.id} className="group cursor-pointer hover:bg-muted/50" data-state={row.getIsSelected() && "selected"}>
               {row.getVisibleCells().map((cell) => (
                 <TableCell key={cell.id} className="font-medium truncate max-w-[200px] pr-0 pl-4">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
