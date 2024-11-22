@@ -35,8 +35,6 @@ function validation(formschema: Array<{ validation: any; name: string; label: st
       } else if (field.type === "date") {
         acc[field.name] = z.date();
       } else {
-        console.log(field.name);
-
         acc[field.name] = z.string();
       }
       return acc;
