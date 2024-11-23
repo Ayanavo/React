@@ -29,7 +29,8 @@ function menu({ isExpanded, setIsExpanded }: { isExpanded: boolean; setIsExpande
               <TooltipTrigger asChild>
                 <NavLink
                   className={cn("group flex items-center rounded-lg p-2 text-gray-700  hover:bg-gray-200 hover:text-black", isExpanded ? "space-x-5" : "justify-center h-10 w-10")}
-                  to={route}>
+                  to={route}
+                  state={label}>
                   <IconsComponent customClass="h-5 w-5 hover:text-black" icon={icon} />
                   <span className={cn("font-semibold", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>{label}</span>
                 </NavLink>
