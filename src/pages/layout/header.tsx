@@ -8,21 +8,22 @@ import { InfoCircledIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { MonitorCogIcon } from "lucide-react";
 import React from "react";
 import { useLocation } from "react-router-dom";
-
-function header() {
-  const { state } = useLocation();
+type NavItem = { label: string; icon: string; route: string };
+function header({ NavList }: { NavList: Array<NavItem> }) {
+  const { pathname } = useLocation();
+  const NavObj = NavList.find((item) => item.route === pathname);
   return (
     <header className="sticky top-0 z-10 bg-background border-b">
       <div className="flex items-center justify-between h-16 px-8">
         <div className="flex items-center space-x-2">
-          <h1 className="text-3xl font-bold">{state}</h1>
+          <h1 className="text-3xl font-bold">{NavObj?.label}</h1>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <InfoCircledIcon className="h-5 w-5 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent side="right">
-                <p>Every {state ?? "Dashboard"} record in your workspace in one place.</p>
+                <p>Every {NavObj?.label} record in your workspace in one place.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

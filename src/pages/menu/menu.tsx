@@ -5,17 +5,8 @@ import { PanelLeftDashedIcon } from "lucide-react";
 import React from "react";
 import { NavLink } from "react-router-dom";
 import IconsComponent from "../../common/icons";
-
-function menu({ isExpanded, setIsExpanded }: { isExpanded: boolean; setIsExpanded: Function }) {
-  type NavItem = { label: string; icon: string; route: string };
-  const NavList: Array<NavItem> = [
-    { label: "Dashboard", icon: "DashboardIcon", route: "/dashboard" },
-    { label: "Logs", icon: "TableIcon", route: "/table" },
-    { label: "Activities", icon: "CalendarIcon", route: "/activities" },
-    { label: "Profile", icon: "AvatarIcon", route: "/profile" },
-    { label: "Settings", icon: "GearIcon", route: "/settings" },
-  ];
-
+type NavItem = { label: string; icon: string; route: string };
+function menu({ NavList, isExpanded, setIsExpanded }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function }) {
   return (
     <div className={cn("fixed left-0 top-0 h-full bg-gray-100 transition-all duration-300 ease-in-out z-10", isExpanded ? "w-40" : "w-16")}>
       <Button variant="ghost" size="icon" className="absolute top-4 left-2" onClick={() => setIsExpanded(!isExpanded)}>
@@ -23,7 +14,7 @@ function menu({ isExpanded, setIsExpanded }: { isExpanded: boolean; setIsExpande
       </Button>
 
       <nav className="mt-16 flex flex-col space-y-2 p-2">
-        {NavList.map(({ label, icon: icon, route }, i: number) => (
+        {NavList.map(({ label, icon, route }: NavItem, i: number) => (
           <TooltipProvider disableHoverableContent key={i}>
             <Tooltip>
               <TooltipTrigger asChild>
