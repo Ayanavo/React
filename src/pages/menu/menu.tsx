@@ -20,10 +20,9 @@ function menu({ NavList, isExpanded, setIsExpanded }: { NavList: Array<NavItem>;
               <TooltipTrigger asChild>
                 <NavLink
                   className={cn("group flex items-center rounded-lg p-2 text-gray-700  hover:bg-gray-200 hover:text-black", isExpanded ? "space-x-5" : "justify-center h-10 w-10")}
-                  to={route}
-                  state={label}>
+                  to={route}>
                   <IconsComponent customClass="h-5 w-5 hover:text-black" icon={icon} />
-                  <span className={cn("font-semibold", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>{label}</span>
+                  {isExpanded && <span className={cn("font-semibold", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>{label}</span>}
                 </NavLink>
               </TooltipTrigger>
               {!isExpanded && (
@@ -43,7 +42,7 @@ function menu({ NavList, isExpanded, setIsExpanded }: { NavList: Array<NavItem>;
                 className={cn("group flex items-center rounded-lg p-2 text-gray-700 hover:bg-gray-200 hover:text-black", isExpanded ? "space-x-5" : "justify-center h-10 w-10")}
                 to="/login">
                 <IconsComponent customClass="h-5 w-5 hover:text-black" icon="ExitIcon" />
-                <span className={cn("font-semibold", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>Sign Out</span>
+                {isExpanded && <span className={cn("font-semibold", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>Sign Out</span>}
               </NavLink>
             </TooltipTrigger>
             {!isExpanded && (

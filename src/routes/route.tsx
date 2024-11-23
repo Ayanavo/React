@@ -25,9 +25,9 @@ export const Router = () => {
         <Route caseSensitive path="activities" element={<ActivityComponent />} />
         <Route caseSensitive path="profile" element={<ProfileComponent />} />
         <Route caseSensitive path="settings" element={<SettingsComponent />} />
-        <Route caseSensitive path="create" element={<CreateComponent />} />
-        <Route caseSensitive path="details/:id" element={<DetailComponent />} />
-        <Route caseSensitive path="update/:id" element={<UpdateComponent />} />
+        <Route caseSensitive path="table/create" element={<CreateComponent />} />
+        <Route caseSensitive path="table/details/:id" element={<DetailComponent />} />
+        <Route caseSensitive path="table/update/:id" element={<UpdateComponent />} />
       </Route>
       <Route path="*" element={<NoPageComponent />} />
     </Routes>

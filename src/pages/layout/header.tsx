@@ -11,7 +11,7 @@ import { useLocation } from "react-router-dom";
 type NavItem = { label: string; icon: string; route: string };
 function header({ NavList }: { NavList: Array<NavItem> }) {
   const { pathname } = useLocation();
-  const NavObj = NavList.find((item) => item.route === pathname);
+  const NavObj = NavList.find((item) => pathname.includes(item.route));
   return (
     <header className="sticky top-0 z-10 bg-background border-b">
       <div className="flex items-center justify-between h-16 px-8">

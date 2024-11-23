@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { EyeClosedIcon, EyeOpenIcon } from "@radix-ui/react-icons";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 import React, { useState } from "react";
 import { FieldValue } from "react-hook-form";
 type PasswordSchema = {
@@ -33,8 +34,8 @@ function password({ form, schema }: { form: FieldValue<any>; schema: PasswordSch
               onClick={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? "Hide password" : "Show password"}>
               {showPassword ?
-                <EyeClosedIcon className="h-4 w-4 text-gray-500" />
-              : <EyeOpenIcon className="h-4 w-4 text-gray-500" />}
+                <EyeOffIcon className="h-4 w-4 text-gray-500" />
+              : <EyeIcon className="h-4 w-4 text-gray-500" />}
             </Button>
           </div>
           <FormMessage />
