@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { EyeClosedIcon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import React, { useState } from "react";
 import { FieldValue } from "react-hook-form";
