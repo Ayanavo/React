@@ -12,7 +12,7 @@ import { GearIcon } from "@radix-ui/react-icons";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
 import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
-import { HolidayEvent } from "../../shared/services/activity";
+import { HolidayEvent } from "../../../shared/services/activity";
 import ActivityComponent from "./activity-list";
 import DatePickerComponent from "./datepicker";
 import EventComponent from "./event";

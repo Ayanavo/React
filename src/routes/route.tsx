@@ -1,16 +1,16 @@
-import ActivityComponent from "@/pages/activity/activity";
+import ActivityComponent from "@/pages/layout/activity/activity";
 import LoginComponent from "@/pages/auth/login/login";
 import RegistrationComponent from "@/pages/auth/registration/registration";
-import DashboardComponent from "@/pages/dashboard/dashboard";
+import DashboardComponent from "@/pages/layout/dashboard/dashboard";
 import ProfileComponent from "@/pages/profile/profile";
 import SettingsComponent from "@/pages/settings/settings";
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import DetailComponent from "../pages/layout/details/details";
+import DetailComponent from "../pages/layout/logs/details/details";
 import { Layout } from "../pages/layout/layout";
-import TableComponent from "../pages/layout/table/table";
-import CreateComponent from "../pages/layout/update/create";
-import UpdateComponent from "../pages/layout/update/update";
+import TableComponent from "../pages/layout/logs/table/table";
+import CreateComponent from "../pages/layout/logs/update/create";
+import UpdateComponent from "../pages/layout/logs/update/update";
 import NoPageComponent from "../pages/nopage";
 
 export const Router = () => {
