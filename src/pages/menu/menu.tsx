@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { HamburgerMenuIcon } from "@radix-ui/react-icons";
+import { PanelLeftDashedIcon } from "lucide-react";
 import React from "react";
 import { NavLink } from "react-router-dom";
 import IconsComponent from "../../common/icons";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 function menu({ isExpanded, setIsExpanded }: { isExpanded: boolean; setIsExpanded: Function }) {
   type NavItem = { label: string; icon: string; route: string };
@@ -18,8 +18,8 @@ function menu({ isExpanded, setIsExpanded }: { isExpanded: boolean; setIsExpande
 
   return (
     <div className={cn("fixed left-0 top-0 h-full bg-gray-100 transition-all duration-300 ease-in-out z-10", isExpanded ? "w-40" : "w-16")}>
-      <Button variant="ghost" size="icon" className="absolute top-4 left-3" onClick={() => setIsExpanded(!isExpanded)}>
-        <HamburgerMenuIcon className="h-6 w-6" />
+      <Button variant="ghost" size="icon" className="absolute top-4 left-2" onClick={() => setIsExpanded(!isExpanded)}>
+        <PanelLeftDashedIcon strokeWidth={1.25} className="h-6 w-6" />
       </Button>
 
       <nav className="mt-16 flex flex-col space-y-2 p-2">
