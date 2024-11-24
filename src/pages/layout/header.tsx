@@ -1,16 +1,27 @@
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InfoIcon, MonitorCogIcon, SearchIcon } from "lucide-react";
-import React from "react";
+import { InfoIcon, MonitorCogIcon, SearchIcon, SunMoonIcon } from "lucide-react";
+import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 type NavItem = { label: string; icon: string; route: string };
 function header({ NavList }: { NavList: Array<NavItem> }) {
   const { pathname } = useLocation();
   const NavObj = NavList.find((item) => pathname.includes(item.route));
+  const [position, setPosition] = useState("system");
   return (
     <header className="sticky top-0 z-10 bg-background border-b">
       <div className="flex items-center justify-between h-16 px-8">
@@ -42,16 +53,27 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
                 <MonitorCogIcon className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-48">
-              <DropdownMenuItem>Extra</DropdownMenuItem>
-              <DropdownMenuItem>Help</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onSelect={(event: Event) => event.preventDefault()}>
-                <div className="flex items-center space-x-2">
-                  <Switch id="theme" />
-                  <Label htmlFor="theme">Theme</Label>
-                </div>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem>
+                <InfoIcon className="mr-2 h-4 w-4" />
+                <span>Help</span>
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>
+                  <SunMoonIcon className="mr-2 h-4 w-4" />
+                  <span>Appearance</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
+                      <DropdownMenuRadioItem value="light">Light Mode</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="dark">Dark Mode</DropdownMenuRadioItem>
+                      <DropdownMenuRadioItem value="system">Device Mode</DropdownMenuRadioItem>
+                    </DropdownMenuRadioGroup>
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

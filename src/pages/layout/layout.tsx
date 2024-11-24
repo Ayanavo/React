@@ -11,7 +11,7 @@ export const Layout = () => {
     { label: "Dashboard", icon: "LayoutDashboardIcon", route: "/dashboard" },
     { label: "Logs", icon: "TableIcon", route: "/table" },
     { label: "Activities", icon: "CalendarDaysIcon", route: "/activities" },
-    { label: "Profile", icon: "UserRoundIcon", route: "/profile" },
+    { label: "Profile", icon: "UserIcon", route: "/profile" },
     { label: "Settings", icon: "SettingsIcon", route: "/settings" },
   ];
   const [isExpanded, setIsExpanded] = useState(false);
