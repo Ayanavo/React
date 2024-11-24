@@ -4,8 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InfoCircledIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
-import { MonitorCogIcon } from "lucide-react";
+import { InfoIcon, MonitorCogIcon, SearchIcon } from "lucide-react";
 import React from "react";
 import { useLocation } from "react-router-dom";
 type NavItem = { label: string; icon: string; route: string };
@@ -20,7 +19,7 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <InfoCircledIcon className="h-5 w-5 text-muted-foreground" />
+                <InfoIcon className="h-5 w-5 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent side="right">
                 <p>Every {NavObj?.label} record in your workspace in one place.</p>
@@ -31,7 +30,7 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
 
         <div className="flex items-center justify-center flex-auto">
           <div className="relative w-full max-w-md">
-            <MagnifyingGlassIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input type="search" placeholder="Search..." className="pl-8 w-full" />
           </div>
         </div>

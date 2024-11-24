@@ -1,13 +1,13 @@
 import { cn } from "@/lib/utils";
-import * as RadixIcons from "@radix-ui/react-icons";
+import * as Lucide from "lucide-react";
 import React from "react";
 
 function icons({ icon, customClass }: { icon: string; customClass?: string }) {
-  const IconComponent = RadixIcons[icon as keyof typeof RadixIcons] as React.ElementType;
+  const IconComponent = Lucide[icon as keyof typeof Lucide] as React.ElementType;
 
   // Return a fallback if the icon doesn't exist
   if (!IconComponent) {
-    return <RadixIcons.Cross1Icon />;
+    return <Lucide.XIcon />;
   }
 
   return <IconComponent className={cn("transition-colors duration-300", customClass)} />;
