@@ -9,8 +9,8 @@ import { FieldValue } from "react-hook-form";
 
 type ColorSchema = {
   name: string;
-  label: string;
-  placeholder: string;
+  label?: string;
+  placeholder?: string;
   type: "color";
   validation: { required: boolean };
 };
@@ -26,7 +26,7 @@ function color({ form, schema }: { form: FieldValue<any>; schema: ColorSchema })
       name={schema.name}
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          <FormLabel>{schema.label}</FormLabel>
+          {schema?.label && <FormLabel>{schema.label}</FormLabel>}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>

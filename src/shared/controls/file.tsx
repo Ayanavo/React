@@ -5,7 +5,8 @@ import { FieldValue } from "react-hook-form";
 
 type FileSchema = {
   name: string;
-  label: string;
+  label?: string;
+  placeholder?: string;
   validation: { required: boolean; maxSize: "16Mb" };
 };
 
@@ -17,7 +18,7 @@ function file({ form, schema }: { form: FieldValue<any>; schema: FileSchema }) {
       name={schema.name}
       render={() => (
         <FormItem>
-          <FormLabel>{schema.label}</FormLabel>
+          {schema?.label && <FormLabel>{schema.label}</FormLabel>}
           <div
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}

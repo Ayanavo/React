@@ -10,22 +10,18 @@ import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/logs/form/validation";
 
 function settings() {
+  const colorSchema = {
+    name: "themecolor",
+    type: "color" as "color",
+    validation: {
+      required: false,
+    },
+  };
   const [selectedTheme, setSelectedTheme] = useState("system");
   const [selectedView, setSelectedView] = useState("default");
-  const form = generateControl([
-    {
-      name: "themecolor",
-      label: "Custom Color",
-      placeholder: "",
-      type: "color",
-      validation: {
-        required: false,
-      },
-    },
-  ]);
+  const form = generateControl([colorSchema]);
 
   function onSubmit() {
-    // Your form submission logic here
     console.log(form.getValues());
   }
 
@@ -56,7 +52,7 @@ function settings() {
                     {brandColors.map((color) => (
                       <button
                         key={color}
-                        className="w-8 h-8 rounded-full border-2 border-transparent hover:border-primary focus:border-primary focus:outline-none transition-colors"
+                        className="w-8 h-8 rounded-lg border-2 border-transparent hover:border-primary focus:border-primary focus:outline-none transition-colors"
                         style={{ backgroundColor: color }}
                         aria-label={`Select color ${color}`}
                       />
@@ -64,19 +60,9 @@ function settings() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Label className="text-sm">Custom color:</Label>
-                    {/* <Input type="text" placeholder="#2D66F6" className="w-24" /> */}
-                    <ColorComponent
-                      form={form.control}
-                      schema={{
-                        name: "themecolor",
-                        label: "Custom Color",
-                        placeholder: "",
-                        type: "color",
-                        validation: {
-                          required: false,
-                        },
-                      }}
-                    />
+                    <div className="w-40">
+                      <ColorComponent form={form.control} schema={colorSchema} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -143,8 +129,10 @@ function settings() {
 
             {/* Action Buttons */}
             <div className="flex justify-end gap-4">
-              <Button variant="outline">Cancel</Button>
-              <Button>Save changes</Button>
+              <Button type="reset" variant="outline">
+                Cancel
+              </Button>
+              <Button type="submit">Save changes</Button>
             </div>
           </form>
         </FormProvider>
