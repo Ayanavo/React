@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { PlusCircledIcon, TrashIcon } from "@radix-ui/react-icons";
+import { SquarePlusIcon, TrashIcon } from "lucide-react";
 import React, { useEffect } from "react";
 import { FieldValue, useFieldArray } from "react-hook-form";
 type EmailSchema = {
@@ -67,7 +67,7 @@ function email({ form, schema }: { form: FieldValue<any>; schema: EmailSchema })
       ))}
       {!schema.field_prop?.single && (
         <Button type="button" variant="outline" size="sm" onClick={() => append({ email: "", isPrimary: false })} className="mt-2">
-          <PlusCircledIcon className=" mr-2 h-4 w-4" />
+          <SquarePlusIcon className=" mr-2 h-4 w-4" />
           Add more
         </Button>
       )}

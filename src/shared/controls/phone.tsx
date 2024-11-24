@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { PlusCircledIcon, TrashIcon } from "@radix-ui/react-icons";
+import { SquarePlusIcon, TrashIcon } from "lucide-react";
 import React, { useEffect } from "react";
 import { FieldValue, useFieldArray } from "react-hook-form";
 type PhoneSchema = {
@@ -48,7 +48,7 @@ function phone({ form, schema }: { form: FieldValue<any>; schema: PhoneSchema })
             render={({ field }) => (
               <FormItem className="absolute right-2 top-3/4 -translate-y-1/2">
                 <FormControl>
-                  <RadioGroup onValueChange={() => setPrimaryPhone(index)} value={field.value} className="flex items-center ">
+                  <RadioGroup onValueChange={() => setPrimaryPhone(index)} value={field.value} className="flex items-center">
                     <RadioGroupItem value="true" checked={field.value === true} />
                   </RadioGroup>
                 </FormControl>
@@ -61,7 +61,7 @@ function phone({ form, schema }: { form: FieldValue<any>; schema: PhoneSchema })
         </div>
       ))}
       <Button type="button" variant="outline" size="sm" onClick={() => append({ phone: "", isPrimary: false })} className="mt-2">
-        <PlusCircledIcon className="mr-2 h-4 w-4" />
+        <SquarePlusIcon className="mr-2 h-4 w-4" />
         Add more
       </Button>
     </div>
