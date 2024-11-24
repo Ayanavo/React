@@ -1,11 +1,154 @@
-import React from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import ColorComponent from "@/shared/controls/color";
+import ImageComponent from "@/shared/controls/image";
+import React, { useState } from "react";
+import { FormProvider } from "react-hook-form";
+import generateControl from "../layout/logs/form/validation";
 
-type Props = {};
+function settings() {
+  const [selectedTheme, setSelectedTheme] = useState("system");
+  const [selectedView, setSelectedView] = useState("default");
+  const form = generateControl([
+    {
+      name: "themecolor",
+      label: "Custom Color",
+      placeholder: "",
+      type: "color",
+      validation: {
+        required: false,
+      },
+    },
+  ]);
 
-function settings({}: Props) {
+  function onSubmit() {
+    // Your form submission logic here
+    console.log(form.getValues());
+  }
+
+  const brandColors = ["#000000", "#2563eb", "#4f46e5", "#0ea5e9", "#14b8a6", "#22c55e"];
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="px-6">Settings</div>
+      <div className="px-6">
+        <FormProvider {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <div className="space-y-6">
+              {/* Company Logo Section */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Company logo</Label>
+                  <p className="text-sm text-muted-foreground">Upload your company logo.</p>
+                </div>
+                <ImageComponent />
+              </div>
+
+              {/* Brand Color Section */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Brand color</Label>
+                  <p className="text-sm text-muted-foreground">Select or customize your brand color.</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex gap-2">
+                    {brandColors.map((color) => (
+                      <button
+                        key={color}
+                        className="w-8 h-8 rounded-full border-2 border-transparent hover:border-primary focus:border-primary focus:outline-none transition-colors"
+                        style={{ backgroundColor: color }}
+                        aria-label={`Select color ${color}`}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm">Custom color:</Label>
+                    {/* <Input type="text" placeholder="#2D66F6" className="w-24" /> */}
+                    <ColorComponent
+                      form={form.control}
+                      schema={{
+                        name: "themecolor",
+                        label: "Custom Color",
+                        placeholder: "",
+                        type: "color",
+                        validation: {
+                          required: false,
+                        },
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Interface Theme Section */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Interface theme</Label>
+                  <p className="text-sm text-muted-foreground">Select your preferred interface theme.</p>
+                </div>
+                <div className="grid grid-cols-3 gap-4">
+                  {["system", "light", "dark"].map((theme) => (
+                    <Card key={theme} className={`relative cursor-pointer p-1 ${selectedTheme === theme ? "border-2 border-primary" : ""}`} onClick={() => setSelectedTheme(theme)}>
+                      <div className="aspect-[4/3] rounded-sm bg-muted" />
+                      <p className="mt-2 text-center text-sm capitalize">{theme}</p>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {/* Transparent Sidebar Toggle */}
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Transparent sidebar</Label>
+                  <p className="text-sm text-muted-foreground">Make the sidebar transparent.</p>
+                </div>
+                <Switch />
+              </div>
+
+              {/* Sidebar Feature Section */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Sidebar feature</Label>
+                  <p className="text-sm text-muted-foreground">What shows in the desktop sidebar.</p>
+                </div>
+                <Select defaultValue="recent">
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select feature" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">Recent changes</SelectItem>
+                    <SelectItem value="favorites">Favorites</SelectItem>
+                    <SelectItem value="most-used">Most used</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Tables View Section */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Tables view</Label>
+                  <p className="text-sm text-muted-foreground">How are tables displayed in the app.</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  {["default", "compact"].map((view) => (
+                    <Card key={view} className={`relative cursor-pointer p-1 ${selectedView === view ? "border-2 border-primary" : ""}`} onClick={() => setSelectedView(view)}>
+                      <div className="aspect-[4/3] rounded-sm bg-muted" />
+                      <p className="mt-2 text-center text-sm capitalize">{view}</p>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-4">
+              <Button variant="outline">Cancel</Button>
+              <Button>Save changes</Button>
+            </div>
+          </form>
+        </FormProvider>
+      </div>
     </div>
   );
 }
