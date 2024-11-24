@@ -25,11 +25,9 @@ function menu({ NavList, isExpanded, setIsExpanded }: { NavList: Array<NavItem>;
                   {isExpanded && <span className={cn("font-semibold", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>{label}</span>}
                 </NavLink>
               </TooltipTrigger>
-              {!isExpanded && (
-                <TooltipContent side="right">
-                  <p>{label}</p>
-                </TooltipContent>
-              )}
+              <TooltipContent className={cn(!isExpanded && "sr-only")} side="right">
+                {label}
+              </TooltipContent>
             </Tooltip>
           </TooltipProvider>
         ))}
@@ -45,11 +43,9 @@ function menu({ NavList, isExpanded, setIsExpanded }: { NavList: Array<NavItem>;
                 {isExpanded && <span className={cn("font-semibold", isExpanded ? "opacity-100 transition-opacity duration-300" : "opacity-0 w-0")}>Sign Out</span>}
               </NavLink>
             </TooltipTrigger>
-            {!isExpanded && (
-              <TooltipContent side="right">
-                <p>Logout</p>
-              </TooltipContent>
-            )}
+            <TooltipContent className={cn(!isExpanded && "sr-only")} side="right">
+              Logout
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </nav>

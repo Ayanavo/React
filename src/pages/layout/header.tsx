@@ -39,7 +39,7 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
-                <MonitorCogIcon strokeWidth={1.25} className="h-5 w-5" />
+                <MonitorCogIcon className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-48">

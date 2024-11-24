@@ -11,7 +11,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import { GearIcon } from "@radix-ui/react-icons";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import moment from "moment";
-import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { HolidayEvent } from "../../../shared/services/activity";
 import ActivityComponent from "./activity-list";
 import DatePickerComponent from "./datepicker";
@@ -60,9 +60,9 @@ function activity() {
     setGrid(view);
   }
 
-  function handleAlignment(event: SyntheticEvent<HTMLButtonElement>) {
+  function handleAlignment(event: string) {
     const calendarApi = calendarRef.current?.getApi();
-    switch ((event.target as HTMLButtonElement).value) {
+    switch (event) {
       case "today":
         calendarApi && calendarApi.today();
         break;
@@ -111,14 +111,16 @@ function activity() {
           <div className="mb-4 flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <h1 className="text-3xl font-bold">{activeMonth}</h1>
-              <Button variant="outline" value={"today"} onClick={handleAlignment}>
+              <Button variant="outline" value="today" onClick={() => handleAlignment("today")}>
                 Today
               </Button>
-              <Button variant="outline" size="icon" value={"prev"} onClick={handleAlignment}>
+              <Button variant="outline" size="icon" value="prev" onClick={() => handleAlignment("prev")}>
                 <ChevronLeft className="h-4 w-4" />
+                <span className="sr-only">Prev Event</span>
               </Button>
-              <Button variant="outline" size="icon" value={"next"} onClick={handleAlignment}>
+              <Button variant="outline" size="icon" value="next" onClick={() => handleAlignment("next")}>
                 <ChevronRight className="h-4 w-4" />
+                <span className="sr-only">Next Event</span>
               </Button>
             </div>
             <div className="flex items-center space-x-2">
