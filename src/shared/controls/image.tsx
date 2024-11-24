@@ -16,7 +16,7 @@ function image() {
       <Button variant="outline" size="sm">
         Replace logo
       </Button>
-      <Button variant="ghost" size="sm" className="text-muted-foreground">
+      <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setIsUploading(true)}>
         Remove
       </Button>
     </div>
