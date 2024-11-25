@@ -27,7 +27,7 @@ function datepicker({ onSendData, date }: { onSendData: any; date: Date }) {
       inline
       selected={date}
       onChange={onSendData}
-      calendarClassName="bg-white rounded-md border font-sans"
+      calendarClassName="rounded-md border font-sans"
     />
   );
 }

@@ -94,7 +94,7 @@ function activity() {
   return (
     <div className="flex flex-col min-h-screen">
       <EventComponent setIsOpen={setIsOpen} isOpen={isOpen} momentValue={selectedDate} />
-      <ResizablePanelGroup onLayout={recalculateCalendar} direction="horizontal" className="flex h-screen overflow-hidden bg-white">
+      <ResizablePanelGroup onLayout={recalculateCalendar} direction="horizontal" className="flex h-screen overflow-hidden">
         <ResizablePanel minSize={17} className="w-[270px] p-4">
           <div className="pl-0">
             <DatePickerComponent onSendData={setDate} date={date} />

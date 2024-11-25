@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Loader2, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import React, { ChangeEvent, useRef, useState } from "react";
 
 function image() {
-  const [isUploading, setIsUploading] = useState(false);
   const [image, setImage] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -21,9 +20,9 @@ function image() {
     <div className="flex items-center gap-4">
       <input ref={inputRef} id="image-drop" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
       <div className="relative w-16 h-16 border rounded-lg overflow-hidden">
-        {isUploading ?
-          <div className="absolute inset-0 flex items-center justify-center bg-muted">
-            <Loader2 className="h-4 w-4 animate-spin" />
+        {!image ?
+          <div className="absolute inset-0 flex items-center justify-center bg-purple-500">
+            <div className="text-4xl text-white transition duration-500 text-center">AL</div>
           </div>
         : <img width={64} height={64} alt="Logo" src={image} className="profile-image" />}
       </div>

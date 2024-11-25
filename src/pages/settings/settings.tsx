@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { useTheme } from "./theme";
 import ColorComponent from "@/shared/controls/color";
 import ImageComponent from "@/shared/controls/image";
 import React, { useState } from "react";
@@ -17,7 +17,7 @@ function settings() {
       required: false,
     },
   };
-  const [selectedTheme, setSelectedTheme] = useState("system");
+  const { theme, setTheme } = useTheme();
   const [selectedView, setSelectedView] = useState("default");
   const form = generateControl([colorSchema]);
 
@@ -73,23 +73,17 @@ function settings() {
                   <Label>Interface theme</Label>
                   <p className="text-sm text-muted-foreground">Select your preferred interface theme.</p>
                 </div>
-                <div className="grid grid-cols-3 gap-4">
-                  {["system", "light", "dark"].map((theme) => (
-                    <Card key={theme} className={`relative cursor-pointer p-1 ${selectedTheme === theme ? "border-2 border-primary" : ""}`} onClick={() => setSelectedTheme(theme)}>
+                <div className="grid grid-cols-5 gap-4">
+                  {["system", "light", "dark"].map((type) => (
+                    <Card
+                      key={type}
+                      className={`relative cursor-pointer p-1 } ${theme === type ? "border-2 border-primary" : ""}`}
+                      onClick={() => setTheme(type as "system" | "light" | "dark")}>
                       <div className="aspect-[4/3] rounded-sm bg-muted" />
-                      <p className="mt-2 text-center text-sm capitalize">{theme}</p>
+                      <p className="mt-2 text-center text-sm capitalize">{type} Mode</p>
                     </Card>
                   ))}
                 </div>
-              </div>
-
-              {/* Transparent Sidebar Toggle */}
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Transparent sidebar</Label>
-                  <p className="text-sm text-muted-foreground">Make the sidebar transparent.</p>
-                </div>
-                <Switch />
               </div>
 
               {/* Sidebar Feature Section */}
@@ -116,7 +110,7 @@ function settings() {
                   <Label>Tables view</Label>
                   <p className="text-sm text-muted-foreground">How are tables displayed in the app.</p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-5 gap-4 ">
                   {["default", "compact"].map((view) => (
                     <Card key={view} className={`relative cursor-pointer p-1 ${selectedView === view ? "border-2 border-primary" : ""}`} onClick={() => setSelectedView(view)}>
                       <div className="aspect-[4/3] rounded-sm bg-muted" />
