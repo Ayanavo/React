@@ -19,22 +19,22 @@ const initialState: ThemeProviderState = {
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
-export function ThemeProvider({ children, defaultTheme = "system", storageKey = "vite-ui-theme", ...props }: ThemeProviderProps) {
+export function ThemeProvider({ children, storageKey = "vite-ui-theme", ...props }: ThemeProviderProps) {
+  const defaultTheme = "system";
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(storageKey) as Theme) || defaultTheme);
 
   useEffect(() => {
     const root = window.document.documentElement;
 
     root.classList.remove("light", "dark");
+    const effectiveTheme =
+      theme === "system" ?
+        window.matchMedia("(prefers-color-scheme: dark)").matches ?
+          "dark"
+        : "light"
+      : theme;
 
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-
-      root.classList.add(systemTheme);
-      return;
-    }
-
-    root.classList.add(theme);
+    root.classList.add(effectiveTheme);
   }, [theme]);
 
   const value = {
@@ -54,8 +54,6 @@ export function ThemeProvider({ children, defaultTheme = "system", storageKey = 
 
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
-
   if (context === undefined) throw new Error("useTheme must be used within a ThemeProvider");
-
   return context;
 };
