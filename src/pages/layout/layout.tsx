@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import HeaderComponent from "../layout/header";
 import MenuComponent from "../menu/menu";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export const Layout = () => {
   type NavItem = { label: string; icon: string; route: string };
@@ -16,7 +17,7 @@ export const Layout = () => {
   ];
   const [isExpanded, setIsExpanded] = useState(false);
   return (
-    <div className="flex min-h-screen">
+    <SidebarProvider>
       <MenuComponent NavList={NavList} isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
       <div className={cn("flex-1 overflow-hidden transition-all duration-300 ease-in-out", isExpanded ? "ml-40" : "ml-16")}>
         <HeaderComponent NavList={NavList} />
@@ -25,6 +26,6 @@ export const Layout = () => {
           <Toaster />
         </main>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
