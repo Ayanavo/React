@@ -58,7 +58,7 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
                 <InfoIcon className="mr-2 h-4 w-4" />
                 <span>Help</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              {/* <DropdownMenuSeparator />
               <DropdownMenuSub>
                 <DropdownMenuSubTrigger>
                   <SunMoonIcon className="mr-2 h-4 w-4" />
@@ -73,7 +73,7 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
                     </DropdownMenuRadioGroup>
                   </DropdownMenuSubContent>
                 </DropdownMenuPortal>
-              </DropdownMenuSub>
+              </DropdownMenuSub> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
