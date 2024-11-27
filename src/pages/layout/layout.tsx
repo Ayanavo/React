@@ -17,7 +17,7 @@ export const Layout = () => {
   ];
   const [isExpanded, setIsExpanded] = useState(false);
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <MenuComponent NavList={NavList} isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
       <div className={cn("flex-1 overflow-hidden transition-all duration-300 ease-in-out")}>
         <HeaderComponent NavList={NavList} />

@@ -22,9 +22,13 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
   return (
     <Sidebar collapsible="icon" variant="floating">
       <SidebarHeader>
-        <div className="flex items-center justify-center">
-          <SidebarTrigger />
-        </div>
+        <SidebarMenu className="items-end">
+          <SidebarMenuItem>
+            <SidebarMenuButton>
+              <SidebarTrigger />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
 
       <SidebarContent>
@@ -69,7 +73,6 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
           </TooltipProvider>
         </SidebarMenu>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }
