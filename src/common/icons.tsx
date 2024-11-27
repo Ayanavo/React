@@ -10,7 +10,7 @@ function icons({ icon, customClass }: { icon: string; customClass?: string }) {
     return <Lucide.XIcon />;
   }
 
-  return <IconComponent className={cn("transition-colors duration-300", customClass)} />;
+  return <IconComponent className={cn(customClass)} />;
 }
 
 export default icons;

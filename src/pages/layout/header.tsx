@@ -1,27 +1,14 @@
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InfoIcon, MonitorCogIcon, SearchIcon, SunMoonIcon } from "lucide-react";
-import React, { useState } from "react";
+import { InfoIcon, MonitorCogIcon, SearchIcon } from "lucide-react";
+import React from "react";
 import { useLocation } from "react-router-dom";
 type NavItem = { label: string; icon: string; route: string };
 function header({ NavList }: { NavList: Array<NavItem> }) {
   const { pathname } = useLocation();
   const NavObj = NavList.find((item) => pathname.includes(item.route));
-  const [position, setPosition] = useState("system");
   return (
     <header className="sticky top-0 z-10 bg-background border-b">
       <div className="flex items-center justify-between h-16 px-8">
@@ -58,22 +45,6 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
                 <InfoIcon className="mr-2 h-4 w-4" />
                 <span>Help</span>
               </DropdownMenuItem>
-              {/* <DropdownMenuSeparator />
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <SunMoonIcon className="mr-2 h-4 w-4" />
-                  <span>Appearance</span>
-                </DropdownMenuSubTrigger>
-                <DropdownMenuPortal>
-                  <DropdownMenuSubContent>
-                    <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
-                      <DropdownMenuRadioItem value="light">Light Mode</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="dark">Dark Mode</DropdownMenuRadioItem>
-                      <DropdownMenuRadioItem value="system">Device Mode</DropdownMenuRadioItem>
-                    </DropdownMenuRadioGroup>
-                  </DropdownMenuSubContent>
-                </DropdownMenuPortal>
-              </DropdownMenuSub> */}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

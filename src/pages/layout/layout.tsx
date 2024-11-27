@@ -19,7 +19,7 @@ export const Layout = () => {
   return (
     <SidebarProvider>
       <MenuComponent NavList={NavList} isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
-      <div className={cn("flex-1 overflow-hidden transition-all duration-300 ease-in-out", isExpanded ? "ml-40" : "ml-16")}>
+      <div className={cn("flex-1 overflow-hidden transition-all duration-300 ease-in-out")}>
         <HeaderComponent NavList={NavList} />
         <main className="h-full w-full">
           <Outlet />
