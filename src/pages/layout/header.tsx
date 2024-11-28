@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { InfoIcon, MonitorCogIcon, SearchIcon } from "lucide-react";
+import { EllipsisVerticalIcon, InfoIcon, SearchIcon } from "lucide-react";
 import React from "react";
 import { useLocation } from "react-router-dom";
 type NavItem = { label: string; icon: string; route: string };
@@ -11,13 +11,13 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
   const NavObj = NavList.find((item) => pathname.includes(item.route));
   return (
     <header className="sticky top-0 z-10 bg-background border-b">
-      <div className="flex items-center justify-between h-16 px-8">
-        <div className="flex items-center space-x-2">
-          <h1 className="text-3xl font-bold">{NavObj?.label}</h1>
+      <div className="flex items-center justify-between h-16 px-5">
+        <div className="flex items-center space-x-2 overflow-hidden">
+          <h1 className="text-2xl font-bold">{NavObj?.label}</h1>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <InfoIcon className="h-5 w-5 text-muted-foreground" />
+                <InfoIcon className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent side="right">
                 <p>Every {NavObj?.label} record in your workspace in one place.</p>
@@ -37,7 +37,7 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
-                <MonitorCogIcon className="h-5 w-5" />
+                <EllipsisVerticalIcon className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">

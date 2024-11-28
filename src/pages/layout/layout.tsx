@@ -1,10 +1,9 @@
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import { cn } from "@/lib/utils";
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import HeaderComponent from "../layout/header";
 import MenuComponent from "../menu/menu";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export const Layout = () => {
   type NavItem = { label: string; icon: string; route: string };
