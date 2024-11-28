@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import HeaderComponent from "../layout/header";
 import MenuComponent from "../menu/menu";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
 export const Layout = () => {
   type NavItem = { label: string; icon: string; route: string };
@@ -19,13 +19,13 @@ export const Layout = () => {
   return (
     <SidebarProvider defaultOpen={false}>
       <MenuComponent NavList={NavList} isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
-      <div className={cn("flex-1 overflow-hidden transition-all duration-300 ease-in-out")}>
+      <SidebarInset>
         <HeaderComponent NavList={NavList} />
-        <main className="h-full w-full">
+        <main>
           <Outlet />
           <Toaster />
         </main>
-      </div>
+      </SidebarInset>
     </SidebarProvider>
   );
 };
