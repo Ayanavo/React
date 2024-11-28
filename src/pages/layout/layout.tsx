@@ -11,6 +11,11 @@ export const Layout = () => {
     { label: "Dashboard", icon: "LayoutDashboardIcon", route: "/dashboard" },
     { label: "Logs", icon: "TableIcon", route: "/table" },
     { label: "Activities", icon: "CalendarDaysIcon", route: "/activities" },
+    {
+      label: "Notes",
+      icon: "NotebookPenIcon",
+      route: "/notes",
+    },
     { label: "Profile", icon: "UserIcon", route: "/profile" },
     { label: "Settings", icon: "SettingsIcon", route: "/settings" },
   ];
