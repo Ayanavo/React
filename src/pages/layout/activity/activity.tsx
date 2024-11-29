@@ -8,8 +8,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionGridPlugin, { DateClickArg } from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
-import { GearIcon } from "@radix-ui/react-icons";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Settings2Icon } from "lucide-react";
 import moment from "moment";
 import React, { useEffect, useRef, useState } from "react";
 import { HolidayEvent } from "../../../shared/services/activity";
@@ -126,7 +125,7 @@ function activity() {
             <div className="flex items-center space-x-2">
               <Popover>
                 <PopoverTrigger asChild>
-                  <GearIcon className="cursor-pointer" />
+                  <Settings2Icon className="cursor-pointer" />
                 </PopoverTrigger>
                 <PopoverContent className="w-60" align="end">
                   <div className="grid gap-4">
