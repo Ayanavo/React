@@ -1,15 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import React, { useEffect, useRef } from "react";
+import React, { useRef } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import "./note.scss";
+import { State } from "./state";
 
-function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: boolean) => void; isOpen: boolean }) {
+function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; isOpen: State }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const form = useForm<{
     title: string;
     description: string;
-  }>();
+  }>({
+    defaultValues: {
+      title: isOpen?.title ?? "",
+      description: isOpen?.description ?? "",
+    },
+  });
 
   const handleInput = () => {
     if (textareaRef.current) {
@@ -22,15 +28,15 @@ function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: boolean) => void; 
     title: string;
     description: string;
   }> = (data) => {
-    setIsOpen(false);
-    console.log("Form Submitted:", data);
+    setIsOpen(data);
   };
 
-  useEffect(() => {
-    form.reset();
-  }, [isOpen]);
+  const handleReset = () => {
+    setIsOpen(null);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={!!isOpen} onOpenChange={handleReset}>
       <DialogTrigger asChild>
         <Button className="hidden"></Button>
       </DialogTrigger>
@@ -50,10 +56,10 @@ function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: boolean) => void; 
           </DialogDescription>
 
           <DialogFooter>
-            <Button type="reset" onClick={() => setIsOpen(false)}>
+            <Button type="reset" variant="outline" onClick={handleReset}>
               Cancel
             </Button>
-            <Button type="submit">Add Event</Button>
+            <Button type="submit">Submit</Button>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -8,6 +8,8 @@ import React, { useState } from "react";
 import GridLayoutComponent from "./grid-layout";
 import ListingLayoutComponent from "./listing-layout";
 import NoteEditorComponent from "./note-editor";
+import { State } from "./state";
+
 function note() {
   const NotesLayout = [
     { name: "list", label: "List View", icon: "SquareMenuIcon" },
@@ -24,7 +26,15 @@ function note() {
   ];
   // Toggle between list and grid view
   const [layout, setLayout] = useState<string>("list");
-  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [isOpen, setIsOpen] = useState<State>(null);
+
+  const handleCreate = () =>
+    setIsOpen({
+      title: "",
+      description: "",
+    });
+
+  // const [state, disapatch] = useReducer(reducer, InitialState);
   return (
     <>
       <NoteEditorComponent setIsOpen={setIsOpen} isOpen={isOpen} />
@@ -49,15 +59,15 @@ function note() {
             </ToggleGroup>
           </TooltipProvider>
 
-          <Button type="button" onClick={() => setIsOpen(true)}>
+          <Button type="button" onClick={handleCreate}>
             <PlusIcon className="h-4 w-4" />
-            <span> Add Note</span>
+            <span>Add Note</span>
           </Button>
         </div>
       </div>
 
-      {layout === "list" && <ListingLayoutComponent />}
-      {layout === "grid" && <GridLayoutComponent />}
+      {layout === "list" && <ListingLayoutComponent setIsOpen={setIsOpen} isOpen={isOpen} />}
+      {layout === "grid" && <GridLayoutComponent setIsOpen={setIsOpen} isOpen={isOpen} />}
     </>
   );
 }
