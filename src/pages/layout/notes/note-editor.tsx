@@ -44,13 +44,28 @@ function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; is
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>
-              <input type="text" {...form.register("title")} className="w-full outline-none resize-none py-2" placeholder="Title" />
+              <input
+                type="text"
+                {...form.register("title")}
+                className="w-full outline-none resize-none py-2"
+                style={{
+                  backgroundColor: "var(--primary)",
+                  color: "var(--foreground)",
+                  border: "1px solid var(--border)",
+                }}
+                placeholder="Title"
+              />
             </DialogTitle>
           </DialogHeader>
           <DialogDescription>
             <textarea
               {...form.register("description")}
               className="w-full min-h-[100px] rounded-md overflow-hidden outline-none resize-none"
+              style={{
+                backgroundColor: "var(--primary)",
+                color: "var(--foreground)",
+                border: "1px solid var(--border)",
+              }}
               onChange={handleInput}
               placeholder="Take a note here..."></textarea>
           </DialogDescription>
