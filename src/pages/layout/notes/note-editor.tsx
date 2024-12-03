@@ -1,11 +1,15 @@
+import IconsComponent from "@/common/icons";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import imageFile from "@/hooks/image-file";
 import React, { useRef } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import "./note.scss";
 import { State } from "./state";
 
 function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; isOpen: State }) {
+  const { image, renderInputField, activateInput } = imageFile();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const form = useForm<{
     title: string;
@@ -35,42 +39,69 @@ function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; is
     setIsOpen(null);
   };
 
+  function activateAction(action: string): void {
+    switch (action) {
+      case "color":
+        break;
+      case "image":
+        activateInput();
+        break;
+      default:
+        break;
+    }
+  }
+
   return (
     <Dialog open={!!isOpen} onOpenChange={handleReset}>
       <DialogTrigger asChild>
         <Button className="hidden"></Button>
       </DialogTrigger>
       <DialogContent>
+        {image && <img width={64} height={64} alt="Attachment" className="w-full rounded" src={image} />}
         <form onSubmit={form.handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>
-              <input
-                type="text"
-                {...form.register("title")}
-                className="w-full outline-none resize-none py-2"
-                style={{
-                  backgroundColor: "var(--primary)",
-                  color: "var(--foreground)",
-                  border: "1px solid var(--border)",
-                }}
-                placeholder="Title"
-              />
+              <input type="text" {...form.register("title")} className="w-full outline-none resize-none py-2 shad-background shad-color shad-border" placeholder="Title" />
             </DialogTitle>
           </DialogHeader>
           <DialogDescription>
             <textarea
               {...form.register("description")}
-              className="w-full min-h-[100px] rounded-md overflow-hidden outline-none resize-none"
-              style={{
-                backgroundColor: "var(--primary)",
-                color: "var(--foreground)",
-                border: "1px solid var(--border)",
-              }}
+              className="w-full min-h-[100px] rounded-md overflow-hidden outline-none resize-none shad-background shad-color shad-border"
               onChange={handleInput}
               placeholder="Take a note here..."></textarea>
           </DialogDescription>
 
           <DialogFooter>
+            <div className="flex items-center space-x-2">
+              {[
+                { name: "color", label: "Background Options", icon: "PaletteIcon" },
+                {
+                  name: "image",
+                  label: "Add Image",
+                  icon: "ImageIcon",
+                },
+                {
+                  name: "archive",
+                  label: "Archive",
+                  icon: "ArchiveIcon",
+                },
+                {
+                  name: "delete",
+                  label: "Delete",
+                  icon: "TrashIcon",
+                },
+              ].map((item) => (
+                <Tooltip key={item.name}>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" type="button" onClick={() => activateAction(item.name)}>
+                      <IconsComponent customClass="cursor-pointer" icon={item.icon} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">{item.label}</TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
             <Button type="reset" variant="outline" onClick={handleReset}>
               Cancel
             </Button>
@@ -78,6 +109,7 @@ function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; is
           </DialogFooter>
         </form>
       </DialogContent>
+      {renderInputField()}
     </Dialog>
   );
 }
