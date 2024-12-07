@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import ChipComponent from "@/shared/controls/chip";
+import ColorComponent from "@/shared/controls/color";
+import DateComponent from "@/shared/controls/date";
+import TextComponent from "@/shared/controls/text";
+import TextAreaComponent from "@/shared/controls/textarea";
 import moment from "moment";
 import React, { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import ChipComponent from "../../../shared/controls/chip";
-import ColorComponent from "../../../shared/controls/color";
-import DateComponent from "../../../shared/controls/date";
-import TextComponent from "../../../shared/controls/text";
-import TextAreaComponent from "../../../shared/controls/textarea";
 
 export default function event({ setIsOpen, isOpen, momentValue }: { setIsOpen: (arg: boolean) => void; isOpen: boolean; momentValue: moment.Moment }) {
   const defaultValues = { color: "#BA0000", date: new Date(momentValue.toISOString()) };

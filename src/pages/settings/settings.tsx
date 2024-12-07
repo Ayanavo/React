@@ -23,6 +23,7 @@ function settings() {
 
   function onSubmit() {
     console.log(window.matchMedia("(prefers-color-scheme: dark)").matches); // true for dark
+
     console.log(form.getValues());
   }
 

@@ -7,10 +7,12 @@ import React, { useRef } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import "./note.scss";
 import { State } from "./state";
+import { CustomPopover } from "@/hooks/popover-content";
 
 function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; isOpen: State }) {
   const { image, renderInputField, activateInput } = imageFile();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const popoverRef = useRef<{ open: () => void; close: () => void }>(null);
   const form = useForm<{
     title: string;
     description: string;
@@ -42,6 +44,7 @@ function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; is
   function activateAction(action: string): void {
     switch (action) {
       case "color":
+        popoverRef.current?.open();
         break;
       case "image":
         activateInput();
@@ -69,13 +72,13 @@ function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; is
               {...form.register("description")}
               className="w-full min-h-[100px] rounded-md overflow-hidden outline-none resize-none shad-background shad-color shad-border"
               onChange={handleInput}
-              placeholder="Take a note here..."></textarea>
+              placeholder="Write a note here..."></textarea>
           </DialogDescription>
 
           <DialogFooter>
             <div className="flex items-center space-x-2">
               {[
-                { name: "color", label: "Background Options", icon: "PaletteIcon" },
+                { name: "color", label: "Background Color", icon: "PaletteIcon" },
                 {
                   name: "image",
                   label: "Add Image",
@@ -108,6 +111,23 @@ function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; is
             <Button type="submit">Submit</Button>
           </DialogFooter>
         </form>
+
+        <CustomPopover
+          controlRef={popoverRef}
+          content={
+            <div className="w-fit">
+              Color
+              <div className="flex space-x-2">
+                <Button className="flex-1" onClick={() => popoverRef.current?.close()}>
+                  Close from Within
+                </Button>
+                <Button className="flex-1" variant="outline" onClick={() => popoverRef.current?.close()}>
+                  Close from Outside
+                </Button>
+              </div>
+            </div>
+          }
+        />
       </DialogContent>
       {renderInputField()}
     </Dialog>
