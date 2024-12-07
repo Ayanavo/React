@@ -124,12 +124,6 @@ function settings() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex justify-end gap-4">
-              <Button type="reset" variant="outline">
-                Cancel
-              </Button>
-              <Button type="submit">Save changes</Button>
-            </div>
           </form>
         </FormProvider>
       </div>

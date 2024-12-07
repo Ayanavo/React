@@ -8,10 +8,9 @@ interface CustomPopoverProps {
   content: ReactNode;
   className?: string;
   controlRef?: RefObject<{ open: () => void; close: () => void }>;
-  handleClose?: () => void;
 }
 
-export function CustomPopover({ content, className, controlRef, handleClose }: CustomPopoverProps) {
+export function CustomPopover({ content, className, controlRef }: CustomPopoverProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
@@ -31,10 +30,6 @@ export function CustomPopover({ content, className, controlRef, handleClose }: C
     useDismiss(context, { enabled: false }),
     useRole(context),
   ]);
-
-  handleClose = () => {
-    setIsOpen(false);
-  };
 
   useImperativeHandle(controlRef, () => ({
     open: () => setIsOpen(true),

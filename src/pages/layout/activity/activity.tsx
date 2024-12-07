@@ -93,20 +93,22 @@ function activity() {
   return (
     <div className="flex flex-col min-h-screen">
       <EventComponent setIsOpen={setIsOpen} isOpen={isOpen} momentValue={selectedDate} />
-      <ResizablePanelGroup onLayout={recalculateCalendar} direction="horizontal" className="flex h-screen overflow-hidden">
-        <ResizablePanel minSize={17} className="w-[270px] p-4">
-          <div className="pl-0">
-            <DatePickerComponent onSendData={setDate} date={date} />
-          </div>
+
+      <div className="flex overflow-hidden">
+        <div className="pl-0 mt-3">
+          <DatePickerComponent onSendData={setDate} date={date} />
 
           <ActivityComponent
             events={HolidayList.filter(
               (events) => moment(events.start).month() === moment(activeMonth, "MMMM YYYY").month() && moment(events.start).year() === moment(activeMonth, "MMMM YYYY").year()
             )}
           />
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={83} minSize={50} className="flex-1 p-4">
+        </div>
+
+        {/* <ResizableHandle withHandle /> */}
+
+        <div className="w-full p-4">
+          {/* <ResizablePanel defaultSize={83} minSize={50} className="flex-1 p-4"> */}
           <div className="mb-4 flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <h1 className="text-3xl font-bold">{activeMonth}</h1>
@@ -178,7 +180,7 @@ function activity() {
               />
             </div>
           )}
-        </ResizablePanel>
+        </div>
         <Dialog open={showEventPopover} onOpenChange={setShowEventPopover}>
           <DialogTrigger asChild>
             <Button className="hidden">Add Schedule</Button>
@@ -203,7 +205,8 @@ function activity() {
             </div>
           </DialogContent>
         </Dialog>
-      </ResizablePanelGroup>
+        {/* </ResizablePanelGroup> */}
+      </div>
     </div>
   );
 }
