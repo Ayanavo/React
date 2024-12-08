@@ -1,13 +1,12 @@
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useTheme } from "./theme";
 import ColorComponent from "@/shared/controls/color";
 import ImageComponent from "@/shared/controls/image";
 import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/logs/form/validation";
+import { useTheme } from "./theme";
 
 function settings() {
   const colorSchema = {

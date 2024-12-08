@@ -15,7 +15,7 @@ function activitylist({
   }>;
 }) {
   return (
-    <div className="mt-6 ml-4">
+    <div className="mt-6 mx-3">
       <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
         <AccordionItem value="item-1">
           <AccordionTrigger className="text-lg text-gray-600 font-semibold no-underline hover:no-underline hover:text-black">Holidays:</AccordionTrigger>

@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionGridPlugin, { DateClickArg } from "@fullcalendar/interaction";
@@ -85,17 +84,12 @@ function activity() {
     }
   }
 
-  function recalculateCalendar() {
-    const calendarApi = calendarRef.current?.getApi();
-    calendarApi && calendarApi.updateSize();
-  }
-
   return (
     <div className="flex flex-col min-h-screen">
       <EventComponent setIsOpen={setIsOpen} isOpen={isOpen} momentValue={selectedDate} />
 
       <div className="flex overflow-hidden">
-        <div className="pl-0 mt-3">
+        <div className="ml-2 px-2 mt-3">
           <DatePickerComponent onSendData={setDate} date={date} />
 
           <ActivityComponent
@@ -108,7 +102,6 @@ function activity() {
         {/* <ResizableHandle withHandle /> */}
 
         <div className="w-full p-4">
-          {/* <ResizablePanel defaultSize={83} minSize={50} className="flex-1 p-4"> */}
           <div className="mb-4 flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <h1 className="text-3xl font-bold">{activeMonth}</h1>
@@ -205,7 +198,6 @@ function activity() {
             </div>
           </DialogContent>
         </Dialog>
-        {/* </ResizablePanelGroup> */}
       </div>
     </div>
   );

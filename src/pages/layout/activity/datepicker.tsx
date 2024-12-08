@@ -8,7 +8,7 @@ import "/src/shared/controls/datepicker.scss";
 function datepicker({ onSendData, date }: { onSendData: any; date: Date }) {
   return (
     <DatePicker
-      className="mt-56"
+      className="mt-56 "
       renderCustomHeader={({ date, decreaseMonth, increaseMonth, prevMonthButtonDisabled, nextMonthButtonDisabled }) => (
         <div className="flex justify-evenly pt-1 relative items-center">
           <div className="space-x-7 flex items-center">
@@ -27,7 +27,7 @@ function datepicker({ onSendData, date }: { onSendData: any; date: Date }) {
       inline
       selected={date}
       onChange={onSendData}
-      calendarClassName="rounded-md border font-sans"
+      calendarClassName="shadow rounded-md border-solid border border-background font-sans"
     />
   );
 }
