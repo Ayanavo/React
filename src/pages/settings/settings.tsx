@@ -26,6 +26,7 @@ function settings() {
     { color: "emerald", hexcode: "#0ea5e9" },
     { color: "teal", hexcode: "#14b8a6" },
     { color: "green", hexcode: "#22c55e" },
+    { color: "red", hexcode: "#FF2D55" },
   ];
 
   // const brandColors = ["#2F2F31", "#2563EB", "#7C3AED", "#0ea5e9", "#14b8a6", "#22c55e"];
