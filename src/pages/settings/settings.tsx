@@ -27,9 +27,8 @@ function settings() {
     { color: "teal", hexcode: "#14b8a6" },
     { color: "green", hexcode: "#22c55e" },
     { color: "red", hexcode: "#FF2D55" },
+    { color: "orange", hexcode: "#F97316" },
   ];
-
-  // const brandColors = ["#2F2F31", "#2563EB", "#7C3AED", "#0ea5e9", "#14b8a6", "#22c55e"];
 
   return (
     <div className="flex flex-col min-h-screen">
