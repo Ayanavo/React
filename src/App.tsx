@@ -9,7 +9,7 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" colorTheme="zinc">
         <Router />;
       </ThemeProvider>
     </QueryClientProvider>
