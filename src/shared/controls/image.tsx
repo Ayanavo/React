@@ -21,7 +21,7 @@ function image() {
       <input ref={inputRef} id="image-drop" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
       <div className="relative w-16 h-16 border rounded-lg overflow-hidden">
         {!image ?
-          <div className="absolute inset-0 flex items-center justify-center bg-purple-500">
+          <div className="absolute inset-0 flex items-center justify-center bg-primary">
             <div className="text-4xl text-white transition duration-500 text-center">AL</div>
           </div>
         : <img width={64} height={64} alt="Logo" src={image} className="profile-image" />}
