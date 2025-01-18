@@ -6,6 +6,7 @@
 @import "/src/teal.theme.scss";
 @import "/src/emerald.theme.scss";
 @import "/src/orange.theme.scss";
+@import "/src/yellow.theme.scss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -35,6 +36,9 @@
   :root.orange {
     @include root-orange;
   }
+  :root.yellow {
+    @include root-yellow;
+  }
 
   .dark.zinc {
     @include dark-zinc;
@@ -59,6 +63,9 @@
   }
   .dark.orange {
     @include dark-orange;
+  }
+  .dark.yellow {
+    @include dark-yellow;
   }
 }
 

@@ -21,13 +21,14 @@ function settings() {
   const form = generateControl([colorSchema]);
   const colorNameConfig = [
     { color: "zinc", hexcode: "#2F2F31" },
-    { color: "blue", hexcode: "#2563EB" },
     { color: "violet", hexcode: "#7C3AED" },
+    { color: "blue", hexcode: "#2563EB" },
     { color: "emerald", hexcode: "#0ea5e9" },
     { color: "teal", hexcode: "#14b8a6" },
     { color: "green", hexcode: "#22c55e" },
     { color: "red", hexcode: "#FF2D55" },
     { color: "orange", hexcode: "#F97316" },
+    { color: "yellow", hexcode: "#FFC107" },
   ];
 
   return (
