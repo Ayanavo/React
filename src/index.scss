@@ -1,17 +1,27 @@
-@import "/src/blue.theme.scss";
-@import "/src/zinc.theme.scss";
-@import "/src/green.theme.scss";
-@import "/src/violet.theme.scss";
-@import "/src/red.theme.scss";
-@import "/src/teal.theme.scss";
-@import "/src/emerald.theme.scss";
-@import "/src/orange.theme.scss";
-@import "/src/yellow.theme.scss";
+@import "/src/color-themes/blue.theme.scss";
+@import "/src/color-themes/zinc.theme.scss";
+@import "/src/color-themes/green.theme.scss";
+@import "/src/color-themes/violet.theme.scss";
+@import "/src/color-themes/red.theme.scss";
+@import "/src/color-themes/teal.theme.scss";
+@import "/src/color-themes/emerald.theme.scss";
+@import "/src/color-themes/orange.theme.scss";
+@import "/src/color-themes/yellow.theme.scss";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
   :root.zinc {
     @include root-zinc;
   }
@@ -38,6 +48,17 @@
   }
   :root.yellow {
     @include root-yellow;
+  }
+
+  .dark {
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
   .dark.zinc {

@@ -6,19 +6,30 @@ import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/logs/form/validation";
 import { useTheme, useColor } from "./theme";
+import { usePersistedState } from "@/hooks/usePersistedState";
 
 function settings() {
-  const colorSchema = {
-    name: "themecolor",
-    type: "color" as "color",
-    validation: {
-      required: false,
+  const colorSchema = [
+    {
+      name: "themecolor",
+      type: "color" as "color",
+      validation: {
+        required: false,
+      },
     },
-  };
+    {
+      name: "company_name",
+      type: "image" as "image",
+      validation: {
+        required: false,
+      },
+    },
+  ];
   const { theme, setTheme } = useTheme();
   const { color, setColor } = useColor();
+  const { setState } = usePersistedState("vite-ui-sidebar", "left");
   const [selectedView, setSelectedView] = useState("default");
-  const form = generateControl([colorSchema]);
+  const form = generateControl(colorSchema);
   const colorNameConfig = [
     { color: "zinc", hexcode: "#2F2F31" },
     { color: "violet", hexcode: "#7C3AED" },
@@ -37,18 +48,23 @@ function settings() {
         <FormProvider {...form}>
           <div className="space-y-6">
             {/* Company Logo Section */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Company logo</Label>
-                <p className="text-sm text-muted-foreground">Upload your company logo.</p>
-              </div>
-              <ImageComponent />
-            </div>
 
-            {/* Brand Color Section */}
+            <ImageComponent
+              form={form}
+              schema={{
+                name: "company",
+                label: "Company Image",
+                placeholder: "",
+                type: "image",
+                validation: {
+                  required: false,
+                },
+              }}
+            />
+
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Brand color</Label>
+                <Label>Theme color</Label>
                 <p className="text-sm text-muted-foreground">Select a theme.</p>
               </div>
               <div className="flex items-center gap-4">
@@ -61,11 +77,6 @@ function settings() {
                       style={{ backgroundColor: type.hexcode }}
                     />
                   ))}
-                  {/* <button
-                      onClick={() => handleTheme(null)}
-                      className="w-8 h-8 rounded-lg border-2 border-transparent hover:border-primary focus:border-primary focus:outline-none transition-colors">
-                      <BanIcon />
-                    </button> */}
                 </div>
               </div>
             </div>
@@ -73,8 +84,8 @@ function settings() {
             {/* Interface Theme Section */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Interface theme</Label>
-                <p className="text-sm text-muted-foreground">Select your preferred interface theme.</p>
+                <Label>Dark/Light Mode</Label>
+                <p className="text-sm text-muted-foreground">Select your preferred mode.</p>
               </div>
               <div className="grid grid-cols-5 gap-4">
                 {["system", "light", "dark"].map((type) => (
@@ -93,16 +104,15 @@ function settings() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Sidebar feature</Label>
-                <p className="text-sm text-muted-foreground">What shows in the desktop sidebar.</p>
+                <p className="text-sm text-muted-foreground">Which side is your desktop sidebar.</p>
               </div>
-              <Select defaultValue="recent">
+              <Select defaultValue="left" onValueChange={setState}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select feature" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="recent">Recent changes</SelectItem>
-                  <SelectItem value="favorites">Favorites</SelectItem>
-                  <SelectItem value="most-used">Most used</SelectItem>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
                 </SelectContent>
               </Select>
             </div>

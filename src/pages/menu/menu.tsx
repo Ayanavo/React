@@ -1,5 +1,6 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -8,8 +9,10 @@ import IconsComponent from "../../common/icons";
 type NavItem = { label: string; icon: string; route: string };
 function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function }) {
   const navigate = useNavigate();
+  const { state } = usePersistedState<"left" | "right">("vite-ui-sidebar", "left");
+
   return (
-    <Sidebar collapsible="icon" variant="floating">
+    <Sidebar collapsible="icon" variant="floating" side={state}>
       <SidebarHeader>
         <SidebarMenu className="items-end">
           <SidebarMenuItem>
