@@ -2,13 +2,28 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { EllipsisVerticalIcon, InfoIcon, SearchIcon } from "lucide-react";
-import React from "react";
+import { EllipsisVerticalIcon, InfoIcon, LoaderCircleIcon, SearchIcon } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+
 type NavItem = { label: string; icon: string; route: string };
 function header({ NavList }: { NavList: Array<NavItem> }) {
   const { pathname } = useLocation();
   const NavObj = NavList.find((item) => pathname.includes(item.route));
+  const [inputValue, setInputValue] = useState("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (inputValue) {
+      setIsLoading(true);
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+    setIsLoading(false);
+  }, [inputValue]);
+
   return (
     <header className="sticky top-0 z-10 bg-background border-b">
       <div className="flex items-center justify-between h-16 px-5">
@@ -28,8 +43,13 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
 
         <div className="flex items-center justify-center flex-auto">
           <div className="relative w-full max-w-md">
-            <SearchIcon className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input type="search" placeholder="Search..." className="pl-8 w-full" />
+            <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
+              {isLoading ?
+                <LoaderCircleIcon className="animate-spin  h-4 w-4  text-muted-foreground" role="status" aria-label="Loading..." />
+              : <SearchIcon className=" h-4 w-4  text-muted-foreground" aria-hidden="true" />}
+            </div>
+
+            <Input type="search" placeholder="Search..." className="pl-8 w-full" value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
           </div>
         </div>
 

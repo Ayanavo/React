@@ -53,7 +53,7 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
               <TooltipTrigger asChild>
                 <SidebarMenuItem>
                   <SidebarMenuButton onClick={() => navigate("/login")}>
-                    <IconsComponent customClass="h-6 w-6" icon="LogOutIcon" />
+                    <IconsComponent customClass="text-primary h-6 w-6" icon="LogOutIcon" />
                     <span>Sign Out</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
