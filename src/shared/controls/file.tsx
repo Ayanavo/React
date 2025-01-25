@@ -35,8 +35,6 @@ function file({ form, schema }: { form: FieldValue<any>; schema: FileSchema }) {
             onDrop={(e) => {
               const files = e.dataTransfer.files;
               files && form.setValue(schema.name, Array.from(files));
-
-              files && console.log(form.getValues(schema.name)[0]);
               e.preventDefault();
             }}
             className="flex w-full items-center justify-center rounded-md border border-solid shadow-sm border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-600">
@@ -47,7 +45,7 @@ function file({ form, schema }: { form: FieldValue<any>; schema: FileSchema }) {
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">Max Size: {schema.validation.maxSize || "500Mb"}</p>
             </div>
-            <input ref={inputRef} id="dropzone-file" type="file" className="hidden" />
+            <input ref={inputRef} id="dropzone-file" type="file" className="hidden" onChange={(e) => e.target.files && form.setValue(schema.name, Array.from(e.target.files))} />
           </div>
           <ol aria-label="dropzone-file-list" className="flex flex-col gap-3">
             {form.getValues(schema.name)?.map((file: File) => (

@@ -5,7 +5,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SquarePlusIcon, TrashIcon } from "lucide-react";
 import React, { useEffect } from "react";
 import { FieldValue, useFieldArray } from "react-hook-form";
-import flags from "react-phone-number-input/flags";
+// import flags from "react-phone-number-input/flags";
 
 type PhoneSchema = {
   name: string;
