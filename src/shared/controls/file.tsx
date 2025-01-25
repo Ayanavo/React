@@ -63,11 +63,7 @@ function file({ form, schema }: { form: FieldValue<any>; schema: FileSchema }) {
                   </div>
                 </div>
                 <Progress value={0} className="w-full" />
-
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <p>{convertBytes(file.size)}</p>
-                  <p id=":R6ud9jtt9ukq:-6ff6775d-c7c1-4d11-944d-e3920c61e65d-message" className="h-5 text-[0.8rem] font-medium text-destructive"></p>
-                </div>
+                <div className="flex justify-between text-sm text-muted-foreground">{convertBytes(file.size)}</div>
               </li>
             ))}
           </ol>
