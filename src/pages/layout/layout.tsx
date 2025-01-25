@@ -16,6 +16,11 @@ export const Layout = () => {
       icon: "NotebookPenIcon",
       route: "/notes",
     },
+    {
+      label: "Whiteboard",
+      icon: "WorkflowIcon",
+      route: "/whiteboard",
+    },
     { label: "Profile", icon: "UserIcon", route: "/profile" },
     { label: "Settings", icon: "SettingsIcon", route: "/settings" },
   ];

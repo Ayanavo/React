@@ -13,6 +13,7 @@ import CreateComponent from "../pages/layout/logs/update/create";
 import UpdateComponent from "../pages/layout/logs/update/update";
 import NoPageComponent from "../pages/nopage";
 import NoteComponent from "../pages/layout/notes/notes-layout";
+import WhiteboardComponent from "../pages/layout/whiteboard/whiteboard";
 
 export const Router = () => {
   return (
@@ -24,6 +25,7 @@ export const Router = () => {
         <Route caseSensitive path="/dashboard" element={<DashboardComponent />} />
         <Route caseSensitive path="table" element={<TableComponent />} />
         <Route caseSensitive path="activities" element={<ActivityComponent />} />
+        <Route caseSensitive path="whiteboard" element={<WhiteboardComponent />} />
         <Route caseSensitive path="profile" element={<ProfileComponent />} />
         <Route caseSensitive path="notes" element={<NoteComponent />} />
         <Route caseSensitive path="settings" element={<SettingsComponent />} />
