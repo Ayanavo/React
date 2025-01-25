@@ -56,7 +56,7 @@ function rating({ form, schema }: { form: FieldValue<any>; schema: RatingSchema 
                         icon={schema.iconType || "StarFilledIcon"}
                         customClass={cn(
                           "h-6 w-6 transition-colors duration-300",
-                          hoveredRating >= starValue || field.value >= starValue ? "text-yellow-400 fill-yellow-400" : "text-gray-300 fill-gray-300"
+                          hoveredRating >= starValue || field.value >= starValue ? "text-primary fill-primary" : "text-gray-300 fill-gray-300"
                         )}
                       />
                       <span className="sr-only">{`Rate ${starValue} out of ${schema.maxRating} stars`}</span>

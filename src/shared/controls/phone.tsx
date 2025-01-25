@@ -5,6 +5,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SquarePlusIcon, TrashIcon } from "lucide-react";
 import React, { useEffect } from "react";
 import { FieldValue, useFieldArray } from "react-hook-form";
+import flags from "react-phone-number-input/flags";
+
 type PhoneSchema = {
   name: string;
   label: string;
@@ -29,12 +31,33 @@ function phone({ form, schema }: { form: FieldValue<any>; schema: PhoneSchema })
     <div className="space-y-4">
       {fields.map((field, index) => (
         <div key={field.id} className="relative">
+          {/* <FormField
+            name={`${schema.name}.${index}.phone`}
+            render={({ field }) => (
+              <FormItem className="absolute top-3/4 -translate-y-1/2">
+                <div className="flex h-9">
+                  <select
+                    className="peer inline-flex h-full appearance-none items-center rounded-none rounded-s-md border border-input bg-background pe-8 ps-3 text-sm text-muted-foreground transition-shadow hover:bg-accent hover:text-accent-foreground focus:z-10 focus-visible:border-ring focus-visible:text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/20 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Protocol">
+                    <option value="https://">https://</option>
+                    <option value="http://">http://</option>
+                    <option value="ftp://">ftp://</option>
+                    <option value="sftp://">sftp://</option>
+                    <option value="ws://">ws://</option>
+                    <option value="wss://">wss://</option>
+                  </select>
+                </div>
+              </FormItem>
+            )}
+          /> */}
+
           <FormField
             control={form.control}
             name={`${schema.name}.${index}.phone`}
             render={({ field }) => (
               <FormItem className="flex-grow">
                 <FormLabel>{schema.label}</FormLabel>
+
                 <FormControl>
                   <Input {...field} placeholder={schema.placeholder} />
                 </FormControl>

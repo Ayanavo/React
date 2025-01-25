@@ -1,7 +1,9 @@
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { UploadIcon } from "@radix-ui/react-icons";
+import { Progress } from "@/components/ui/progress";
 import React, { useRef } from "react";
 import { FieldValue } from "react-hook-form";
+import { FileIcon, Trash2Icon } from "lucide-react";
 
 type FileSchema = {
   name: string;
@@ -12,6 +14,14 @@ type FileSchema = {
 
 function file({ form, schema }: { form: FieldValue<any>; schema: FileSchema }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  function convertBytes(size: number): string {
+    if (size === 0) return "0.00 b";
+    const sizes = ["b", "kb", "mb", "gb"];
+    const i = Math.floor(Math.log(size) / Math.log(1024));
+    return `${(size / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
+  }
+
   return (
     <FormField
       control={form.control}
@@ -23,9 +33,11 @@ function file({ form, schema }: { form: FieldValue<any>; schema: FileSchema }) {
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
+              const files = e.dataTransfer.files;
+              files && form.setValue(schema.name, Array.from(files));
+
+              files && console.log(form.getValues(schema.name)[0]);
               e.preventDefault();
-              const file = e.dataTransfer.files?.[0];
-              file && form.setValue("file", file);
             }}
             className="flex w-full items-center justify-center rounded-md border border-solid shadow-sm border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-700 dark:hover:border-gray-500 dark:hover:bg-gray-600">
             <div className="flex flex-col items-center justify-center pb-6 pt-5">
@@ -37,6 +49,29 @@ function file({ form, schema }: { form: FieldValue<any>; schema: FileSchema }) {
             </div>
             <input ref={inputRef} id="dropzone-file" type="file" className="hidden" />
           </div>
+          <ol aria-label="dropzone-file-list" className="flex flex-col gap-3">
+            {form.getValues(schema.name)?.map((file: File) => (
+              <li aria-label="dropzone-file-list-item" className="justify-center rounded-md bg-muted/40 px-4 py-2 flex flex-col gap-3">
+                <div className="flex justify-between">
+                  <div className="flex min-w-0 items-center gap-2 font-bold">
+                    <FileIcon className="h-4 w-4 mr-2" />
+                    <p className="truncate">{file.name}</p>
+                  </div>
+                  <div className="flex items-center gap-1 cursor-pointer ">
+                    <Trash2Icon className="h-4 w-4 mr-2" />
+                    <span className="sr-only">Remove file</span>
+                  </div>
+                </div>
+                <Progress value={0} className="w-full" />
+
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <p>{convertBytes(file.size)}</p>
+                  <p id=":R6ud9jtt9ukq:-6ff6775d-c7c1-4d11-944d-e3920c61e65d-message" className="h-5 text-[0.8rem] font-medium text-destructive"></p>
+                </div>
+              </li>
+            ))}
+          </ol>
+
           <FormMessage />
         </FormItem>
       )}
