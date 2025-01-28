@@ -24,6 +24,9 @@
   --chart-3: 10 70% 45%;
   --chart-4: 355 80% 60%;
   --chart-5: 360 90% 65%;
+
+  --sidebar-background: 0 84% 57%;
+  --sidebar-foreground: 0 100% 97%;
 }
 
 @mixin dark-red {
@@ -51,4 +54,7 @@
   --chart-3: 10 55% 40%;
   --chart-4: 355 70% 55%;
   --chart-5: 360 75% 60%;
+
+  --sidebar-background: 0 70% 50%;
+  --sidebar-foreground: 0 80% 10%;
 }

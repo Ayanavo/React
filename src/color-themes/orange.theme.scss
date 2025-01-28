@@ -24,6 +24,9 @@
   --chart-3: 35 70% 45%;
   --chart-4: 25 80% 60%;
   --chart-5: 20 90% 65%;
+
+  --sidebar-background: 30 100% 50%;
+  --sidebar-foreground: 30 100% 97%;
 }
 
 @mixin dark-orange {
@@ -51,4 +54,7 @@
   --chart-3: 35 55% 40%;
   --chart-4: 25 70% 55%;
   --chart-5: 20 75% 60%;
+
+  --sidebar-background: 30 80% 40%;
+  --sidebar-foreground: 30 90% 10%;
 }

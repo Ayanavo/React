@@ -24,6 +24,9 @@
   --chart-3: 197 37% 24%;
   --chart-4: 43 74% 66%;
   --chart-5: 27 87% 67%;
+
+  --sidebar-background: 174 62% 43%;
+  --sidebar-foreground: 174 100% 97%;
 }
 
 @mixin dark-teal {
@@ -51,4 +54,7 @@
   --chart-3: 30 80% 55%;
   --chart-4: 280 65% 60%;
   --chart-5: 340 75% 55%;
+
+  --sidebar-background: 174 70% 45%;
+  --sidebar-foreground: 174 80% 10%;
 }

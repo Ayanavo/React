@@ -24,6 +24,9 @@
   --chart-3: 45 70% 45%;
   --chart-4: 55 80% 60%;
   --chart-5: 60 90% 65%;
+
+  --sidebar-background: 50 100% 50%;
+  --sidebar-foreground: 50 100% 97%;
 }
 
 @mixin dark-yellow {
@@ -51,4 +54,7 @@
   --chart-3: 45 55% 40%;
   --chart-4: 55 70% 55%;
   --chart-5: 60 75% 60%;
+
+  --sidebar-background: 50 80% 40%;
+  --sidebar-foreground: 50 90% 10%;
 }
