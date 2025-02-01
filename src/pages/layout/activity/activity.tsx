@@ -85,10 +85,10 @@ function activity() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-[90vh]">
       <EventComponent setIsOpen={setIsOpen} isOpen={isOpen} momentValue={selectedDate} />
 
-      <div className="flex overflow-hidden">
+      <div className="flex overflow-auto">
         <div className="ml-2 px-2 mt-3">
           <DatePickerComponent onSendData={setDate} date={date} />
 

@@ -41,7 +41,7 @@ function note() {
       <div className="flex justify-end">
         <div className="m-3 flex items-center justify-center space-x-2">
           <TooltipProvider disableHoverableContent>
-            <ToggleGroup className="gap-0" type="single" variant="outline" value={layout} onValueChange={setLayout}>
+            <ToggleGroup className="gap-0" type="single" variant="outline" value={layout} onValueChange={(value) => value && setLayout(value)}>
               {NotesLayout.map((item, index) => {
                 const isFirst = index === 0;
                 const isLast = index === NotesLayout.length - 1;
