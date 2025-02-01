@@ -49,7 +49,7 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
                 <LoaderCircleIcon className="animate-spin  h-4 w-4  text-muted-foreground" role="status" aria-label="Loading..." />
               : <SearchIcon className=" h-4 w-4  text-muted-foreground" aria-hidden="true" />}
             </div>
-            <Input type="search" placeholder="Search..." className="pl-8 w-full" value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
+            <Input type="search" placeholder="Search Application..." className="pl-8 w-full" value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
             {/* <Hotkeys
               keyName="shift+a,alt+s"
               onKeydown={(event) => {
