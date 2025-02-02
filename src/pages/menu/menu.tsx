@@ -14,12 +14,14 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
   const { openDialog, ConfirmationDialog } = useConfirmationDialog();
 
   const handleConfirmation = async () => {
-    const confirmed = await openDialog("Are you sure you want to log out?");
-    confirmed && navigate("/login");
+    openDialog("Are you sure you want to log out?").then(() => {
+      navigate("/login");
+    });
   };
 
   return (
     <>
+      {ConfirmationDialog}
       <Sidebar collapsible="icon" variant="floating" side={state}>
         <SidebarHeader>
           <SidebarMenu className="items-end">
@@ -74,7 +76,6 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-      {ConfirmationDialog}
     </>
   );
 }

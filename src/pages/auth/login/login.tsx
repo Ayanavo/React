@@ -18,7 +18,8 @@ const formSchemaObj = [
     name: "email",
     label: "Email",
     type: "email",
-    validation: { required: true },
+    default: [],
+    validation: { required: true, email: true },
     field_prop: {
       single: true,
     },
@@ -58,14 +59,13 @@ function login() {
   }
   function onSubmit(data: any) {
     // Handle form submission logic here
-    console.log(data);
     localStorage.setItem("user", JSON.stringify(data));
     navigate("/dashboard");
   }
 
   return (
     <div className="flex justify-center items-center min-h-screen">
-      <Card className="w-[350px] ">
+      <Card className="w-[350px]">
         <CardHeader>
           <CardTitle>Login</CardTitle>
           <CardDescription>Enter your credentials to access your account.</CardDescription>
