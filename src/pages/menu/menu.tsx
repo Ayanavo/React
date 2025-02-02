@@ -15,7 +15,10 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
 
   const handleConfirmation = async () => {
     openDialog("Are you sure you want to log out?").then((res) => {
-      res && navigate("/login");
+      if (res) {
+        localStorage.removeItem("user");
+        navigate("/login");
+      }
     });
   };
 

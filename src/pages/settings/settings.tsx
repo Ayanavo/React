@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/logs/form/validation";
 import { useColor, useTheme } from "./theme";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function settings() {
   const colorSchema = [
@@ -27,6 +28,7 @@ function settings() {
   const { color, setColor } = useColor();
   // const { setState } = usePersistedState("vite-ui-sidebar", "left");
   const [selectedView, setSelectedView] = useState("default");
+  const [selectedFont, setSelectedFont] = useState("system");
   const form = generateControl(colorSchema);
   const colorNameConfig = [
     { color: "zinc", hexcode: "#2F2F31" },
@@ -118,8 +120,8 @@ function settings() {
             {/* Tables View Section */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Tables view</Label>
-                <p className="text-sm text-muted-foreground">How are tables displayed in the app.</p>
+                <Label>Layout Theme</Label>
+                <p className="text-sm text-muted-foreground">Select your preferred layout theme.</p>
               </div>
               <div className="grid grid-cols-5 gap-4 ">
                 {["default", "compact"].map((view) => (
@@ -129,6 +131,24 @@ function settings() {
                   </Card>
                 ))}
               </div>
+            </div>
+
+            {/* Fonts Section */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Fonts</Label>
+                <p className="text-sm text-muted-foreground">Which side is your desktop sidebar.</p>
+              </div>
+              <Select defaultValue={selectedFont} onValueChange={setSelectedFont}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Select feature" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="inter">Inter</SelectItem>
+                  <SelectItem value="manrepo">Manrope</SelectItem>
+                  <SelectItem value="system">System</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

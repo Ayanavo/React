@@ -65,53 +65,65 @@ function login() {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen">
-      <Card className="w-[350px]">
-        <CardHeader>
-          <CardTitle>Login</CardTitle>
-          <CardDescription>Enter your credentials to access your account.</CardDescription>
-        </CardHeader>
-        <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardContent>
-              <div className="grid w-full items-center gap-4">{formSchemaObj.map(renderField)}</div>
-            </CardContent>
-            <CardFooter className="flex flex-col items-center gap-2">
-              <Button className="w-full" type="submit">
-                Submit
-              </Button>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-muted-foreground"></div>
-                </div>
-
-                <div className="relative flex justify-center">
-                  <span className="bg-background px-3 text-xs uppercase text-muted-foreground">Or continue with</span>
-                </div>
+    <div className="flex min-h-screen items-center justify-center bg-muted p-4 md:p-8">
+      <Card className="w-[700px] max-w-4xl overflow-hidden">
+        <div className="flex flex-col md:flex-row">
+          <div className="md:w-1/2 p-6 md:p-8">
+            <CardHeader className="p-0 mb-6">
+              <CardTitle>Login</CardTitle>
+              <CardDescription>Enter your credentials to access your account.</CardDescription>
+            </CardHeader>
+            <FormProvider {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <CardContent className="p-0">
+                  <div className="grid w-full items-center gap-4">{formSchemaObj.map(renderField)}</div>
+                </CardContent>
+                <CardFooter className="flex flex-col items-start gap-2 p-0 mt-6">
+                  <Button className="w-full" type="submit">
+                    Submit
+                  </Button>
+                  <div className="relative w-full my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-muted-foreground"></div>
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-card px-2 text-xs uppercase text-muted-foreground">Or continue with</span>
+                    </div>
+                  </div>
+                  <div className="grid w-full grid-cols-2 gap-4">
+                    <Button type="button" variant="outline" onClick={() => mutation.mutate("google")}>
+                      <GoogleIcon />
+                      Google
+                    </Button>
+                    <Button type="button" variant="outline" onClick={() => mutation.mutate("github")}>
+                      <GitHubLogoIcon />
+                      Github
+                    </Button>
+                  </div>
+                  <p className="mt-4 text-sm text-muted-foreground">
+                    Don&apos;t have an account?{" "}
+                    <Link to="/register" className="underline underline-offset-4 hover:text-primary">
+                      Sign up
+                    </Link>
+                  </p>
+                </CardFooter>
+              </form>
+            </FormProvider>
+          </div>
+          <div className="hidden md:block md:w-1/2">
+            <div className="relative h-full">
+              <img
+                src="/src/assets/3d-render-secure-login-password-illustration.jpg?height=600&width=400"
+                alt="Login visual"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/20"></div>
+              <div className="absolute inset-0 flex items-center justify-center p-6">
+                <h2 className="text-3xl font-bold text-white text-center">Welcome to Our Platform</h2>
               </div>
-
-              <div className="grid grid-cols-2 gap-10">
-                <Button type="button" variant="outline" onClick={() => mutation.mutate("google")}>
-                  <span className="mr-2 h-4 w-4">
-                    <GoogleIcon />
-                  </span>
-                  Google
-                </Button>
-                <Button type="button" variant="outline" onClick={() => mutation.mutate("github")}>
-                  <GitHubLogoIcon className="mr-2 h-4 w-4" />
-                  Github
-                </Button>
-              </div>
-
-              <p className="text-sm text-gray-500">
-                Don&apos;t have an account?{" "}
-                <Link to="/register" className="text-blue-500 hover:underline" preventScrollReset={true}>
-                  Sign up
-                </Link>
-              </p>
-            </CardFooter>
-          </form>
-        </FormProvider>
+            </div>
+          </div>
+        </div>
       </Card>
     </div>
   );
