@@ -34,7 +34,6 @@ function activity() {
         ...(end && { end: end?.date }),
         allDay: true,
         color: "#b9d2fa",
-        textColor: "black",
       };
     }) ?? [];
 
@@ -104,7 +103,7 @@ function activity() {
         <div className="w-full p-4">
           <div className="mb-4 flex justify-between items-center">
             <div className="flex items-center space-x-2">
-              <h1 className="text-3xl font-bold">{activeMonth}</h1>
+              <h1 className="text-3xl font-bold text-primary">{activeMonth}</h1>
               <Button variant="outline" value="today" onClick={() => handleAlignment("today")}>
                 Today
               </Button>
@@ -120,7 +119,7 @@ function activity() {
             <div className="flex items-center space-x-2">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Settings2Icon className="cursor-pointer" />
+                  <Settings2Icon className="cursor-pointer h-4 w-4" />
                 </PopoverTrigger>
                 <PopoverContent className="w-60" align="end">
                   <div className="grid gap-4">
@@ -160,7 +159,6 @@ function activity() {
                   }
                 }}
                 eventDisplay="block"
-                eventClassNames="bg-slate-300 "
                 initialView="dayGridMonth"
                 events={HolidayList}
                 eventTimeFormat={{ hour: "2-digit", minute: "2-digit", meridiem: true }}
@@ -169,7 +167,7 @@ function activity() {
                 headerToolbar={false}
                 editable={true}
                 selectable={true}
-                height="calc(100vh - 120px)"
+                height="90vh"
               />
             </div>
           )}

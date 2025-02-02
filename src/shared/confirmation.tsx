@@ -19,7 +19,7 @@ const ConfirmationDialog = ({ isOpen, onConfirm, onCancel, message }: Confirmati
           <Button variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button variant="outline" onClick={() => onConfirm(true)}>
+          <Button variant="outline" className="bg-primary text-secondary hover:bg-primary hover:text-secondary" onClick={() => onConfirm(true)}>
             Accept
           </Button>
         </DialogFooter>

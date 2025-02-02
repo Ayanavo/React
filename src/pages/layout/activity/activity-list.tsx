@@ -8,7 +8,6 @@ function activitylist({
   events: Array<{
     allDay: boolean;
     color: string;
-    textColor: string;
     end?: string | undefined;
     title: string;
     start: string;
