@@ -23,7 +23,7 @@ function profile() {
   ];
   const form = generateControl(profileSchema);
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col h-[9vh]">
       <div className="px-6">
         <FormProvider {...form}>
           <div className="space-y-6">
