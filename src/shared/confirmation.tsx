@@ -28,13 +28,15 @@ const ConfirmationDialog = ({ isOpen, onConfirm, onCancel, message }: Confirmati
   );
 };
 
-const useConfirmationDialog = () => {
+export const useConfirmationDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [message, setMessage] = useState<string>("");
   const [resolvePromise, setResolvePromise] = useState<((result: boolean) => void) | null>(null);
 
-  const openDialog = (): Promise<boolean> => {
+  const openDialog = (message: string): Promise<boolean> => {
     return new Promise((resolve) => {
       setResolvePromise(() => resolve);
+      setMessage(message);
       setIsOpen(true);
     });
   };
@@ -55,14 +57,6 @@ const useConfirmationDialog = () => {
 
   return {
     openDialog,
-    ConfirmationDialog: <ConfirmationDialog isOpen={isOpen} onConfirm={handleConfirm} onCancel={handleCancel} message="Are you sure you want to perform this action?" />,
+    ConfirmationDialog: <ConfirmationDialog isOpen={isOpen} onConfirm={handleConfirm} onCancel={handleCancel} message={message} />,
   };
 };
-
-const confirmDialog = () => {
-  const { openDialog, ConfirmationDialog } = useConfirmationDialog();
-
-  return <div>{ConfirmationDialog}</div>;
-};
-
-export default confirmDialog;

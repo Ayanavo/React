@@ -2,26 +2,20 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, Si
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
+import { useConfirmationDialog } from "@/shared/confirmation";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import confirmDialog from "@/shared/confirmation";
 
 import IconsComponent from "../../common/icons";
 type NavItem = { label: string; icon: string; route: string };
 function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function }) {
   const navigate = useNavigate();
   const { state } = usePersistedState<"left" | "right">("vite-ui-sidebar", "left");
-  const { openDialog, ConfirmationDialog } = confirmDialog();
+  const { openDialog, ConfirmationDialog } = useConfirmationDialog();
 
-  const handleDeleteItem = async () => {
-    const confirmed = await openDialog("Are you sure you want to delete this item?");
-    if (confirmed) {
-      // Proceed with deleting the item
-      alert("Item deleted!");
-    } else {
-      // Action cancelled
-      alert("Item deletion cancelled.");
-    }
+  const handleConfirmation = async () => {
+    const confirmed = await openDialog("Are you sure you want to log out?");
+    confirmed && navigate("/login");
   };
 
   return (
@@ -66,7 +60,7 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
               <Tooltip>
                 <TooltipTrigger asChild>
                   <SidebarMenuItem>
-                    <SidebarMenuButton className="text-secondary hover:text-primary" onClick={() => navigate("/login")}>
+                    <SidebarMenuButton className="text-secondary hover:text-primary" onClick={handleConfirmation}>
                       <IconsComponent customClass="h-6 w-6" icon="LogOutIcon" />
                       <span>Sign Out</span>
                     </SidebarMenuButton>
