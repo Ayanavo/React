@@ -49,7 +49,7 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
                 <LoaderCircleIcon className="animate-spin  h-4 w-4  text-muted-foreground" role="status" aria-label="Loading..." />
               : <SearchIcon className=" h-4 w-4  text-muted-foreground" aria-hidden="true" />}
             </div>
-            <Input type="search" placeholder="Search Application..." className="pl-8 w-full" value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
+            <Input type="search" placeholder="Search Application..." className="pl-8 w-full pe-11" value={inputValue} onChange={(e) => setInputValue(e.target.value)} />
             {/* <Hotkeys
               keyName="shift+a,alt+s"
               onKeydown={(event) => {
@@ -57,6 +57,11 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
               }}>
               <div style={{ padding: "50px" }}></div>
             </Hotkeys> */}
+            <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground">
+              <kbd className="inline-flex h-5 max-h-full items-center rounded border border-border px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
+                ⌘K
+              </kbd>
+            </div>
           </div>
         </div>
 

@@ -12,6 +12,7 @@ import firebase from "firebase/compat/app";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import imgUrl from "/src/assets/3d-render-secure-login-password-illustration.jpg";
 
 const formSchemaObj = [
   {
@@ -78,7 +79,7 @@ function login() {
                 <CardContent className="p-0">
                   <div className="grid w-full items-center gap-4">{formSchemaObj.map(renderField)}</div>
                 </CardContent>
-                <CardFooter className="flex flex-col items-start gap-2 p-0 mt-6">
+                <CardFooter className="flex flex-col items-center gap-2 p-0 mt-6">
                   <Button className="w-full" type="submit">
                     Submit
                   </Button>
@@ -112,11 +113,7 @@ function login() {
           </div>
           <div className="hidden md:block md:w-1/2">
             <div className="relative h-full">
-              <img
-                src="/src/assets/3d-render-secure-login-password-illustration.jpg?height=600&width=400"
-                alt="Login visual"
-                className="absolute inset-0 h-full w-full object-cover"
-              />
+              <img src={`${imgUrl}?height=600&width=400" alt="Login visual`} className="absolute inset-0 h-full w-full object-cover" />
               <div className="absolute inset-0 bg-black/20"></div>
               <div className="absolute inset-0 flex items-center justify-center p-6">
                 <h2 className="text-3xl font-bold text-white text-center">Welcome to Our Platform</h2>

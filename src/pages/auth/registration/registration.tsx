@@ -1,14 +1,8 @@
-import GoogleIcon from "@/assets/google.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/logs/form/field-map";
 import generateControl from "@/pages/layout/logs/form/validation";
-import { authAnonymous } from "@/shared/services/auth";
 import { DevTool } from "@hookform/devtools";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { useMutation } from "@tanstack/react-query";
-import firebase from "firebase/compat/app";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
@@ -57,22 +51,8 @@ function registration() {
     navigate("/login");
   };
 
-  const mutation = useMutation<firebase.auth.UserCredential, Error, string>({
-    mutationFn: authAnonymous,
-    onSuccess: (res) => {
-      localStorage.setItem("access_token", (res.credential?.toJSON() as { accessToken: string })["accessToken"]);
-      navigate("/dashboard");
-      showToast({
-        description: "Registered Successfully",
-      });
-    },
-    onError: (error) => {
-      console.error("Submission failed:", error);
-    },
-  });
-
   return (
-    <div className="flex justify-center items-center min-h-screen">
+    <div className="flex min-h-screen items-center justify-center bg-muted p-4 md:p-8">
       <Card className="w-[350px] ">
         <CardHeader>
           <CardTitle>Create an Account</CardTitle>
@@ -88,13 +68,13 @@ function registration() {
               <Button className="w-full" type="submit">
                 Submit
               </Button>
-              <div className="relative">
+              {/* <div className="relative w-full my-4">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-muted-foreground"></div>
                 </div>
 
                 <div className="relative flex justify-center">
-                  <span className="bg-background px-3 text-xs uppercase text-muted-foreground">Or register with</span>
+                  <span className="bg-card px-2 text-xs uppercase text-muted-foreground">Or register with</span>
                 </div>
               </div>
 
@@ -109,11 +89,11 @@ function registration() {
                   <GitHubLogoIcon className="mr-2 h-4 w-4" />
                   Github
                 </Button>
-              </div>
+              </div> */}
 
               <p className="text-sm text-gray-500">
                 Already have an account?{" "}
-                <Link to="/login" className="text-blue-500 hover:underline" preventScrollReset={true}>
+                <Link to="/login" className="underline underline-offset-4 hover:text-primary" preventScrollReset={true}>
                   Log in
                 </Link>
               </p>
