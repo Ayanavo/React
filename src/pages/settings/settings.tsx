@@ -1,12 +1,10 @@
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ImageComponent from "@/shared/controls/image";
 import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/logs/form/validation";
-import { useTheme, useColor } from "./theme";
-import { usePersistedState } from "@/hooks/usePersistedState";
+import { useColor, useTheme } from "./theme";
 
 function settings() {
   const colorSchema = [
@@ -27,7 +25,7 @@ function settings() {
   ];
   const { theme, setTheme } = useTheme();
   const { color, setColor } = useColor();
-  const { setState } = usePersistedState("vite-ui-sidebar", "left");
+  // const { setState } = usePersistedState("vite-ui-sidebar", "left");
   const [selectedView, setSelectedView] = useState("default");
   const form = generateControl(colorSchema);
   const colorNameConfig = [
@@ -101,7 +99,7 @@ function settings() {
             </div>
 
             {/* Sidebar Feature Section */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Sidebar feature</Label>
                 <p className="text-sm text-muted-foreground">Which side is your desktop sidebar.</p>
@@ -115,7 +113,7 @@ function settings() {
                   <SelectItem value="right">Right</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
 
             {/* Tables View Section */}
             <div className="space-y-4">
