@@ -2,7 +2,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import HeaderComponent from "../layout/header";
+import HeaderComponent from "./header/header";
 import MenuComponent from "../menu/menu";
 
 export const Layout = () => {
