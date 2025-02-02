@@ -28,7 +28,11 @@ function file({ form, schema }: { form: FieldValue<any>; schema: FileSchema }) {
       name={schema.name}
       render={() => (
         <FormItem>
-          {schema?.label && <FormLabel>{schema.label}</FormLabel>}
+          {schema?.label && (
+            <FormLabel>
+              {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+            </FormLabel>
+          )}
           <div
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}

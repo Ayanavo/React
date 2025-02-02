@@ -1,53 +1,49 @@
 import GoogleIcon from "@/assets/google.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/logs/form/field-map";
 import generateControl from "@/pages/layout/logs/form/validation";
-import { authAnonymous } from "@/shared/services/auth";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { useMutation } from "@tanstack/react-query";
-import firebase from "firebase/compat/app";
+import { createUserWithEmailAndPassword, GithubAuthProvider, GoogleAuthProvider } from "firebase/auth";
+import { signInWithPopup } from "firebase/auth";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../../../firebase.setup";
 import imgUrl from "/src/assets/3d-render-secure-login-password-illustration.jpg";
 
 const formSchemaObj = [
   {
     name: "email",
     label: "Email",
-    type: "email",
-    default: [],
+    type: "emailsingle",
+    default: "",
     validation: { required: true, email: true },
-    field_prop: {
-      single: true,
-    },
   },
   {
     name: "password",
     label: "Password",
     type: "password",
     default: "",
-    validation: { required: true },
+    validation: { minLength: 6 },
   },
 ];
 
 function login() {
-  const mutation = useMutation<firebase.auth.UserCredential, Error, string>({
-    mutationFn: authAnonymous,
-    onSuccess: (res) => {
-      localStorage.setItem("access_token", (res.credential?.toJSON() as { accessToken: string })["accessToken"]);
-      navigate("/dashboard");
-      showToast({
-        description: "Successfully logged in",
-      });
-    },
-    onError: (error) => {
-      console.error("Submission failed:", error);
-    },
-  });
+  // const mutation = useMutation<firebase.auth.UserCredential, Error, string>({
+  //   mutationFn: authAnonymous,
+  //   onSuccess: (res) => {
+  //     localStorage.setItem("access_token", (res.credential?.toJSON() as { accessToken: string })["accessToken"]);
+  //     navigate("/dashboard");
+  //     showToast({
+  //       description: "Successfully logged in",
+  //     });
+  //   },
+  //   onError: (error) => {
+  //     console.error("Submission failed:", error);
+  //   },
+  // });
 
   //form builder function
   const navigate = useNavigate();
@@ -60,11 +56,36 @@ function login() {
     return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
   function onSubmit(data: any) {
-    // Handle form submission logic here
-    localStorage.setItem("user", JSON.stringify(data));
-    navigate("/dashboard");
+    createUserWithEmailAndPassword(auth, data.email, data.password).then((userCredential) => {
+      const user = userCredential.user;
+      // Handle form submission logic here
+      localStorage.setItem("user", JSON.stringify(user));
+      navigate("/dashboard");
+    });
   }
 
+  function handleSigninProvider(typeofProvider: string): void {
+    let singinProvider;
+    console.log(typeofProvider);
+
+    switch (typeofProvider) {
+      case "google":
+        singinProvider = new GoogleAuthProvider();
+        break;
+      case "github":
+        singinProvider = new GithubAuthProvider();
+        break;
+      default:
+        console.error(`Invalid sign-in provider: ${typeofProvider}`);
+        return;
+    }
+    signInWithPopup(auth, singinProvider).then((userCredential) => {
+      const user = userCredential.user;
+      // Handle form submission logic here
+      localStorage.setItem("user", JSON.stringify(user));
+      navigate("/dashboard");
+    });
+  }
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4 md:p-8">
       <Card className="w-[700px] max-w-4xl overflow-hidden">
@@ -92,11 +113,11 @@ function login() {
                     </div>
                   </div>
                   <div className="grid w-full grid-cols-2 gap-4">
-                    <Button type="button" variant="outline" onClick={() => mutation.mutate("google")}>
+                    <Button type="button" variant="outline" onClick={() => handleSigninProvider("google")}>
                       <GoogleIcon />
                       Google
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => mutation.mutate("github")}>
+                    <Button type="button" variant="outline" onClick={() => handleSigninProvider("github")}>
                       <GitHubLogoIcon />
                       Github
                     </Button>

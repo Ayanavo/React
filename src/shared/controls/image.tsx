@@ -29,7 +29,9 @@ function image({ form, schema }: { form: FieldValue<any>; schema: ImageSchema })
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label>{schema.label}</Label>
+        <Label>
+          {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+        </Label>
       </div>
 
       <div className="flex items-center gap-4">
