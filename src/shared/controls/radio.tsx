@@ -18,7 +18,9 @@ function radio({ form, schema }: { form: FieldValue<any>; schema: RadioSchema })
       name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{schema.label}</FormLabel>
+          <FormLabel>
+            {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+          </FormLabel>
           <FormControl>
             <RadioGroup onValueChange={field.onChange} defaultValue={field.value} className="flex flex-col space-y-1">
               {schema.options.map((item) => (

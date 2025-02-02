@@ -32,7 +32,9 @@ function editor({ form, schema }: { form: FieldValue<any>; schema: EditorSchema 
       name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{schema.label}</FormLabel>
+          <FormLabel>
+            {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+          </FormLabel>
           <FormControl>
             <ReactQuill className="custom-quill-ghost" {...field} {...editorConfig} />
           </FormControl>

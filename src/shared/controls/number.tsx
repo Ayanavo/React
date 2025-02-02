@@ -17,7 +17,10 @@ function number({ form, schema }: { form: FieldValue<any>; schema: NumberSchema 
       name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{schema.label}</FormLabel>
+          <FormLabel>
+            {schema.label}
+            {schema.validation.required && <span className="text-destructive">*</span>}
+          </FormLabel>
           <FormControl>
             <Input type="number" {...field} placeholder={schema.placeholder} onChange={(value) => field.onChange(value.target.valueAsNumber)} />
           </FormControl>

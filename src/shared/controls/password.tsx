@@ -20,7 +20,10 @@ function password({ form, schema }: { form: FieldValue<any>; schema: PasswordSch
       name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{schema.label}</FormLabel>
+          <FormLabel>
+            {schema.label}
+            {schema.validation.required && <span className="text-destructive">*</span>}
+          </FormLabel>
           <div className="relative">
             <FormControl>
               <Input type={!showPassword ? "password" : "text"} {...field} placeholder={schema.placeholder} />

@@ -19,7 +19,9 @@ function dropdown({ form, schema }: { form: FieldValue<any>; schema: DropdownSch
       name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{schema.label}</FormLabel>
+          <FormLabel>
+            {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+          </FormLabel>
           <Select onValueChange={field.onChange} defaultValue={field.value}>
             <SelectTrigger>
               <SelectValue placeholder={schema.placeholder} />

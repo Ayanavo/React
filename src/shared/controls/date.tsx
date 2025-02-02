@@ -37,7 +37,9 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
       name={schema.name}
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          <FormLabel>{schema.label}</FormLabel>
+          <FormLabel>
+            {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+          </FormLabel>
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>

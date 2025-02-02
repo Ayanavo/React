@@ -26,7 +26,11 @@ function color({ form, schema }: { form: FieldValue<any>; schema: ColorSchema })
       name={schema.name}
       render={({ field }) => (
         <FormItem className="flex flex-col">
-          {schema?.label && <FormLabel>{schema.label}</FormLabel>}
+          {schema?.label && (
+            <FormLabel>
+              {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+            </FormLabel>
+          )}
           <Popover>
             <PopoverTrigger asChild>
               <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>

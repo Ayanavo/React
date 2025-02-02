@@ -37,7 +37,10 @@ function email({ form, schema }: { form: FieldValue<any>; schema: EmailSchema })
             name={`${schema.name}.${index}.email`}
             render={({ field }) => (
               <FormItem className="flex-grow">
-                <FormLabel>{schema.label}</FormLabel>
+                <FormLabel>
+                  {schema.label}
+                  {schema.validation.required && <span className="text-destructive">*</span>}
+                </FormLabel>
                 <FormControl>
                   <Input {...field} placeholder={schema.placeholder} />
                 </FormControl>

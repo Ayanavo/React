@@ -18,7 +18,9 @@ function textarea({ form, schema }: { form: FieldValue<any>; schema: TextareaSch
       name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{schema.label}</FormLabel>
+          <FormLabel>
+            {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+          </FormLabel>
           <FormControl>
             <Textarea placeholder={schema.placeholder} {...field} />
           </FormControl>

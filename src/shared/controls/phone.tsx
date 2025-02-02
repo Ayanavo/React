@@ -56,8 +56,9 @@ function phone({ form, schema }: { form: FieldValue<any>; schema: PhoneSchema })
             name={`${schema.name}.${index}.phone`}
             render={({ field }) => (
               <FormItem className="flex-grow">
-                <FormLabel>{schema.label}</FormLabel>
-
+                <FormLabel>
+                  {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+                </FormLabel>
                 <FormControl>
                   <Input {...field} placeholder={schema.placeholder} />
                 </FormControl>

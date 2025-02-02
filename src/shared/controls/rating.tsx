@@ -30,7 +30,9 @@ function rating({ form, schema }: { form: FieldValue<any>; schema: RatingSchema 
       name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{schema.label}</FormLabel>
+          <FormLabel>
+            {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+          </FormLabel>
           <FormControl>
             <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-1" role="radiogroup">

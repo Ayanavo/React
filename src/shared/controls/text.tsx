@@ -17,7 +17,9 @@ function text({ form, schema }: { form: FieldValue<any>; schema: TextSchema }) {
       name={schema.name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{schema.label}</FormLabel>
+          <FormLabel>
+            {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
+          </FormLabel>
           <FormControl>
             <Input {...field} placeholder={schema.placeholder} />
           </FormControl>
