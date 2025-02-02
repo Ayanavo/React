@@ -33,7 +33,7 @@ function activity() {
         start: start.date,
         ...(end && { end: end?.date }),
         allDay: true,
-        color: "#b9d2fa",
+        color: "#0284c7",
       };
     }) ?? [];
 

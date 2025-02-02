@@ -14,5 +14,6 @@
 
   .fc-event-title {
     text-wrap: wrap;
+    color: hsl(var(--secondary-foreground)) !important;
   }
 }
