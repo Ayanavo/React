@@ -14,8 +14,8 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
   const { openDialog, ConfirmationDialog } = useConfirmationDialog();
 
   const handleConfirmation = async () => {
-    openDialog("Are you sure you want to log out?").then(() => {
-      navigate("/login");
+    openDialog("Are you sure you want to log out?").then((res) => {
+      res && navigate("/login");
     });
   };
 

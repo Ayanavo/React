@@ -28,6 +28,7 @@ const formSchemaObj = [
     name: "password",
     label: "Password",
     type: "password",
+    default: "",
     validation: { required: true },
   },
 ];
