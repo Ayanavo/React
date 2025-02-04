@@ -5,13 +5,15 @@ import { componentMap } from "@/pages/layout/logs/form/field-map";
 import generateControl from "@/pages/layout/logs/form/validation";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { createUserWithEmailAndPassword, GithubAuthProvider, GoogleAuthProvider } from "firebase/auth";
+import { signInWithEmailAndPassword, GithubAuthProvider, GoogleAuthProvider } from "firebase/auth";
 import { signInWithPopup } from "firebase/auth";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../../../firebase.setup";
 import imgUrl from "/src/assets/3d-render-secure-login-password-illustration.jpg";
+import showToast from "@/hooks/toast";
+import { FirebaseError } from "firebase/app";
 
 const formSchemaObj = [
   {
@@ -31,20 +33,6 @@ const formSchemaObj = [
 ];
 
 function login() {
-  // const mutation = useMutation<firebase.auth.UserCredential, Error, string>({
-  //   mutationFn: authAnonymous,
-  //   onSuccess: (res) => {
-  //     localStorage.setItem("access_token", (res.credential?.toJSON() as { accessToken: string })["accessToken"]);
-  //     navigate("/dashboard");
-  //     showToast({
-  //       description: "Successfully logged in",
-  //     });
-  //   },
-  //   onError: (error) => {
-  //     console.error("Submission failed:", error);
-  //   },
-  // });
-
   //form builder function
   const navigate = useNavigate();
   const form = generateControl(formSchemaObj);
@@ -56,12 +44,24 @@ function login() {
     return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
   function onSubmit(data: any) {
-    createUserWithEmailAndPassword(auth, data.email, data.password).then((userCredential) => {
-      const user = userCredential.user;
-      // Handle form submission logic here
-      localStorage.setItem("user", JSON.stringify(user));
-      navigate("/dashboard");
-    });
+    signInWithEmailAndPassword(auth, data.email, data.password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        // Handle form submission logic here
+        localStorage.setItem("user", JSON.stringify(user));
+
+        showToast({
+          title: "Successfully logged in",
+          variant: "success",
+        });
+        navigate("/dashboard");
+      })
+      .catch((error: FirebaseError) => {
+        showToast({
+          title: error.message,
+          variant: "error",
+        });
+      });
   }
 
   function handleSigninProvider(typeofProvider: string): void {
@@ -79,12 +79,24 @@ function login() {
         console.error(`Invalid sign-in provider: ${typeofProvider}`);
         return;
     }
-    signInWithPopup(auth, singinProvider).then((userCredential) => {
-      const user = userCredential.user;
-      // Handle form submission logic here
-      localStorage.setItem("user", JSON.stringify(user));
-      navigate("/dashboard");
-    });
+    signInWithPopup(auth, singinProvider)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        // Handle form submission logic here
+        localStorage.setItem("user", JSON.stringify(user));
+        showToast({
+          title: "Successfully logged in",
+          variant: "success",
+        });
+
+        navigate("/dashboard");
+      })
+      .catch((error: FirebaseError) => {
+        showToast({
+          title: error.message,
+          variant: "error",
+        });
+      });
   }
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4 md:p-8">

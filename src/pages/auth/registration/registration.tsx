@@ -2,12 +2,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { componentMap } from "@/pages/layout/logs/form/field-map";
 import generateControl from "@/pages/layout/logs/form/validation";
-import { DevTool } from "@hookform/devtools";
+import { createUserWithEmailAndPassword } from "firebase/auth";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import { auth } from "../../../firebase.setup";
+import showToast from "@/hooks/toast";
+import { FirebaseError } from "firebase/app";
 
 const formSchemaObj = [
+  {
+    name: "email",
+    label: "Email",
+    type: "emailsingle",
+    default: "",
+    validation: { required: true, email: true },
+  },
+  {
+    name: "password",
+    label: "Password",
+    type: "password",
+    default: "",
+    validation: { minLength: 6 },
+  },
   {
     name: "title",
     type: "dropdown",
@@ -46,9 +63,22 @@ function registration() {
     const Component = componentMap[field.type as keyof typeof componentMap];
     return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
-  const onSubmit = (res: any) => {
-    console.log(res);
-    navigate("/login");
+  const onSubmit = (data: any) => {
+    createUserWithEmailAndPassword(auth, data.email, data.password)
+      .then(() => {
+        showToast({
+          title: "Successfully signed in",
+          variant: "success",
+        });
+        // Handle form submission logic here
+        navigate("/login");
+      })
+      .catch((error: FirebaseError) => {
+        showToast({
+          title: error.message,
+          variant: "error",
+        });
+      });
   };
 
   return (
@@ -100,7 +130,6 @@ function registration() {
             </CardFooter>
           </form>
         </FormProvider>
-        <DevTool control={form.control} />
       </Card>
     </div>
   );
