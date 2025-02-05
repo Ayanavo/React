@@ -1,12 +1,14 @@
 import { toast } from "sonner";
 
-function showToast({ title, description, variant }: { title: string; description?: string; variant: "success" | "error" | "warning" }) {
+function showToast({ title, description, variant, undo = false }: { title: string; description?: string; variant: "success" | "error" | "warning"; undo?: boolean }): void {
   toast[variant](title, {
     description,
-    action: {
-      label: "Undo",
-      onClick: () => console.log("Undo"),
-    },
+    ...(undo && {
+      cancel: {
+        label: "Undo",
+        onClick: () => console.log("Undo"),
+      },
+    }),
   });
 }
 
