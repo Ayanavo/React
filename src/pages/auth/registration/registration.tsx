@@ -15,7 +15,7 @@ import profile from "@/assets/profile.jpg";
 
 const formSchemaObj = [
   {
-    name: "profile",
+    name: "photoURL",
     label: "Profile",
     type: "image",
     profileDefaultLink: profile,

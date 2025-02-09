@@ -73,7 +73,7 @@ function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; is
                 {...form.register("description")}
                 className="w-full min-h-[100px] rounded-md overflow-hidden outline-none resize-none shad-background shad-color shad-border"
                 onChange={handleInput}
-                placeholder="Write a note here..."></textarea>
+                placeholder="Description"></textarea>
             </DialogDescription>
 
             <DialogFooter>

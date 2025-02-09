@@ -6,9 +6,11 @@ function showToast({ title, description, variant, undo = false }: { title: strin
     ...(undo && {
       cancel: {
         label: "Undo",
-        onClick: () => console.log("Undo"),
+        onClick: () => toast.dismiss(),
       },
     }),
+    closeButton: true,
+    richColors: true,
   });
 }
 

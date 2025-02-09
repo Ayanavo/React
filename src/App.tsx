@@ -12,7 +12,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" colorTheme="zinc">
         <Router />
-        <Toaster position="bottom-left" visibleToasts={6} richColors />
+        <Toaster position="bottom-left" visibleToasts={6} />
       </ThemeProvider>
     </QueryClientProvider>
   );
