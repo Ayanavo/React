@@ -1,19 +1,18 @@
 import GoogleIcon from "@/assets/google.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { auth } from "@/firebase.setup";
+import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/logs/form/field-map";
 import generateControl from "@/pages/layout/logs/form/validation";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { signInWithEmailAndPassword, GithubAuthProvider, GoogleAuthProvider } from "firebase/auth";
-import { signInWithPopup } from "firebase/auth";
+import { FirebaseError } from "firebase/app";
+import { GithubAuthProvider, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { auth } from "../../../firebase.setup";
-import imgUrl from "/src/assets/3d-render-secure-login-password-illustration.jpg";
-import showToast from "@/hooks/toast";
-import { FirebaseError } from "firebase/app";
+import imgUrl from "@/assets/3d-render-secure-login-password-illustration.jpg";
 
 const formSchemaObj = [
   {
@@ -65,21 +64,20 @@ function login() {
   }
 
   function handleSigninProvider(typeofProvider: string): void {
-    let singinProvider;
-    console.log(typeofProvider);
+    let loginProvider;
 
     switch (typeofProvider) {
       case "google":
-        singinProvider = new GoogleAuthProvider();
+        loginProvider = new GoogleAuthProvider();
         break;
       case "github":
-        singinProvider = new GithubAuthProvider();
+        loginProvider = new GithubAuthProvider();
         break;
       default:
         console.error(`Invalid sign-in provider: ${typeofProvider}`);
         return;
     }
-    signInWithPopup(auth, singinProvider)
+    signInWithPopup(auth, loginProvider)
       .then((userCredential) => {
         const user = userCredential.user;
         // Handle form submission logic here

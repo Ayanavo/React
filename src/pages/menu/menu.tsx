@@ -1,15 +1,15 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { auth } from "@/firebase.setup";
 import showToast from "@/hooks/toast";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
 import { useConfirmationDialog } from "@/shared/confirmation";
+import { FirebaseError } from "firebase/app";
 import { signOut } from "firebase/auth";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "src/firebase.setup";
 import IconsComponent from "../../common/icons";
-import { FirebaseError } from "firebase/app";
 
 type NavItem = { label: string; icon: string; route: string };
 function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function }) {

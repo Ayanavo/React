@@ -6,7 +6,8 @@ import { FieldValue } from "react-hook-form";
 type ImageSchema = {
   name: string;
   label: string;
-  placeholder: string;
+  placeholder?: string;
+  profileDefaultLink?: string;
   type: "image";
   validation: { required: boolean };
 };
@@ -39,7 +40,8 @@ function image({ form, schema }: { form: FieldValue<any>; schema: ImageSchema })
         <div className="relative w-16 h-16 border rounded-lg overflow-hidden">
           {!imagePreview ?
             <div className="absolute inset-0 flex items-center justify-center bg-primary">
-              <div className="text-4xl text-secondary transition duration-500 text-center">AL</div>
+              {schema.profileDefaultLink && <img src={schema.profileDefaultLink} alt="image" className="w-full h-full" />}
+              {schema.placeholder && <div className="text-4xl text-secondary transition duration-500 text-center">{schema.placeholder}</div>}
             </div>
           : <img width={64} height={64} alt="Logo" src={imagePreview} className="profile-image" />}
         </div>

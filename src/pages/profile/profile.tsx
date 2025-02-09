@@ -32,7 +32,7 @@ function profile() {
               schema={{
                 name: "profile_image",
                 label: "Profile Image",
-                placeholder: "",
+                placeholder: "AL",
                 type: "image",
                 validation: {
                   required: true,

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogOverlay, DialogTitle } from "@/components/ui/dialog";
 import React, { useState } from "react";
 
 interface ConfirmationDialogProps {
@@ -9,24 +9,26 @@ interface ConfirmationDialogProps {
   message: string;
 }
 
-const ConfirmationDialog = ({ isOpen, onConfirm, onCancel, message }: ConfirmationDialogProps) => {
+function ConfirmationDialog({ isOpen, onConfirm, onCancel, message }: ConfirmationDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => (open ? onConfirm(true) : onCancel())}>
-      <DialogContent>
-        <DialogTitle>Confirm Action</DialogTitle>
-        <DialogDescription>{message}</DialogDescription>
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button variant="outline" className="bg-primary text-secondary hover:bg-primary hover:text-secondary" onClick={() => onConfirm(true)}>
-            Accept
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+      <DialogOverlay className="DialogOverlay">
+        <DialogContent>
+          <DialogTitle>Confirm Action</DialogTitle>
+          <DialogDescription>{message}</DialogDescription>
+          <DialogFooter>
+            <Button variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button variant="outline" className="bg-primary text-secondary hover:bg-primary hover:text-secondary" onClick={() => onConfirm(true)}>
+              Accept
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </DialogOverlay>
     </Dialog>
   );
-};
+}
 
 export const useConfirmationDialog = () => {
   const [isOpen, setIsOpen] = useState(false);

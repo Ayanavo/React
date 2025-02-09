@@ -1,6 +1,6 @@
 import IconsComponent from "@/common/icons";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import imageFile from "@/hooks/image-file";
 import React, { useRef } from "react";
@@ -59,76 +59,78 @@ function noteeditor({ setIsOpen, isOpen }: { setIsOpen: (arg: State) => void; is
       <DialogTrigger asChild>
         <Button className="hidden"></Button>
       </DialogTrigger>
-      <DialogContent>
-        {image && <img width={64} height={64} alt="Attachment" className="w-full rounded" src={image} />}
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <DialogHeader>
-            <DialogTitle>
-              <input type="text" {...form.register("title")} className="w-full outline-none resize-none py-2 shad-background shad-color shad-border" placeholder="Title" />
-            </DialogTitle>
-          </DialogHeader>
-          <DialogDescription>
-            <textarea
-              {...form.register("description")}
-              className="w-full min-h-[100px] rounded-md overflow-hidden outline-none resize-none shad-background shad-color shad-border"
-              onChange={handleInput}
-              placeholder="Write a note here..."></textarea>
-          </DialogDescription>
+      <DialogOverlay>
+        <DialogContent>
+          {image && <img width={64} height={64} alt="Attachment" className="w-full rounded" src={image} />}
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <DialogHeader>
+              <DialogTitle>
+                <input type="text" {...form.register("title")} className="w-full outline-none resize-none py-2 shad-background shad-color shad-border" placeholder="Title" />
+              </DialogTitle>
+            </DialogHeader>
+            <DialogDescription>
+              <textarea
+                {...form.register("description")}
+                className="w-full min-h-[100px] rounded-md overflow-hidden outline-none resize-none shad-background shad-color shad-border"
+                onChange={handleInput}
+                placeholder="Write a note here..."></textarea>
+            </DialogDescription>
 
-          <DialogFooter>
-            <div className="flex items-center space-x-2">
-              {[
-                { name: "color", label: "Background Color", icon: "PaletteIcon" },
-                {
-                  name: "image",
-                  label: "Add Image",
-                  icon: "ImageIcon",
-                },
-                {
-                  name: "archive",
-                  label: "Archive",
-                  icon: "ArchiveIcon",
-                },
-                {
-                  name: "delete",
-                  label: "Delete",
-                  icon: "TrashIcon",
-                },
-              ].map((item) => (
-                <Tooltip key={item.name}>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" type="button" onClick={() => activateAction(item.name)}>
-                      <IconsComponent customClass="cursor-pointer" icon={item.icon} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">{item.label}</TooltipContent>
-                </Tooltip>
-              ))}
-            </div>
-            <Button type="reset" variant="outline" onClick={handleReset}>
-              Cancel
-            </Button>
-            <Button type="submit">Submit</Button>
-          </DialogFooter>
-        </form>
-
-        <CustomPopover
-          controlRef={popoverRef}
-          content={
-            <div className="w-fit">
-              Color
-              <div className="flex space-x-2">
-                <Button className="flex-1" onClick={() => popoverRef.current?.close()}>
-                  Close from Within
-                </Button>
-                <Button className="flex-1" variant="outline" onClick={() => popoverRef.current?.close()}>
-                  Close from Outside
-                </Button>
+            <DialogFooter>
+              <div className="flex items-center space-x-2">
+                {[
+                  { name: "color", label: "Background Color", icon: "PaletteIcon" },
+                  {
+                    name: "image",
+                    label: "Add Image",
+                    icon: "ImageIcon",
+                  },
+                  {
+                    name: "archive",
+                    label: "Archive",
+                    icon: "ArchiveIcon",
+                  },
+                  {
+                    name: "delete",
+                    label: "Delete",
+                    icon: "TrashIcon",
+                  },
+                ].map((item) => (
+                  <Tooltip key={item.name}>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="icon" type="button" onClick={() => activateAction(item.name)}>
+                        <IconsComponent customClass="cursor-pointer" icon={item.icon} />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">{item.label}</TooltipContent>
+                  </Tooltip>
+                ))}
               </div>
-            </div>
-          }
-        />
-      </DialogContent>
+              <Button type="reset" variant="outline" onClick={handleReset}>
+                Cancel
+              </Button>
+              <Button type="submit">Submit</Button>
+            </DialogFooter>
+          </form>
+
+          <CustomPopover
+            controlRef={popoverRef}
+            content={
+              <div className="w-fit">
+                Color
+                <div className="flex space-x-2">
+                  <Button className="flex-1" onClick={() => popoverRef.current?.close()}>
+                    Close from Within
+                  </Button>
+                  <Button className="flex-1" variant="outline" onClick={() => popoverRef.current?.close()}>
+                    Close from Outside
+                  </Button>
+                </div>
+              </div>
+            }
+          />
+        </DialogContent>
+      </DialogOverlay>
       {renderInputField()}
     </Dialog>
   );

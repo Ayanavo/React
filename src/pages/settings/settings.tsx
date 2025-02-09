@@ -8,9 +8,25 @@ import { useColor, useTheme } from "./theme";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function settings() {
-  const colorSchema = [
+  const settingsSchema: [
+    {
+      name: string;
+      label: string;
+      type: "color";
+      placeholder?: string;
+      validation: { required: boolean };
+    },
+    {
+      name: string;
+      label: string;
+      type: "image";
+      placeholder?: string;
+      validation: { required: boolean };
+    },
+  ] = [
     {
       name: "themecolor",
+      label: "",
       type: "color" as "color",
       validation: {
         required: false,
@@ -18,6 +34,8 @@ function settings() {
     },
     {
       name: "company_name",
+      label: "",
+      placeholder: "CP",
       type: "image" as "image",
       validation: {
         required: false,
@@ -29,7 +47,7 @@ function settings() {
   // const { setState } = usePersistedState("vite-ui-sidebar", "left");
   const [selectedView, setSelectedView] = useState("default");
   const [selectedFont, setSelectedFont] = useState("system");
-  const form = generateControl(colorSchema);
+  const form = generateControl(settingsSchema);
   const colorNameConfig = [
     { color: "zinc", hexcode: "#2F2F31" },
     { color: "violet", hexcode: "#7C3AED" },
@@ -49,18 +67,7 @@ function settings() {
           <div className="space-y-6">
             {/* Company Logo Section */}
 
-            <ImageComponent
-              form={form}
-              schema={{
-                name: "company",
-                label: "Company Image",
-                placeholder: "",
-                type: "image",
-                validation: {
-                  required: false,
-                },
-              }}
-            />
+            <ImageComponent form={form} schema={settingsSchema[1]} />
 
             <div className="space-y-4">
               <div className="space-y-2">
