@@ -1,0 +1,20 @@
+{
+	"greeting": "Welcome to Paint Auction!",
+	"logout_success": "User logged out successfully",
+	"error_internal": "Internal Server Error",
+	"otp_validated": "OTP validated successfully",
+	"otp_invalid": "Invalid OTP.",
+	"no_token": "No token provided",
+	"otp_sent": "OTP sent successfully.",
+	"otp_not_sent": "OTP not sent due to some error.",
+	"use_last_otp": "Please use last sent OTP.",
+	"otp_required": "OTP and User are required.",
+	"login_success": "User logged in successfully",
+	"user_registered": "User registered successfully",
+	"invalid_cred": "Invalid credentials.",
+	"user_type_required": "User type is required.",
+	"user_type_match": "User type matched.",
+	"user_type_not_match": "User type not matched.",
+	"user_not_found": "User not found.",
+	"settings_no": "Settings not found"
+}
