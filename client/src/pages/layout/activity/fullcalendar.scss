@@ -1,0 +1,19 @@
+.calendar-wrapper {
+  .fc-scrollgrid {
+    border-radius: 0.375rem;
+  }
+
+  .fc-col-header {
+    background-color: rgb(229 231 235 / var(--tw-bg-opacity));
+  }
+
+  .fc-day-today {
+    background-color: hsl(var(--primary-foreground)) !important;
+    color: hsl(var(--secondary-foreground)) !important;
+  }
+
+  .fc-event-title {
+    text-wrap: wrap;
+    color: hsl(var(--secondary-foreground)) !important;
+  }
+}

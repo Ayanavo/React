@@ -1,0 +1,132 @@
+@import "/src/color-themes/blue.theme.scss";
+@import "/src/color-themes/zinc.theme.scss";
+@import "/src/color-themes/green.theme.scss";
+@import "/src/color-themes/violet.theme.scss";
+@import "/src/color-themes/red.theme.scss";
+@import "/src/color-themes/teal.theme.scss";
+@import "/src/color-themes/emerald.theme.scss";
+@import "/src/color-themes/orange.theme.scss";
+@import "/src/color-themes/yellow.theme.scss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+  :root.zinc {
+    @include root-zinc;
+  }
+  :root.blue {
+    @include root-blue;
+  }
+  :root.green {
+    @include root-green;
+  }
+  :root.violet {
+    @include root-violet;
+  }
+  :root.red {
+    @include root-red;
+  }
+  :root.teal {
+    @include root-teal;
+  }
+  :root.emerald {
+    @include root-emerald;
+  }
+  :root.orange {
+    @include root-orange;
+  }
+  :root.yellow {
+    @include root-yellow;
+  }
+
+  .dark {
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark.zinc {
+    @include dark-zinc;
+  }
+  .dark.blue {
+    @include dark-blue;
+  }
+  .dark.green {
+    @include dark-green;
+  }
+  .dark.violet {
+    @include dark-violet;
+  }
+  .dark.red {
+    @include dark-red;
+  }
+  .dark.teal {
+    @include dark-teal;
+  }
+  .dark.emerald {
+    @include dark-emerald;
+  }
+  .dark.orange {
+    @include dark-orange;
+  }
+  .dark.yellow {
+    @include dark-yellow;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .scrollbar::-webkit-scrollbar {
+    width: 20px;
+    height: 20px;
+  }
+
+  .scrollbar::-webkit-scrollbar-track {
+    border-radius: 100vh;
+    background: #f7f4ed;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    background: #e0cbcb;
+    border-radius: 100vh;
+    border: 3px solid #f6f7ed;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #c0a0b9;
+  }
+}
+
+.DialogOverlay {
+  background: rgba(255, 255, 255, 0.5);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+}

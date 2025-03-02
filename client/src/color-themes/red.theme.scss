@@ -1,0 +1,60 @@
+@mixin root-red {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 0 84% 57%;
+  --primary-foreground: 0 100% 97%;
+  --secondary: 0 4.8% 95%;
+  --secondary-foreground: 0 5.9% 10%;
+  --muted: 0 4.8% 95%;
+  --muted-foreground: 0 3.8% 45%;
+  --accent: 0 4.8% 95%;
+  --accent-foreground: 0 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 5.9% 88%;
+  --input: 0 5.9% 88%;
+  --ring: 0 84% 57%;
+  --radius: 0.5rem;
+  --chart-1: 0 85% 55%;
+  --chart-2: 5 75% 50%;
+  --chart-3: 10 70% 45%;
+  --chart-4: 355 80% 60%;
+  --chart-5: 360 90% 65%;
+
+  --sidebar-background: 0 84% 57%;
+  --sidebar-foreground: 0 100% 97%;
+}
+
+@mixin dark-red {
+  --background: 0 20% 7%;
+  --foreground: 0 0% 95%;
+  --card: 0 15% 12%;
+  --card-foreground: 0 0% 95%;
+  --popover: 0 15% 12%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 0 70% 50%;
+  --primary-foreground: 0 80% 10%;
+  --secondary: 0 6% 15%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 6% 15%;
+  --muted-foreground: 0 5% 60%;
+  --accent: 0 6% 15%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 85.7% 97.3%;
+  --border: 0 6% 15%;
+  --input: 0 6% 15%;
+  --ring: 0 65% 30%;
+  --chart-1: 0 70% 50%;
+  --chart-2: 5 60% 45%;
+  --chart-3: 10 55% 40%;
+  --chart-4: 355 70% 55%;
+  --chart-5: 360 75% 60%;
+
+  --sidebar-background: 0 70% 50%;
+  --sidebar-foreground: 0 80% 10%;
+}
