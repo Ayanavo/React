@@ -15,8 +15,10 @@ export const signUp = async (req: Request, res: Response) => {
 
   try {
     const { firstName, lastName, title, email, password } = req.body;
-    const newUser = await User.create({ firstName, lastName, title, email, password });
-    res.status(201).json({ message: "User created successfully" });
+    // const newUser = await User.create({ firstName, lastName, title, email, password });
+    // res.status(201).json({ message: "User created successfully" });
+    const newUser = new User({ firstName, lastName, title, email, password });
+    await newUser.save();
   } catch (error) {
     res.status(500).json({ message: "Failed to create user" });
   }

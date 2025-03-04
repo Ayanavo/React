@@ -1,17 +1,18 @@
 import GoogleIcon from "@/assets/google.svg";
+import profile from "@/assets/profile.jpg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/firebase.setup";
 import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/logs/form/field-map";
 import generateControl from "@/pages/layout/logs/form/validation";
+import { registerAPI } from "@/shared/services/auth.ts";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { FirebaseError } from "firebase/app";
-import { createUserWithEmailAndPassword, GithubAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GithubAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import profile from "@/assets/profile.jpg";
 
 const formSchemaObj = [
   {
@@ -76,7 +77,7 @@ function registration() {
     return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
   const onSubmit = (data: any) => {
-    createUserWithEmailAndPassword(auth, data.email, data.password)
+    registerAPI(data.email, data.password, data.fname, data.lname, data.title)
       .then(() => {
         showToast({
           title: "Successfully signed in",

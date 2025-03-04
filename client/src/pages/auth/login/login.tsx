@@ -1,3 +1,4 @@
+import imgUrl from "@/assets/3d-render-secure-login-password-illustration.jpg";
 import GoogleIcon from "@/assets/google.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,14 +6,15 @@ import { auth } from "@/firebase.setup";
 import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/logs/form/field-map";
 import generateControl from "@/pages/layout/logs/form/validation";
+import { loginAPI } from "@/shared/services/auth.ts";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
+import { AxiosError } from "axios";
 import { FirebaseError } from "firebase/app";
-import { GithubAuthProvider, GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { GithubAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import imgUrl from "@/assets/3d-render-secure-login-password-illustration.jpg";
 
 const formSchemaObj = [
   {
@@ -43,7 +45,8 @@ function login() {
     return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
   function onSubmit(data: any) {
-    signInWithEmailAndPassword(auth, data.email, data.password)
+    // signInWithEmailAndPassword(auth, data.email, data.password)
+    loginAPI(data.email, data.password)
       .then((userCredential) => {
         const user = userCredential.user;
         // Handle form submission logic here
@@ -55,9 +58,9 @@ function login() {
         });
         navigate("/dashboard");
       })
-      .catch((error: FirebaseError) => {
+      .catch((error) => {
         showToast({
-          title: error.message,
+          title: error.response?.data.message,
           variant: "error",
         });
       });

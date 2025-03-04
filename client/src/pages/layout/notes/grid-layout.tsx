@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { State } from "./state";
-let noteListing: Array<State> = [];
+// import { State } from "./state";
+// let noteListing: Array<State> = [];
 function gridlayout({ setIsOpen, isOpen }: { setIsOpen: (arg: boolean) => void; isOpen: boolean }) {
   useEffect(() => {
     // (isOpen?.description || isOpen?.title) && noteListing.push(isOpen);

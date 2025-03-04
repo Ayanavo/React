@@ -9,7 +9,7 @@ import "./note.scss";
 import { State } from "./state";
 import { CustomPopover } from "@/hooks/popover-content";
 
-function noteeditor({ setIsOpen, isOpen, formData }: { setIsOpen: (arg: boolean) => void; isOpen: boolean; formData: State }) {
+function noteeditor({ setIsOpen, isOpen, formData }: { setIsOpen: (arg: boolean) => void; isOpen: boolean; formData?: State }) {
   const { image, renderInputField, activateInput } = imageFile();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const popoverRef = useRef<{ open: () => void; close: () => void }>(null);
@@ -33,7 +33,7 @@ function noteeditor({ setIsOpen, isOpen, formData }: { setIsOpen: (arg: boolean)
   const onSubmit: SubmitHandler<{
     title: string;
     description: string;
-  }> = (data) => {
+  }> = () => {
     setIsOpen(true);
   };
 

@@ -1,13 +1,12 @@
-// import firebase from "firebase/compat/app";
-// import { auth } from "@/firebase.setup";
+// loginService.ts
+import axios from "axios";
+const apiUrl = import.meta.env.VITE_API_URL;
+export const loginAPI = async (email: string, password: string) => {
+  const response = await axios.post<{ user: any; message: string }>(apiUrl + "auth/login", { email, password });
+  return response.data;
+};
 
-// export async function authAnonymous(evt: string) {
-//   switch (evt) {
-//     case "google":
-//       return auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-//     case "github":
-//       return auth.signInWithPopup(new firebase.auth.GithubAuthProvider());
-//     default:
-//       throw new Error("Unsupported authentication provider");
-//   }
-// }
+export const registerAPI = async (email: string, password: string, fname: string, lname: string, title: string) => {
+  const response = await axios.post(apiUrl + "auth/register", { email, password, ...{ firstName: fname }, ...{ lastName: lname }, title });
+  return response.data;
+};

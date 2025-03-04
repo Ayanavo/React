@@ -8,7 +8,7 @@ import React, { useState } from "react";
 import GridLayoutComponent from "./grid-layout";
 import ListingLayoutComponent from "./listing-layout";
 import NoteEditorComponent from "./note-editor";
-import { State } from "./state";
+// import { State } from "./state";
 
 function note() {
   const NotesLayout = [
@@ -33,7 +33,7 @@ function note() {
   // const [state, disapatch] = useReducer(reducer, InitialState);
   return (
     <>
-      <NoteEditorComponent setIsOpen={setIsOpen} isOpen={isOpen} formData={FormData} />
+      <NoteEditorComponent setIsOpen={setIsOpen} isOpen={isOpen} />
       <div className="flex justify-end">
         <div className="m-3 flex items-center justify-center space-x-2">
           <TooltipProvider disableHoverableContent>
