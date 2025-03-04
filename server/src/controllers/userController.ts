@@ -4,9 +4,19 @@ import { body, validationResult } from "express-validator";
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
+  // Validate input
+  await body("email").isEmail().run(req);
+  await body("password").isLength({ min: 6 }).run(req);
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
   try {
-    const { username, email, password } = req.body;
-    const user = await User.create({ username, email, password });
+    const { firstName, lastName, title, email, password } = req.body;
+    const newUser = await User.create({ firstName, lastName, title, email, password });
+    await newUser.save();
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
     res.status(500).json({ message: "Failed to create user" });
