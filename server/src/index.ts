@@ -3,6 +3,7 @@ import cors from "cors";
 import "dotenv/config";
 import express, { Request, Response } from "express";
 import activityRoutes from "./routes/activityRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 import connectDB from "./utils/db.js";
 import i18n from "./utils/i18n.js";
 
@@ -30,6 +31,9 @@ app.get("/", (req, res) => {
 
 // Use the /api/activities route
 app.use("/api/activities", activityRoutes);
+
+// Use the auth routes
+app.use("/api/auth", userRoutes);
 
 // Start the server
 app.listen(PORT, HOST, () => {

@@ -1,8 +1,8 @@
-import express from "express";
+import { Router } from "express";
 import { createActivity, getActivities, deleteActivity, updateActivity, getActivityById } from "../controllers/activityController.js"; // Note the .js extension
 import Activity from "../models/activityModel.js";
 
-const router = express.Router();
+const router = Router();
 
 // Define the /activities route
 router.get("/", getActivities);
