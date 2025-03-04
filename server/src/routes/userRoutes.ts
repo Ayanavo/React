@@ -3,10 +3,10 @@ import { login, signUp, logout } from "../controllers/userController.js";
 
 const router = Router();
 
-router.get("/login", login as any);
+router.post("/login", login as any);
 
-router.get("/register", signUp as any);
+router.post("/register", signUp as any);
 
-router.get("/logout", logout as any);
+router.post("/logout", logout as any);
 
 export default router;
