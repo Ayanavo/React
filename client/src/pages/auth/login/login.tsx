@@ -9,7 +9,6 @@ import generateControl from "@/pages/layout/logs/form/validation";
 import { loginAPI } from "@/shared/services/auth.ts";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { AxiosError } from "axios";
 import { FirebaseError } from "firebase/app";
 import { GithubAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import React from "react";
