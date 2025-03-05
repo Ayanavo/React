@@ -40,10 +40,10 @@ function image({ form, schema }: { form: FieldValue<any>; schema: ImageSchema })
         <div className="relative w-16 h-16 border rounded-lg overflow-hidden">
           {!imagePreview ?
             <div className="absolute inset-0 flex items-center justify-center bg-primary">
-              {schema.profileDefaultLink && <img src={schema.profileDefaultLink} alt="image" className="w-full h-full" />}
+              {schema.profileDefaultLink && <img src={schema.profileDefaultLink} alt="image" draggable={false} className="w-full h-full" />}
               {schema.placeholder && <div className="text-4xl text-secondary transition duration-500 text-center">{schema.placeholder}</div>}
             </div>
-          : <img width={64} height={64} alt="Logo" src={imagePreview} className="profile-image" />}
+          : <img width={64} height={64} alt="Logo" src={imagePreview} draggable={false} className="profile-image" />}
         </div>
         <Button variant="outline" type="button" size="sm" onClick={() => inputRef.current?.click()}>
           <Upload className="mr-2 h-4 w-4" />

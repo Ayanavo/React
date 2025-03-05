@@ -130,7 +130,7 @@ function registration() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4 md:p-8">
-      <Card className="w-[350px] ">
+      <Card className="w-[700px] max-w-4xl overflow-hidden">
         <CardHeader>
           <CardTitle>Create an Account</CardTitle>
           <CardDescription>Create an account and get started!</CardDescription>
