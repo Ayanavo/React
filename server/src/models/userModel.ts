@@ -3,8 +3,11 @@ import { Document, model, Schema } from "mongoose";
 import jwt from "jsonwebtoken";
 
 export interface IUser extends Document {
-  name: string;
-  description: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  title: string;
   createdAt: Date;
   updatedAt: Date;
   matchPassword: (enteredPassword: string) => Promise<boolean>;
@@ -13,8 +16,11 @@ export interface IUser extends Document {
 
 const userSchema: Schema = new Schema(
   {
-    name: { type: String, required: true },
-    description: { type: String, required: true },
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    title: { type: String },
   },
   { timestamps: true }
 );
