@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/userModel.js"; // Note the .js extension
 import { body, validationResult } from "express-validator";
+import { Error, MongooseError } from "mongoose";
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -15,11 +16,14 @@ export const signUp = async (req: Request, res: Response) => {
 
   try {
     const { firstName, lastName, title, email, password } = req.body;
-    // const newUser = await User.create({ firstName, lastName, title, email, password });
-    // res.status(201).json({ message: "User created successfully" });
+    if (!firstName || !lastName || !title || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
     const newUser = new User({ firstName, lastName, title, email, password });
     await newUser.save();
+    res.status(201).json({ message: "User created successfully", user: newUser });
   } catch (error) {
+    console.error("Error creating user:", error);
     res.status(500).json({ message: "Failed to create user" });
   }
 };
