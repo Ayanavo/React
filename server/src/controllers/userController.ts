@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/userModel.js"; // Note the .js extension
 import { body, validationResult } from "express-validator";
-import { Error, MongooseError } from "mongoose";
+import bcrypt from "bcrypt";
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -19,7 +19,11 @@ export const signUp = async (req: Request, res: Response) => {
     if (!firstName || !lastName || !title || !email || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
-    const newUser = new User({ firstName, lastName, title, email, password });
+
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const newUser = new User({ firstName, lastName, title, email, hashedPassword });
     await newUser.save();
     res.status(201).json({ message: "User created successfully", user: newUser });
   } catch (error) {
