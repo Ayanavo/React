@@ -47,12 +47,12 @@ function login() {
     // signInWithEmailAndPassword(auth, data.email, data.password)
     loginAPI(data.email, data.password)
       .then((userCredential) => {
-        const user = userCredential.user;
+        const authToken = userCredential.token;
         // Handle form submission logic here
-        localStorage.setItem("user", JSON.stringify(user));
+        localStorage.setItem("auth_token", authToken);
 
         showToast({
-          title: "Successfully logged in",
+          title: userCredential.message,
           variant: "success",
         });
         navigate("/dashboard");
@@ -138,6 +138,12 @@ function login() {
                     Don&apos;t have an account?{" "}
                     <Link to="/register" className="underline underline-offset-4 hover:text-primary">
                       Sign up
+                    </Link>
+                  </p>
+                  <p className="text-[0.63rem] text-muted-foreground">
+                    Forgot your password?{" "}
+                    <Link to="/forgot-password" className="underline underline-offset-4 hover:text-primary">
+                      Reset Password
                     </Link>
                   </p>
                 </CardFooter>

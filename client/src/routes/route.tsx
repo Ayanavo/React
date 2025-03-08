@@ -6,14 +6,15 @@ import ProfileComponent from "@/pages/profile/profile";
 import SettingsComponent from "@/pages/settings/settings";
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { Layout } from "../pages/layout/layout";
-import DetailComponent from "../pages/layout/logs/details/details";
-import TableComponent from "../pages/layout/logs/table/table";
-import CreateComponent from "../pages/layout/logs/update/create";
-import UpdateComponent from "../pages/layout/logs/update/update";
-import NoteComponent from "../pages/layout/notes/notes-layout";
-import WhiteboardComponent from "../pages/layout/whiteboard/whiteboard";
-import NoPageComponent from "../pages/nopage";
+import { Layout } from "@/pages/layout/layout";
+import DetailComponent from "@/pages/layout/logs/details/details";
+import TableComponent from "@/pages/layout/logs/table/table";
+import CreateComponent from "@/pages/layout/logs/update/create";
+import UpdateComponent from "@/pages/layout/logs/update/update";
+import NoteComponent from "@/pages/layout/notes/notes-layout";
+import WhiteboardComponent from "@/pages/layout/whiteboard/whiteboard";
+import NoPageComponent from "@/pages/nopage";
+import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
 import ProtectedRouteComponent from "./protectedRoute";
 
 export const Router = () => {
@@ -21,6 +22,7 @@ export const Router = () => {
     <Routes>
       <Route path="/login" element={<LoginComponent />} />
       <Route path="/register" element={<RegistrationComponent />} />
+      <Route path="/forgot-password" element={<ForgotPasswordComponent />} />
       <Route element={<ProtectedRouteComponent />}>
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />

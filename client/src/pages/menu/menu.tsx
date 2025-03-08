@@ -1,12 +1,10 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { auth } from "@/firebase.setup";
 import showToast from "@/hooks/toast";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
 import { useConfirmationDialog } from "@/shared/confirmation";
-import { FirebaseError } from "firebase/app";
-import { signOut } from "firebase/auth";
+import { logoutAPI } from "@/shared/services/auth";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import IconsComponent from "../../common/icons";
@@ -20,16 +18,16 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
   const handleConfirmation = async () => {
     openDialog("Are you sure you want to log out?").then((res) => {
       if (res) {
-        signOut(auth)
-          .then(() => {
+        logoutAPI()
+          .then((res) => {
             showToast({
-              title: "Successfully signed out",
+              title: res.message,
               variant: "success",
             });
-            localStorage.removeItem("user");
+            localStorage.removeItem("auth_token");
             navigate("/login");
           })
-          .catch((error: FirebaseError) => {
+          .catch((error) => {
             showToast({
               title: error.message,
               variant: "error",
