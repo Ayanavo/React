@@ -1,5 +1,6 @@
 import { compare } from "bcrypt";
 import { Document, model, Schema } from "mongoose";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 
 export interface IUser extends Document {
@@ -32,7 +33,7 @@ userSchema.methods.matchPassword = async function (enteredPassword: string) {
 
 // Add the generateJwt method to the schema
 userSchema.methods.generateJwt = function () {
-  return jwt.sign({ id: this._id }, process.env.API_SECRET_KEY!, { expiresIn: "1h" });
+  return jwt.sign({ id: this._id, email: this.email }, process.env.API_SECRET_KEY!, { expiresIn: "1h" });
 };
 
 const User = model<IUser>("User", userSchema);
