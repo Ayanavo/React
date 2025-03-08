@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import User from "../models/userModel.js"; // Note the .js extension
 import { body, validationResult } from "express-validator";
-import bcrypt from "bcrypt";
+import { hash } from "bcrypt";
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -21,7 +21,7 @@ export const signUp = async (req: Request, res: Response) => {
     }
 
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await hash(password, saltRounds);
 
     const newUser = new User({ firstName, lastName, title, email, ...{ password: hashedPassword } });
     await newUser.save();
@@ -45,7 +45,10 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    if (!user || !(await user.matchPassword(password))) {
+    const saltRounds = 10;
+    const hashedPassword = await hash(password, saltRounds);
+
+    if (!user || !(await user.matchPassword(hashedPassword))) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
     const jwt = await user.generateJwt();
