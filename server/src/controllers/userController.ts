@@ -56,7 +56,7 @@ export const login = async (req: Request, res: Response) => {
     res.status(200).json({ token: jwt, message: "Successfully logged in" });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ message: "An error occurred during login" });
+    res.status(500).json({ message: "An error occurred during login", error: error }); // send error message
   }
 };
 
