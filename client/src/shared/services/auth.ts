@@ -1,6 +1,7 @@
 // loginService.ts
 import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
+
 export const loginAPI = async (email: string, password: string) => {
   const response = await axios.post<{ user: any; message: string }>(apiUrl + "auth/login", { email, password });
   return response.data;
