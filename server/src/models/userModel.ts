@@ -10,7 +10,7 @@ export interface IUser extends Document {
   title: string;
   createdAt: Date;
   updatedAt: Date;
-  matchPassword: (enteredPassword: string) => Promise<boolean>;
+  matchPassword: (enteredPassword: string, comparedPassword: string) => Promise<boolean>;
   generateJwt: () => string;
 }
 

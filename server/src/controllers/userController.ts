@@ -45,14 +45,15 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    const saltRounds = 10;
-    const hashedPassword = await hash(password, saltRounds);
 
-    if (!user || !(await user.matchPassword(hashedPassword))) {
-      return res.status(401).json({ message: "Invalid email or password" });
+    if (!user) {
+      return res.status(401).json({ message: "Email is not registered" });
+    }
+    if (!(await user.matchPassword(password, user.password))) {
+      return res.status(401).json({ message: "Invalid password" });
     }
     const jwt = await user.generateJwt();
-    res.json({ token: jwt });
+    res.status(200).json({ token: jwt, message: "Successfully logged in" });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "An error occurred during login" });
