@@ -1,7 +1,8 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import User from "../models/userModel.js"; // Note the .js extension
 import { body, validationResult } from "express-validator";
 import { hash } from "bcrypt";
+import jwt, { Secret } from "jsonwebtoken";
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -59,6 +60,23 @@ export const login = async (req: Request, res: Response) => {
     res.status(500).json({ message: "An error occurred during login", error: error }); // send error message
   }
 };
+
+export function authenticateToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers["authorization"];
+  const token = authHeader && authHeader.split(" ")[1]; // Format: "Bearer <token>"
+
+  if (!token) {
+    return res.status(401).json({ message: "Access denied. No token provided." });
+  }
+
+  jwt.verify(token, process.env.API_SECRET_KEY as Secret, (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: "Invalid or expired token." });
+    }
+    req.user = decoded;
+    next();
+  });
+}
 
 // Logout
 export const logout = async (req: Request, res: Response) => {

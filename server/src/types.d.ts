@@ -9,3 +9,10 @@ declare global {
     }
   }
 }
+
+// Extend the Request type to include the user property
+declare module "express" {
+  interface Request {
+    user?: TokenPayload;
+  }
+}

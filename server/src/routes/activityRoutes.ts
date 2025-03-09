@@ -1,22 +1,22 @@
 import { Router } from "express";
 import { createActivity, getActivities, deleteActivity, updateActivity, getActivityById } from "../controllers/activityController.js"; // Note the .js extension
-import Activity from "../models/activityModel.js";
+import { authenticateToken } from "../controllers/userController.js";
 
 const router = Router();
 
 // Define the /activities route
-router.get("/", getActivities);
+router.get("/", authenticateToken as any, getActivities);
 
 // POST a new activity
-router.post("/create", createActivity as any);
+router.post("/create", authenticateToken as any, createActivity as any);
 
 // GET an activity by ID
-router.get("/:id", getActivityById as any);
+router.get("/:id", authenticateToken as any, getActivityById as any);
 
 // UPDATE an activity by ID
-router.put("/update/:id", updateActivity as any);
+router.put("/update/:id", authenticateToken as any, updateActivity as any);
 
 // DELETE an activity
-router.delete("/delete/:id", deleteActivity as any);
+router.delete("/delete/:id", authenticateToken as any, deleteActivity as any);
 
 export default router;

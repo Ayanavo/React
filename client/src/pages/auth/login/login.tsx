@@ -11,7 +11,8 @@ import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { FirebaseError } from "firebase/app";
 import { GithubAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import React from "react";
+import { LoaderCircleIcon } from "lucide-react";
+import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -35,6 +36,7 @@ const formSchemaObj = [
 function login() {
   //form builder function
   const navigate = useNavigate();
+  const [loader, setLoader] = useState(false);
   const form = generateControl(formSchemaObj);
   function renderField(field: {
     type: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined;
@@ -44,13 +46,14 @@ function login() {
     return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
   function onSubmit(data: any) {
+    setLoader(true);
     // signInWithEmailAndPassword(auth, data.email, data.password)
     loginAPI(data.email, data.password)
       .then((userCredential) => {
         const authToken = userCredential.token;
         // Handle form submission logic here
         localStorage.setItem("auth_token", authToken);
-
+        setLoader(false);
         showToast({
           title: userCredential.message,
           variant: "success",
@@ -58,6 +61,7 @@ function login() {
         navigate("/dashboard");
       })
       .catch((error) => {
+        setLoader(false);
         showToast({
           title: error.response?.data.message,
           variant: "error",
@@ -113,7 +117,8 @@ function login() {
                   <div className="grid w-full items-center gap-4">{formSchemaObj.map(renderField)}</div>
                 </CardContent>
                 <CardFooter className="flex flex-col items-center gap-2 p-0 mt-6">
-                  <Button className="w-full" type="submit">
+                  <Button className="w-full" type="submit" disabled={loader}>
+                    {loader && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
                     Submit
                   </Button>
                   <div className="relative w-full my-4">
