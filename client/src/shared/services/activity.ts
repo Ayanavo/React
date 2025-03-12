@@ -7,6 +7,7 @@ const API_KEY = "AIzaSyC9Sx3wIqJfi6Uf_1BIOLn-2EOKrTCYcSY";
 const CALENDAR_REGION = "en.indian";
 const apiUrl = import.meta.env.VITE_API_URL;
 import { User } from "@/pages/layout/logs/table/user.model";
+import { request } from "../interceptors/auth-interceptor";
 // const TIME_ZONE = "Asia/Kolkata";
 
 export function HolidayEvent() {
@@ -29,21 +30,35 @@ export function HolidayEvent() {
 }
 
 export const createActivity = async (postData: any) => {
-  const response = await axios.post<User>(`${apiUrl}activities/create`, postData);
+  const response = await request({
+    method: "POST",
+    url: `${apiUrl}activities/create`,
+    data: postData,
+  });
   return response.data;
 };
 
 export const fetchActivityDetail = async (userID: string) => {
-  const response = await axios.get<User>(`${apiUrl}activities/${userID}`);
+  const response = await request({
+    method: "GET",
+    url: `${apiUrl}activities/${userID}`,
+  });
   return response.data;
 };
 
 export const updateActivity = async (userID: string, postData: User) => {
-  const response = await axios.put<User>(`${apiUrl}activities/update/${userID}`, postData);
+  const response = await request({
+    method: "PUT",
+    url: `${apiUrl}activities/update/${userID}`,
+    data: postData,
+  });
   return response.data;
 };
 
 export const deleteActivity = async (userID: string) => {
-  const response = await axios.delete<User>(`${apiUrl}activities/delete/${userID}`);
+  const response = await request({
+    method: "DELETE",
+    url: `${apiUrl}activities/delete/${userID}`,
+  });
   return response.data;
 };
