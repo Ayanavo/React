@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogOverlay, DialogTitle } from "@/components/ui/dialog";
-import React, { useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -33,7 +33,7 @@ function ConfirmationDialog({ isOpen, onConfirm, onCancel, message }: Confirmati
 export const useConfirmationDialog = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState<string>("");
-  const [resolvePromise, setResolvePromise] = useState<((result: boolean) => void) | null>(null);
+  const [resolvePromise, setResolvePromise] = useState<((result: boolean, callback?: Dispatch<SetStateAction<boolean>>) => void) | null>(null);
 
   const openDialog = (message: string): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -43,17 +43,15 @@ export const useConfirmationDialog = () => {
     });
   };
 
-  const handleConfirm = (result: boolean): void => {
-    setIsOpen(false);
+  const handleConfirm = (result: any): void => {
     if (resolvePromise) {
-      resolvePromise(result);
+      resolvePromise(result, setIsOpen);
     }
   };
 
   const handleCancel = (): void => {
-    setIsOpen(false);
     if (resolvePromise) {
-      resolvePromise(false);
+      resolvePromise(false, setIsOpen);
     }
   };
 

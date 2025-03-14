@@ -16,15 +16,18 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
   const { openDialog, ConfirmationDialog } = useConfirmationDialog();
 
   const handleConfirmation = async () => {
-    openDialog("Are you sure you want to log out?").then((res) => {
+    openDialog("Are you sure you want to log out?").then((res: boolean) => {
       if (res) {
+        console.log(res);
+
         logoutAPI()
           .then((res) => {
             showToast({
               title: res.message,
               variant: "success",
             });
-            localStorage.removeItem("auth_token");
+            sessionStorage.removeItem("auth_token");
+            // openCloseCallback(false);
             navigate("/login");
           })
           .catch((error) => {

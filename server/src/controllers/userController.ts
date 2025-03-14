@@ -44,7 +44,7 @@ export const login = async (req: Request, res: Response) => {
   }
 
   try {
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
     const user = await User.findOne({ email });
 
     if (!user) {
@@ -54,6 +54,13 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid password" });
     }
     const jwt = await user.generateJwt();
+
+    res.cookie("authToken", jwt, {
+      httpOnly: true,
+      secure: true,
+      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session cookie
+    });
+
     res.status(200).json({ token: jwt, message: "Successfully logged in" });
   } catch (error) {
     console.error("Login error:", error);

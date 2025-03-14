@@ -31,6 +31,13 @@ const formSchemaObj = [
     default: "",
     validation: { minLength: 6 },
   },
+  {
+    name: "RememberMe",
+    label: "Remember me",
+    type: "checkbox",
+    default: false,
+    validation: { required: false },
+  },
 ];
 
 function login() {
@@ -47,12 +54,13 @@ function login() {
   }
   function onSubmit(data: any) {
     setLoader(true);
+
     // signInWithEmailAndPassword(auth, data.email, data.password)
-    loginAPI(data.email, data.password)
+    loginAPI(data.email, data.password, data.RememberMe)
       .then((userCredential) => {
         const authToken = userCredential.token;
         // Handle form submission logic here
-        localStorage.setItem("auth_token", authToken);
+        sessionStorage.setItem("auth_token", authToken);
         setLoader(false);
         showToast({
           title: userCredential.message,
@@ -87,7 +95,7 @@ function login() {
       .then((userCredential) => {
         const user = userCredential.user;
         // Handle form submission logic here
-        localStorage.setItem("user", JSON.stringify(user));
+        sessionStorage.setItem("user", JSON.stringify(user));
         showToast({
           title: "Successfully logged in",
           variant: "success",

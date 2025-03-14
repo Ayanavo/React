@@ -112,7 +112,7 @@ function registration() {
       .then((userCredential) => {
         const user = userCredential.user;
         // Handle form submission logic here
-        localStorage.setItem("user", JSON.stringify(user));
+        sessionStorage.setItem("user", JSON.stringify(user));
         showToast({
           title: "Successfully logged in",
           variant: "success",

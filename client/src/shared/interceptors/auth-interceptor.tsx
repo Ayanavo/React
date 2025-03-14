@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 const axiosInstance = axios.create({ baseURL: apiUrl });
-const token = localStorage.getItem("auth_token");
+const token = sessionStorage.getItem("auth_token");
 
 // Request Interceptor
 export const request = ({ ...options }) => {

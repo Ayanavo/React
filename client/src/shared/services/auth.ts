@@ -2,8 +2,8 @@
 import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
 
-export const loginAPI = async (email: string, password: string) => {
-  const response = await axios.post<{ user: any; message: string; token: string }>(apiUrl + "auth/login", { email, password });
+export const loginAPI = async (email: string, password: string, rememberMe: boolean) => {
+  const response = await axios.post<{ user: any; message: string; token: string }>(apiUrl + "auth/login", { email, password, rememberMe });
   return response.data;
 };
 
@@ -18,6 +18,6 @@ export const forgotPasswordAPI = async (email: string) => {
 };
 
 export const logoutAPI = async () => {
-  const response = await axios.post<{ message: string }>(apiUrl + "auth/logout", { token: localStorage.getItem("auth_token") });
+  const response = await axios.post<{ message: string }>(apiUrl + "auth/logout", { token: sessionStorage.getItem("auth_token") });
   return response.data;
 };
