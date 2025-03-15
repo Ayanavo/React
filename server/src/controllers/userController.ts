@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import User from "../models/userModel.js"; // Note the .js extension
 import { body, validationResult } from "express-validator";
 import { hash } from "bcrypt";
-import jwt, { Secret } from "jsonwebtoken";
+import jwt, { Secret, VerifyErrors, VerifyOptions } from "jsonwebtoken";
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -62,7 +62,7 @@ export const login = async (req: Request, res: Response) => {
       sameSite: "strict",
     });
 
-    res.status(200).json({ token: jwt, message: "Successfully logged in", expires: rememberMe ? "7days" : undefined });
+    res.status(200).json({ token: jwt, message: "Successfully logged in", expiresIn: rememberMe ? "7days" : "4hrs" });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "An error occurred during login", error: error }); // send error message
@@ -70,14 +70,13 @@ export const login = async (req: Request, res: Response) => {
 };
 
 export function authenticateToken(req: Request, res: Response, next: NextFunction) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Format: "Bearer <token>"
+  const token = req.cookies.authToken;
 
   if (!token) {
     return res.status(401).json({ message: "Access denied. No token provided." });
   }
 
-  jwt.verify(token, process.env.API_SECRET_KEY as Secret, (err, decoded) => {
+  jwt.verify(token, process.env.API_SECRET_KEY as Secret, (err: VerifyErrors | null, decoded: any) => {
     if (err) {
       return res.status(403).json({ message: "Invalid or expired token." });
     }

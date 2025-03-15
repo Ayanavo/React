@@ -11,7 +11,8 @@ interface ConfirmationDialogProps {
   resolvePromise: any;
 }
 
-function ConfirmationDialog({ isOpen, onConfirm, onCancel, message, resolvePromise }: ConfirmationDialogProps) {
+function ConfirmationDialog({ isOpen, onConfirm, onCancel, message }: ConfirmationDialogProps) {
+  const [loading, setLoading] = useState(false);
   return (
     <Dialog open={isOpen} onOpenChange={(open) => (open ? onConfirm(true) : onCancel())}>
       <DialogOverlay className="DialogOverlay">
@@ -22,8 +23,15 @@ function ConfirmationDialog({ isOpen, onConfirm, onCancel, message, resolvePromi
             <Button variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button variant="outline" disabled={resolvePromise} className="bg-primary text-secondary hover:bg-primary hover:text-secondary" onClick={() => onConfirm(true)}>
-              {resolvePromise && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
+            <Button
+              variant="outline"
+              disabled={loading}
+              className="bg-primary text-secondary hover:bg-primary hover:text-secondary"
+              onClick={() => {
+                setLoading(true);
+                onConfirm(true);
+              }}>
+              {loading && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
               Accept
             </Button>
           </DialogFooter>
