@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogOverlay, DialogTitle } from "@/components/ui/dialog";
+import { LoaderCircleIcon } from "lucide-react";
 import React, { Dispatch, SetStateAction, useState } from "react";
 
 interface ConfirmationDialogProps {
@@ -7,9 +8,10 @@ interface ConfirmationDialogProps {
   onConfirm: (result: boolean) => void;
   onCancel: () => void;
   message: string;
+  resolvePromise: any;
 }
 
-function ConfirmationDialog({ isOpen, onConfirm, onCancel, message }: ConfirmationDialogProps) {
+function ConfirmationDialog({ isOpen, onConfirm, onCancel, message, resolvePromise }: ConfirmationDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => (open ? onConfirm(true) : onCancel())}>
       <DialogOverlay className="DialogOverlay">
@@ -20,7 +22,8 @@ function ConfirmationDialog({ isOpen, onConfirm, onCancel, message }: Confirmati
             <Button variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button variant="outline" className="bg-primary text-secondary hover:bg-primary hover:text-secondary" onClick={() => onConfirm(true)}>
+            <Button variant="outline" disabled={resolvePromise} className="bg-primary text-secondary hover:bg-primary hover:text-secondary" onClick={() => onConfirm(true)}>
+              {resolvePromise && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
               Accept
             </Button>
           </DialogFooter>
@@ -57,6 +60,6 @@ export const useConfirmationDialog = () => {
 
   return {
     openDialog,
-    ConfirmationDialog: <ConfirmationDialog isOpen={isOpen} onConfirm={handleConfirm} onCancel={handleCancel} message={message} />,
+    ConfirmationDialog: <ConfirmationDialog isOpen={isOpen} onConfirm={handleConfirm} onCancel={handleCancel} message={message} resolvePromise={resolvePromise} />,
   };
 };

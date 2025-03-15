@@ -62,7 +62,7 @@ export const login = async (req: Request, res: Response) => {
       sameSite: "strict",
     });
 
-    res.status(200).json({ token: jwt, message: "Successfully logged in" });
+    res.status(200).json({ token: jwt, message: "Successfully logged in", expires: rememberMe ? "7days" : undefined });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "An error occurred during login", error: error }); // send error message

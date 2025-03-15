@@ -15,7 +15,12 @@ const HOST = process.env.HOST || "0.0.0.0";
 connectDB();
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(bodyParser.json());
 app.use(i18n.init);
 
