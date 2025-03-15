@@ -62,6 +62,8 @@ function login() {
         // Handle form submission logic here
         sessionStorage.setItem("auth_token", authToken);
         setLoader(false);
+        console.log(userCredential);
+
         showToast({
           title: userCredential.message,
           variant: "success",

@@ -59,6 +59,7 @@ export const login = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: true,
       maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session cookie
+      sameSite: "strict",
     });
 
     res.status(200).json({ token: jwt, message: "Successfully logged in" });
@@ -88,7 +89,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
 // Logout
 export const logout = async (req: Request, res: Response) => {
   try {
-    res.clearCookie("jwt");
+    res.clearCookie("authToken");
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     res.status(500).json({ message: "Failed to logout" });
