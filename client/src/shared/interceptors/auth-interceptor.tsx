@@ -2,7 +2,6 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 
 const apiUrl = import.meta.env.VITE_API_URL;
 const axiosInstance = axios.create({ baseURL: apiUrl, withCredentials: true });
-const token = sessionStorage.getItem("auth_token");
 
 // Request Interceptor
 export const request = <T = any,>({ ...options }): Promise<AxiosResponse<T>> => {

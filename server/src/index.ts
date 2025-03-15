@@ -5,6 +5,7 @@ import express, { Request, Response } from "express";
 import activityRoutes from "./routes/activityRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import connectDB from "./utils/db.js";
+import cookieParser from "cookie-parser";
 import i18n from "./utils/i18n.js";
 
 const app = express();
@@ -21,6 +22,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(i18n.init);
 
