@@ -1,8 +1,8 @@
-import { NextFunction, Request, Response } from "express";
-import User from "../models/userModel.js"; // Note the .js extension
-import { body, validationResult } from "express-validator";
 import { hash } from "bcrypt";
-import jwt, { Secret, VerifyErrors, VerifyOptions } from "jsonwebtoken";
+import { NextFunction, Request, Response } from "express";
+import { body, validationResult } from "express-validator";
+import jwt, { Secret, VerifyErrors } from "jsonwebtoken";
+import User from "../models/userModel.js"; // Note the .js extension
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -59,7 +59,9 @@ export const login = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: true,
       maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session cookie
-      sameSite: "strict",
+      sameSite: "none",
+      domain: ".react-lm2j.onrender.com",
+      path: "/",
     });
 
     res.status(200).json({ token: jwt, message: "Successfully logged in", expiresIn: rememberMe ? "7days" : "4hrs" });
