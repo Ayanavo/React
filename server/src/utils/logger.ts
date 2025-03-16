@@ -1,3 +1,3 @@
-export const logger = (message: string): void => {
-  console.log(`[LOG] ${new Date().toLocaleDateString("en-US")} - ${JSON.stringify(message)}`);
+export const logger = (req: Request): void => {
+  console.log(`[LOG] ${new Date().toLocaleDateString("en-US")} - ${req.method} ${req.url}`);
 };

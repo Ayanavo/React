@@ -2,7 +2,7 @@
 import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
 
-const axiosInstance = axios.create({ baseURL: apiUrl, withCredentials: true });
+const axiosInstance = axios.create({ baseURL: apiUrl });
 
 export const loginAPI = async (email: string, password: string, rememberMe: boolean) => {
   const response = await axiosInstance<{ user: any; message: string; token: string }>({
