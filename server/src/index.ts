@@ -7,6 +7,7 @@ import userRoutes from "./routes/userRoutes.js";
 import connectDB from "./utils/db.js";
 import cookieParser from "cookie-parser";
 import i18n from "./utils/i18n.js";
+import { logger } from "./utils/logger.js";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 5000;
@@ -25,6 +26,7 @@ app.use(
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(i18n.init);
+app.use(logger);
 
 app.use((req: Request, _res: Response, next: () => void) => {
   const lang = req.query.lang as string;

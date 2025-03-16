@@ -69,6 +69,17 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
+// Logout
+export const logout = async (req: Request, res: Response) => {
+  try {
+    res.clearCookie("authToken");
+    res.json({ message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to logout" });
+  }
+};
+
+// authentication
 export function authenticateToken(req: Request, res: Response, next: NextFunction) {
   const token = req.cookies.authToken;
 
@@ -84,13 +95,3 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     next();
   });
 }
-
-// Logout
-export const logout = async (req: Request, res: Response) => {
-  try {
-    res.clearCookie("authToken");
-    res.json({ message: "Logged out successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Failed to logout" });
-  }
-};
