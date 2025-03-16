@@ -59,7 +59,7 @@ export const login = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: true,
       maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session cookie
-      sameSite: "none",
+      sameSite: "strict",
       domain: ".react-lm2j.onrender.com",
       path: "/",
     });
