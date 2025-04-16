@@ -6,7 +6,7 @@ const BASE_CALENDAR_ID_FOR_PUBLIC_HOLIDAY = "holiday@group.v.calendar.google.com
 const API_KEY = "AIzaSyC9Sx3wIqJfi6Uf_1BIOLn-2EOKrTCYcSY";
 const CALENDAR_REGION = "en.indian";
 const apiUrl = import.meta.env.VITE_API_URL;
-import { User } from "@/pages/layout/logs/table/user.model";
+import { User } from "@/pages/layout/grid/table/user.model";
 import { request } from "../interceptors/auth-interceptor";
 // const TIME_ZONE = "Asia/Kolkata";
 
