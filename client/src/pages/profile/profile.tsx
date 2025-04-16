@@ -2,7 +2,7 @@ import ImageComponent from "@/shared/controls/image";
 import TextComponent from "@/shared/controls/text";
 import React from "react";
 import { FormProvider } from "react-hook-form";
-import generateControl from "../layout/logs/form/validation";
+import generateControl from "../layout/grid/form/validation";
 
 function profile() {
   const profileSchema = [

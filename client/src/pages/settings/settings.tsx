@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import ImageComponent from "@/shared/controls/image";
 import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
-import generateControl from "../layout/logs/form/validation";
+import generateControl from "../layout/grid/form/validation";
 import { useColor, useTheme } from "./theme";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
