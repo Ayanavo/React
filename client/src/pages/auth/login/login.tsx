@@ -54,13 +54,13 @@ function login() {
   }
   function onSubmit(data: any) {
     setLoader(true);
+    console.log(data);
 
-    // signInWithEmailAndPassword(auth, data.email, data.password)
-    loginAPI(data.email, data.password, data.RememberMe)
+    // Ensure RememberMe is a boolean, defaulting to false if undefined
+    const rememberMe = Boolean(data.RememberMe);
+
+    loginAPI(data.email, data.password, rememberMe)
       .then((userCredential) => {
-        const authToken = userCredential.token;
-        // Handle form submission logic here
-        sessionStorage.setItem("auth_token", authToken);
         setLoader(false);
         console.log(userCredential);
 

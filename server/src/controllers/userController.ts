@@ -50,21 +50,26 @@ export const login = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(401).json({ message: "Email is not registered" });
     }
-    if (!(await user.matchPassword(password, user.password))) {
+    if (!(await user.matchPassword(password))) {
       return res.status(401).json({ message: "Invalid password" });
     }
     const jwt = await user.generateJwt();
+    const refreshToken = await user.generateRefreshToken();
 
-    res.cookie("authToken", jwt, {
+    res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session cookie
-      sameSite: "strict",
-      domain: process.env.DOMAIN_NAME,
+      sameSite: "lax",
       path: "/",
     });
 
-    res.status(200).json({ token: jwt, message: "Successfully logged in", expiresIn: rememberMe ? "7days" : "4hrs" });
+    res.status(200).json({
+      token: jwt,
+      refreshToken: refreshToken,
+      message: "Successfully logged in",
+      expiresIn: "4hrs",
+    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "An error occurred during login", error: error }); // send error message
@@ -97,3 +102,34 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     next();
   });
 }
+
+// Refresh Token
+export const refreshToken = async (req: Request, res: Response) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: "No refresh token provided" });
+    }
+
+    // Verify the refresh token
+    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET as Secret) as { id: string };
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+
+    // Generate new session token
+    const newToken = await user.generateJwt();
+
+    res.status(200).json({
+      token: newToken,
+      message: "Token refreshed successfully",
+      expiresIn: "4hrs",
+    });
+  } catch (error) {
+    console.error("Refresh token error:", error);
+    res.status(401).json({ message: "Invalid refresh token" });
+  }
+};

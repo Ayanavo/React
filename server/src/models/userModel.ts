@@ -11,8 +11,9 @@ export interface IUser extends Document {
   title: string;
   createdAt: Date;
   updatedAt: Date;
-  matchPassword: (enteredPassword: string, comparedPassword: string) => Promise<boolean>;
+  matchPassword: (enteredPassword: string) => Promise<boolean>;
   generateJwt: () => string;
+  generateRefreshToken: () => string;
 }
 
 const userSchema: Schema = new Schema(
@@ -34,6 +35,11 @@ userSchema.methods.matchPassword = async function (enteredPassword: string) {
 // Add the generateJwt method to the schema
 userSchema.methods.generateJwt = function () {
   return jwt.sign({ id: this._id, email: this.email }, process.env.API_SECRET_KEY!, { expiresIn: "1h" });
+};
+
+// Add the generateRefreshToken method to the schema
+userSchema.methods.generateRefreshToken = function () {
+  return jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN_SECRET!, { expiresIn: "7d" });
 };
 
 const User = model<IUser>("User", userSchema);
