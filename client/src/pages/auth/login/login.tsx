@@ -29,7 +29,7 @@ const formSchemaObj = [
     label: "Password",
     type: "password",
     default: "",
-    validation: { minLength: 6 },
+    validation: { required: true, minLength: 6 },
   },
   {
     name: "RememberMe",
@@ -45,6 +45,7 @@ function login() {
   const navigate = useNavigate();
   const [loader, setLoader] = useState(false);
   const form = generateControl(formSchemaObj);
+  console.log("Form errors:", form.formState.errors);
   function renderField(field: {
     type: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined;
     name: React.Key | null | undefined;

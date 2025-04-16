@@ -35,6 +35,8 @@ function validation(formschema: Array<formGeneral>): ZodType<any> {
         acc[field.name] = z.string().url({
           message: `${field.label} must be a valid URL`,
         });
+      } else if (field.type === "checkbox") {
+        acc[field.name] = z.boolean();
       } else if (field.type === "number") {
         acc[field.name] = z.number();
       } else if (field.type === "boolean") {
