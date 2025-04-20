@@ -19,7 +19,7 @@ connectDB();
 // Middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://react-lm2j.onrender.com"],
+    origin: [process.env.DOMAIN_NAME as string],
     credentials: true,
   })
 );
