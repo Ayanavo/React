@@ -40,39 +40,74 @@ export const login = async (req: Request, res: Response) => {
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    return res.status(400).json({
+      message: "Validation failed",
+      errors: errors.array(),
+    });
   }
 
   try {
     const { email, password, rememberMe } = req.body;
-    const user = await User.findOne({ email });
+
+    // Set a timeout for the database operation
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("Database operation timed out")), 5000);
+    });
+
+    // Race between the database operation and the timeout
+    const user = (await Promise.race([User.findOne({ email }), timeoutPromise])) as any;
 
     if (!user) {
-      return res.status(401).json({ message: "Email is not registered" });
+      return res.status(401).json({
+        message: "Email is not registered",
+        status: "error",
+      });
     }
-    if (!(await user.matchPassword(password))) {
-      return res.status(401).json({ message: "Invalid password" });
+
+    const isValidPassword = await Promise.race([user.matchPassword(password), timeoutPromise]);
+
+    if (!isValidPassword) {
+      return res.status(401).json({
+        message: "Invalid password",
+        status: "error",
+      });
     }
+
     const jwt = await user.generateJwt();
     const refreshToken = await user.generateRefreshToken();
 
-    res.cookie("refreshToken", refreshToken, {
+    // Set cookie options
+    const cookieOptions = {
       httpOnly: true,
-      secure: true,
-      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session cookie
-      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
+      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session
       path: "/",
-    });
+    };
 
-    res.status(200).json({
+    res.cookie("refreshToken", refreshToken, cookieOptions);
+
+    return res.status(200).json({
       token: jwt,
-      refreshToken: refreshToken,
       message: "Successfully logged in",
       expiresIn: "4hrs",
+      status: "success",
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ message: "An error occurred during login", error: error }); // send error message
+
+    // Handle specific error types
+    if (error instanceof Error && error.message === "Database operation timed out") {
+      return res.status(504).json({
+        message: "Login request timed out. Please try again.",
+        status: "error",
+      });
+    }
+
+    return res.status(500).json({
+      message: "An error occurred during login. Please try again.",
+      status: "error",
+    });
   }
 };
 
