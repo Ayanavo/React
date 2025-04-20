@@ -34,7 +34,7 @@ app.use((req: Request, _res: Response, next: () => void) => {
   next();
 });
 
-app.get("/", (req, res) => {
+app.get("/", (req: any, res: { send: (arg0: string) => void }) => {
   res.send("Hello from Express with TypeScript and ES6!");
 });
 

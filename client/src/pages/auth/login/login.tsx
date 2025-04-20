@@ -57,7 +57,6 @@ function login() {
     setLoader(true);
     console.log(data);
 
-    // Ensure RememberMe is a boolean, defaulting to false if undefined
     const rememberMe = Boolean(data.RememberMe);
 
     loginAPI(data.email, data.password, rememberMe)
