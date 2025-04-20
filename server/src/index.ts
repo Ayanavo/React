@@ -17,29 +17,12 @@ const HOST = process.env.DOMAIN_NAME || "0.0.0.0";
 connectDB();
 
 // Middleware
-const allowedOrigins = ["http://localhost:5173", `https://${HOST}`, "https://react-lm2j.onrender.com"];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) return callback(null, true);
-
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [HOST as string],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
-// Enable pre-flight requests for all routes
-app.options("*", cors());
-
 app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(i18n.init);
