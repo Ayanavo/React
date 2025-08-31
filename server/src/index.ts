@@ -13,7 +13,7 @@ const app = express();
 
 // --- Config ---
 const PORT = Number(process.env.PORT) || 5000;
-const IS_PROD = process.env.NODE_ENV != "development";
+const IS_PROD = process.env.NODE_ENV == "production";
 const PROD_URL = process.env.DOMAIN_NAME;
 // For dev environment, fallback to localhost
 const DEV_URLS = ["http://localhost:3000", "http://localhost:5173"];
