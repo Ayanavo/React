@@ -54,7 +54,7 @@ function table() {
   useEffect(() => {
     // Fetch data from an API or other source here
     if (isSuccess && todos) {
-      setData(todos.activities);
+      setData(todos.activities ?? []);
     }
   }, [todos, isSuccess]);
   const [layout, setLayout] = useState<string>("column");

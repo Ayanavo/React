@@ -17,8 +17,6 @@ axios_auth.interceptors.request.use(
   (config) => {
     const authToken = sessionStorage.getItem("auth_token");
     authToken && config && (config.headers.Authorization = `Bearer ${JSON.parse(authToken)}`);
-    console.log("Request Interceptor Config:", config, authToken);
-
     return config;
   },
   (error) => {
