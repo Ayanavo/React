@@ -10,16 +10,20 @@ import i18n from "./utils/i18n.js";
 import { errorLogger, logger } from "./utils/logger.js";
 
 const app = express();
-const PORT = Number(process.env.PORT) || 5000;
-const HOST = process.env.DOMAIN_NAME || "0.0.0.0";
 
-// Connect to MongoDB
+// --- Config ---
+const PORT = Number(process.env.PORT) || 5000;
+const IS_PROD = process.env.NODE_ENV === "production";
+// For dev environment, fallback to localhost
+const DEV_URLS = ["http://localhost:3000", "http://localhost:5173"];
+
+// --- Connect to MongoDB ---
 connectDB();
 
-// Middleware
+// --- Middleware ---
 app.use(
   cors({
-    origin: process.env.NODE_ENV === "production" ? [process.env.CLIENT_URL || ""] : ["http://localhost:3000", "http://localhost:5173"],
+    origin: IS_PROD ? [process.env.DOMAIN_NAME].filter((domain): domain is string => typeof domain === "string") : DEV_URLS,
     credentials: true,
   })
 );
@@ -29,25 +33,23 @@ app.use(i18n.init);
 app.use(logger);
 app.use(errorLogger);
 
+// --- Locale handler ---
 app.use((req: Request, _res: Response, next: () => void) => {
   const lang = req.query.lang as string;
-  if (lang) req.setLocale(lang); // Set the locale dynamicall
+  if (lang) req.setLocale(lang);
   next();
 });
 
-app.get("/", (req: any, res: { send: (arg0: string) => void }) => {
-  res.send(`Server is running on http://${HOST}:${PORT}`);
+// --- Routes ---
+app.get("/", (_req, res) => {
+  res.send(`✅ Server is running at ${IS_PROD ? PROD_URL : `http://localhost:${PORT}`}`);
 });
 
-// Use the /api/activities route
 app.use("/api/activities", activityRoutes);
-
-// Use the auth routes
 app.use("/api/auth", userRoutes);
 
-// Start the server
-app.listen(PORT, HOST, () => {
-  console.log(`Server is running on http://${HOST}:${PORT}`);
+// --- Start server ---
+// Always bind to 0.0.0.0 on Render
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`✅ Server running at ${IS_PROD ? PROD_URL : `http://localhost:${PORT}`}`);
 });
-
-// serverlessHttp(app);
