@@ -14,6 +14,7 @@ const app = express();
 // --- Config ---
 const PORT = Number(process.env.PORT) || 5000;
 const IS_PROD = process.env.NODE_ENV === "production";
+const PROD_URL = process.env.DOMAIN_NAME;
 // For dev environment, fallback to localhost
 const DEV_URLS = ["http://localhost:3000", "http://localhost:5173"];
 
@@ -23,7 +24,7 @@ connectDB();
 // --- Middleware ---
 app.use(
   cors({
-    origin: IS_PROD ? [process.env.DOMAIN_NAME].filter((domain): domain is string => typeof domain === "string") : DEV_URLS,
+    origin: IS_PROD ? PROD_URL : DEV_URLS,
     credentials: true,
   })
 );
