@@ -29,10 +29,21 @@ export function HolidayEvent() {
   });
 }
 
+const activityURL = `${apiUrl}activities`;
+
+export const fetchActivities = async (page: number, limit: number) => {
+  const response = await request<{ activities: User[]; total: number }>({
+    method: "GET",
+    url: activityURL,
+    data: { page, limit },
+  });
+  return response.data;
+};
+
 export const createActivity = async (postData: any) => {
   const response = await request({
     method: "POST",
-    url: `${apiUrl}activities/create`,
+    url: `${activityURL}/create`,
     data: postData,
   });
   return response.data;
@@ -41,7 +52,7 @@ export const createActivity = async (postData: any) => {
 export const fetchActivityDetail = async (userID: string) => {
   const response = await request({
     method: "GET",
-    url: `${apiUrl}activities/${userID}`,
+    url: `${activityURL}/${userID}`,
   });
   return response.data;
 };
@@ -49,7 +60,7 @@ export const fetchActivityDetail = async (userID: string) => {
 export const updateActivity = async (userID: string, postData: User) => {
   const response = await request({
     method: "PUT",
-    url: `${apiUrl}activities/update/${userID}`,
+    url: `${activityURL}/update/${userID}`,
     data: postData,
   });
   return response.data;
@@ -58,7 +69,7 @@ export const updateActivity = async (userID: string, postData: User) => {
 export const deleteActivity = async (userID: string) => {
   const response = await request({
     method: "DELETE",
-    url: `${apiUrl}activities/delete/${userID}`,
+    url: `${activityURL}/delete/${userID}`,
   });
   return response.data;
 };

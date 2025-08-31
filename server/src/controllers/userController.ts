@@ -34,6 +34,8 @@ export const signUp = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
+  console.log("Login request body:", req.body);
+
   // Validate input
   await body("email").isEmail().run(req);
   await body("password").isLength({ min: 6 }).run(req);
@@ -45,7 +47,6 @@ export const login = async (req: Request, res: Response) => {
       errors: errors.array(),
     });
   }
-
   try {
     const { email, password, rememberMe } = req.body;
 
@@ -123,7 +124,7 @@ export const logout = async (req: Request, res: Response) => {
 
 // authentication
 export function authenticateToken(req: Request, res: Response, next: NextFunction) {
-  const token = req.cookies.authToken;
+  const token = req.headers["authorization"]?.split(" ")[1]; // Bearer <token>
 
   if (!token) {
     return res.status(401).json({ message: "Access denied. No token provided." });

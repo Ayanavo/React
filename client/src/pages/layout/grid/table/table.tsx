@@ -8,7 +8,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
 import { cn } from "@/lib/utils";
-import { deleteActivity } from "@/shared/services/activity";
+import { deleteActivity, fetchActivities } from "@/shared/services/activity";
 import { useSidebarLayout } from "@/shared/sidebarlayout";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -32,8 +32,6 @@ import PaginationComponent from "./pagination";
 import "./table.css";
 import { User } from "./user.model";
 
-const apiUrl = import.meta.env.VITE_API_URL;
-
 function table() {
   const {
     data: todos,
@@ -41,10 +39,10 @@ function table() {
     refetch,
   } = useQuery({
     queryKey: ["activities"],
-    queryFn: () => fetch(`${apiUrl}activities`),
+    queryFn: () => fetchActivities(1, 10),
   });
   const columnHelper = createColumnHelper<User>();
-  const [data, setData] = useState([]);
+  const [data, setData] = useState<User[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -55,10 +53,10 @@ function table() {
   const id = useId();
   useEffect(() => {
     // Fetch data from an API or other source here
-    if (isSuccess) {
-      todos?.json().then((res) => setData(res));
+    if (isSuccess && todos) {
+      setData(todos.activities);
     }
-  }, [todos, sorting]);
+  }, [todos, isSuccess]);
   const [layout, setLayout] = useState<string>("column");
   const columnConfig: { key: keyof User | "select" | "action"; label: string }[] = [
     { key: "select", label: "Select" },
@@ -94,7 +92,7 @@ function table() {
     // });
   };
 
-  const mutation = useMutation<User, Error, string>({
+  const mutation = useMutation<unknown, Error, string>({
     mutationFn: deleteActivity,
     onSuccess: () => {
       showToast({

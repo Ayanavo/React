@@ -33,8 +33,14 @@ function FormBuilder() {
     }>
   );
 
-  const mutation = useMutation<User, Error, { activity: User }>({
-    mutationFn: ({ activity }) => (id ? updateActivity(id, activity) : createActivity(activity)),
+  const mutation = useMutation<unknown, Error, { activity: User }>({
+    mutationFn: async ({ activity }) => {
+      if (id) {
+        return await updateActivity(id, activity);
+      } else {
+        return await createActivity(activity);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activities"] });
       navigate("/table");
@@ -55,13 +61,15 @@ function FormBuilder() {
   const fetchDetails = () => {
     fetchActivityDetail(id as string)
       .then((activityDetail) => {
-        Object.keys(activityDetail).forEach((key) => {
-          form.setValue(key as keyof User, activityDetail[key as keyof User]);
-        });
+        if (activityDetail && typeof activityDetail === "object") {
+          Object.keys(activityDetail).forEach((key) => {
+            form.setValue(key as keyof User, (activityDetail as any)[key]);
+          });
+        }
       })
       .catch((error: Error) => {
         showToast({
-          title: "Activity creation failded",
+          title: "Activity creation failed",
           description: error.message,
           variant: "error",
         });

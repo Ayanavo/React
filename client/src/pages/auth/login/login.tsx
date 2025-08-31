@@ -63,7 +63,7 @@ function login() {
       .then((userCredential) => {
         setLoader(false);
         console.log(userCredential);
-
+        sessionStorage.setItem("auth_token", JSON.stringify(userCredential.token));
         showToast({
           title: userCredential.message,
           variant: "success",
