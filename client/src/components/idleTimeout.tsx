@@ -1,8 +1,8 @@
 import showToast from "@/hooks/toast";
-import { useRef } from "react";
+import { ReactElement, useRef } from "react";
 import { useIdleTimer } from "react-idle-timer";
 
-function IdleTimerWrapper({ children }: { children: JSX.Element }) {
+function IdleTimerWrapper({ children }: { children: ReactElement }) {
   const timeoutSeconds = 1 * 60; // total idle timeout
   const promptSeconds = 10; // warn before idle timeout
 

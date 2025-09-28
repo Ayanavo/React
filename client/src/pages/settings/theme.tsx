@@ -1,9 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
+type FontTheme = "system" | "roboto" | "inter" | "poppins" | "paprika";
 
 type ThemeProviderProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
   colorTheme?: string;
@@ -14,35 +15,43 @@ type ThemeProviderState = {
   setTheme: (theme: Theme) => void;
   color: string;
   setColor: (color: string) => void;
+  font: FontTheme;
+  setFont: (font: FontTheme) => void;
 };
 
+const defaultTheme = "system";
+const defaultColor = "zinc";
+const defaultFont = "system";
+
 const initialState: ThemeProviderState = {
-  theme: "system",
+  theme: defaultTheme,
   setTheme: () => null,
-  color: "zinc",
+  color: defaultColor,
   setColor: () => null,
+  font: defaultFont,
+  setFont: () => null,
 };
 
 const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 export function ThemeProvider({ children, storageKey = "vite-ui-theme", ...props }: ThemeProviderProps) {
-  const defaultTheme = "system";
-  const defaultColor = "zinc";
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(storageKey) as Theme) || defaultTheme);
   const [color, setColor] = useState<string>(() => localStorage.getItem(`${storageKey}-color`) || defaultColor);
+  const [font, setFont] = useState<FontTheme>(() => (localStorage.getItem(`${storageKey}-font`) as FontTheme) || defaultFont);
 
   useEffect(() => {
-    const root = window.document.documentElement;
+    const root = document.documentElement;
     root.removeAttribute("class");
     const effectiveTheme =
       theme === "system" ?
-        window.matchMedia("(prefers-color-scheme: dark)").matches ?
+        matchMedia("(prefers-color-scheme: dark)").matches ?
           "dark"
         : "light"
       : theme;
 
     root.classList.add(effectiveTheme);
     root.classList.add(color);
-  }, [theme, color]);
+    root.classList.add(font);
+  }, [theme, color, font]);
 
   const value = {
     theme,
@@ -54,6 +63,11 @@ export function ThemeProvider({ children, storageKey = "vite-ui-theme", ...props
     setColor: (color: string) => {
       localStorage.setItem(`${storageKey}-color`, color);
       setColor(color);
+    },
+    font,
+    setFont: (font: FontTheme) => {
+      localStorage.setItem(`${storageKey}-font`, font);
+      setFont(font);
     },
   };
 
@@ -73,5 +87,11 @@ export const useTheme = () => {
 export const useColor = () => {
   const context = useContext(ThemeProviderContext);
   if (context === undefined) throw new Error("useColor must be used within a ThemeProvider");
+  return context;
+};
+
+export const useFont = () => {
+  const context = useContext(ThemeProviderContext);
+  if (context === undefined) throw new Error("useFont must be used within a ThemeProvider");
   return context;
 };

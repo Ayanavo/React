@@ -4,7 +4,7 @@ import ImageComponent from "@/shared/controls/image";
 import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/grid/form/validation";
-import { useColor, useTheme } from "./theme";
+import { useColor, useTheme, useFont } from "./theme";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function settings() {
@@ -44,9 +44,10 @@ function settings() {
   ];
   const { theme, setTheme } = useTheme();
   const { color, setColor } = useColor();
+  const { font, setFont } = useFont();
   // const { setState } = usePersistedState("vite-ui-sidebar", "left");
   const [selectedView, setSelectedView] = useState("default");
-  const [selectedFont, setSelectedFont] = useState("system");
+  // const [selectedFont, setSelectedFont] = useState("system");
   const form = generateControl(settingsSchema);
   const colorNameConfig = [
     { color: "zinc", hexcode: "#2F2F31" },
@@ -58,6 +59,14 @@ function settings() {
     { color: "red", hexcode: "#FF2D55" },
     { color: "orange", hexcode: "#F97316" },
     { color: "yellow", hexcode: "#FFC107" },
+  ];
+
+  const FontNameConfig = [
+    { font: "system", name: "System" },
+    { font: "poppins", name: "Poppins" },
+    { font: "paprika", name: "Paprika" },
+    { font: "inter", name: "Inter" },
+    { font: "roboto", name: "Roboto" },
   ];
 
   return (
@@ -146,14 +155,14 @@ function settings() {
                 <Label>Fonts</Label>
                 <p className="text-sm text-muted-foreground">Which side is your desktop sidebar.</p>
               </div>
-              <Select defaultValue={selectedFont} onValueChange={setSelectedFont}>
+              <Select defaultValue={font} onValueChange={setFont}>
                 <SelectTrigger className="w-[200px]">
                   <SelectValue placeholder="Select feature" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="inter">Inter</SelectItem>
-                  <SelectItem value="manrepo">Manrope</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
+                  {FontNameConfig.map((font) => (
+                    <SelectItem value={font.font}>{font.name}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
