@@ -91,7 +91,7 @@ export const login = async (req: Request, res: Response) => {
     return res.status(200).json({
       token: jwt,
       message: "Successfully logged in",
-      expiresIn: "4hrs",
+      expiresIn: 1 * 60 * 60,
       status: "success",
     });
   } catch (error) {

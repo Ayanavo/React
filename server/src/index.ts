@@ -16,10 +16,8 @@ const app = express();
 /** --- Env & config --- */
 const PORT = Number(process.env.PORT) || 5000;
 const IS_PROD = process.env.NODE_ENV === "production";
-const PROD_URL = (process.env.DOMAIN_NAME || "").trim() || undefined;
-// Set this in Render → Environment (keep default here as a safe fallback)
-const FRONTEND_URL = process.env.FRONTEND_URL?.trim() || "http://localhost:5173";
-
+const PROD_URL = (process.env.DOMAIN_NAME || "").trim();
+const FRONTEND_URL = process.env.FRONTEND_URL?.trim();
 const DEV_URLS = ["http://localhost:3000", "http://localhost:5173"];
 
 /** --- DB connect before starting server --- */
