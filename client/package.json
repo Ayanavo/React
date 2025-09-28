@@ -72,6 +72,7 @@
     "react-hook-form": "^7.53.0",
     "react-hot-keys": "^2.7.3",
     "react-hotkeys-hook": "^4.6.1",
+    "react-idle-timer": "^5.7.2",
     "react-phone-number-input": "^3.4.11",
     "react-quill": "^2.0.0",
     "react-resizable-panels": "^2.1.6",
