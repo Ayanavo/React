@@ -6,10 +6,10 @@ const axios_auth = axios.create({
   headers: { "Content-Type": "application/json" },
   timeout: 30000, // 30 second timeout
 });
-
 const redirectToLogin = (message: string) => {
   console.log(message);
-  window.location.href = "React/login";
+  window.location.href = "/React/login";
+  sessionStorage.clear();
 };
 
 // Add request interceptor for authentication
@@ -56,6 +56,17 @@ export const request = <T>({ ...options }): Promise<AxiosResponse<T>> => {
   const onSuccess = (response: AxiosResponse) => response;
   const onError = (error: AxiosError) => {
     console.log("API Error:", error);
+    switch (error.response?.status) {
+      case 401:
+        redirectToLogin(error.message);
+        break;
+      case 403:
+        redirectToLogin("Forbidden access - 403");
+        break;
+      default:
+        // Handle other status codes if needed
+        break;
+    }
     return Promise.reject(error.response || error);
   };
 

@@ -3,7 +3,7 @@ import { ReactElement, useRef } from "react";
 import { useIdleTimer } from "react-idle-timer";
 
 function IdleTimerWrapper({ children }: { children: ReactElement }) {
-  const timeoutSeconds = 1 * 60; // total idle timeout
+  const timeoutSeconds = 3 * 60; // total idle timeout
   const promptSeconds = 10; // warn before idle timeout
 
   const promptShown = useRef(false);

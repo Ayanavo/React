@@ -1,7 +1,7 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
 type Theme = "dark" | "light" | "system";
-type FontTheme = "system" | "roboto" | "inter" | "poppins" | "paprika";
+type FontTheme = "system" | "roboto" | "inter" | "poppins" | "paprika" | "oswald";
 
 type ThemeProviderProps = {
   children: ReactNode;

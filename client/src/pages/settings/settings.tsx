@@ -67,6 +67,7 @@ function settings() {
     { font: "paprika", name: "Paprika" },
     { font: "inter", name: "Inter" },
     { font: "roboto", name: "Roboto" },
+    { font: "oswald", name: "Oswald" },
   ];
 
   return (
@@ -161,7 +162,9 @@ function settings() {
                 </SelectTrigger>
                 <SelectContent>
                   {FontNameConfig.map((font) => (
-                    <SelectItem value={font.font}>{font.name}</SelectItem>
+                    <SelectItem key={font.font} value={font.font}>
+                      {font.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>

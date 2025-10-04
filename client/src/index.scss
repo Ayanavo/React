@@ -117,6 +117,88 @@
   .scrollbar::-webkit-scrollbar-thumb:hover {
     background: #c0a0b9;
   }
+
+  .lp-bar {
+    /* allows the animated bars to size via keyframes using left/right */
+    will-change: left, right;
+  }
+
+  @keyframes lp-indeterminate-1 {
+    0% {
+      left: -35%;
+      right: 100%;
+    }
+    60% {
+      left: 100%;
+      right: -90%;
+    }
+    100% {
+      left: 100%;
+      right: -90%;
+    }
+  }
+
+  @keyframes lp-indeterminate-2 {
+    0% {
+      left: -200%;
+      right: 100%;
+    }
+    60% {
+      left: 107%;
+      right: -8%;
+    }
+    100% {
+      left: 107%;
+      right: -8%;
+    }
+  }
+
+  .animate-lp-indeterminate-1 {
+    animation: lp-indeterminate-1 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+  }
+  .animate-lp-indeterminate-2 {
+    animation: lp-indeterminate-2 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+    animation-delay: 1.15s;
+  }
+
+  /* Query variant: same effect but reversed direction */
+  @keyframes lp-query-1 {
+    0% {
+      right: -35%;
+      left: 100%;
+    }
+    60% {
+      right: 100%;
+      left: -90%;
+    }
+    100% {
+      right: 100%;
+      left: -90%;
+    }
+  }
+
+  @keyframes lp-query-2 {
+    0% {
+      right: -200%;
+      left: 100%;
+    }
+    60% {
+      right: 107%;
+      left: -8%;
+    }
+    100% {
+      right: 107%;
+      left: -8%;
+    }
+  }
+
+  .animate-lp-query-1 {
+    animation: lp-query-1 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+  }
+  .animate-lp-query-2 {
+    animation: lp-query-2 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) infinite;
+    animation-delay: 1.15s;
+  }
 }
 
 .DialogOverlay {
@@ -142,4 +224,7 @@
 }
 .paprika {
   @apply font-paprika;
+}
+.oswald {
+  @apply font-oswald;
 }

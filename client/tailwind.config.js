@@ -89,6 +89,7 @@ export default {
         roboto: ["Roboto", "sans-serif"],
         poppins: ["Poppins", "sans-serif"],
         paprika: ["Paprika", "sans-serif"],
+        oswald: ["Oswald", "sans-serif"],
       },
     },
   },
