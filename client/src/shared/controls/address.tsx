@@ -2,22 +2,20 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import DropdownComponent from "@/shared/controls/dropdown";
 import TextComponent from "@/shared/controls/text";
-import { getStateListAPI } from "@/shared/services/profile";
+import { getStateListAPI, getCurrentLocationAPI } from "@/shared/services/profile";
 import { Loader2, MapPin } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { FieldValue } from "react-hook-form";
-import { getCurrentLocationAPI } from "../services/profile";
+import { UseFormReturn } from "react-hook-form";
 import { Bar } from "@/components/ui/bar";
 import showToast from "@/hooks/toast";
-import { validatePincodeAPI } from "@/shared/services/profile";
 
 type AddressSchema = {
   name: string;
   label: string;
-  validation: { required: boolean };
+  validation?: { required?: boolean };
 };
 
-function address({ form, schema }: { form: FieldValue<any>; schema: AddressSchema }) {
+function address({ form, schema }: { form: UseFormReturn<any>; schema: AddressSchema }) {
   const addressConfig = {
     addressLine1: {
       label: "Flat, House no., Building, Company, Apartment",
@@ -66,13 +64,7 @@ function address({ form, schema }: { form: FieldValue<any>; schema: AddressSchem
     fethStateList();
   }, []);
 
-  const validatePincode = async (pincode: string, state: string): Promise<Array<any>> => {
-    if (pincode && state) {
-      const response = await validatePincodeAPI({ pincode, state });
-      return response?.data ?? [];
-    }
-    return [];
-  };
+  // Note: Pincode validation is now handled by Zod schema in the form
 
   const fethStateList = async () => {
     getStateListAPI()
@@ -103,6 +95,22 @@ function address({ form, schema }: { form: FieldValue<any>; schema: AddressSchem
         try {
           const response = await getCurrentLocationAPI({ latitude, longitude });
           console.log("Location API response:", response.data);
+
+          const data = response.data as {
+            address_line1?: string;
+            street?: string;
+            city?: string;
+            state?: string;
+            postcode?: string;
+          };
+
+          form.setValue("addressLine1", data.address_line1 ?? "", { shouldValidate: true, shouldDirty: true });
+          form.setValue("addressLine2", data.street ?? "", { shouldValidate: true, shouldDirty: true });
+          form.setValue("city", data.city ?? "", { shouldValidate: true, shouldDirty: true });
+          form.setValue("state", data.state, { shouldValidate: true, shouldDirty: true });
+          form.setValue("pincode", data.postcode ?? "", { shouldValidate: true, shouldDirty: true });
+
+          showToast({ title: "Address filled from current location", variant: "success" });
         } catch (error) {
           console.error("Error calling getCurrentLocationAPI:", error);
         }
@@ -233,7 +241,6 @@ function address({ form, schema }: { form: FieldValue<any>; schema: AddressSchem
             type: addressConfig.pincode.type,
             validation: {
               required: addressConfig.pincode.validation.required,
-              asyncValidator: async (value: string) => await validatePincode(value, form.getValues("state")),
             },
           }}
         />

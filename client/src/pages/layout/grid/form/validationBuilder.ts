@@ -1,3 +1,5 @@
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 type FormGeneral = {
@@ -89,3 +91,13 @@ export async function buildValidationSchema(formSchema: Array<FormGeneral>) {
 
   return z.object(shape);
 }
+
+// Generic form hook for any schema
+export const useZodForm = <T extends z.ZodType>(schema: T, defaultValues?: any, options?: any) => {
+  return useForm<z.infer<T>>({
+    resolver: zodResolver(schema),
+    defaultValues,
+    mode: "onChange",
+    ...options,
+  });
+};

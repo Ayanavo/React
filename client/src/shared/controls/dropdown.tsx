@@ -22,7 +22,7 @@ function dropdown({ form, schema }: { form: FieldValue<any>; schema: DropdownSch
           <FormLabel>
             {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
           </FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <Select onValueChange={field.onChange} value={field.value}>
             <SelectTrigger>
               <SelectValue placeholder={schema.placeholder} />
             </SelectTrigger>

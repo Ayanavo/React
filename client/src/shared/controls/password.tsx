@@ -33,7 +33,8 @@ function password({ form, schema }: { form: FieldValue<any>; schema: PasswordSch
               variant="ghost"
               size="sm"
               className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-              onClick={() => setShowPassword(!showPassword)}
+              onMouseEnter={() => setShowPassword(!showPassword)}
+              onMouseLeave={() => setShowPassword(!showPassword)}
               aria-label={showPassword ? "Hide password" : "Show password"}>
               {showPassword ?
                 <EyeOffIcon className="h-4 w-4 text-gray-500" />

@@ -86,3 +86,15 @@ export const logoutAPI = async () => {
   sessionStorage.removeItem("auth_token");
   return response.data;
 };
+
+export const getCurrentUserAPI = async () => {
+  const response = await axiosInstance.get<{ user: any }>(apiUrl + "auth/getUserProfile");
+  return response.data.user;
+};
+
+export const verifyAuthAPI = async (token: string) => {
+  const response = await axiosInstance.get(apiUrl + "auth/verifyToken", {
+    params: { access: token },
+  });
+  return response.data;
+};

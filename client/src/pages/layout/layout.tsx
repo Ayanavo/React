@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import HeaderComponent from "./header/header";
 import MenuComponent from "../menu/menu";
+import ChatbotWidget from "./chatbot/chatbot";
 
 export const Layout = () => {
   type NavItem = { label: string; icon: string; route: string };
@@ -33,6 +34,7 @@ export const Layout = () => {
         <main>
           <Outlet />
           <Toaster />
+          <ChatbotWidget />
         </main>
       </SidebarInset>
     </SidebarProvider>

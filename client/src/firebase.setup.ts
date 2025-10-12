@@ -3,14 +3,15 @@ import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyC8WHgnCSP8PEdGdomIcAhl4VUtZByL69s",
-  authDomain: "project-shinigami-ccab0.firebaseapp.com",
-  projectId: "project-shinigami-ccab0",
-  storageBucket: "project-shinigami-ccab0.firebasestorage.app",
-  messagingSenderId: "460164849294",
-  appId: "1:460164849294:web:cc31d6aab327f00ad5f3df",
-  measurementId: "G-BQ2WZTBNMY",
+  apiKey: "AIzaSyAkhm2ElH_in1DE3Gl9dfr2F1nnucZsvR8",
+  authDomain: "epsilon-56800.firebaseapp.com",
+  projectId: "epsilon-56800",
+  storageBucket: "epsilon-56800.firebasestorage.app",
+  messagingSenderId: "779600453663",
+  appId: "1:779600453663:web:de6c70506ee043fb4d352a",
+  measurementId: "G-509D1ZCMDE",
 };
 
 // Initialize Firebase

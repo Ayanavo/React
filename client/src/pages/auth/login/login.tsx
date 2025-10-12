@@ -6,7 +6,7 @@ import { auth } from "@/firebase.setup";
 import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/grid/form/field-map";
 import generateControl from "@/pages/layout/grid/form/validation";
-import { loginAPI } from "@/shared/services/auth.ts";
+import { loginAPI, verifyAuthAPI } from "@/shared/services/auth.ts";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { FirebaseError } from "firebase/app";
@@ -96,14 +96,25 @@ function login() {
     signInWithPopup(auth, loginProvider)
       .then((userCredential) => {
         const user = userCredential.user;
-        // Handle form submission logic here
-        sessionStorage.setItem("user", JSON.stringify(user));
-        showToast({
-          title: "Successfully logged in",
-          variant: "success",
-        });
+        user.getIdToken().then((token) => {
+          verifyAuthAPI(token)
+            .then((res) => {
+              console.log(res);
+              sessionStorage.setItem("auth_token", JSON.stringify(res.token));
+              showToast({
+                title: "Successfully logged in",
+                variant: "success",
+              });
 
-        navigate("/dashboard");
+              navigate("/dashboard");
+            })
+            .catch((error) => {
+              showToast({
+                title: error.message || "Authentication failed",
+                variant: "error",
+              });
+            });
+        });
       })
       .catch((error: FirebaseError) => {
         showToast({
