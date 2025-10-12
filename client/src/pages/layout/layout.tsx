@@ -25,12 +25,13 @@ export const Layout = () => {
     { label: "Profile", icon: "UserIcon", route: "/profile" },
     { label: "Settings", icon: "SettingsIcon", route: "/settings" },
   ];
+  const exclutionList: Array<string> = ["/profile", "/settings", "/dashboard"];
   const [isExpanded, setIsExpanded] = useState(false);
   return (
     <SidebarProvider defaultOpen={false}>
       <MenuComponent NavList={NavList} isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
       <SidebarInset>
-        <HeaderComponent NavList={NavList} />
+        <HeaderComponent NavList={NavList} exclutionList={exclutionList} />
         <main>
           <Outlet />
           <Toaster />

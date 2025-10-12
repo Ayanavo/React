@@ -9,7 +9,7 @@ import GlobarSearchComponent from "./globalsearch";
 import { useLocation } from "react-router-dom";
 
 type NavItem = { label: string; icon: string; route: string };
-function header({ NavList }: { NavList: Array<NavItem> }) {
+function header({ NavList, exclutionList = [] }: { NavList: Array<NavItem>; exclutionList: Array<string> | [] }) {
   const { pathname } = useLocation();
   const NavObj = NavList.find((item) => pathname.includes(item.route));
   const [inputValue, setInputValue] = useState("");
@@ -44,16 +44,18 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
         <div className="flex items-center justify-between h-16 px-5">
           <div className="flex items-center space-x-2 overflow-hidden">
             <h1 className="text-2xl font-bold">{NavObj?.label}</h1>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <InfoIcon className="h-4 w-4 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Every {NavObj?.label} record in your workspace in one place.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            {!exclutionList.includes(NavObj?.route) && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <InfoIcon className="h-4 w-4 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>Every {NavObj?.label} record in your workspace in one place.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
 
           <div className="flex items-center justify-center flex-auto">

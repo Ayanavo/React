@@ -159,7 +159,7 @@ export function ChatbotWidget() {
         aria-label={isOpen ? "Hide chat" : "Show chat"}
         onClick={() => setIsOpen((v) => !v)}
         className={cn(
-          "fixed bottom-4 right-4 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground shadow-lg transition-shadow hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
+          "fixed bottom-4 right-4 z-50 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-primary text-primary-foreground shadow-lg transition-shadow hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
         )}>
         <Bot className="h-6 w-6" aria-hidden="true" />
         {/* Unread badge */}
