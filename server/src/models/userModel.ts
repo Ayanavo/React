@@ -1,9 +1,10 @@
 import { compare } from "bcrypt";
-import { Document, model, Schema } from "mongoose";
-import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import { Document, model, Schema } from "mongoose";
 
 export interface IUser extends Document {
+  profile_image?: string;
+  mobile?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -11,6 +12,14 @@ export interface IUser extends Document {
   title: string;
   createdAt: Date;
   updatedAt: Date;
+  address: {
+    addressLine1: string;
+    addressLine2: string;
+    landmark: string;
+    city: string;
+    state: string;
+    pincode: string;
+  };
   matchPassword: (enteredPassword: string) => Promise<boolean>;
   generateJwt: () => string;
   generateRefreshToken: () => string;

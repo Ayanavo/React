@@ -2,7 +2,8 @@ import { hash } from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import jwt, { Secret, VerifyErrors } from "jsonwebtoken";
-import User from "../models/userModel.js"; // Note the .js extension
+import User from "../models/userModel.js";
+import admin from "firebase-admin";
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -34,8 +35,6 @@ export const signUp = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  console.log("Login request body:", req.body);
-
   // Validate input
   await body("email").isEmail().run(req);
   await body("password").isLength({ min: 6 }).run(req);
@@ -92,7 +91,6 @@ export const login = async (req: Request, res: Response) => {
       token: jwt,
       message: "Successfully logged in",
       expiresIn: 1 * 60 * 60,
-      status: "success",
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -167,5 +165,86 @@ export const refreshToken = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Refresh token error:", error);
     res.status(401).json({ message: "Invalid refresh token" });
+  }
+};
+
+export const getUserProfile = async (req: Request, res: Response) => {
+  try {
+    if (req.headers?.authorization) {
+      const token = req.headers.authorization.split(" ")[1];
+
+      const decoded = jwt.verify(token, process.env.API_SECRET_KEY as Secret) as { id: string };
+      const user = await User.findById(decoded.id).select("-password -__v");
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.status(200).json({ user });
+    }
+  } catch (error) {
+    console.error("Error fetching profile:", error);
+    res.status(500).json({ message: "Failed to fetch profile" });
+  }
+};
+
+export const saveUserProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.id;
+    const { full_name, profile_image, mobile, addressLine1, addressLine2, landmark, city, state, pincode } = req.body;
+    if ([full_name, mobile, addressLine1, city, state, pincode].some((field) => field === undefined)) {
+      return res.status(400).json({ message: "Required fields are missing" });
+    }
+    let user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    user.firstName = full_name.split(" ")[0] ?? "";
+    user.lastName = full_name.split(" ")[1] ?? "";
+    user.profile_image = profile_image;
+    user.mobile = mobile;
+    user.address.addressLine1 = addressLine1;
+    user.address.addressLine2 = addressLine2;
+    user.address.landmark = landmark;
+    user.address.city = city;
+    user.address.state = state;
+    user.address.pincode = pincode;
+    await user.save();
+    res.status(200).json({ message: "Profile updated successfully", user });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Failed to update profile" });
+  }
+};
+
+// export const verifyToken = async (req: Request, res: Response) => {
+//   try {
+//     const accessToken = req.query.access as string;
+//     if (!accessToken) {
+//       return res.status(400).json({ message: "No access token provided" });
+//     }
+//     const decoded = await admin.auth().verifyIdToken(accessToken);
+//     const status = await admin.auth().getUser(decoded.uid);
+//     console.log("Firebase User Status:", status);
+//     console.log("Decoded Firebase Token:", decoded);
+
+//     res.status(200).json({ message: "Token is valid", token: decoded });
+//   } catch (error) {
+//     console.error("Error verifying token:", error);
+//     res.status(500).json({ message: "Failed to verify token" });
+//   }
+// };
+export const verifyToken = async (req: Request, res: Response) => {
+  try {
+    const accessToken = req.query.access as string;
+    if (!accessToken) {
+      return res.status(400).json({ message: "No access token provided" });
+    }
+    const decoded = await admin.auth().verifyIdToken(accessToken);
+    console.log("Decoded Firebase Token:", decoded);
+    req.user = { id: decoded.uid, email: decoded.email };
+
+    res.status(200).json({ token: decoded, message: "Successfully logged in", expiresIn: 1 * 60 * 60 });
+  } catch (error) {
+    console.error("Error verifying token:", error);
+    res.status(500).json({ message: "Failed to verify token" });
   }
 };

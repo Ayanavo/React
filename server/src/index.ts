@@ -5,13 +5,18 @@ import cors, { CorsOptions } from "cors";
 import "dotenv/config";
 import express, { NextFunction, Request, Response } from "express";
 
+import dotenv from "dotenv";
+import admin from "firebase-admin";
 import activityRoutes from "./routes/activityRoutes.js";
+import settingRoutes from "./routes/settingRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import connectDB from "./utils/db.js";
 import i18n from "./utils/i18n.js";
+import aiRoutes from "./routes/aitRoutes.js";
 import { errorLogger, logger } from "./utils/logger.js";
 
 const app = express();
+dotenv.config();
 
 /** --- Env & config --- */
 const PORT = Number(process.env.PORT) || 5000;
@@ -31,7 +36,6 @@ const allowlist: string[] = IS_PROD ? ([FRONTEND_URL, PROD_URL, "https://ayanavo
 
 const corsOptions: CorsOptions = {
   origin(origin, cb) {
-    // Allow curl/Postman (no Origin) and exact allowlisted origins
     if (!origin || allowlist.includes(origin)) return cb(null, true);
     return cb(new Error(`Not allowed by CORS: ${origin}`));
   },
@@ -73,9 +77,20 @@ app.get("/", (_req, res) => {
   res.send(`✅ Server is running at ${url}`);
 });
 
+//firebase auth
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || "{}");
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+
 /** --- Routes --- */
 app.use("/api/activities", activityRoutes);
 app.use("/api/auth", userRoutes);
+app.use("/api/setting", settingRoutes);
+app.use("/api/ai", aiRoutes);
 
 /** --- Start server (bind 0.0.0.0 on Render) --- */
 app.listen(PORT, "0.0.0.0", () => {
