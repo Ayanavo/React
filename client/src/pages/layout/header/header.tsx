@@ -9,7 +9,7 @@ import GlobarSearchComponent from "./globalsearch";
 import { useLocation } from "react-router-dom";
 
 type NavItem = { label: string; icon: string; route: string };
-function header({ NavList, exclutionList = [] }: { NavList: Array<NavItem>; exclutionList: Array<string> | [] }) {
+function header({ NavList, exclutionList = [] }: { NavList: Array<NavItem>; exclutionList: Array<string> }) {
   const { pathname } = useLocation();
   const NavObj = NavList.find((item) => pathname.includes(item.route));
   const [inputValue, setInputValue] = useState("");
@@ -44,7 +44,7 @@ function header({ NavList, exclutionList = [] }: { NavList: Array<NavItem>; excl
         <div className="flex items-center justify-between h-16 px-5">
           <div className="flex items-center space-x-2 overflow-hidden">
             <h1 className="text-2xl font-bold">{NavObj?.label}</h1>
-            {!exclutionList.includes(NavObj?.route) && (
+            {NavObj && !exclutionList.includes(NavObj?.route) && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>

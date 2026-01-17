@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { createChatTransport } from "@/shared/services/auth";
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+
 import { Bot, Send, X } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { createOpenAI } from "@ai-sdk/openai";
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 type BubbleProps = {
   role: "user" | "assistant" | "system";
@@ -37,7 +39,7 @@ export function ChatbotWidget() {
   const endRef = useRef<HTMLDivElement | null>(null);
 
   const { messages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    transport: useMemo(() => createChatTransport(apiUrl), [apiUrl]),
   });
 
   // Scroll to latest message when panel is open and messages change

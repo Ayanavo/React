@@ -18,6 +18,11 @@ export const Layout = () => {
       route: "/notes",
     },
     {
+      label: "CV Builder",
+      icon: "FileTextIcon",
+      route: "/cv-builder",
+    },
+    {
       label: "Whiteboard",
       icon: "WorkflowIcon",
       route: "/whiteboard",
@@ -25,7 +30,7 @@ export const Layout = () => {
     { label: "Profile", icon: "UserIcon", route: "/profile" },
     { label: "Settings", icon: "SettingsIcon", route: "/settings" },
   ];
-  const exclutionList: Array<string> = ["/profile", "/settings", "/dashboard"];
+  const exclutionList = ["/profile", "/settings", "/dashboard"];
   const [isExpanded, setIsExpanded] = useState(false);
   return (
     <SidebarProvider defaultOpen={false}>

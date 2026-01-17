@@ -1,6 +1,7 @@
 // loginService.ts
 import axios from "axios";
 const apiUrl = import.meta.env.VITE_API_URL;
+import { DefaultChatTransport } from "ai";
 
 const axiosInstance = axios.create({
   baseURL: apiUrl,
@@ -97,4 +98,18 @@ export const verifyAuthAPI = async (token: string) => {
     params: { access: token },
   });
   return response.data;
+};
+
+export const createChatTransport = (apiUrl: string) => {
+  const token = JSON.parse(sessionStorage.getItem("auth_token") || "");
+  return new DefaultChatTransport({
+    api: apiUrl + "ai/chat",
+    fetch: (url, options = {}) => {
+      const headers = {
+        ...options.headers,
+        Authorization: `Bearer ${token}`,
+      };
+      return fetch(url, { ...options, headers });
+    },
+  });
 };
