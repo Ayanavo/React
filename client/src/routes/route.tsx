@@ -16,7 +16,7 @@ import WhiteboardComponent from "@/pages/layout/whiteboard/whiteboard";
 import NoPageComponent from "@/pages/nopage";
 import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
 import ProtectedRouteComponent from "./protectedRoute";
-import { Canvas } from "@/pages/cv-builder/canvas";
+import CVBuilder from "@/pages/cv-builder/cv-builder";
 
 export const Router = () => {
   return (
@@ -30,7 +30,7 @@ export const Router = () => {
           <Route caseSensitive path="/dashboard" element={<DashboardComponent />} />
           <Route caseSensitive path="table" element={<TableComponent />} />
           <Route caseSensitive path="activities" element={<ActivityComponent />} />
-          <Route caseSensitive path="cv-builder" element={<Canvas />} />
+          <Route caseSensitive path="cv-builder" element={<CVBuilder />} />
           <Route caseSensitive path="whiteboard" element={<WhiteboardComponent />} />
           <Route caseSensitive path="profile" element={<ProfileComponent />} />
           <Route caseSensitive path="notes" element={<NoteComponent />} />
