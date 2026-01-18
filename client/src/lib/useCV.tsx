@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from "react";
 
 /* ---------------- TYPES ---------------- */
 
-export type CVElementType = "section" | "block" | "header" | "subheader" | "text" | "list" | "date";
+export type CVElementType = "section" | "block" | "element";
 
 export interface CVElement {
   id: string;
@@ -13,6 +13,7 @@ export interface CVElement {
     fontWeight?: "normal" | "bold" | "600" | "700";
     fontStyle?: "normal" | "italic";
   };
+  editable?: boolean;
   children?: CVElement[];
 }
 
@@ -34,9 +35,16 @@ interface CVContextType {
   showSectionDividers: boolean;
   toggleSectionDividers: () => void;
   clearSelection: () => void;
+  MAX_SECTIONS: number;
+  MAX_BLOCKS_PER_SECTION: number;
 }
 
 const CVContext = createContext<CVContextType | undefined>(undefined);
+
+/* ---------------- CONSTANTS ---------------- */
+
+const MAX_SECTIONS = 10;
+const MAX_BLOCKS_PER_SECTION = 5;
 
 /* ---------------- HELPERS ---------------- */
 
@@ -64,7 +72,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
           children: [
             {
               id: crypto.randomUUID(),
-              type: "header",
+              type: "element",
               content: "Header",
               properties: { fontSize: 28, fontWeight: "700" },
             },
@@ -96,14 +104,20 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     const sectionId = crypto.randomUUID();
     const blockId = crypto.randomUUID();
 
-    setElements((prev) => [
-      ...prev,
-      {
-        id: sectionId,
-        type: "section",
-        children: [{ id: blockId, type: "block", children: [] }],
-      },
-    ]);
+    setElements((prev) => {
+      const sectionCount = prev.filter((el) => el.type === "section").length;
+      if (sectionCount >= MAX_SECTIONS) {
+        return prev;
+      }
+      return [
+        ...prev,
+        {
+          id: sectionId,
+          type: "section",
+          children: [{ id: blockId, type: "block", children: [] }],
+        },
+      ];
+    });
 
     selectSection(sectionId);
   };
@@ -120,12 +134,19 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const addBlock = (sectionId: string) => {
     const blockId = crypto.randomUUID();
 
-    setElements((prev) =>
-      updateTree(prev, sectionId, (section) => ({
+    setElements((prev) => {
+      prev.map((el) => {
+        if (el.id !== sectionId || el.type !== "section") return el;
+        const blocks = el.children ?? [];
+        if (blocks.length >= MAX_BLOCKS_PER_SECTION) {
+          return el; // hard stop
+        }
+      });
+      return updateTree(prev, sectionId, (section) => ({
         ...section,
         children: [...(section.children || []), { id: blockId, type: "block", children: [] }],
-      }))
-    );
+      }));
+    });
 
     selectBlock(sectionId, blockId);
   };
@@ -155,10 +176,21 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
   const addContent = (blockId: string, element: CVElement) => {
     setElements((prev) =>
-      updateTree(prev, blockId, (block) => ({
-        ...block,
-        children: [...(block.children || []), element],
-      }))
+      prev.map((section) => {
+        if (section.type !== "section") return section;
+
+        return {
+          ...section,
+          children: section.children?.map((block) => {
+            if (block.id !== blockId) return block;
+
+            return {
+              ...block,
+              children: [...(block.children ?? []), element],
+            };
+          }),
+        };
+      })
     );
   };
 
@@ -197,6 +229,8 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         showSectionDividers,
         toggleSectionDividers,
         clearSelection,
+        MAX_SECTIONS,
+        MAX_BLOCKS_PER_SECTION,
       }}>
       {children}
     </CVContext.Provider>

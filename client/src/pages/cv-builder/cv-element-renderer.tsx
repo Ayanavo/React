@@ -28,11 +28,7 @@ const CVElementRenderer = ({ element, sectionCount }: { element: CVElement; sect
   }
 
   // ---------- CONTENT ----------
-  switch (element.type) {
-    case "header":
-      return <h1 style={style}>{element.content}</h1>;
-    case "subheader":
-      return <h2 style={style}>{element.content}</h2>;
+  switch (element.id) {
     case "text":
       return <p style={style}>{element.content}</p>;
     default:

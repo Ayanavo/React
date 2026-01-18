@@ -1,8 +1,11 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCV } from "@/lib/useCV";
-import { Trash } from "lucide-react";
-import React from "react";
+import { Download, Eye, Trash, X } from "lucide-react";
+import React, { useRef, useState } from "react";
 import CVElementRenderer from "./cv-element-renderer";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const A4_WIDTH = 794;
 const A4_HEIGHT = 1123;
@@ -17,10 +20,46 @@ const Canvas = () => {
   const scaledA4Height = A4_HEIGHT * ZOOM;
   const scaledA4Width = A4_WIDTH * ZOOM;
 
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewScale, setPreviewScale] = React.useState(1);
+  const pageRef = useRef<HTMLDivElement>(null);
+
+  const getScaleToFit = () => {
+    const maxWidth = window.innerWidth * 0.9; // 90% of viewport
+    const maxHeight = window.innerHeight * 0.9; // 90% of viewport
+
+    const scaleX = maxWidth / A4_WIDTH;
+    const scaleY = maxHeight / A4_HEIGHT;
+
+    return Math.min(scaleX, scaleY);
+  };
+
+  const openPreview = () => {
+    setPreviewScale(getScaleToFit());
+    setIsPreviewOpen(true);
+  };
+
+  const downloadPDF = async () => {
+    if (!pageRef.current) return;
+
+    const canvas = await html2canvas(pageRef.current, {
+      scale: 2,
+      useCORS: true,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "px", [A4_WIDTH, A4_HEIGHT]);
+
+    pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
+    pdf.save(new Date() + ".pdf");
+  };
+
   return (
     <aside className="flex flex-1 bg-gray-100 overflow-auto" onClick={() => clearSelection()}>
       <div className="flex justify-center p-4 w-full relative">
         <div
+          ref={pageRef}
+          onClick={(e) => e.stopPropagation()}
           className="bg-white shadow-lg relative"
           style={{
             width: A4_WIDTH,
@@ -28,6 +67,22 @@ const Canvas = () => {
             transform: `scale(${ZOOM})`,
             transformOrigin: "top center",
           }}>
+          {/* Floating actions (top-left of sheet) */}
+          <div
+            className="fixed flex flex-col gap-2 z-20"
+            style={{
+              right: `calc(50% + ${scaledA4Width / 2}px + 16px)`,
+              top: "16px",
+            }}>
+            <button onClick={() => openPreview()} className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition" title="Preview CV">
+              <Eye className="h-4 w-4" />
+            </button>
+
+            <button onClick={downloadPDF} className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition" title="Download PDF">
+              <Download className="h-4 w-4" />
+            </button>
+          </div>
+
           <div className="flex flex-col w-full h-full">
             {sections.map((section) => {
               const blocks = section.children ?? [];
@@ -117,6 +172,48 @@ const Canvas = () => {
           })}
         </div>
       </div>
+
+      {/* Preview Block */}
+
+      {isPreviewOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="relative flex items-center justify-center">
+            {/* Close button outside sheet */}
+            <button className="absolute top-2 right-2 z-30 bg-black/70 text-white rounded-full p-1.5 hover:bg-black transition" onClick={() => setIsPreviewOpen(false)}>
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Wrapper sized to scaled sheet */}
+            <div
+              style={{
+                width: A4_WIDTH * previewScale,
+                height: A4_HEIGHT * previewScale,
+              }}
+              className="relative">
+              <div
+                className="bg-white shadow-2xl"
+                style={{
+                  width: A4_WIDTH,
+                  height: A4_HEIGHT,
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: "top left",
+                }}>
+                <div className="flex flex-col w-full h-full pointer-events-none">
+                  {sections.map((section) => (
+                    <div key={section.id} className="flex w-full" style={{ height: `${100 / sections.length}%` }}>
+                      {section.children?.map((block) => (
+                        <div key={block.id} className="flex-1">
+                          <CVElementRenderer element={block} />
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

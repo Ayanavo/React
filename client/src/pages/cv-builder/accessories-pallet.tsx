@@ -1,11 +1,11 @@
 import { useCV } from "@/lib/useCV";
-import { Calendar, Heading1, Heading2, List, Text } from "lucide-react";
+import { Calendar, Image, List, MapPin, SquareUser, Text } from "lucide-react";
 import React from "react";
 
 interface AccessoryType {
   id: string;
   label: string;
-  type: "header" | "subheader" | "list" | "date" | "text";
+  type: "element";
   defaultContent: string;
   defaultProperties: Record<string, any>;
   icon: React.ReactNode;
@@ -16,25 +16,17 @@ const AccessoriesPallet = () => {
 
   const accessories: AccessoryType[] = [
     {
-      id: "header",
-      label: "Header",
-      type: "header",
-      defaultContent: "Header Text",
-      defaultProperties: { fontSize: 14, fontWeight: "700" },
-      icon: <Heading1 className="w-6 h-6" />,
-    },
-    {
-      id: "subheader",
-      label: "Subheader",
-      type: "subheader",
-      defaultContent: "Subheader Text",
-      defaultProperties: { fontSize: 14, fontWeight: "600" },
-      icon: <Heading2 className="w-6 h-6" />,
+      id: "text",
+      label: "Text",
+      type: "element",
+      defaultContent: "Text",
+      defaultProperties: { fontSize: 14, fontWeight: "400" },
+      icon: <Text className="w-6 h-6" />,
     },
     {
       id: "list",
       label: "List",
-      type: "list",
+      type: "element",
       defaultContent: "• Item 1\n• Item 2\n• Item 3",
       defaultProperties: { fontSize: 14, fontWeight: "normal" },
       icon: <List className="w-6 h-6" />,
@@ -42,18 +34,34 @@ const AccessoriesPallet = () => {
     {
       id: "date",
       label: "Date",
-      type: "date",
+      type: "element",
       defaultContent: "Jan 2020 - Present",
       defaultProperties: { fontSize: 12, fontWeight: "500", fontStyle: "italic" },
       icon: <Calendar className="w-6 h-6" />,
     },
     {
-      id: "text",
-      label: "Text",
-      type: "text",
-      defaultContent: "Text",
-      defaultProperties: { fontSize: 14, fontWeight: "400" },
-      icon: <Text className="w-6 h-6" />,
+      id: "location",
+      label: "Location",
+      type: "element",
+      defaultContent: "Kolkata, India",
+      defaultProperties: { fontSize: 10, fontWeight: "500", fontStyle: "italic" },
+      icon: <MapPin className="w-6 h-6" />,
+    },
+    {
+      id: "image",
+      label: "Profile Image",
+      type: "element",
+      defaultContent: "",
+      defaultProperties: {},
+      icon: <Image className="w-6 h-6" />,
+    },
+    {
+      id: "icon",
+      label: "Icon",
+      type: "element",
+      defaultContent: "",
+      defaultProperties: {},
+      icon: <SquareUser className="w-6 h-6" />,
     },
   ];
 
@@ -62,9 +70,10 @@ const AccessoriesPallet = () => {
 
     addContent(selectedBlockId, {
       id: crypto.randomUUID(),
-      type: accessory.type,
+      type: "element",
       content: accessory.defaultContent,
       properties: accessory.defaultProperties,
+      editable: true,
     });
   };
 
