@@ -1,11 +1,10 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCV } from "@/lib/useCV";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
 import { Download, Eye, Trash, X } from "lucide-react";
 import React, { useRef, useState } from "react";
 import CVElementRenderer from "./cv-element-renderer";
-import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const A4_WIDTH = 794;
 const A4_HEIGHT = 1123;
