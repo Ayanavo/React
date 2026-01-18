@@ -1,16 +1,15 @@
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCV } from "@/lib/useCV";
 import { Trash } from "lucide-react";
 import React from "react";
 import CVElementRenderer from "./cv-element-renderer";
-import { TooltipProvider, Tooltip, TooltipTrigger } from "@radix-ui/react-tooltip";
-import { TooltipContent } from "@/components/ui/tooltip";
 
 const A4_WIDTH = 794;
 const A4_HEIGHT = 1123;
 const ZOOM = 1;
 
 const Canvas = () => {
-  const { elements, selectedElementId, selectElement, removeSection, removeBlock } = useCV();
+  const { elements, selectedSectionId, selectedBlockId, showSectionDividers, selectSection, selectBlock, removeSection, removeBlock, clearSelection } = useCV();
 
   const sections = elements.filter((el) => el.type === "section");
   const canDeleteSection = sections.length > 1;
@@ -19,7 +18,7 @@ const Canvas = () => {
   const scaledA4Width = A4_WIDTH * ZOOM;
 
   return (
-    <aside className="flex flex-1 bg-gray-100 overflow-auto">
+    <aside className="flex flex-1 bg-gray-100 overflow-auto" onClick={() => clearSelection()}>
       <div className="flex justify-center p-4 w-full relative">
         <div
           className="bg-white shadow-lg relative"
@@ -29,40 +28,38 @@ const Canvas = () => {
             transform: `scale(${ZOOM})`,
             transformOrigin: "top center",
           }}>
-          {/* A4 PAGE */}
           <div className="flex flex-col w-full h-full">
             {sections.map((section) => {
               const blocks = section.children ?? [];
               const canDeleteBlock = blocks.length > 1;
-              const isSectionSelected = selectedElementId === section.id;
+              const isSectionSelected = selectedSectionId === section.id;
 
               return (
                 <div
                   key={section.id}
-                  className={`relative flex w-full transition ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
+                  className={`relative flex w-full ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
                   style={{ height: `${100 / sections.length}%` }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    selectElement(section.id);
+                    selectSection(section.id);
                   }}>
-                  {/* BLOCKS */}
                   <div className="flex w-full h-full">
-                    {blocks.map((block) => {
-                      const isBlockSelected = selectedElementId === block.id;
+                    {blocks.map((block, index) => {
+                      const isBlockSelected = selectedBlockId === block.id;
+                      const isLast = index === sections.length - 1;
 
                       return (
                         <div
                           key={block.id}
-                          className={`relative flex-1  ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
+                          className={`relative flex-1 ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            selectElement(block.id);
+                            selectBlock(section.id, block.id); // ✅ FIX
                           }}>
                           <CVElementRenderer element={block} />
 
-                          {/* Delete block */}
                           {isBlockSelected && canDeleteBlock && (
-                            <TooltipProvider disableHoverableContent>
+                            <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <button
@@ -70,9 +67,7 @@ const Canvas = () => {
                                       e.stopPropagation();
                                       removeBlock(block.id);
                                     }}
-                                    className="absolute top-2 right-2
-                                               bg-secondary text-secondary-foreground
-                                               p-1 rounded shadow">
+                                    className="absolute top-2 right-2 bg-secondary text-secondary-foreground p-1 rounded shadow">
                                     <Trash className="h-3 w-3" />
                                   </button>
                                 </TooltipTrigger>
@@ -80,6 +75,7 @@ const Canvas = () => {
                               </Tooltip>
                             </TooltipProvider>
                           )}
+                          {showSectionDividers && !isLast && <div className="absolute bottom-0 left-4 right-4 h-px bg-border" />}
                         </div>
                       );
                     })}
@@ -90,33 +86,25 @@ const Canvas = () => {
           </div>
         </div>
 
-        {/* Delete section buttons - positioned in grey area to the right of the document */}
+        {/* SECTION DELETE BUTTONS */}
         <div
-          className="absolute flex flex-col ml-5"
+          className="absolute flex flex-col"
           style={{
             left: `calc(50% + ${scaledA4Width / 2}px + 16px)`,
             top: "16px",
             height: `${scaledA4Height}px`,
-            transform: "translateX(-50%)",
           }}>
           {sections.map((section) => {
-            const isSectionSelected = selectedElementId === section.id || section.children?.some((child) => child.id === selectedElementId);
             const sectionHeight = scaledA4Height / sections.length;
+            const isActive = selectedSectionId === section.id;
 
             return (
               <div key={section.id} className="flex items-center justify-center" style={{ height: `${sectionHeight}px` }}>
-                {isSectionSelected && canDeleteSection && (
-                  <TooltipProvider disableHoverableContent>
+                {isActive && canDeleteSection && (
+                  <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeSection(section.id);
-                          }}
-                          className="bg-primary text-primary-foreground
-                                     p-2 rounded shadow hover:opacity-80 transition-opacity
-                                     flex items-center justify-center">
+                        <button onClick={() => removeSection(section.id)} className="bg-primary text-primary-foreground p-2 rounded shadow hover:opacity-80">
                           <Trash className="h-4 w-4" />
                         </button>
                       </TooltipTrigger>

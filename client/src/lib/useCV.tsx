@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 /* ---------------- TYPES ---------------- */
 
@@ -12,8 +12,6 @@ export interface CVElement {
     fontSize?: number;
     fontWeight?: "normal" | "bold" | "600" | "700";
     fontStyle?: "normal" | "italic";
-    marginTop?: number;
-    marginBottom?: number;
   };
   children?: CVElement[];
 }
@@ -22,17 +20,20 @@ export interface CVElement {
 
 interface CVContextType {
   elements: CVElement[];
-
-  selectedElementId: string | null;
-  selectElement: (id: string | null) => void;
+  selectedSectionId: string | null;
+  selectedBlockId: string | null;
+  selectSection: (sectionId: string) => void;
+  selectBlock: (sectionId: string, blockId: string) => void;
   addSection: () => void;
   removeSection: (sectionId: string) => void;
   addBlock: (sectionId: string) => void;
-  removeBlock: (sectionId: string) => void;
+  removeBlock: (blockId: string) => void;
   addContent: (blockId: string, element: CVElement) => void;
-
   updateElement: (id: string, updates: Partial<CVElement>) => void;
   removeElement: (id: string) => void;
+  showSectionDividers: boolean;
+  toggleSectionDividers: () => void;
+  clearSelection: () => void;
 }
 
 const CVContext = createContext<CVContextType | undefined>(undefined);
@@ -49,151 +50,107 @@ const updateTree = (nodes: CVElement[], id: string, updater: (node: CVElement) =
 const removeFromTree = (nodes: CVElement[], id: string): CVElement[] =>
   nodes.filter((n) => n.id !== id).map((n) => (n.children ? { ...n, children: removeFromTree(n.children, id) } : n));
 
-/* ---------------- STORAGE ---------------- */
-
-const STORAGE_KEY = "cv-elements";
-const STORAGE_KEY_SELECTED = "cv-selected-element-id";
-
-const getDefaultElements = (): CVElement[] => [
-  {
-    id: crypto.randomUUID(),
-    type: "section",
-    children: [
-      {
-        id: crypto.randomUUID(),
-        type: "block",
-        children: [
-          {
-            id: crypto.randomUUID(),
-            type: "header",
-            content: "Header",
-            properties: { fontSize: 28, fontWeight: "700" },
-          },
-        ],
-      },
-    ],
-  },
-];
-
-const loadElementsFromStorage = (): CVElement[] => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed && Array.isArray(parsed) ? parsed : getDefaultElements();
-    }
-  } catch (error) {
-    console.error("Failed to load CV elements from localStorage:", error);
-  }
-  return getDefaultElements();
-};
-
-const loadSelectedIdFromStorage = (): string | null => {
-  try {
-    return localStorage.getItem(STORAGE_KEY_SELECTED);
-  } catch (error) {
-    console.error("Failed to load selected element ID from localStorage:", error);
-  }
-  return null;
-};
-
 /* ---------------- PROVIDER ---------------- */
 
 export function CVProvider({ children }: { children: React.ReactNode }) {
-  const [elements, setElements] = useState<CVElement[]>(loadElementsFromStorage);
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(loadSelectedIdFromStorage);
+  const [elements, setElements] = useState<CVElement[]>([
+    {
+      id: crypto.randomUUID(),
+      type: "section",
+      children: [
+        {
+          id: crypto.randomUUID(),
+          type: "block",
+          children: [
+            {
+              id: crypto.randomUUID(),
+              type: "header",
+              content: "Header",
+              properties: { fontSize: 28, fontWeight: "700" },
+            },
+          ],
+        },
+      ],
+    },
+  ]);
 
-  // Save elements to localStorage whenever they change
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(elements));
-    } catch (error) {
-      console.error("Failed to save CV elements to localStorage:", error);
-    }
-  }, [elements]);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [showSectionDividers, setShowSectionDividers] = useState(false);
 
-  // Save selected element ID to localStorage whenever it changes
-  useEffect(() => {
-    try {
-      if (selectedElementId) {
-        localStorage.setItem(STORAGE_KEY_SELECTED, selectedElementId);
-      } else {
-        localStorage.removeItem(STORAGE_KEY_SELECTED);
-      }
-    } catch (error) {
-      console.error("Failed to save selected element ID to localStorage:", error);
-    }
-  }, [selectedElementId]);
+  /* -------- SELECTION -------- */
+
+  const selectSection = (sectionId: string) => {
+    setSelectedSectionId(sectionId);
+    setSelectedBlockId(null);
+  };
+
+  const selectBlock = (sectionId: string, blockId: string) => {
+    setSelectedSectionId(sectionId);
+    setSelectedBlockId(blockId);
+  };
 
   /* -------- ACTIONS -------- */
 
   const addSection = () => {
     const sectionId = crypto.randomUUID();
     const blockId = crypto.randomUUID();
+
     setElements((prev) => [
       ...prev,
       {
         id: sectionId,
         type: "section",
-        children: [
-          {
-            id: blockId,
-            type: "block",
-            children: [],
-          },
-        ],
+        children: [{ id: blockId, type: "block", children: [] }],
       },
     ]);
+
+    selectSection(sectionId);
   };
 
   const removeSection = (sectionId: string) => {
-    setElements((prev) => removeFromTree(prev, sectionId));
-    if (selectedElementId === sectionId) setSelectedElementId(null);
+    setElements((prev) => prev.filter((s) => s.id !== sectionId));
+
+    if (selectedSectionId === sectionId) {
+      setSelectedSectionId(null);
+      setSelectedBlockId(null);
+    }
   };
 
   const addBlock = (sectionId: string) => {
+    const blockId = crypto.randomUUID();
+
     setElements((prev) =>
       updateTree(prev, sectionId, (section) => ({
         ...section,
-        children: [
-          ...(section.children || []),
-          {
-            id: crypto.randomUUID(),
-            type: "block",
-            children: [],
-          },
-        ],
+        children: [...(section.children || []), { id: blockId, type: "block", children: [] }],
       }))
     );
+
+    selectBlock(sectionId, blockId);
   };
 
   const removeBlock = (blockId: string) => {
-    setElements((prev) =>
-      updateTree(prev, blockId, (block) => {
-        // find parent section
-        let parentSection: CVElement | null = null;
+    let parentSectionId: string | null = null;
+    let canDelete = false;
 
-        const findParent = (nodes: CVElement[]) => {
-          for (const node of nodes) {
-            if (node.children?.some((c) => c.id === blockId)) {
-              parentSection = node;
-              return;
-            }
-            if (node.children) findParent(node.children);
-          }
-        };
+    elements.forEach((section) => {
+      if (section.type !== "section") return;
+      const blocks = section.children || [];
+      if (blocks.some((b) => b.id === blockId)) {
+        parentSectionId = section.id;
+        canDelete = blocks.length > 1;
+      }
+    });
 
-        findParent(prev);
-
-        if (!parentSection || (parentSection as CVElement).children!.length <= 1) {
-          return block; // 🚫 prevent deleting last block
-        }
-
-        return block;
-      })
-    );
+    if (!canDelete) return;
 
     setElements((prev) => removeFromTree(prev, blockId));
+
+    if (selectedBlockId === blockId) {
+      setSelectedBlockId(null);
+      setSelectedSectionId(parentSectionId);
+    }
   };
 
   const addContent = (blockId: string, element: CVElement) => {
@@ -211,15 +168,25 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
   const removeElement = (id: string) => {
     setElements((prev) => removeFromTree(prev, id));
-    if (selectedElementId === id) setSelectedElementId(null);
+  };
+
+  const toggleSectionDividers = () => {
+    setShowSectionDividers((prev) => !prev);
+  };
+
+  const clearSelection = () => {
+    setSelectedSectionId(null);
+    setSelectedBlockId(null);
   };
 
   return (
     <CVContext.Provider
       value={{
         elements,
-        selectedElementId,
-        selectElement: setSelectedElementId,
+        selectedSectionId,
+        selectedBlockId,
+        selectSection,
+        selectBlock,
         addSection,
         removeSection,
         addBlock,
@@ -227,6 +194,9 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         addContent,
         updateElement,
         removeElement,
+        showSectionDividers,
+        toggleSectionDividers,
+        clearSelection,
       }}>
       {children}
     </CVContext.Provider>
@@ -236,9 +206,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 /* ---------------- HOOK ---------------- */
 
 export function useCV() {
-  const context = useContext(CVContext);
-  if (!context) {
-    throw new Error("useCV must be used within CVProvider");
-  }
-  return context;
+  const ctx = useContext(CVContext);
+  if (!ctx) throw new Error("useCV must be used within CVProvider");
+  return ctx;
 }

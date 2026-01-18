@@ -1,13 +1,11 @@
-import React from "react";
 import type { CVElement } from "@/lib/useCV";
+import React, { CSSProperties } from "react";
 
 const CVElementRenderer = ({ element, sectionCount }: { element: CVElement; sectionCount?: number }) => {
-  const style: React.CSSProperties = {
+  const style: CSSProperties = {
     fontSize: element.properties?.fontSize ? `${element.properties.fontSize}px` : undefined,
     fontWeight: element.properties?.fontWeight,
     fontStyle: element.properties?.fontStyle,
-    marginTop: element.properties?.marginTop,
-    marginBottom: element.properties?.marginBottom,
   };
 
   // ---------- SECTION ----------

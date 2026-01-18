@@ -1,9 +1,10 @@
-import React from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useCV, type CVElement } from "@/lib/useCV";
 import { Blocks, LayoutPanelTop } from "lucide-react";
+import React from "react";
 
 const LayoutPallet = () => {
-  const { addSection, addBlock, selectedElementId, elements } = useCV();
+  const { addSection, addBlock, showSectionDividers, selectedSectionId, toggleSectionDividers, elements } = useCV();
   const sections = elements.filter((el) => el.type === "section");
   const sectionCount = sections.length - 1;
 
@@ -16,21 +17,16 @@ const LayoutPallet = () => {
 
   // Find selected section - either directly selected or parent of selected block
   const findSelectedSection = (): CVElement | undefined => {
-    if (!selectedElementId) return undefined;
+    if (!selectedSectionId) return undefined;
 
-    // First check if the selected element is a section
-    const directSection = elements.find((el) => el.id === selectedElementId && el.type === "section");
+    const directSection = elements.find((el) => el.id === selectedSectionId && el.type === "section");
     if (directSection) return directSection;
 
-    // If not, find which section contains the selected element (could be a block or content)
     const findParentSection = (nodes: typeof elements, targetId: string): CVElement | undefined => {
       for (const node of nodes) {
         if (node.type === "section" && node.children) {
-          // Check if any child matches
           const found = node.children.find((child) => child.id === targetId);
           if (found) return node;
-
-          // Recursively check children (for nested blocks/content)
           for (const child of node.children) {
             if (child.children) {
               const nestedFound = child.children.find((c) => c.id === targetId);
@@ -42,7 +38,7 @@ const LayoutPallet = () => {
       return undefined;
     };
 
-    return findParentSection(elements, selectedElementId);
+    return findParentSection(elements, selectedSectionId);
   };
 
   const selectedSection = findSelectedSection();
@@ -73,6 +69,12 @@ const LayoutPallet = () => {
       </button>
 
       {!selectedSection && <p className="text-xs text-muted-foreground">Select a section to add blocks</p>}
+
+      {/* Toggle Section Divider */}
+      <label className="flex items-center gap-3 px-3 py-2 rounded-md cursor-pointer select-none">
+        <Checkbox checked={showSectionDividers} onCheckedChange={toggleSectionDividers} />
+        <span className="text-sm text-foreground">Add sections dividers</span>
+      </label>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useCV } from "@/lib/useCV";
-import { Heading1, Heading2, List, Calendar, Bold, Italic, Text } from "lucide-react";
+import { Calendar, Heading1, Heading2, List, Text } from "lucide-react";
 import React from "react";
 
 interface AccessoryType {
@@ -7,12 +7,13 @@ interface AccessoryType {
   label: string;
   type: "header" | "subheader" | "list" | "date" | "text";
   defaultContent: string;
-  defaultProperties: any;
+  defaultProperties: Record<string, any>;
   icon: React.ReactNode;
 }
 
 const AccessoriesPallet = () => {
-  //   const { addElement } = useCV();
+  const { selectedBlockId, addContent } = useCV();
+
   const accessories: AccessoryType[] = [
     {
       id: "header",
@@ -47,37 +48,47 @@ const AccessoriesPallet = () => {
       icon: <Calendar className="w-6 h-6" />,
     },
     {
-      id: "font-weight",
+      id: "text",
       label: "Text",
       type: "text",
       defaultContent: "Text",
-      defaultProperties: { fontSize: 14, fontWeight: "700" },
+      defaultProperties: { fontSize: 14, fontWeight: "400" },
       icon: <Text className="w-6 h-6" />,
     },
   ];
 
   const addAccessory = (accessory: AccessoryType) => {
-    const newElement = {
-      id: Math.random().toString(),
+    if (!selectedBlockId) return;
+
+    addContent(selectedBlockId, {
+      id: crypto.randomUUID(),
       type: accessory.type,
       content: accessory.defaultContent,
       properties: accessory.defaultProperties,
-    };
-    // addElement(newElement);
+    });
   };
 
   return (
     <div className="grid grid-cols-2 gap-2">
-      {accessories.map((accessory) => (
-        <button
-          key={accessory.id}
-          onClick={() => addAccessory(accessory)}
-          className="aspect-square flex flex-col items-center justify-center gap-2 rounded-lg bg-background border border-border hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md  group"
-          title={`Add ${accessory.label}`}>
-          <div className="text-muted-foreground group-hover:text-primary transition-colors">{accessory.icon}</div>
-          <span className="text-xs font-medium text-foreground text-center leading-tight">{accessory.label}</span>
-        </button>
-      ))}
+      {accessories.map((accessory) => {
+        const disabled = !selectedBlockId;
+
+        return (
+          <button
+            key={accessory.id}
+            disabled={disabled}
+            onClick={() => addAccessory(accessory)}
+            title={disabled ? "Select a block to add content" : `Add ${accessory.label}`}
+            className={`
+              aspect-square flex flex-col items-center justify-center gap-2
+              rounded-lg border transition-all
+              ${disabled ? "opacity-40 cursor-not-allowed bg-muted" : "bg-background border-border hover:border-primary/50 hover:bg-muted hover:shadow-md"}
+            `}>
+            <div className="text-muted-foreground">{accessory.icon}</div>
+            <span className="text-xs font-medium text-foreground text-center leading-tight">{accessory.label}</span>
+          </button>
+        );
+      })}
     </div>
   );
 };
