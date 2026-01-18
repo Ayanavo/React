@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 /* ---------------- TYPES ---------------- */
 
@@ -25,7 +25,6 @@ interface CVContextType {
 
   selectedElementId: string | null;
   selectElement: (id: string | null) => void;
-  selectSection: (id: string | null) => void;
   addSection: () => void;
   removeSection: (sectionId: string) => void;
   addBlock: (sectionId: string) => void;
@@ -50,32 +49,81 @@ const updateTree = (nodes: CVElement[], id: string, updater: (node: CVElement) =
 const removeFromTree = (nodes: CVElement[], id: string): CVElement[] =>
   nodes.filter((n) => n.id !== id).map((n) => (n.children ? { ...n, children: removeFromTree(n.children, id) } : n));
 
+/* ---------------- STORAGE ---------------- */
+
+const STORAGE_KEY = "cv-elements";
+const STORAGE_KEY_SELECTED = "cv-selected-element-id";
+
+const getDefaultElements = (): CVElement[] => [
+  {
+    id: crypto.randomUUID(),
+    type: "section",
+    children: [
+      {
+        id: crypto.randomUUID(),
+        type: "block",
+        children: [
+          {
+            id: crypto.randomUUID(),
+            type: "header",
+            content: "Header",
+            properties: { fontSize: 28, fontWeight: "700" },
+          },
+        ],
+      },
+    ],
+  },
+];
+
+const loadElementsFromStorage = (): CVElement[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed && Array.isArray(parsed) ? parsed : getDefaultElements();
+    }
+  } catch (error) {
+    console.error("Failed to load CV elements from localStorage:", error);
+  }
+  return getDefaultElements();
+};
+
+const loadSelectedIdFromStorage = (): string | null => {
+  try {
+    return localStorage.getItem(STORAGE_KEY_SELECTED);
+  } catch (error) {
+    console.error("Failed to load selected element ID from localStorage:", error);
+  }
+  return null;
+};
+
 /* ---------------- PROVIDER ---------------- */
 
 export function CVProvider({ children }: { children: React.ReactNode }) {
-  const [elements, setElements] = useState<CVElement[]>([
-    {
-      id: crypto.randomUUID(),
-      type: "section",
-      children: [
-        {
-          id: crypto.randomUUID(),
-          type: "block",
-          children: [
-            {
-              id: crypto.randomUUID(),
-              type: "header",
-              content: "Header",
-              properties: { fontSize: 28, fontWeight: "700" },
-            },
-          ],
-        },
-      ],
-    },
-  ]);
+  const [elements, setElements] = useState<CVElement[]>(loadElementsFromStorage);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(loadSelectedIdFromStorage);
 
-  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  // Save elements to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(elements));
+    } catch (error) {
+      console.error("Failed to save CV elements to localStorage:", error);
+    }
+  }, [elements]);
+
+  // Save selected element ID to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      if (selectedElementId) {
+        localStorage.setItem(STORAGE_KEY_SELECTED, selectedElementId);
+      } else {
+        localStorage.removeItem(STORAGE_KEY_SELECTED);
+      }
+    } catch (error) {
+      console.error("Failed to save selected element ID to localStorage:", error);
+    }
+  }, [selectedElementId]);
 
   /* -------- ACTIONS -------- */
 
@@ -172,7 +220,6 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         elements,
         selectedElementId,
         selectElement: setSelectedElementId,
-        selectSection: setSelectedSectionId,
         addSection,
         removeSection,
         addBlock,
