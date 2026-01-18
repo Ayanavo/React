@@ -7,6 +7,13 @@ const LayoutPallet = () => {
   const sections = elements.filter((el) => el.type === "section");
   const sectionCount = sections.length - 1;
 
+  const showBlockCount = (section: CVElement | undefined) => {
+    if (!section) return null;
+    const blocks = section.children ?? [];
+    if (blocks.length === 0) return null;
+    return <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{blocks.length}+</span>;
+  };
+
   // Find selected section - either directly selected or parent of selected block
   const findSelectedSection = (): CVElement | undefined => {
     if (!selectedElementId) return undefined;
@@ -62,6 +69,7 @@ const LayoutPallet = () => {
           ${selectedSection ? "bg-background text-foreground hover:bg-muted" : "bg-muted text-muted-foreground cursor-not-allowed"}`}>
         <Blocks className="w-6 h-6 opacity-60 group-hover:opacity-100" />
         Block
+        {showBlockCount(selectedSection)}
       </button>
 
       {!selectedSection && <p className="text-xs text-muted-foreground">Select a section to add blocks</p>}
