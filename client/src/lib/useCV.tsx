@@ -11,8 +11,13 @@ export interface CVElement {
   properties?: {
     fontSize?: number;
     fontWeight?: "normal" | "bold" | "600" | "700";
-    fontStyle?: "normal" | "italic" | "bold";
+    fontStyle?: {
+      bold?: boolean;
+      italic?: boolean;
+      underline?: boolean;
+    }
     textAlign?: 'start' | 'center' | 'end';
+    color?: string;
   };
   editable?: boolean;
   children?: CVElement[];

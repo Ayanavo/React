@@ -8,10 +8,21 @@ const CVElementRenderer = ({ element, sectionCount }: { element: CVElement; sect
   const ref = React.useRef<HTMLParagraphElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const style: CSSProperties = {
-    fontSize: element.properties?.fontSize ? `${element.properties.fontSize}px` : undefined,
-    fontWeight: element.properties?.fontWeight,
-    fontStyle: element.properties?.fontStyle,
+    fontSize: element.properties?.fontSize
+      ? `${element.properties.fontSize}px`
+      : undefined,
+
+    fontWeight: element.properties?.fontStyle?.bold ? "700" : "400",
+    fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
+    textDecoration: element.properties?.fontStyle?.underline
+      ? "underline"
+      : "none",
+
+    textAlign: element.properties?.textAlign,
+    color: element.properties?.color,
   };
+
+
 
   // ---------- SECTION ----------
   if (element.type === "section") {

@@ -1,7 +1,7 @@
 import { CVElementType, useCV } from "@/lib/useCV";
 import { Calendar, Image, List, MapPin, SquareUser, Text } from "lucide-react";
 import React from "react";
-import OptionsPanel from "./options-panel";
+import ElementOptions from "./options-panel";
 
 interface AccessoryType {
   id: string;
@@ -13,10 +13,7 @@ interface AccessoryType {
 }
 
 const AccessoriesPallet = () => {
-  const {   selectedBlockId,
-    selectedElement,
-    addContent,
-    updateElement, } = useCV();
+  const {selectedBlockId, addContent} = useCV();
 
   const accessories: AccessoryType[] = [
     {
@@ -107,18 +104,7 @@ const AccessoriesPallet = () => {
     </div>
 
       {/* OPTIONS */}
-      <OptionsPanel
-        element={selectedElement}
-        onChange={(props) =>
-          selectedElement &&
-          updateElement(selectedElement.id, {
-            properties: {
-              ...selectedElement.properties,
-              ...props,
-            },
-          })
-        }
-      />
+    <ElementOptions />
       </div>
   );
 };
