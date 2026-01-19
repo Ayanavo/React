@@ -24,21 +24,21 @@ export const Router = () => {
       <Route path="/login" element={<LoginComponent />} />
       <Route path="/register" element={<RegistrationComponent />} />
       <Route path="/forgot-password" element={<ForgotPasswordComponent />} />
-      {/* <Route element={<ProtectedRouteComponent />}> */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route caseSensitive path="/dashboard" element={<DashboardComponent />} />
-          <Route caseSensitive path="table" element={<TableComponent />} />
-          <Route caseSensitive path="activities" element={<ActivityComponent />} />
-          <Route caseSensitive path="cv-builder" element={<CVBuilder />} />
-          <Route caseSensitive path="whiteboard" element={<WhiteboardComponent />} />
-          <Route caseSensitive path="profile" element={<ProfileComponent />} />
-          <Route caseSensitive path="notes" element={<NoteComponent />} />
-          <Route caseSensitive path="settings" element={<SettingsComponent />} />
-          <Route caseSensitive path="table/create" element={<CreateComponent />} />
-          <Route caseSensitive path="table/details/:id" element={<DetailComponent />} />
-          <Route caseSensitive path="table/update/:id" element={<UpdateComponent />} />
-        </Route>
+      <Route element={<ProtectedRouteComponent />} />
+      <Route path="/" element={<Layout />}>
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route caseSensitive path="/dashboard" element={<DashboardComponent />} />
+        <Route caseSensitive path="table" element={<TableComponent />} />
+        <Route caseSensitive path="activities" element={<ActivityComponent />} />
+        <Route caseSensitive path="cv-builder" element={<CVBuilder />} />
+        <Route caseSensitive path="whiteboard" element={<WhiteboardComponent />} />
+        <Route caseSensitive path="profile" element={<ProfileComponent />} />
+        <Route caseSensitive path="notes" element={<NoteComponent />} />
+        <Route caseSensitive path="settings" element={<SettingsComponent />} />
+        <Route caseSensitive path="table/create" element={<CreateComponent />} />
+        <Route caseSensitive path="table/details/:id" element={<DetailComponent />} />
+        <Route caseSensitive path="table/update/:id" element={<UpdateComponent />} />
+      </Route>
       {/* </Route> */}
       <Route path="*" element={<NoPageComponent />} />
     </Routes>

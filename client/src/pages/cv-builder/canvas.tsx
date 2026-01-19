@@ -91,7 +91,7 @@ const Canvas = () => {
               return (
                 <div
                   key={section.id}
-                  className={`relative flex w-full ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
+                  className={`relative flex w-full hover:ring-2 ring-ring hover:opacity-50 ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
                   style={{ height: `${100 / sections.length}%` }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -177,7 +177,6 @@ const Canvas = () => {
       {isPreviewOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="relative flex items-center justify-center">
-
             <button className="absolute top-2 right-2 z-30 bg-black/70 text-white rounded-full p-1.5 hover:bg-black transition" onClick={() => setIsPreviewOpen(false)}>
               <X className="h-4 w-4" />
             </button>
