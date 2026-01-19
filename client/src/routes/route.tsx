@@ -24,7 +24,7 @@ export const Router = () => {
       <Route path="/login" element={<LoginComponent />} />
       <Route path="/register" element={<RegistrationComponent />} />
       <Route path="/forgot-password" element={<ForgotPasswordComponent />} />
-      <Route element={<ProtectedRouteComponent />}>
+      {/* <Route element={<ProtectedRouteComponent />}> */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route caseSensitive path="/dashboard" element={<DashboardComponent />} />
@@ -39,7 +39,7 @@ export const Router = () => {
           <Route caseSensitive path="table/details/:id" element={<DetailComponent />} />
           <Route caseSensitive path="table/update/:id" element={<UpdateComponent />} />
         </Route>
-      </Route>
+      {/* </Route> */}
       <Route path="*" element={<NoPageComponent />} />
     </Routes>
   );

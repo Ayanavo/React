@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from "react";
 
 /* ---------------- TYPES ---------------- */
 
-export type CVElementType = "section" | "block" | "element";
+export type CVElementType = "section" | "block" | "text" | "element";
 
 export interface CVElement {
   id: string;
@@ -11,7 +11,8 @@ export interface CVElement {
   properties?: {
     fontSize?: number;
     fontWeight?: "normal" | "bold" | "600" | "700";
-    fontStyle?: "normal" | "italic";
+    fontStyle?: "normal" | "italic" | "bold";
+    textAlign?: 'start' | 'center' | 'end';
   };
   editable?: boolean;
   children?: CVElement[];
@@ -21,10 +22,13 @@ export interface CVElement {
 
 interface CVContextType {
   elements: CVElement[];
+  selectedElement: CVElement | null;
+  selectedElementId: string | null;
   selectedSectionId: string | null;
   selectedBlockId: string | null;
   selectSection: (sectionId: string) => void;
   selectBlock: (sectionId: string, blockId: string) => void;
+  selectElement: (elementId: string) => void;
   addSection: () => void;
   removeSection: (sectionId: string) => void;
   addBlock: (sectionId: string) => void;
@@ -58,6 +62,20 @@ const updateTree = (nodes: CVElement[], id: string, updater: (node: CVElement) =
 const removeFromTree = (nodes: CVElement[], id: string): CVElement[] =>
   nodes.filter((n) => n.id !== id).map((n) => (n.children ? { ...n, children: removeFromTree(n.children, id) } : n));
 
+const findElementById = (nodes: CVElement[], id: string | null): CVElement | null => {
+  if (!id) return null;
+
+  for (const node of nodes) {
+    if (node.id === id) return node;
+    if (node.children) {
+      const found = findElementById(node.children, id);
+      if (found) return found;
+    }
+  }
+  return null;
+};
+
+
 /* ---------------- PROVIDER ---------------- */
 
 export function CVProvider({ children }: { children: React.ReactNode }) {
@@ -72,7 +90,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
           children: [
             {
               id: crypto.randomUUID(),
-              type: "element",
+              type: "text",
               content: "Header",
               properties: { fontSize: 28, fontWeight: "700" },
             },
@@ -84,6 +102,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [showSectionDividers, setShowSectionDividers] = useState(false);
 
   /* -------- SELECTION -------- */
@@ -91,12 +110,23 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const selectSection = (sectionId: string) => {
     setSelectedSectionId(sectionId);
     setSelectedBlockId(null);
+    setSelectedElementId(null);
   };
 
   const selectBlock = (sectionId: string, blockId: string) => {
     setSelectedSectionId(sectionId);
     setSelectedBlockId(blockId);
+    setSelectedElementId(null);
   };
+
+  const selectElement = (elementId: string) => {
+    setSelectedElementId(elementId);
+  };
+
+
+  /* -------- DERIVED -------- */
+
+  const selectedElement = findElementById(elements, selectedElementId);
 
   /* -------- ACTIONS -------- */
 
@@ -134,22 +164,23 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const addBlock = (sectionId: string) => {
     const blockId = crypto.randomUUID();
 
-    setElements((prev) => {
-      prev.map((el) => {
-        if (el.id !== sectionId || el.type !== "section") return el;
-        const blocks = el.children ?? [];
-        if (blocks.length >= MAX_BLOCKS_PER_SECTION) {
-          return el; // hard stop
-        }
-      });
-      return updateTree(prev, sectionId, (section) => ({
-        ...section,
-        children: [...(section.children || []), { id: blockId, type: "block", children: [] }],
-      }));
-    });
+    setElements((prev) =>
+      updateTree(prev, sectionId, (section) => {
+        if (section.type !== "section") return section;
+
+        const blocks = section.children ?? [];
+        if (blocks.length >= MAX_BLOCKS_PER_SECTION) return section;
+
+        return {
+          ...section,
+          children: [...blocks, { id: blockId, type: "block", children: [] }],
+        };
+      })
+    );
 
     selectBlock(sectionId, blockId);
   };
+
 
   const removeBlock = (blockId: string) => {
     let parentSectionId: string | null = null;
@@ -209,16 +240,23 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const clearSelection = () => {
     setSelectedSectionId(null);
     setSelectedBlockId(null);
+    setSelectedElementId(null);
   };
 
   return (
     <CVContext.Provider
       value={{
         elements,
+
         selectedSectionId,
         selectedBlockId,
+        selectedElementId,
+        selectedElement,
+
         selectSection,
         selectBlock,
+        selectElement,
+
         addSection,
         removeSection,
         addBlock,
@@ -226,9 +264,11 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         addContent,
         updateElement,
         removeElement,
+
         showSectionDividers,
         toggleSectionDividers,
         clearSelection,
+
         MAX_SECTIONS,
         MAX_BLOCKS_PER_SECTION,
       }}>

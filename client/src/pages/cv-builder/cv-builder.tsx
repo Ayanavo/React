@@ -6,7 +6,7 @@ import { CVProvider } from "@/lib/useCV";
 const CVBuilder = () => {
   return (
     <CVProvider>
-      <div className="flex h-[90vh] overflow-hidden">
+      <div className="flex h-[90vh] overflow-hidden bg-background">
         <Pallet />
         <Canvas />
       </div>

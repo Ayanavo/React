@@ -1,24 +1,28 @@
-import { useCV } from "@/lib/useCV";
+import { CVElementType, useCV } from "@/lib/useCV";
 import { Calendar, Image, List, MapPin, SquareUser, Text } from "lucide-react";
 import React from "react";
+import OptionsPanel from "./options-panel";
 
 interface AccessoryType {
   id: string;
   label: string;
-  type: "element";
+  type: CVElementType;
   defaultContent: string;
   defaultProperties: Record<string, any>;
   icon: React.ReactNode;
 }
 
 const AccessoriesPallet = () => {
-  const { selectedBlockId, addContent } = useCV();
+  const {   selectedBlockId,
+    selectedElement,
+    addContent,
+    updateElement, } = useCV();
 
   const accessories: AccessoryType[] = [
     {
       id: "text",
       label: "Text",
-      type: "element",
+      type: "text",
       defaultContent: "Text",
       defaultProperties: { fontSize: 14, fontWeight: "400" },
       icon: <Text className="w-6 h-6" />,
@@ -70,7 +74,7 @@ const AccessoriesPallet = () => {
 
     addContent(selectedBlockId, {
       id: crypto.randomUUID(),
-      type: "element",
+      type: accessory.type,
       content: accessory.defaultContent,
       properties: accessory.defaultProperties,
       editable: true,
@@ -78,6 +82,8 @@ const AccessoriesPallet = () => {
   };
 
   return (
+     <div className="space-y-4">
+      {/* ACCESSORIES */}
     <div className="grid grid-cols-2 gap-2">
       {accessories.map((accessory) => {
         const disabled = !selectedBlockId;
@@ -99,6 +105,21 @@ const AccessoriesPallet = () => {
         );
       })}
     </div>
+
+      {/* OPTIONS */}
+      <OptionsPanel
+        element={selectedElement}
+        onChange={(props) =>
+          selectedElement &&
+          updateElement(selectedElement.id, {
+            properties: {
+              ...selectedElement.properties,
+              ...props,
+            },
+          })
+        }
+      />
+      </div>
   );
 };
 

@@ -6,13 +6,13 @@ import AccessoriesPallet from "./accessories-pallet";
 const Pallet = () => {
   const sidebarConfig = [
     {
-      title: "Layout Elements",
+      title: "Layout",
       name: "layout",
       component: LayoutPallet,
       area: 20,
     },
     {
-      title: "Text Elements",
+      title: "Typography",
       name: "accessories",
       component: AccessoriesPallet,
       area: 80,
@@ -32,7 +32,7 @@ const Pallet = () => {
   };
 
   return (
-    <div className="w-64 h-full bg-white border-r shadow-sm flex-shrink-0 overflow-hidden flex flex-col">
+    <div className="w-64 h-full bg-background border-r shadow-sm flex-shrink-0 overflow-hidden flex flex-col">
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-3">
           {sidebarConfig.map((section) => (

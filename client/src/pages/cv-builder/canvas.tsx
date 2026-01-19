@@ -54,12 +54,12 @@ const Canvas = () => {
   };
 
   return (
-    <aside className="flex flex-1 bg-gray-100 overflow-auto" onClick={() => clearSelection()}>
+    <aside className="flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
       <div className="flex justify-center p-4 w-full relative">
         <div
           ref={pageRef}
           onClick={(e) => e.stopPropagation()}
-          className="bg-white shadow-lg relative"
+          className="bg-background shadow-lg relative"
           style={{
             width: A4_WIDTH,
             height: A4_HEIGHT,
@@ -108,7 +108,7 @@ const Canvas = () => {
                           className={`relative flex-1 ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
                           onClick={(e) => {
                             e.stopPropagation();
-                            selectBlock(section.id, block.id); // ✅ FIX
+                            selectBlock(section.id, block.id);
                           }}>
                           <CVElementRenderer element={block} />
 
@@ -177,12 +177,11 @@ const Canvas = () => {
       {isPreviewOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="relative flex items-center justify-center">
-            {/* Close button outside sheet */}
+
             <button className="absolute top-2 right-2 z-30 bg-black/70 text-white rounded-full p-1.5 hover:bg-black transition" onClick={() => setIsPreviewOpen(false)}>
               <X className="h-4 w-4" />
             </button>
 
-            {/* Wrapper sized to scaled sheet */}
             <div
               style={{
                 width: A4_WIDTH * previewScale,
