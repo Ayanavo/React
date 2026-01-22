@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState } from "react";
 /* ---------------- TYPES ---------------- */
 
 export type CVElementType = "section" | "block" | "text" | "element";
+export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 
 export interface CVElement {
   id: string;
@@ -10,9 +11,9 @@ export interface CVElement {
   content?: string;
   properties?: {
     fontSize?: number;
-    fontWeight?: "normal" | "bold" | "600" | "700";
+    fontWeight?: fontWeight;
     fontStyle?: {
-      bold?: boolean;
+      strikethrough?: boolean;
       italic?: boolean;
       underline?: boolean;
     }
@@ -54,6 +55,7 @@ const CVContext = createContext<CVContextType | undefined>(undefined);
 
 const MAX_SECTIONS = 10;
 const MAX_BLOCKS_PER_SECTION = 5;
+
 
 /* ---------------- HELPERS ---------------- */
 
@@ -97,7 +99,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
               id: crypto.randomUUID(),
               type: "text",
               content: "Header",
-              properties: { fontSize: 28, fontWeight: "700" },
+              properties: { fontSize: 28, fontWeight: "medium" },
             },
           ],
         },
@@ -231,8 +233,22 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateElement = (id: string, updates: Partial<CVElement>) => {
-    setElements((prev) => updateTree(prev, id, (el) => ({ ...el, ...updates })));
+    setElements((prev) =>
+      updateTree(prev, id, (el) => ({
+        ...el,
+        ...updates,
+        properties: {
+          ...el.properties,
+          ...updates.properties,
+          fontStyle: {
+            ...el.properties?.fontStyle,
+            ...updates.properties?.fontStyle,
+          },
+        },
+      }))
+    );
   };
+
 
   const removeElement = (id: string) => {
     setElements((prev) => removeFromTree(prev, id));

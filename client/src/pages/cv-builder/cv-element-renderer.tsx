@@ -1,4 +1,4 @@
-import { useCV, type CVElement } from "@/lib/useCV";
+import { fontWeight, useCV, type CVElement } from "@/lib/useCV";
 import React, { CSSProperties, useState } from "react";
 
 const CVElementRenderer = ({ element, sectionCount }: { element: CVElement; sectionCount?: number }) => {
@@ -7,16 +7,33 @@ const CVElementRenderer = ({ element, sectionCount }: { element: CVElement; sect
 
   const ref = React.useRef<HTMLParagraphElement>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const fontWeightMap: Record<fontWeight, number> = {
+    light: 300,
+    normal: 400,
+    medium: 500,
+    "semi-bold": 600,
+    bold: 700,
+  };
+  const decorations: string[] = [];
+
+  if (element.properties?.fontStyle?.underline) {
+    decorations.push("underline");
+  }
+
+  if (element.properties?.fontStyle?.strikethrough) {
+    decorations.push("line-through");
+  }
+
   const style: CSSProperties = {
     fontSize: element.properties?.fontSize
       ? `${element.properties.fontSize}px`
       : undefined,
 
-    fontWeight: element.properties?.fontStyle?.bold ? "700" : "400",
+    fontWeight: element.properties?.fontWeight
+      ? fontWeightMap[element.properties.fontWeight]
+      : undefined,
     fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
-    textDecoration: element.properties?.fontStyle?.underline
-      ? "underline"
-      : "none",
+    textDecoration: decorations.length ? decorations.join(" ") : "none",
 
     textAlign: element.properties?.textAlign,
     color: element.properties?.color,
@@ -45,58 +62,55 @@ const CVElementRenderer = ({ element, sectionCount }: { element: CVElement; sect
   console.log(element);
   // ---------- CONTENT ----------
   switch (element.type) {
-
-
     case "text":
-      return  <p
-      ref={ref}
-      style={style}
-      contentEditable={element.editable}
-      suppressContentEditableWarning
+      return <p
+        ref={ref}
+        style={style}
+        contentEditable={element.editable}
+        suppressContentEditableWarning
 
-      onClick={(e) => {
-        e.stopPropagation();
-        selectElement(element.id);   // 🔥 THIS IS THE FIX
-      }}
+        onClick={(e) => {
+          e.stopPropagation();
+          selectElement(element.id);
+        }}
 
-      onFocus={() => setIsEditing(true)}
+        onFocus={() => setIsEditing(true)}
 
-      onBlur={() => {
-        setIsEditing(false);
-        updateElement(element.id, {
-          content: ref.current?.innerText ?? "",
-        });
-      }}
+        onBlur={() => {
+          setIsEditing(false);
+          updateElement(element.id, {
+            content: ref.current?.innerText ?? "",
+          });
+        }}
 
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            document.execCommand("insertLineBreak");
+          }
+        }}
+
+        onPaste={(e) => {
           e.preventDefault();
-          document.execCommand("insertLineBreak");
-        }
-      }}
+          const text = e.clipboardData.getData("text/plain");
+          document.execCommand("insertText", false, text);
+        }}
 
-      onPaste={(e) => {
-        e.preventDefault();
-        const text = e.clipboardData.getData("text/plain");
-        document.execCommand("insertText", false, text);
-      }}
-
-      data-placeholder="Type here..."
-      className={`
+        data-placeholder="Type here..."
+        className={`
         cursor-text outline-none
         empty:before:content-[attr(data-placeholder)]
         empty:before:text-muted-foreground
         rounded-sm px-1 transition
 
-        ${
-          isSelected
+        ${isSelected
             ? "ring-2 ring-primary bg-primary/5"
             : "ring-1 ring-transparent hover:ring-muted"
-        }
+          }
       `}
-    >
-      {element.content}
-    </p>;
+      >
+        {element.content}
+      </p>;
     default:
       return <div style={style}>{element.content}</div>;
   }

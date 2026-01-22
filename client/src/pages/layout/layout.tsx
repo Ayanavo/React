@@ -40,7 +40,7 @@ export const Layout = () => {
         <main>
           <Outlet />
           <Toaster />
-          <ChatbotWidget />
+          {/* <ChatbotWidget /> */}
         </main>
       </SidebarInset>
     </SidebarProvider>

@@ -1,10 +1,10 @@
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { AlignLeft, AlignCenter, AlignRight, Italic, Bold, Type, Underline } from "lucide-react";
-import { useCV } from "@/lib/useCV";
-import React from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { fontWeight, useCV } from "@/lib/useCV";
+import { AlignCenter, AlignLeft, AlignRight, Italic, Strikethrough, Underline } from "lucide-react";
+import React from "react";
 
 const ElementOptions = () => {
   const { selectedElement, updateElement } = useCV();
@@ -12,6 +12,18 @@ const ElementOptions = () => {
   if (selectedElement.type !== "text") return null;
 
   const props = selectedElement.properties;
+  const FONT_WEIGHTS: {
+    label: string;
+    value: fontWeight;
+    css: number;
+  }[] = [
+    { label: "Light", value: "light", css: 300 },
+    { label: "Normal", value: "normal", css: 400 },
+    { label: "Medium", value: "medium", css: 500 },
+    { label: "Semi Bold", value: "semi-bold", css: 600 },
+    { label: "Bold", value: "bold", css: 700 },
+  ];
+  
 
   return (
     <div className="mt-4 rounded-lg border p-3 space-y-1">
@@ -45,20 +57,25 @@ const ElementOptions = () => {
             updateElement(selectedElement.id, {
               properties: {
                 ...props,
-                fontWeight: value as "normal" | "bold" | "600" | "700",
+                fontWeight: value as fontWeight,
               },
             })
           }
         >
           <SelectTrigger className="w-32">
-            <SelectValue placeholder="Select font weight" />
+            <SelectValue placeholder="Select weight" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="normal">Normal</SelectItem>
-            <SelectItem value="600">600</SelectItem>
-            <SelectItem value="700">700</SelectItem>
-            <SelectItem value="bold">Bold</SelectItem>
-          </SelectContent>
+  <SelectContent>
+      {FONT_WEIGHTS.map((fw) => (
+        <SelectItem
+          key={fw.value}
+          value={fw.value}
+          style={{ fontWeight: fw.css }}
+        >
+          {fw.label}
+        </SelectItem>
+      ))}
+    </SelectContent>
         </Select>
       </div>
 
@@ -71,7 +88,7 @@ const ElementOptions = () => {
           type="multiple"
           variant="outline"
           value={[
-          props.fontStyle?.bold && "bold",
+          props.fontStyle?.strikethrough && "strikethrough",
           props.fontStyle?.italic && "italic",
           props.fontStyle?.underline && "underline",
         ].filter(Boolean) as string[]}
@@ -81,7 +98,7 @@ const ElementOptions = () => {
               properties: {
                 ...props,
                 fontStyle: {
-                bold: value.includes("bold"),
+                strikethrough: value.includes("strikethrough"),
                 italic: value.includes("italic"),
                 underline: value.includes("underline"),
               },
@@ -98,8 +115,8 @@ const ElementOptions = () => {
             <Italic className="h-4 w-4" />
           </ToggleGroupItem>
 
-          <ToggleGroupItem value="bold">
-            <Bold className="h-4 w-4" />
+          <ToggleGroupItem value="strikethrough">
+            <Strikethrough className="h-4 w-4" />
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
