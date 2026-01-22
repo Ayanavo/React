@@ -44,13 +44,13 @@ const LayoutPallet = () => {
   const selectedSection = findSelectedSection();
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-6">
       {/* Add Section */}
       <button
         onClick={addSection}
         disabled={MAX_SECTIONS == sectionCount}
-        className="w-full flex items-center gap-2 px-6 py-4 rounded-md
-                   bg-background text-foreground hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md text-sm font-medium group
+        className="w-full flex items-center gap-2 px-6 py-6 rounded-md
+                   bg-background text-foreground hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md text-lg font-medium group
                    border border-border">
         <LayoutPanelTop className="w-6 h-6 opacity-60 group-hover:opacity-100" />
         Section
@@ -61,8 +61,8 @@ const LayoutPallet = () => {
       <button
         onClick={() => selectedSection && addBlock(selectedSection.id)}
         disabled={!selectedSection || MAX_BLOCKS_PER_SECTION == showBlockCount(selectedSection)}
-        className={`w-full flex items-center gap-2 px-6 py-4 rounded-md
-          text-sm font-medium group border hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md
+        className={`w-full flex items-center gap-2 px-6 py-6 rounded-md
+          text-lg font-medium group border hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md
           ${selectedSection ? "bg-background text-foreground hover:bg-muted" : "bg-muted text-muted-foreground cursor-not-allowed"}`}>
         <Blocks className="w-6 h-6 opacity-60 group-hover:opacity-100" />
         Block

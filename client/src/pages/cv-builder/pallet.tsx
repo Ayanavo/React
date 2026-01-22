@@ -32,7 +32,7 @@ const Pallet = () => {
   };
 
   return (
-    <div className="w-64 h-full bg-background border-r shadow-sm flex-shrink-0 overflow-hidden flex flex-col">
+    <div className="w-96 h-full bg-background border-r shadow-sm flex-shrink-0 overflow-hidden flex flex-col">
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 space-y-3">
           {sidebarConfig.map((section) => (

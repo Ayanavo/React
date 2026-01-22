@@ -81,7 +81,7 @@ const AccessoriesPallet = () => {
   return (
      <div className="space-y-4">
       {/* ACCESSORIES */}
-    <div className="grid grid-cols-2 gap-2">
+    <div className="grid grid-cols-3 gap-6">
       {accessories.map((accessory) => {
         const disabled = !selectedBlockId;
 

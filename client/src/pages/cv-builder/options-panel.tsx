@@ -14,7 +14,7 @@ const ElementOptions = () => {
   const props = selectedElement.properties;
 
   return (
-    <div className="mt-4 rounded-lg border p-3 space-y-4">
+    <div className="mt-4 rounded-lg border p-3 space-y-1">
       {/* FONT SIZE */}
       <div className="space-y-2 flex items-center justify-between">
         <Label className="text-xs font-medium text-muted-foreground text-nowrap">Size</Label>
@@ -29,7 +29,7 @@ const ElementOptions = () => {
               },
             })
           }
-          className="w-16"
+          className="w-32"
           min={8}
           max={72}
         />
@@ -50,7 +50,7 @@ const ElementOptions = () => {
             })
           }
         >
-          <SelectTrigger className="w-16">
+          <SelectTrigger className="w-32">
             <SelectValue placeholder="Select font weight" />
           </SelectTrigger>
           <SelectContent>
@@ -69,6 +69,7 @@ const ElementOptions = () => {
         <ToggleGroup
           size="sm"
           type="multiple"
+          variant="outline"
           value={[
           props.fontStyle?.bold && "bold",
           props.fontStyle?.italic && "italic",
@@ -87,7 +88,7 @@ const ElementOptions = () => {
               },
             });
           }}
-          className="flex gap-1"
+          className="w-32 flex gap-2"
         >
           <ToggleGroupItem value="normal">
             <Underline className="h-4 w-4" />
@@ -110,6 +111,7 @@ const ElementOptions = () => {
         <ToggleGroup
           size="sm"
           type="single"
+          variant="outline"
           value={props.textAlign ?? "start"}
           onValueChange={(value) => {
             if (!value) return;
@@ -120,7 +122,7 @@ const ElementOptions = () => {
               },
             });
           }}
-          className="flex gap-1"
+          className="w-32 flex gap-2"
         >
           <ToggleGroupItem value="start">
             <AlignLeft className="h-4 w-4" />
@@ -139,9 +141,9 @@ const ElementOptions = () => {
       {/* TEXT COLOR */}
       <div className="space-y-2 flex items-center justify-between">
         <Label className="text-xs font-medium text-muted-foreground text-nowrap">Color</Label>
-         <label className="relative">
+         <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
       <span
-          className="w-8 h-8 block rounded-md border cursor-pointer"
+          className="w-6 h-6 block rounded-md border cursor-pointer"
           style={{ background: props.color ?? "#000000" }}
         />
         <input
@@ -157,6 +159,7 @@ const ElementOptions = () => {
           }
            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
+        {props.color ?? "#000000"}
         </label>
       </div>
     </div>
