@@ -7,7 +7,7 @@ export function ListIcon({ element, index}: { element: any; index: number}) {
     fontWeight: 500,
   };
 
-  switch (element.properties?.listStyle?.icon) {
+  switch (element.properties?.listStyle?.icon || element) {
     case "number":
       return <span style={style}>{index + 1}.</span>;
     case "check":

@@ -5,12 +5,14 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { fontWeight, useCV } from "@/lib/useCV";
 import { AlignCenter, AlignLeft, AlignRight, Italic, Strikethrough, Underline } from "lucide-react";
 import React from "react";
+import { ListIcon } from "./list-icons";
 
 const ElementOptions = () => {
   const { selectedElement, updateElement } = useCV();
   if (!selectedElement || !selectedElement.properties) return null;
 
   const props = selectedElement.properties;
+  const BULLET_ICONS: string[] = ['bullet', 'arrow', 'dash', 'check', 'number'];
   const FONT_WEIGHTS: {
     label: string;
     value: fontWeight;
@@ -190,12 +192,11 @@ const ElementOptions = () => {
             }}
             className="flex gap-2"
           >
-            <ToggleGroupItem value="bullet">•</ToggleGroupItem>
-            <ToggleGroupItem value="dash">—</ToggleGroupItem>
-            <ToggleGroupItem value="check">✔</ToggleGroupItem>
-            <ToggleGroupItem value="arrow">→</ToggleGroupItem>
-            <ToggleGroupItem value="number">123</ToggleGroupItem>
-
+            {BULLET_ICONS.map((item, index) => (
+              <ToggleGroupItem key={item} value={item}>
+                <ListIcon element={item} index={index} />
+              </ToggleGroupItem>
+            ))}
           </ToggleGroup>
         </div>)}
       {/* Bullet Color */}

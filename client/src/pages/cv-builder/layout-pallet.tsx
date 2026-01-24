@@ -1,10 +1,11 @@
 import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useCV, type CVElement } from "@/lib/useCV";
 import { Blocks, LayoutPanelTop } from "lucide-react";
 import React from "react";
 
 const LayoutPallet = () => {
-  const { addSection, addBlock, showSectionDividers, selectedSectionId, toggleSectionDividers, MAX_SECTIONS, MAX_BLOCKS_PER_SECTION, elements } = useCV();
+  const { addSection, addBlock, showSectionDividers, selectedSectionId, toggleSectionDividers, MAX_SECTIONS, MAX_BLOCKS_PER_SECTION, elements, updatePageProperties, pageProperties } = useCV();
   const sections = elements.filter((el) => el.type === "section");
   const sectionCount = sections.length - 1;
 
@@ -74,6 +75,52 @@ const LayoutPallet = () => {
         <Checkbox checked={showSectionDividers} onCheckedChange={toggleSectionDividers} />
         <span className="text-xs text-foreground">Add sections dividers</span>
       </label>
+
+
+     <div className="mt-4 rounded-lg border p-3 space-y-1">
+        <div className="space-y-2 flex items-center justify-between">
+           <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+            Page Background
+          </Label>
+
+          <label className="relative flex items-center justify-between border rounded-md px-2 py-[6px] shadow cursor-pointer">
+            <span className="w-6 h-6 block rounded-md border cursor-pointer"
+              style={{ background: pageProperties.backgroundColor ?? "#ffffff" }}
+            />
+            <input
+              type="color"
+              value={pageProperties.backgroundColor ?? "#ffffff"}
+              onChange={(e) =>
+                updatePageProperties({ backgroundColor: e.target.value })
+              }
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            {pageProperties.backgroundColor ?? "#ffffff"}
+          </label>
+        </div>
+
+        <div className="space-y-2 flex items-center justify-between">
+           <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+            Page Font Color
+          </Label>
+
+          <label className="relative flex items-center justify-between border rounded-md px-2 py-[6px] shadow cursor-pointer">
+            <span className="w-6 h-6 block rounded-md border cursor-pointer"
+              style={{ background: pageProperties.color ?? "#000000" }}
+            />
+            <input
+              type="color"
+              value={pageProperties.color ?? "#000000"}
+              onChange={(e) =>
+                updatePageProperties({ color: e.target.value })
+              }
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            />
+            {pageProperties.color ?? "#000000"}
+          </label>
+        </div>
+      </div>
+
     </div>
   );
 };

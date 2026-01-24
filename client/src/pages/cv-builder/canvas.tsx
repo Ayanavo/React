@@ -11,7 +11,7 @@ const A4_HEIGHT = 1123;
 const ZOOM = 1;
 
 const Canvas = () => {
-  const { elements, selectedSectionId, selectedBlockId, showSectionDividers, selectSection, selectBlock, removeSection, removeBlock, clearSelection } = useCV();
+  const { elements, selectedSectionId, selectedBlockId, showSectionDividers, selectSection, selectBlock, removeSection, removeBlock, clearSelection, pageProperties  } = useCV();
 
   const sections = elements.filter((el) => el.type === "section");
   const canDeleteSection = sections.length > 1;
@@ -76,6 +76,8 @@ const Canvas = () => {
             height: A4_HEIGHT,
             transform: `scale(${ZOOM})`,
             transformOrigin: "top center",
+            backgroundColor: pageProperties.backgroundColor ?? "#ffffff",
+            color: pageProperties.color ?? "#000000",
           }}>
           {/* Floating actions (top-left of sheet) */}
           <div

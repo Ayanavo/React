@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 /* ---------------- TYPES ---------------- */
+export type PageProperties = {
+  backgroundColor?: string;
+  color?: string;
+};
 
 export type CVElementType = "section" | "block" | "text" | "list" | "element";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
@@ -50,6 +54,8 @@ interface CVContextType {
   toggleSectionDividers: () => void;
   clearSelection: () => void;
   commitEdits: () => void;
+  pageProperties: PageProperties;
+  updatePageProperties: (props: Partial<PageProperties>) => void;
   MAX_SECTIONS: number;
   MAX_BLOCKS_PER_SECTION: number;
 }
@@ -128,6 +134,15 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [showSectionDividers, setShowSectionDividers] = useState(false);
+  const [pageProperties, setPageProperties] = useState<PageProperties>(() => {
+  try {
+    const saved = sessionStorage.getItem("cv-page-properties");
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+});
+
 
   useEffect(() => {
     try {
@@ -136,6 +151,11 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
       // ignore quota / serialization errors
     }
   }, [elements]);
+
+  useEffect(() => {
+  sessionStorage.setItem("cv-page-properties", JSON.stringify(pageProperties));
+}, [pageProperties]);
+
 
 
   /* -------- SELECTION -------- */
@@ -288,6 +308,14 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updatePageProperties = (props: Partial<PageProperties>) => {
+  setPageProperties((prev) => ({
+    ...prev,
+    ...props,
+  }));
+};
+
+
 
   const clearSelection = () => {
     setSelectedSectionId(null);
@@ -322,6 +350,9 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         clearSelection,
 
         commitEdits,
+
+        pageProperties,
+        updatePageProperties,
 
         MAX_SECTIONS,
         MAX_BLOCKS_PER_SECTION,
