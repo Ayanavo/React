@@ -1,7 +1,7 @@
 import { CVElement, fontWeight, useCV } from "@/lib/useCV";
 import React, { CSSProperties, useRef } from "react";
 
-const CvTextRenderer = ({ element }: { element: CVElement }) => {
+const CvTextRenderer = ({ element, readonly = false }: { element: CVElement, readonly?: boolean }) => {
   const { updateElement, selectedElementId, selectElement } = useCV();
   const ref = useRef<HTMLDivElement>(null);
   const isSelected = selectedElementId === element.id;
@@ -35,12 +35,12 @@ const CvTextRenderer = ({ element }: { element: CVElement }) => {
     <p
       ref={ref}
       style={style}
-      contentEditable={element.editable}
+      contentEditable={!readonly && element.editable !== false}
       suppressContentEditableWarning
-      onClick={(e) => {
+     onClick={!readonly ? (e) => {
         e.stopPropagation();
         selectElement(element.id);
-      }}
+      } : undefined}
       onBlur={() => {
         updateElement(element.id, {
           content: ref.current?.innerText ?? "",

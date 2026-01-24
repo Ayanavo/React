@@ -1,5 +1,5 @@
 import { CVElementType, useCV } from "@/lib/useCV";
-import { Calendar, Image, List, MapPin, SquareUser, Text } from "lucide-react";
+import { Calendar, Image, List, MapPin, SquareUser, Tag, Text } from "lucide-react";
 import React from "react";
 import ElementOptions from "./options-panel";
 
@@ -64,6 +64,14 @@ const AccessoriesPallet = () => {
       defaultProperties: {},
       icon: <SquareUser className="w-6 h-6" />,
     },
+    {
+      id: 'tag',
+      label: "Tag",
+      type: "element",
+      defaultContent: "",
+      defaultProperties: {},
+      icon: <Tag className="w-6 h-6" />,
+    }
   ];
 
   const addAccessory = (accessory: AccessoryType) => {

@@ -2,28 +2,71 @@ import { CVElement, useCV } from "@/lib/useCV";
 import React, { CSSProperties, useRef } from "react";
 import { ListIcon } from "./list-icons";
 
-const CvListRenderer = ({ element }: { element: CVElement }) => {
+const CvListRenderer = ({
+  element,
+  readonly = false,
+}: {
+  element: CVElement;
+  readonly?: boolean;
+}) => {
   const { updateElement, selectedElementId, selectElement } = useCV();
-  const isSelected = selectedElementId === element.id;
-  const itemRefs = useRef<(HTMLSpanElement | null)[]>([]);
-  // Normalize content to string[] - flatten string[][] if needed
-  const items: string[] =
-    Array.isArray(element.content) ?
-      Array.isArray(element.content[0]) ?
-        (element.content as string[][]).flat()
-      : (element.content as string[])
-    : [""];
+
   const ref = useRef<HTMLDivElement>(null);
-  const columns = Array.isArray(element.content?.[0]) ? (element.content as string[][]) : [element.content as string[]];
+  const itemRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const isInternalFocusRef = useRef(false);
+  const isEditingRef = useRef(false);
+  const isSelected = selectedElementId === element.id;
+
+  // ---------- Normalize content ----------
+  const items: string[] =
+    Array.isArray(element.content)
+      ? (element.content as string[]) : [""];
+
+  // ---------- Styles (same contract as text) ----------
+  const decorations: string[] = [];
+  if (element.properties?.fontStyle?.underline) decorations.push("underline");
+  if (element.properties?.fontStyle?.strikethrough) decorations.push("line-through");
 
   const style: CSSProperties = {
-    fontSize: element.properties?.fontSize ? `${element.properties.fontSize}px` : undefined,
+    fontSize: element.properties?.fontSize
+      ? `${element.properties.fontSize}px`
+      : undefined,
     fontWeight: element.properties?.fontWeight,
     fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
-    textDecoration: [element.properties?.fontStyle?.underline && "underline", element.properties?.fontStyle?.strikethrough && "line-through"].filter(Boolean).join(" "),
+    textDecoration: decorations.length ? decorations.join(" ") : "none",
     color: element.properties?.color,
+    ...(isEditingRef.current
+      ? {}
+      : {
+        columnWidth: "260px",
+        columnGap: "1.5rem",
+      }),
   };
 
+
+  // ---------- Caret helpers ----------
+  const placeCaretAtStart = (el: HTMLElement) => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(true);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  };
+
+  const focusItemAtIndex = (targetIndex: number) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = itemRefs.current[targetIndex];
+        if (!el) return;
+        el.focus();
+        placeCaretAtEnd(el);
+      });
+    });
+  };
+
+
+  // ---------- State updates ----------
   const updateItem = (index: number, value: string) => {
     const next = [...items];
     next[index] = value;
@@ -36,100 +79,161 @@ const CvListRenderer = ({ element }: { element: CVElement }) => {
     updateElement(element.id, { content: next });
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>, index: number) => {
-    if (e.key !== "Enter") return;
-    e.preventDefault();
-    document.execCommand("insertLineBreak");
-    const text = e.currentTarget.textContent ?? "";
-    updateItem(index, text);
-    insertItem(index);
+  // ---------- Keyboard handling ----------
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLSpanElement>,
+    index: number
+  ) => {
+    // Enter → new list item
+    if (e.key === "Enter") {
+      e.preventDefault();
 
-    // ✅ restore caret AFTER render
-    requestAnimationFrame(() => {
+      const text = e.currentTarget.innerText;
+      updateItem(index, text);
+      insertItem(index);
+
+      isInternalFocusRef.current = true;
       requestAnimationFrame(() => {
-        const next = itemRefs.current[index + 1];
-        if (!next) return;
-
-        next.focus();
-
-        const range = document.createRange();
-        range.selectNodeContents(next);
-        range.collapse(true);
-
-        const sel = window.getSelection();
-        sel?.removeAllRanges();
-        sel?.addRange(range);
-      });
-    });
-  };
-
-  const extractLines = (): string[] => {
-    if (!ref.current) return [];
-    return Array.from(ref.current.querySelectorAll("[data-list-item]"))
-      .map((el) => el.textContent?.trim() ?? "")
-      .filter(Boolean);
-  };
-
-  const handleBlur = () => {
-    if (!ref.current) return;
-    const lines = extractLines();
-    if (!lines.length) return;
-    const isOverflowing = ref.current.scrollHeight > ref.current.clientHeight + 2;
-    if (!isOverflowing) {
-      updateElement(element.id, {
-        content: lines,
-        properties: { ...element.properties, columns: 1 },
+        requestAnimationFrame(() => {
+          const next = itemRefs.current[index + 1];
+          if (!next) return;
+          next.focus();
+          placeCaretAtStart(next);
+          isInternalFocusRef.current = false;
+        });
       });
       return;
     }
-    splitIntoColumns(lines);
-  };
 
-  const splitIntoColumns = (items: string[]) => {
-    if (!ref.current) return;
-    const maxHeight = ref.current.clientHeight;
-    const temp: string[][] = [[]];
-    let currentHeight = 0;
-    items.forEach((item) => {
-      const approxLineHeight = parseInt(getComputedStyle(ref.current!).fontSize) * 1.4;
-
-      if (currentHeight + approxLineHeight > maxHeight) {
-        temp.push([item]);
-        currentHeight = approxLineHeight;
-      } else {
-        temp[temp.length - 1].push(item);
-        currentHeight += approxLineHeight;
+    // Arrow up
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = itemRefs.current[index - 1];
+      if (prev) {
+        prev.focus();
+        placeCaretAtStart(prev);
       }
-    });
+      return;
+    }
 
-    updateElement(element.id, {
-      content: temp,
-      properties: {
-        ...element.properties,
-        columns: temp.length,
-      },
-    });
+    // Arrow down
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = itemRefs.current[index + 1];
+      if (next) {
+        next.focus();
+        placeCaretAtStart(next);
+      }
+    }
+
+    // Backspace → merge with previous item
+    // Backspace → merge with previous item (repeatable)
+    if (e.key === "Backspace") {
+      const currentText = e.currentTarget.innerText;
+
+      // Only act when item is empty
+      if (currentText === "") {
+        if (items.length <= 1) return;
+
+
+        e.preventDefault();
+        const targetIndex = index - 1;
+
+        // Build new items array
+        const next = [...items];
+        next.splice(index, 1);
+        itemRefs.current.splice(index, 1);
+        updateElement(element.id, { content: next });
+        isInternalFocusRef.current = true;
+        focusItemAtIndex(targetIndex);
+        isInternalFocusRef.current = false;
+
+        return;
+      }
+    }
+
   };
 
+  // ---------- Paste (plain text only) ----------
+  const handlePaste = (e: React.ClipboardEvent<HTMLSpanElement>) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text/plain");
+    document.execCommand("insertText", false, text);
+  };
+
+  // ---------- Blur → save ----------
+  const handleBlur = () => {
+    if (isInternalFocusRef.current) return;
+    isEditingRef.current = false;
+    if (!ref.current) return;
+
+    const lines = Array.from(
+      ref.current.querySelectorAll("[data-list-item]")
+    ).map((el) => el.textContent ?? "");
+
+    updateElement(element.id, { content: lines });
+  };
+
+  // ----------BackSpace bullet delete --------
+  const placeCaretAtEnd = (el: HTMLElement) => {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel?.removeAllRanges();
+    sel?.addRange(range);
+  };
+
+
+
+  // ---------- Render ----------
   return (
-    <div ref={ref} onBlurCapture={handleBlur} className="relative max-h-[300px] overflow-hidden">
-      {columns.map((col, colIndex) => (
-        <div key={colIndex} className="flex-1 space-y-1">
-          {col.map((item, i) => (
-            <div key={i} className="flex gap-2 items-start">
-              <ListIcon element={element} />
-              <span
-                ref={(el) => (itemRefs.current[i] = el)}
-                id={`${element.id}-item-${i}`}
-                data-list-item
-                contentEditable={colIndex === 0}
-                onKeyDown={(e) => handleKeyDown(e, i)}
-                suppressContentEditableWarning
-                className="outline-none min-w-[2px]">
-                {item}
-              </span>
-            </div>
-          ))}
+    <div
+      ref={ref}
+      style={style}
+      onClick={
+        !readonly
+          ? (e) => {
+            e.stopPropagation();
+            selectElement(element.id);
+          }
+          : undefined
+      }
+      onBlurCapture={!readonly ? handleBlur : undefined}
+      className={`
+        relative max-h-[300px] overflow-hidden rounded-sm px-1 transition
+        ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
+      `}
+    >
+      {items.map((item, index) => (
+        <div
+          key={index}
+          className="flex gap-2 items-start break-inside-avoid-column"
+        >
+          <ListIcon element={element} index={index} />
+          {readonly ? (
+            <span className="whitespace-pre-wrap">{item}</span>
+          ) : (
+            <span
+              ref={(el) => (itemRefs.current[index] = el)}
+              data-list-item
+              data-placeholder="Type here..."
+              contentEditable
+              suppressContentEditableWarning
+              onFocus={() => {
+                isEditingRef.current = true;
+              }}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              onPaste={handlePaste}
+              className="
+                cursor-text outline-none min-w-[2px]
+                empty:before:content-[attr(data-placeholder)]
+                empty:before:text-muted-foreground
+              "
+            >
+              {item}
+            </span>
+          )}
         </div>
       ))}
     </div>

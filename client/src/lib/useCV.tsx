@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 /* ---------------- TYPES ---------------- */
 
@@ -19,7 +19,10 @@ export interface CVElement {
     };
     textAlign?: "start" | "center" | "end";
     color?: string;
-    columns?: number;
+    listStyle?: {
+      icon?: string;
+      iconColor?: string;
+    };
   };
   editable?: boolean;
   children?: CVElement[];
@@ -46,11 +49,13 @@ interface CVContextType {
   showSectionDividers: boolean;
   toggleSectionDividers: () => void;
   clearSelection: () => void;
+  commitEdits: () => void;
   MAX_SECTIONS: number;
   MAX_BLOCKS_PER_SECTION: number;
 }
 
 const CVContext = createContext<CVContextType | undefined>(undefined);
+const STORAGE_KEY = "cv-editor-session";
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -85,31 +90,53 @@ const findElementById = (nodes: CVElement[], id: string | null): CVElement | nul
 /* ---------------- PROVIDER ---------------- */
 
 export function CVProvider({ children }: { children: React.ReactNode }) {
-  const [elements, setElements] = useState<CVElement[]>([
-    {
-      id: crypto.randomUUID(),
-      type: "section",
-      children: [
-        {
-          id: crypto.randomUUID(),
-          type: "block",
-          children: [
-            {
-              id: crypto.randomUUID(),
-              type: "text",
-              content: "Header",
-              properties: { fontSize: 28, fontWeight: "medium" },
-            },
-          ],
-        },
-      ],
-    },
-  ]);
+  const getInitialElements = (): CVElement[] => {
+    try {
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {
+      // ignore corrupt storage
+    }
 
+    // default structure
+    return [
+      {
+        id: crypto.randomUUID(),
+        type: "section",
+        children: [
+          {
+            id: crypto.randomUUID(),
+            type: "block",
+            children: [
+              {
+                id: crypto.randomUUID(),
+                type: "text",
+                content: "Header",
+                properties: { fontSize: 28, fontWeight: "medium" },
+              },
+            ],
+          },
+        ],
+      },
+    ];
+  };
+
+  const [elements, setElements] = useState<CVElement[]>(getInitialElements);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [showSectionDividers, setShowSectionDividers] = useState(false);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(elements));
+    } catch {
+      // ignore quota / serialization errors
+    }
+  }, [elements]);
+
 
   /* -------- SELECTION -------- */
 
@@ -254,6 +281,14 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     setShowSectionDividers((prev) => !prev);
   };
 
+  const commitEdits = () => {
+    // force blur of active element
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+  };
+
+
   const clearSelection = () => {
     setSelectedSectionId(null);
     setSelectedBlockId(null);
@@ -285,6 +320,8 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         showSectionDividers,
         toggleSectionDividers,
         clearSelection,
+
+        commitEdits,
 
         MAX_SECTIONS,
         MAX_BLOCKS_PER_SECTION,

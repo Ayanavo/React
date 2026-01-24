@@ -20,7 +20,8 @@ const Canvas = () => {
   const scaledA4Width = A4_WIDTH * ZOOM;
 
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [previewScale, setPreviewScale] = React.useState(1);
+  const [previewScale, setPreviewScale] = useState(1);
+
   const pageRef = useRef<HTMLDivElement>(null);
 
   const getScaleToFit = () => {
@@ -52,6 +53,16 @@ const Canvas = () => {
     pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
     pdf.save(new Date() + ".pdf");
   };
+
+  const zoomIn = () =>
+    setPreviewScale((s) => Math.min(s + 0.1, 2.5));
+
+  const zoomOut = () =>
+    setPreviewScale((s) => Math.max(s - 0.1, 0.4));
+
+  const resetZoom = () =>
+    setPreviewScale(getScaleToFit());
+
 
   return (
     <aside className="flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
@@ -176,6 +187,19 @@ const Canvas = () => {
 
       {isPreviewOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+
+          {/* zoom options */}
+          <div className="absolute top-2 right-2 z-30 flex gap-2 bg-black/70 rounded px-2 py-1">
+            <button onClick={zoomOut} className="text-white px-2">-</button>
+            <span className="text-white text-sm">
+              {Math.round(previewScale * 100)}%
+            </span>
+            <button onClick={zoomIn} className="text-white px-2">+</button>
+            <button onClick={resetZoom} className="text-white text-xs px-2">
+              Fit
+            </button>
+          </div>
+
           <div className="relative flex items-center justify-center">
             <button className="absolute top-2 right-2 z-30 bg-black/70 text-white rounded-full p-1.5 hover:bg-black transition" onClick={() => setIsPreviewOpen(false)}>
               <X className="h-4 w-4" />
@@ -194,13 +218,15 @@ const Canvas = () => {
                   height: A4_HEIGHT,
                   transform: `scale(${previewScale})`,
                   transformOrigin: "top left",
-                }}>
+                }}
+              >
+
                 <div className="flex flex-col w-full h-full pointer-events-none">
                   {sections.map((section) => (
                     <div key={section.id} className="flex w-full" style={{ height: `${100 / sections.length}%` }}>
                       {section.children?.map((block) => (
                         <div key={block.id} className="flex-1">
-                          <CVElementRenderer element={block} />
+                          <CVElementRenderer element={block} readonly />
                         </div>
                       ))}
                     </div>

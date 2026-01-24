@@ -3,7 +3,7 @@ import React from "react";
 import CvListRenderer from "./cv-list-renderer";
 import CvTextRenderer from "./cv-text-renderer";
 
-const CVElementRenderer = ({ element, sectionCount }: { element: CVElement; sectionCount?: number }) => {
+const CVElementRenderer = ({ element, sectionCount,  readonly = false,}: { element: CVElement; sectionCount?: number,  readonly?: boolean; }) => {
   // ---------- SECTION ----------
   if (element.type === "section") {
     return (
@@ -26,9 +26,9 @@ const CVElementRenderer = ({ element, sectionCount }: { element: CVElement; sect
   // ---------- CONTENT ----------
   switch (element.type) {
     case "text":
-      return <CvTextRenderer element={element} />;
+      return <CvTextRenderer element={element} readonly={readonly} />;
     case "list":
-      return <CvListRenderer element={element} />;
+      return <CvListRenderer element={element} readonly={readonly}/>;
     default:
       return <div>{element.content}</div>;
   }

@@ -9,7 +9,6 @@ import React from "react";
 const ElementOptions = () => {
   const { selectedElement, updateElement } = useCV();
   if (!selectedElement || !selectedElement.properties) return null;
-  if (selectedElement.type !== "text") return null;
 
   const props = selectedElement.properties;
   const FONT_WEIGHTS: {
@@ -17,12 +16,12 @@ const ElementOptions = () => {
     value: fontWeight;
     css: number;
   }[] = [
-    { label: "Light", value: "light", css: 300 },
-    { label: "Normal", value: "normal", css: 400 },
-    { label: "Medium", value: "medium", css: 500 },
-    { label: "Semi Bold", value: "semi-bold", css: 600 },
-    { label: "Bold", value: "bold", css: 700 },
-  ];
+      { label: "Light", value: "light", css: 300 },
+      { label: "Normal", value: "normal", css: 400 },
+      { label: "Medium", value: "medium", css: 500 },
+      { label: "Semi Bold", value: "semi-bold", css: 600 },
+      { label: "Bold", value: "bold", css: 700 },
+    ];
 
   return (
     <div className="mt-4 rounded-lg border p-3 space-y-1">
@@ -111,7 +110,7 @@ const ElementOptions = () => {
       </div>
 
       {/* ALIGNMENT */}
-      <div className="space-y-2 flex items-center justify-between">
+      {selectedElement.type == 'text' && <div className="space-y-2 flex items-center justify-between">
         <Label className="text-xs font-medium text-muted-foreground text-nowrap">Align</Label>
 
         <ToggleGroup
@@ -141,7 +140,7 @@ const ElementOptions = () => {
             <AlignRight className="h-4 w-4" />
           </ToggleGroupItem>
         </ToggleGroup>
-      </div>
+      </div>}
 
       {/* TEXT COLOR */}
       <div className="space-y-2 flex items-center justify-between">
@@ -164,6 +163,72 @@ const ElementOptions = () => {
           {props.color ?? "#000000"}
         </label>
       </div>
+
+      {/* BULLET ICONS */}
+      {selectedElement.type === "list" && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+            Bullet Icon
+          </Label>
+
+          <ToggleGroup
+            size="sm"
+            type="single"
+            variant="outline"
+            value={props.listStyle?.icon ?? "bullet"}
+            onValueChange={(value) => {
+              if (!value) return;
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  listStyle: {
+                    ...props.listStyle,
+                    icon: value,
+                  },
+                },
+              });
+            }}
+            className="flex gap-2"
+          >
+            <ToggleGroupItem value="bullet">•</ToggleGroupItem>
+            <ToggleGroupItem value="dash">—</ToggleGroupItem>
+            <ToggleGroupItem value="check">✔</ToggleGroupItem>
+            <ToggleGroupItem value="arrow">→</ToggleGroupItem>
+            <ToggleGroupItem value="number">123</ToggleGroupItem>
+
+          </ToggleGroup>
+        </div>)}
+      {/* Bullet Color */}
+      {selectedElement.type === "list" && (<div className="space-y-2 flex items-center justify-between">
+        <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+          Bullet Color
+        </Label>
+        <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
+          <span
+            className="w-5 h-5 rounded border"
+            style={{ background: props.listStyle?.iconColor ?? "#000000" }}
+          />
+          <input
+            type="color"
+            value={props.listStyle?.iconColor ?? "#000000"}
+            onChange={(e) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  listStyle: {
+                    ...props.listStyle,
+                    iconColor: e.target.value,
+                  },
+                },
+              })
+            }
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          {props.listStyle?.iconColor ?? "#000000"}
+        </label>
+      </div>
+
+      )}
     </div>
   );
 };

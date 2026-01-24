@@ -38,6 +38,7 @@ export function ChatbotWidget() {
   const prevCountRef = useRef(0);
   const endRef = useRef<HTMLDivElement | null>(null);
 
+  if(!localStorage.getItem('token')) return;
   const { messages, sendMessage, status } = useChat({
     transport: useMemo(() => createChatTransport(apiUrl), [apiUrl]),
   });
