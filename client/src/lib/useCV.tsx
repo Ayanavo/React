@@ -2,13 +2,13 @@ import React, { createContext, useContext, useState } from "react";
 
 /* ---------------- TYPES ---------------- */
 
-export type CVElementType = "section" | "block" | "text" | "element";
+export type CVElementType = "section" | "block" | "text" | "list" | "element";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 
 export interface CVElement {
   id: string;
   type: CVElementType;
-  content?: string;
+  content?: string | string[] | string[][];
   properties?: {
     fontSize?: number;
     fontWeight?: fontWeight;
@@ -16,9 +16,10 @@ export interface CVElement {
       strikethrough?: boolean;
       italic?: boolean;
       underline?: boolean;
-    }
-    textAlign?: 'start' | 'center' | 'end';
+    };
+    textAlign?: "start" | "center" | "end";
     color?: string;
+    columns?: number;
   };
   editable?: boolean;
   children?: CVElement[];
@@ -56,7 +57,6 @@ const CVContext = createContext<CVContextType | undefined>(undefined);
 const MAX_SECTIONS = 10;
 const MAX_BLOCKS_PER_SECTION = 5;
 
-
 /* ---------------- HELPERS ---------------- */
 
 const updateTree = (nodes: CVElement[], id: string, updater: (node: CVElement) => CVElement): CVElement[] =>
@@ -81,7 +81,6 @@ const findElementById = (nodes: CVElement[], id: string | null): CVElement | nul
   }
   return null;
 };
-
 
 /* ---------------- PROVIDER ---------------- */
 
@@ -129,7 +128,6 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const selectElement = (elementId: string) => {
     setSelectedElementId(elementId);
   };
-
 
   /* -------- DERIVED -------- */
 
@@ -187,7 +185,6 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
     selectBlock(sectionId, blockId);
   };
-
 
   const removeBlock = (blockId: string) => {
     let parentSectionId: string | null = null;
@@ -248,7 +245,6 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
       }))
     );
   };
-
 
   const removeElement = (id: string) => {
     setElements((prev) => removeFromTree(prev, id));

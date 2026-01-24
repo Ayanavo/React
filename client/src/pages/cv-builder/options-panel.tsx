@@ -23,7 +23,6 @@ const ElementOptions = () => {
     { label: "Semi Bold", value: "semi-bold", css: 600 },
     { label: "Bold", value: "bold", css: 700 },
   ];
-  
 
   return (
     <div className="mt-4 rounded-lg border p-3 space-y-1">
@@ -60,22 +59,17 @@ const ElementOptions = () => {
                 fontWeight: value as fontWeight,
               },
             })
-          }
-        >
+          }>
           <SelectTrigger className="w-32">
             <SelectValue placeholder="Select weight" />
           </SelectTrigger>
-  <SelectContent>
-      {FONT_WEIGHTS.map((fw) => (
-        <SelectItem
-          key={fw.value}
-          value={fw.value}
-          style={{ fontWeight: fw.css }}
-        >
-          {fw.label}
-        </SelectItem>
-      ))}
-    </SelectContent>
+          <SelectContent>
+            {FONT_WEIGHTS.map((fw) => (
+              <SelectItem key={fw.value} value={fw.value} style={{ fontWeight: fw.css }}>
+                {fw.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
         </Select>
       </div>
 
@@ -87,26 +81,21 @@ const ElementOptions = () => {
           size="sm"
           type="multiple"
           variant="outline"
-          value={[
-          props.fontStyle?.strikethrough && "strikethrough",
-          props.fontStyle?.italic && "italic",
-          props.fontStyle?.underline && "underline",
-        ].filter(Boolean) as string[]}
+          value={[props.fontStyle?.strikethrough && "strikethrough", props.fontStyle?.italic && "italic", props.fontStyle?.underline && "underline"].filter(Boolean) as string[]}
           onValueChange={(value) => {
             if (!value) return;
             updateElement(selectedElement.id, {
               properties: {
                 ...props,
                 fontStyle: {
-                strikethrough: value.includes("strikethrough"),
-                italic: value.includes("italic"),
-                underline: value.includes("underline"),
-              },
+                  strikethrough: value.includes("strikethrough"),
+                  italic: value.includes("italic"),
+                  underline: value.includes("underline"),
+                },
               },
             });
           }}
-          className="w-32 flex gap-2"
-        >
+          className="w-32 flex gap-2">
           <ToggleGroupItem value="normal">
             <Underline className="h-4 w-4" />
           </ToggleGroupItem>
@@ -139,8 +128,7 @@ const ElementOptions = () => {
               },
             });
           }}
-          className="w-32 flex gap-2"
-        >
+          className="w-32 flex gap-2">
           <ToggleGroupItem value="start">
             <AlignLeft className="h-4 w-4" />
           </ToggleGroupItem>
@@ -158,25 +146,22 @@ const ElementOptions = () => {
       {/* TEXT COLOR */}
       <div className="space-y-2 flex items-center justify-between">
         <Label className="text-xs font-medium text-muted-foreground text-nowrap">Color</Label>
-         <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
-      <span
-          className="w-6 h-6 block rounded-md border cursor-pointer"
-          style={{ background: props.color ?? "#000000" }}
-        />
-        <input
-          type="color"
-          value={(props as any).color ?? "#000000"}
-          onChange={(e) =>
-            updateElement(selectedElement.id, {
-              properties: {
-                ...props,
-                color: e.target.value,
-              },
-            })
-          }
-           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-        />
-        {props.color ?? "#000000"}
+        <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
+          <span className="w-6 h-6 block rounded-md border cursor-pointer" style={{ background: props.color ?? "#000000" }} />
+          <input
+            type="color"
+            value={(props as any).color ?? "#000000"}
+            onChange={(e) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  color: e.target.value,
+                },
+              })
+            }
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          {props.color ?? "#000000"}
         </label>
       </div>
     </div>

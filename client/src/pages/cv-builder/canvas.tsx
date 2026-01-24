@@ -91,7 +91,7 @@ const Canvas = () => {
               return (
                 <div
                   key={section.id}
-                  className={`relative flex w-full hover:ring-2 ring-ring hover:opacity-50 ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
+                  className={`relative flex w-full ${isSectionSelected ? "ring-2 ring-ring" : ""} `}
                   style={{ height: `${100 / sections.length}%` }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -105,7 +105,7 @@ const Canvas = () => {
                       return (
                         <div
                           key={block.id}
-                          className={`relative flex-1 ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
+                          className={`relative flex-1 hover:bg-zinc-200 ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
                           onClick={(e) => {
                             e.stopPropagation();
                             selectBlock(section.id, block.id);

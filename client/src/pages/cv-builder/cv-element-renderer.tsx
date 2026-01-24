@@ -1,46 +1,9 @@
-import { fontWeight, useCV, type CVElement } from "@/lib/useCV";
-import React, { CSSProperties, useState } from "react";
+import { type CVElement } from "@/lib/useCV";
+import React from "react";
+import CvListRenderer from "./cv-list-renderer";
+import CvTextRenderer from "./cv-text-renderer";
 
 const CVElementRenderer = ({ element, sectionCount }: { element: CVElement; sectionCount?: number }) => {
-  const { updateElement, selectElement, selectedElementId } = useCV();
-  const isSelected = selectedElementId === element.id;
-
-  const ref = React.useRef<HTMLParagraphElement>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const fontWeightMap: Record<fontWeight, number> = {
-    light: 300,
-    normal: 400,
-    medium: 500,
-    "semi-bold": 600,
-    bold: 700,
-  };
-  const decorations: string[] = [];
-
-  if (element.properties?.fontStyle?.underline) {
-    decorations.push("underline");
-  }
-
-  if (element.properties?.fontStyle?.strikethrough) {
-    decorations.push("line-through");
-  }
-
-  const style: CSSProperties = {
-    fontSize: element.properties?.fontSize
-      ? `${element.properties.fontSize}px`
-      : undefined,
-
-    fontWeight: element.properties?.fontWeight
-      ? fontWeightMap[element.properties.fontWeight]
-      : undefined,
-    fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
-    textDecoration: decorations.length ? decorations.join(" ") : "none",
-
-    textAlign: element.properties?.textAlign,
-    color: element.properties?.color,
-  };
-
-
-
   // ---------- SECTION ----------
   if (element.type === "section") {
     return (
@@ -59,60 +22,15 @@ const CVElementRenderer = ({ element, sectionCount }: { element: CVElement; sect
   if (element.type === "block") {
     return <div className="flex-1 h-full p-4">{element.children?.map((child) => <CVElementRenderer key={child.id} element={child} />)}</div>;
   }
-  console.log(element);
+
   // ---------- CONTENT ----------
   switch (element.type) {
     case "text":
-      return <p
-        ref={ref}
-        style={style}
-        contentEditable={element.editable}
-        suppressContentEditableWarning
-
-        onClick={(e) => {
-          e.stopPropagation();
-          selectElement(element.id);
-        }}
-
-        onFocus={() => setIsEditing(true)}
-
-        onBlur={() => {
-          setIsEditing(false);
-          updateElement(element.id, {
-            content: ref.current?.innerText ?? "",
-          });
-        }}
-
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            document.execCommand("insertLineBreak");
-          }
-        }}
-
-        onPaste={(e) => {
-          e.preventDefault();
-          const text = e.clipboardData.getData("text/plain");
-          document.execCommand("insertText", false, text);
-        }}
-
-        data-placeholder="Type here..."
-        className={`
-        cursor-text outline-none
-        empty:before:content-[attr(data-placeholder)]
-        empty:before:text-muted-foreground
-        rounded-sm px-1 transition
-
-        ${isSelected
-            ? "ring-2 ring-primary bg-primary/5"
-            : "ring-1 ring-transparent hover:ring-muted"
-          }
-      `}
-      >
-        {element.content}
-      </p>;
+      return <CvTextRenderer element={element} />;
+    case "list":
+      return <CvListRenderer element={element} />;
     default:
-      return <div style={style}>{element.content}</div>;
+      return <div>{element.content}</div>;
   }
 };
 

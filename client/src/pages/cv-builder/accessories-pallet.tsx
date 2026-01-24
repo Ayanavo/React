@@ -7,28 +7,28 @@ interface AccessoryType {
   id: string;
   label: string;
   type: CVElementType;
-  defaultContent: string;
+  defaultContent: string | string[];
   defaultProperties: Record<string, any>;
   icon: React.ReactNode;
 }
 
 const AccessoriesPallet = () => {
-  const {selectedBlockId, addContent} = useCV();
+  const { selectedBlockId, addContent } = useCV();
 
   const accessories: AccessoryType[] = [
     {
       id: "text",
       label: "Text",
       type: "text",
-      defaultContent: "Text",
+      defaultContent: "",
       defaultProperties: { fontSize: 14, fontWeight: "400" },
       icon: <Text className="w-6 h-6" />,
     },
     {
       id: "list",
       label: "List",
-      type: "element",
-      defaultContent: "• Item 1\n• Item 2\n• Item 3",
+      type: "list",
+      defaultContent: [""],
       defaultProperties: { fontSize: 14, fontWeight: "normal" },
       icon: <List className="w-6 h-6" />,
     },
@@ -72,40 +72,40 @@ const AccessoriesPallet = () => {
     addContent(selectedBlockId, {
       id: crypto.randomUUID(),
       type: accessory.type,
-      content: accessory.defaultContent,
+      content: accessory.defaultContent as string | string[] | string[][],
       properties: accessory.defaultProperties,
       editable: true,
     });
   };
 
   return (
-     <div className="space-y-4">
+    <div className="space-y-4">
       {/* ACCESSORIES */}
-    <div className="grid grid-cols-3 gap-6">
-      {accessories.map((accessory) => {
-        const disabled = !selectedBlockId;
+      <div className="grid grid-cols-3 gap-6">
+        {accessories.map((accessory) => {
+          const disabled = !selectedBlockId;
 
-        return (
-          <button
-            key={accessory.id}
-            disabled={disabled}
-            onClick={() => addAccessory(accessory)}
-            title={disabled ? "Select a block to add content" : `Add ${accessory.label}`}
-            className={`
+          return (
+            <button
+              key={accessory.id}
+              disabled={disabled}
+              onClick={() => addAccessory(accessory)}
+              title={disabled ? "Select a block to add content" : `Add ${accessory.label}`}
+              className={`
               aspect-square flex flex-col items-center justify-center gap-2
               rounded-lg border transition-all
               ${disabled ? "opacity-40 cursor-not-allowed bg-muted" : "bg-background border-border hover:border-primary/50 hover:bg-muted hover:shadow-md"}
             `}>
-            <div className="text-muted-foreground">{accessory.icon}</div>
-            <span className="text-xs font-medium text-foreground text-center leading-tight">{accessory.label}</span>
-          </button>
-        );
-      })}
-    </div>
+              <div className="text-muted-foreground">{accessory.icon}</div>
+              <span className="text-xs font-medium text-foreground text-center leading-tight">{accessory.label}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* OPTIONS */}
-    <ElementOptions />
-      </div>
+      <ElementOptions />
+    </div>
   );
 };
 
