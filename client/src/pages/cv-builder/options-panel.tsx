@@ -6,6 +6,7 @@ import { fontWeight, useCV } from "@/lib/useCV";
 import { AlignCenter, AlignLeft, AlignRight, Italic, Strikethrough, Underline } from "lucide-react";
 import React from "react";
 import { ListIcon } from "./list-icons";
+import { Switch } from "@/components/ui/switch";
 
 const ElementOptions = () => {
   const { selectedElement, updateElement } = useCV();
@@ -240,7 +241,7 @@ const ElementOptions = () => {
           </Label>
 
           <Select
-            value={props.dateFormat ?? "DD_MM_YYYY_TIME"}
+            value={props.dateFormat ?? "DD_MM_YYYY"}
             onValueChange={(value) =>
               updateElement(selectedElement.id, {
                 properties: {
@@ -254,17 +255,80 @@ const ElementOptions = () => {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="DD">Day</SelectItem>
-              <SelectItem value="MM">Month</SelectItem>
-              <SelectItem value="YYYY">Year</SelectItem>
-              <SelectItem value="MM_YYYY">Month Year</SelectItem>
-              <SelectItem value="DD_MM_YYYY">Day Month Year</SelectItem>
-              <SelectItem value="MM_YYYY_TIME">Month Year + Time</SelectItem>
-              <SelectItem value="DD_MM_YYYY_TIME">Day Month Year + Time</SelectItem>
+              <SelectItem value="DD_MM_YYYY">24 03 2026</SelectItem>
+              <SelectItem value="DD_MMM_YYYY">24 Mar 2026</SelectItem>
+              <SelectItem value="DD_MMMM_YYYY">24 March 2026</SelectItem>
+              <SelectItem value="MMM_YYYY">Mar 2026</SelectItem>
+              <SelectItem value="MMMM_YYYY">March 2026</SelectItem>
+              <SelectItem value="YYYY">2026</SelectItem>
             </SelectContent>
           </Select>
+
         </div>
       )}
+      {selectedElement.type === "date" && (
+        <>
+          {/* Date format selector (existing) */}
+
+          <div className="space-y-2 flex items-center justify-between">
+            <Label className="text-xs font-medium text-muted-foreground">
+              Include time
+            </Label>
+            <Switch
+              checked={props.includeTime ?? false}
+              onCheckedChange={(checked) =>
+                updateElement(selectedElement.id, {
+                  properties: {
+                    ...props,
+                    includeTime: checked,
+                  },
+                })
+              }
+            />
+          </div>
+        </>
+      )}
+
+      {props.includeTime && (
+           <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground">
+            Time format
+          </Label>
+
+          <ToggleGroup
+            type="single"
+            size="sm"
+            variant="outline"
+            value={props.timeFormat ?? "24"}
+            onValueChange={(value) => {
+              if (!value) return;
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  timeFormat: value as "24" | "12-lower" | "12-upper",
+                },
+              });
+            }}
+            className="flex gap-2"
+          >
+            <ToggleGroupItem value="24">
+              24
+            </ToggleGroupItem>
+
+            <ToggleGroupItem value="12-lower">
+              12 am
+            </ToggleGroupItem>
+
+            <ToggleGroupItem value="12-upper">
+              12 AM
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      )}
+
+
+
+
 
     </div>
   );

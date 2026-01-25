@@ -21,7 +21,7 @@ const AccessoriesPallet = () => {
       label: "Text",
       type: "text",
       defaultContent: "",
-      defaultProperties: { fontSize: 14, fontWeight: "400" },
+      defaultProperties: { fontSize: 14, fontWeight: "normal",  },
       icon: <Text className="w-6 h-6" />,
     },
     {
@@ -36,8 +36,8 @@ const AccessoriesPallet = () => {
       id: "date",
       label: "Date",
       type: "date",
-      defaultContent: "Jan 2020 - Present",
-      defaultProperties: { fontSize: 12, fontWeight: "500", fontStyle: "italic" },
+      defaultContent: "",
+      defaultProperties: { fontSize: 12, fontWeight: "normal", dateFormat: "DD_MM_YYYY", includeTime: false, timeFormat: "24" },
       icon: <Calendar className="w-6 h-6" />,
     },
     {
@@ -45,7 +45,7 @@ const AccessoriesPallet = () => {
       label: "Location",
       type: "element",
       defaultContent: "Kolkata, India",
-      defaultProperties: { fontSize: 10, fontWeight: "500", fontStyle: "italic" },
+      defaultProperties: { fontSize: 10, fontWeight: "normal", fontStyle: "italic" },
       icon: <MapPin className="w-6 h-6" />,
     },
     {

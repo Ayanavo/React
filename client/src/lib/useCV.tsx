@@ -9,13 +9,13 @@ export type PageProperties = {
 export type CVElementType = "section" | "block" | "text" | "list" | "date" | "element";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 export type DateFormat =
-  | "DD"
-  | "MM"
-  | "YYYY"
-  | "MM_YYYY"
   | "DD_MM_YYYY"
-  | "DD_MM_YYYY_TIME"
-  | "MM_YYYY_TIME";
+  | "DD_MMM_YYYY"
+  | "DD_MMMM_YYYY"
+  | "MMM_YYYY"
+  | "MMMM_YYYY"
+  | "YYYY";
+
 
 export interface CVElement {
   id: string;
@@ -23,6 +23,9 @@ export interface CVElement {
   content?: string | string[];
   properties?: {
     dateFormat?: DateFormat;
+    includeTime?: boolean;
+    timeFormat?: "24" | "12-lower" | "12-upper";
+
     fontSize?: number;
     fontWeight?: fontWeight;
     fontStyle?: {
