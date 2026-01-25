@@ -11,7 +11,7 @@ const A4_HEIGHT = 1123;
 const ZOOM = 1;
 
 const Canvas = () => {
-  const { elements, selectedSectionId, selectedBlockId, showSectionDividers, selectSection, selectBlock, removeSection, removeBlock, clearSelection, pageProperties  } = useCV();
+  const { elements, selectedSectionId, selectedBlockId, showSectionDividers, selectSection, selectBlock, removeSection, removeBlock, clearSelection, pageProperties } = useCV();
 
   const sections = elements.filter((el) => el.type === "section");
   const canDeleteSection = sections.length > 1;
@@ -96,60 +96,49 @@ const Canvas = () => {
           </div>
 
           <div className="flex flex-col w-full h-full">
-            {sections.map((section) => {
+            {sections.map((section, sectionIndex) => {
               const blocks = section.children ?? [];
-              const canDeleteBlock = blocks.length > 1;
               const isSectionSelected = selectedSectionId === section.id;
+              const isLastSection = sectionIndex === sections.length - 1;
 
               return (
                 <div
                   key={section.id}
-                  className={`relative flex w-full ${isSectionSelected ? "ring-2 ring-ring" : ""} `}
+                  className={`relative flex w-full ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
                   style={{ height: `${100 / sections.length}%` }}
                   onClick={(e) => {
                     e.stopPropagation();
                     selectSection(section.id);
-                  }}>
+                  }}
+                >
                   <div className="flex w-full h-full">
-                    {blocks.map((block, index) => {
+                    {blocks.map((block) => {
                       const isBlockSelected = selectedBlockId === block.id;
-                      const isLast = index === sections.length - 1;
 
                       return (
                         <div
                           key={block.id}
-                          className={`relative flex-1 hover:bg-zinc-200 ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
+                          className={`relative flex-1 hover:bg-zinc-200 ${isBlockSelected ? "ring-2 ring-ring" : ""
+                            }`}
                           onClick={(e) => {
                             e.stopPropagation();
                             selectBlock(section.id, block.id);
-                          }}>
+                          }}
+                        >
                           <CVElementRenderer element={block} />
-
-                          {isBlockSelected && canDeleteBlock && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeBlock(block.id);
-                                    }}
-                                    className="absolute top-2 right-2 bg-secondary text-secondary-foreground p-1 rounded shadow">
-                                    <Trash className="h-3 w-3" />
-                                  </button>
-                                </TooltipTrigger>
-                                <TooltipContent side="right">Delete Block</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                          {showSectionDividers && !isLast && <div className="absolute bottom-0 left-4 right-4 h-px bg-border" />}
                         </div>
                       );
                     })}
                   </div>
+
+                  {/* ✅ SECTION divider ONLY */}
+                  {showSectionDividers && !isLastSection && (
+                    <div className="absolute bottom-0 left-4 right-4 h-px bg-border" />
+                  )}
                 </div>
               );
             })}
+
           </div>
         </div>
 

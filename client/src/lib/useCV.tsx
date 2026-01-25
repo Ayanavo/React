@@ -6,14 +6,23 @@ export type PageProperties = {
   color?: string;
 };
 
-export type CVElementType = "section" | "block" | "text" | "list" | "element";
+export type CVElementType = "section" | "block" | "text" | "list" | "date" | "element";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
+export type DateFormat =
+  | "DD"
+  | "MM"
+  | "YYYY"
+  | "MM_YYYY"
+  | "DD_MM_YYYY"
+  | "DD_MM_YYYY_TIME"
+  | "MM_YYYY_TIME";
 
 export interface CVElement {
   id: string;
   type: CVElementType;
-  content?: string | string[] | string[][];
+  content?: string | string[];
   properties?: {
+    dateFormat?: DateFormat;
     fontSize?: number;
     fontWeight?: fontWeight;
     fontStyle?: {
@@ -28,6 +37,7 @@ export interface CVElement {
       iconColor?: string;
     };
   };
+
   editable?: boolean;
   children?: CVElement[];
 }
@@ -97,13 +107,10 @@ const findElementById = (nodes: CVElement[], id: string | null): CVElement | nul
 
 export function CVProvider({ children }: { children: React.ReactNode }) {
   const getInitialElements = (): CVElement[] => {
-    try {
-      const saved = sessionStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        return JSON.parse(saved);
-      }
-    } catch {
-      // ignore corrupt storage
+
+    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
     }
 
     // default structure
@@ -135,13 +142,13 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [showSectionDividers, setShowSectionDividers] = useState(false);
   const [pageProperties, setPageProperties] = useState<PageProperties>(() => {
-  try {
-    const saved = sessionStorage.getItem("cv-page-properties");
-    return saved ? JSON.parse(saved) : {};
-  } catch {
-    return {};
-  }
-});
+    try {
+      const saved = sessionStorage.getItem("cv-page-properties");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
 
   useEffect(() => {
@@ -153,8 +160,8 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   }, [elements]);
 
   useEffect(() => {
-  sessionStorage.setItem("cv-page-properties", JSON.stringify(pageProperties));
-}, [pageProperties]);
+    sessionStorage.setItem("cv-page-properties", JSON.stringify(pageProperties));
+  }, [pageProperties]);
 
 
 
@@ -309,11 +316,11 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updatePageProperties = (props: Partial<PageProperties>) => {
-  setPageProperties((prev) => ({
-    ...prev,
-    ...props,
-  }));
-};
+    setPageProperties((prev) => ({
+      ...prev,
+      ...props,
+    }));
+  };
 
 
 

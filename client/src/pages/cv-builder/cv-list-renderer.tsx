@@ -1,6 +1,7 @@
 import { CVElement, useCV } from "@/lib/useCV";
 import React, { CSSProperties, useRef } from "react";
 import { ListIcon } from "./list-icons";
+import { Trash } from "lucide-react";
 
 const CvListRenderer = ({
   element,
@@ -9,7 +10,7 @@ const CvListRenderer = ({
   element: CVElement;
   readonly?: boolean;
 }) => {
-  const { updateElement, selectedElementId, selectElement } = useCV();
+  const { updateElement, selectedElementId, removeElement, selectElement } = useCV();
 
   const ref = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -205,6 +206,18 @@ const CvListRenderer = ({
         ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
       `}
     >
+      {!readonly && isSelected && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            removeElement(element.id);
+          }}
+          className="absolute top-2 right-2 bg-secondary text-secondary-foreground p-1 rounded shadow"
+        >
+          <Trash className="h-3 w-3" />
+        </button>
+      )}
+
       {items.map((item, index) => (
         <div
           key={index}

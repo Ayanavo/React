@@ -1,8 +1,9 @@
 import { CVElement, fontWeight, useCV } from "@/lib/useCV";
+import { Trash } from "lucide-react";
 import React, { CSSProperties, useRef } from "react";
 
 const CvTextRenderer = ({ element, readonly = false }: { element: CVElement, readonly?: boolean }) => {
-  const { updateElement, selectedElementId, selectElement } = useCV();
+  const { updateElement, selectedElementId, removeElement, selectElement } = useCV();
   const ref = useRef<HTMLDivElement>(null);
   const isSelected = selectedElementId === element.id;
   const fontWeightMap: Record<fontWeight, number> = {
@@ -32,42 +33,60 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement, rea
   };
 
   return (
-    <p
-      ref={ref}
-      style={style}
-      contentEditable={!readonly && element.editable !== false}
-      suppressContentEditableWarning
-     onClick={!readonly ? (e) => {
-        e.stopPropagation();
-        selectElement(element.id);
-      } : undefined}
-      onBlur={() => {
-        updateElement(element.id, {
-          content: ref.current?.innerText ?? "",
-        });
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          document.execCommand("insertLineBreak");
-        }
-      }}
-      onPaste={(e) => {
-        e.preventDefault();
-        const text = e.clipboardData.getData("text/plain");
-        document.execCommand("insertText", false, text);
-      }}
-      data-placeholder="Type here..."
-      className={`
-        cursor-text outline-none
-        empty:before:content-[attr(data-placeholder)]
-        empty:before:text-muted-foreground
-        rounded-sm px-1 transition
+    <div className="relative">
+      {!readonly && isSelected && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            removeElement(element.id);
+          }}
+          className="absolute top-2 right-2 bg-secondary text-secondary-foreground p-1 rounded shadow"
+        >
+          <Trash className="h-3 w-3" />
+        </button>
+      )}
 
-        ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
-      `}>
-      {element.content}
-    </p>
+      <p
+        ref={ref}
+        style={style}
+        contentEditable={!readonly && element.editable !== false}
+        suppressContentEditableWarning
+        onClick={
+          !readonly
+            ? (e) => {
+              e.stopPropagation();
+              selectElement(element.id);
+            }
+            : undefined
+        }
+        onBlur={() => {
+          updateElement(element.id, {
+            content: ref.current?.innerText ?? "",
+          });
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            document.execCommand("insertLineBreak");
+          }
+        }}
+        onPaste={(e) => {
+          e.preventDefault();
+          const text = e.clipboardData.getData("text/plain");
+          document.execCommand("insertText", false, text);
+        }}
+        data-placeholder="Type here..."
+        className={`
+      cursor-text outline-none
+      empty:before:content-[attr(data-placeholder)]
+      empty:before:text-muted-foreground
+      rounded-sm px-1 transition
+      ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
+    `}
+      >
+        {element.content}
+      </p>
+    </div>
   );
 };
 

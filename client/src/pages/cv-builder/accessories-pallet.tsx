@@ -35,7 +35,7 @@ const AccessoriesPallet = () => {
     {
       id: "date",
       label: "Date",
-      type: "element",
+      type: "date",
       defaultContent: "Jan 2020 - Present",
       defaultProperties: { fontSize: 12, fontWeight: "500", fontStyle: "italic" },
       icon: <Calendar className="w-6 h-6" />,
@@ -80,7 +80,7 @@ const AccessoriesPallet = () => {
     addContent(selectedBlockId, {
       id: crypto.randomUUID(),
       type: accessory.type,
-      content: accessory.defaultContent as string | string[] | string[][],
+      content: accessory.defaultContent as string | string[],
       properties: accessory.defaultProperties,
       editable: true,
     });

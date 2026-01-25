@@ -1,5 +1,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { Toggle } from "@/components/ui/toggle";
 import { useCV, type CVElement } from "@/lib/useCV";
 import { Blocks, LayoutPanelTop } from "lucide-react";
 import React from "react";
@@ -71,20 +73,24 @@ const LayoutPallet = () => {
       </button>
 
       {/* Toggle Section Divider */}
-      <label className="flex items-center gap-2 px-1 py-2 rounded-md cursor-pointer select-none">
-        <Checkbox checked={showSectionDividers} onCheckedChange={toggleSectionDividers} />
-        <span className="text-xs text-foreground">Add sections dividers</span>
-      </label>
+      <div className="flex items-center justify-between px-2 py-2 rounded-md">
+        <span className="text-xs text-foreground">Add section dividers</span>
+        <Switch
+          checked={showSectionDividers}
+          onCheckedChange={toggleSectionDividers}
+        />
+      </div>
 
 
-     <div className="mt-4 rounded-lg border p-3 space-y-1">
+
+      <div className="mt-4 rounded-lg border p-3 space-y-1">
         <div className="space-y-2 flex items-center justify-between">
-           <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">
             Page Background
           </Label>
 
-          <label className="relative flex items-center justify-between border rounded-md px-2 py-[6px] shadow cursor-pointer">
-            <span className="w-6 h-6 block rounded-md border cursor-pointer"
+          <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
+            <span className="w-5 h-5 rounded border"
               style={{ background: pageProperties.backgroundColor ?? "#ffffff" }}
             />
             <input
@@ -100,12 +106,12 @@ const LayoutPallet = () => {
         </div>
 
         <div className="space-y-2 flex items-center justify-between">
-           <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">
             Page Font Color
           </Label>
 
-          <label className="relative flex items-center justify-between border rounded-md px-2 py-[6px] shadow cursor-pointer">
-            <span className="w-6 h-6 block rounded-md border cursor-pointer"
+          <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
+            <span className="w-5 h-5 rounded border"
               style={{ background: pageProperties.color ?? "#000000" }}
             />
             <input

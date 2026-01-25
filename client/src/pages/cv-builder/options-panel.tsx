@@ -33,15 +33,18 @@ const ElementOptions = () => {
         <Input
           type="number"
           value={props.fontSize ?? 14}
-          onChange={(e) =>
+          onChange={(e) => {
+            const value = Math.round(Number(e.target.value));
             updateElement(selectedElement.id, {
               properties: {
                 ...props,
-                fontSize: Number(e.target.value),
+                fontSize: value,
               },
-            })
-          }
+            });
+          }}
+
           className="w-32"
+          step={1}
           min={8}
           max={72}
         />
@@ -112,7 +115,7 @@ const ElementOptions = () => {
       </div>
 
       {/* ALIGNMENT */}
-      {selectedElement.type == 'text' && <div className="space-y-2 flex items-center justify-between">
+      {selectedElement.type != 'list' && <div className="space-y-2 flex items-center justify-between">
         <Label className="text-xs font-medium text-muted-foreground text-nowrap">Align</Label>
 
         <ToggleGroup
@@ -230,6 +233,39 @@ const ElementOptions = () => {
       </div>
 
       )}
+      {/* Date Formats */}
+      {selectedElement.type === "date" && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap"> Date Format
+          </Label>
+
+          <Select
+            value={props.dateFormat ?? "DD_MM_YYYY_TIME"}
+            onValueChange={(value) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  dateFormat: value as any,
+                },
+              })
+            }
+          >
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="DD">Day</SelectItem>
+              <SelectItem value="MM">Month</SelectItem>
+              <SelectItem value="YYYY">Year</SelectItem>
+              <SelectItem value="MM_YYYY">Month Year</SelectItem>
+              <SelectItem value="DD_MM_YYYY">Day Month Year</SelectItem>
+              <SelectItem value="MM_YYYY_TIME">Month Year + Time</SelectItem>
+              <SelectItem value="DD_MM_YYYY_TIME">Day Month Year + Time</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
     </div>
   );
 };
