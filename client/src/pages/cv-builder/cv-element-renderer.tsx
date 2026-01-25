@@ -3,6 +3,7 @@ import React from "react";
 import CvListRenderer from "./cv-list-renderer";
 import CvTextRenderer from "./cv-text-renderer";
 import CvDateRenderer from "./cv-date-renderer";
+import CvTokenRenderer from "./cv-token-renderer";
 
 const CVElementRenderer = ({ element, sectionCount,  readonly = false,}: { element: CVElement; sectionCount?: number,  readonly?: boolean; }) => {
   // ---------- SECTION ----------
@@ -32,6 +33,8 @@ const CVElementRenderer = ({ element, sectionCount,  readonly = false,}: { eleme
       return <CvListRenderer element={element} readonly={readonly}/>;
     case "date":
       return <CvDateRenderer element={element} readonly={readonly} />;
+      case "token":
+        return <CvTokenRenderer element={element} readonly={readonly} />;
     default:
       return <div>{element.content}</div>;
   }

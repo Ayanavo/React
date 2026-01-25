@@ -1,7 +1,5 @@
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Toggle } from "@/components/ui/toggle";
 import { useCV, type CVElement } from "@/lib/useCV";
 import { Blocks, LayoutPanelTop } from "lucide-react";
 import React from "react";

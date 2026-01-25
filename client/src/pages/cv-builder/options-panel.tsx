@@ -1,12 +1,12 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { fontWeight, useCV } from "@/lib/useCV";
-import { AlignCenter, AlignLeft, AlignRight, Italic, Strikethrough, Underline } from "lucide-react";
+import { AlignCenter, AlignLeft, AlignRight, ArrowRight, Dot, Italic, Minus, PlusIcon, Slash, Strikethrough, Underline } from "lucide-react";
 import React from "react";
 import { ListIcon } from "./list-icons";
-import { Switch } from "@/components/ui/switch";
 
 const ElementOptions = () => {
   const { selectedElement, updateElement } = useCV();
@@ -290,7 +290,7 @@ const ElementOptions = () => {
       )}
 
       {props.includeTime && (
-           <div className="space-y-2 flex items-center justify-between">
+        <div className="space-y-2 flex items-center justify-between">
           <Label className="text-xs font-medium text-muted-foreground">
             Time format
           </Label>
@@ -311,25 +311,147 @@ const ElementOptions = () => {
             }}
             className="flex gap-2"
           >
-            <ToggleGroupItem value="24">
-              24
-            </ToggleGroupItem>
-
-            <ToggleGroupItem value="12-lower">
-              12 am
-            </ToggleGroupItem>
-
-            <ToggleGroupItem value="12-upper">
-              12 AM
-            </ToggleGroupItem>
+            <ToggleGroupItem value="24"> 24 </ToggleGroupItem>
+            <ToggleGroupItem value="12-lower"> 12 am </ToggleGroupItem>
+            <ToggleGroupItem value="12-upper"> 12 AM </ToggleGroupItem>
           </ToggleGroup>
         </div>
       )}
 
+      {selectedElement.type === "token" && <div className="space-y-2 flex items-center justify-between">
+        <Label className="text-xs font-medium text-muted-foreground text-nowrap">Token background</Label>
+        <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
+          <span className="w-6 h-6 block rounded-md border cursor-pointer" style={{ background: props.tokenStyle?.backgroundColor ?? "#f1f5f9" }} />
+          <input
+            type="color"
+            value={props.tokenStyle?.backgroundColor ?? "#f1f5f9"}
+            onChange={(e) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  tokenStyle: {
+                    ...props.tokenStyle,
+                    backgroundColor: e.target.value,
+                  },
+                },
+              })
+            }
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          {props.tokenStyle?.backgroundColor ?? "#f1f5f9"}
+        </label>
+      </div>
+      }
 
+      {selectedElement.type === "token" && <div className="space-y-2 flex items-center justify-between">
+        <Label className="text-xs font-medium text-muted-foreground text-nowrap">Border color</Label>
+        <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
+          <span className="w-6 h-6 block rounded-md border cursor-pointer" style={{ background: props.tokenStyle?.borderColor ?? "#cbd5e1" }} />
+          <input
+            type="color"
+            value={props.tokenStyle?.borderColor ?? "#cbd5e1"}
+            onChange={(e) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  tokenStyle: {
+                    ...props.tokenStyle,
+                    borderColor: e.target.value,
+                  },
+                },
+              })
+            }
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          />
+          {props.tokenStyle?.borderColor ?? "#cbd5e1"}
+        </label>
+      </div>}
 
+      {selectedElement.type === "token" && <div className="space-y-2 flex items-center justify-between">
+        <Label className="text-xs font-medium text-muted-foreground text-nowrap">Border radius</Label>
+        <Input
+          type="number"
+          step={1}
+          min={0}
+          max={24}
+          value={props.tokenStyle?.radius ?? 6}
+          onChange={(e) =>
+            updateElement(selectedElement.id, {
+              properties: {
+                ...props,
+                tokenStyle: {
+                  ...props.tokenStyle,
+                  radius: Number(e.target.value),
+                },
+              },
+            })
+          }
+          className="w-32"
+        />
+      </div>
+      }
+      {selectedElement.type === "token" && <div className="space-y-2 flex items-center justify-between">
+        <Label className="text-xs font-medium text-muted-foreground">
+          Add interlink
+        </Label>
+        <Switch
+          checked={props.tokenInterlink?.enabled ?? false}
+          onCheckedChange={(checked) =>
+            updateElement(selectedElement.id, {
+              properties: {
+                ...props,
+                tokenInterlink: {
+                  ...props.tokenInterlink,
+                  enabled: checked,
+                },
+              },
+            })
+          }
+        />
+      </div>
+      }
 
+      {selectedElement.type === "token" && props.tokenInterlink?.enabled && (
+        <ToggleGroup
+          type="single"
+          size="sm"
+          variant="outline"
+          value={props.tokenInterlink?.icon ?? "dot"}
+          onValueChange={(value) => {
+            if (!value) return;
+            updateElement(selectedElement.id, {
+              properties: {
+                ...props,
+                tokenInterlink: {
+                  ...props.tokenInterlink,
+                  icon: value as any,
+                },
+              },
+            });
+          }}
+          className="flex gap-2 mt-2"
+        >
+          <ToggleGroupItem value="dot">
+            <Dot className="w-4 h-4" />
+          </ToggleGroupItem>
 
+          <ToggleGroupItem value="slash">
+            <Slash className="w-4 h-4" />
+          </ToggleGroupItem>
+
+          <ToggleGroupItem value="pipe">
+            <Minus className="w-4 h-4 rotate-90" strokeWidth={2} />
+          </ToggleGroupItem>
+
+          <ToggleGroupItem value="arrow">
+            <ArrowRight className="w-4 h-4" />
+          </ToggleGroupItem>
+
+          <ToggleGroupItem value="plus">
+            <PlusIcon className="w-4 h-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
+      )}
     </div>
   );
 };

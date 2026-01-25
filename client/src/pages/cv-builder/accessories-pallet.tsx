@@ -67,9 +67,9 @@ const AccessoriesPallet = () => {
     {
       id: 'tag',
       label: "Tag",
-      type: "element",
+      type: "token",
       defaultContent: "",
-      defaultProperties: {},
+      defaultProperties: { fontSize: 10, fontWeight: "normal", backgroundColor: "#f1f5f9",  borderColor: "#cbd5e1", radius: 6},
       icon: <Tag className="w-6 h-6" />,
     }
   ];
