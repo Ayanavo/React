@@ -123,7 +123,7 @@ const CvTokenRenderer = ({
 
                         {/* INTERLINK BETWEEN CHIPS */}
                         {interlinkEnabled && index < tokens.length - 1 && (
-                            <span className="mx-1 text-muted-foreground select-none flex items-center">
+                            <span className="text-muted-foreground select-none flex items-center">
                                 {InterlinkIcon}
                             </span>
 
