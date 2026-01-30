@@ -51,9 +51,19 @@ const AccessoriesPallet = () => {
     {
       id: "image",
       label: "Profile Image",
-      type: "element",
+      type: "image",
       defaultContent: "",
-      defaultProperties: {},
+      defaultProperties: { fontSize: 10, fontWeight: "normal",  imageStyle: {
+        radius: 6,
+        imageScale: 1
+      },
+      imageBorder: {
+        enabled: false,
+        borderColor: '#000',
+        borderWidth: 1,
+        padding: 0,
+      },
+    },
       icon: <Image className="w-6 h-6" />,
     },
     {

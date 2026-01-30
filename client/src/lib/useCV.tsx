@@ -6,7 +6,7 @@ export type PageProperties = {
   color?: string;
 };
 
-export type CVElementType = "section" | "block" | "text" | "list" | "date" | "token" | "element";
+export type CVElementType = "section" | "block" | "text" | "list" | "date" | "token" | "image" | "element";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 export type DateFormat =
   | "DD_MM_YYYY"
@@ -22,6 +22,7 @@ export interface CVElement {
   type: CVElementType;
   content?: string | string[];
   properties?: {
+    imageSrc?: string;
     dateFormat?: DateFormat;
     includeTime?: boolean;
     timeFormat?: "24" | "12-lower" | "12-upper";
@@ -48,7 +49,20 @@ export interface CVElement {
       enabled?: boolean;
       icon?: "dot" | "slash" | "pipe" | "arrow" | "plus";
     };
-
+    imageStyle?: {
+      radius?: number;
+      imageScale?: number; // default = 1
+    };
+    imageMeta?: {
+      naturalWidth?: number;
+      naturalHeight?: number;
+    };
+    imageBorder?: {
+      enabled?: boolean;
+      borderColor?: string;
+      borderWidth?: number;
+      padding?: number;
+    }
   };
 
   editable?: boolean;

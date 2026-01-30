@@ -4,6 +4,7 @@ import CvListRenderer from "./cv-list-renderer";
 import CvTextRenderer from "./cv-text-renderer";
 import CvDateRenderer from "./cv-date-renderer";
 import CvTokenRenderer from "./cv-token-renderer";
+import CvImageRenderer from "./cv-image-renderer";
 
 const CVElementRenderer = ({ element, sectionCount,  readonly = false,}: { element: CVElement; sectionCount?: number,  readonly?: boolean; }) => {
   // ---------- SECTION ----------
@@ -33,8 +34,10 @@ const CVElementRenderer = ({ element, sectionCount,  readonly = false,}: { eleme
       return <CvListRenderer element={element} readonly={readonly}/>;
     case "date":
       return <CvDateRenderer element={element} readonly={readonly} />;
-      case "token":
-        return <CvTokenRenderer element={element} readonly={readonly} />;
+    case "token":
+      return <CvTokenRenderer element={element} readonly={readonly} />;
+    case "image":
+      return <CvImageRenderer element={element} readonly={readonly} />;
     default:
       return <div>{element.content}</div>;
   }

@@ -7,6 +7,7 @@ import { fontWeight, useCV } from "@/lib/useCV";
 import { AlignCenter, AlignLeft, AlignRight, ArrowRight, Dot, Italic, Minus, PlusIcon, Slash, Strikethrough, Underline } from "lucide-react";
 import React from "react";
 import { ListIcon } from "./list-icons";
+import { Slider } from "@/components/ui/slider";
 
 const ElementOptions = () => {
   const { selectedElement, updateElement } = useCV();
@@ -452,6 +453,171 @@ const ElementOptions = () => {
           </ToggleGroupItem>
         </ToggleGroup>
       )}
+
+      {/* IMAGE OPTIONS */}
+      {selectedElement.type === "image" && (
+        <>
+          {/* IMAGE SIZE */}
+          <div className="space-y-2 flex items-center justify-between">
+            <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+              Image size
+            </Label>
+            <Slider
+              className="w-32"
+              min={0.2}
+              max={3}
+              step={0.05}
+              value={[props.imageStyle?.imageScale ?? 1]}
+              onValueChange={([value]) =>
+                updateElement(selectedElement.id, {
+                  properties: {
+                    ...props,
+                    imageStyle: {
+                      ...props.imageStyle,
+                      imageScale: value,
+                    },
+                  },
+                })
+              }
+            />
+
+          </div>
+
+          {/* IMAGE RADIUS */}
+          <div className="space-y-2 flex items-center justify-between">
+            <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+              Image radius
+            </Label>
+            <Input
+              type="number"
+              min={0}
+              max={100}
+              step={1}
+              value={props.imageStyle?.radius ?? 0}
+              onChange={(e) =>
+                updateElement(selectedElement.id, {
+                  properties: {
+                    ...props,
+                    imageStyle: {
+                      ...props.imageStyle,
+                      radius: Number(e.target.value),
+                    },
+                  },
+                })
+              }
+              className="w-32"
+            />
+          </div>
+
+          {/* BORDER ENABLE */}
+          <div className="space-y-2 flex items-center justify-between">
+            <Label className="text-xs font-medium text-muted-foreground">
+              Border
+            </Label>
+            <Switch
+              checked={props.imageBorder?.enabled ?? false}
+              onCheckedChange={(checked) =>
+                updateElement(selectedElement.id, {
+                  properties: {
+                    ...props,
+                    imageBorder: {
+                      ...props.imageBorder,
+                      enabled: checked,
+                    },
+                  },
+                })
+              }
+            />
+          </div>
+
+          {/* BORDER COLOR */}
+          {props.imageBorder?.enabled && (
+            <>
+              <div className="space-y-2 flex items-center justify-between">
+                <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+                  Border color
+                </Label>
+                <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
+                  <span
+                    className="w-5 h-5 rounded border"
+                    style={{ background: props.imageBorder?.borderColor ?? "#000000" }}
+                  />
+                  <input
+                    type="color"
+                    value={props.imageBorder?.borderColor ?? "#000000"}
+                    onChange={(e) =>
+                      updateElement(selectedElement.id, {
+                        properties: {
+                          ...props,
+                          imageBorder: {
+                            ...props.imageBorder,
+                            borderColor: e.target.value,
+                          },
+                        },
+                      })
+                    }
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                  {props.imageBorder?.borderColor ?? "#000000"}
+                </label>
+              </div>
+
+              {/* BORDER WIDTH */}
+              <div className="space-y-2 flex items-center justify-between">
+                <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+                  Border width
+                </Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={12}
+                  step={1}
+                  value={props.imageBorder?.borderWidth ?? 1}
+                  onChange={(e) =>
+                    updateElement(selectedElement.id, {
+                      properties: {
+                        ...props,
+                        imageBorder: {
+                          ...props.imageBorder,
+                          borderWidth: Number(e.target.value),
+                        },
+                      },
+                    })
+                  }
+                  className="w-32"
+                />
+              </div>
+
+              {/* BORDER PADDING */}
+              <div className="space-y-2 flex items-center justify-between">
+                <Label className="text-xs font-medium text-muted-foreground text-nowrap">
+                  Border padding
+                </Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={24}
+                  step={1}
+                  value={props.imageBorder?.padding ?? 0}
+                  onChange={(e) =>
+                    updateElement(selectedElement.id, {
+                      properties: {
+                        ...props,
+                        imageBorder: {
+                          ...props.imageBorder,
+                          padding: Number(e.target.value),
+                        },
+                      },
+                    })
+                  }
+                  className="w-32"
+                />
+              </div>
+            </>
+          )}
+        </>
+      )}
+
     </div>
   );
 };
