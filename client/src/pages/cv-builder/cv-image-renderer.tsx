@@ -1,6 +1,6 @@
 import { ImageCropper } from "@/components/ui/image-cropper";
 import { CVElement, useCV } from "@/lib/useCV";
-import { Crop, ImagePlus, RefreshCw, Trash, Trash2 } from "lucide-react";
+import { ImagePlus, Trash } from "lucide-react";
 import React, { CSSProperties, useState } from "react";
 
 const CvImageRenderer = ({

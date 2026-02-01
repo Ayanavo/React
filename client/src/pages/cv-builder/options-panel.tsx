@@ -368,26 +368,25 @@ const ElementOptions = () => {
         </label>
       </div>}
 
-      {selectedElement.type === "token" && <div className="space-y-2 flex items-center justify-between">
+      {selectedElement.type === "token" && <div className="space-y-6 flex items-center justify-between">
         <Label className="text-xs font-medium text-muted-foreground text-nowrap">Border radius</Label>
-        <Input
-          type="number"
-          step={1}
+        <Slider
+          className="w-32"
           min={0}
-          max={24}
-          value={props.tokenStyle?.radius ?? 6}
-          onChange={(e) =>
+          max={12}
+          step={1}
+          value={[props.tokenStyle?.radius ?? 6]}
+          onValueChange={([value]) =>
             updateElement(selectedElement.id, {
               properties: {
                 ...props,
                 tokenStyle: {
                   ...props.tokenStyle,
-                  radius: Number(e.target.value),
+                  radius: Number(value),
                 },
               },
             })
           }
-          className="w-32"
         />
       </div>
       }
@@ -484,28 +483,27 @@ const ElementOptions = () => {
           </div>
 
           {/* IMAGE RADIUS */}
-          <div className="space-y-2 flex items-center justify-between">
+          <div className="space-y-6 flex items-center justify-between">
             <Label className="text-xs font-medium text-muted-foreground text-nowrap">
               Image radius
             </Label>
-            <Input
-              type="number"
+            <Slider
+              className="w-32"
               min={0}
-              max={100}
+              max={60 * (props.imageStyle?.imageScale ?? 1)}
               step={1}
-              value={props.imageStyle?.radius ?? 0}
-              onChange={(e) =>
+              value={[props.imageStyle?.radius ?? 6]}
+              onValueChange={([value]) =>
                 updateElement(selectedElement.id, {
                   properties: {
                     ...props,
                     imageStyle: {
                       ...props.imageStyle,
-                      radius: Number(e.target.value),
+                      radius: Number(value),
                     },
                   },
                 })
               }
-              className="w-32"
             />
           </div>
 

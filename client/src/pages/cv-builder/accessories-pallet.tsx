@@ -1,5 +1,5 @@
 import { CVElementType, useCV } from "@/lib/useCV";
-import { Calendar, Image, List, MapPin, SquareUser, Tag, Text } from "lucide-react";
+import { Calendar, Image, List, MapPin, Tag, Text } from "lucide-react";
 import React from "react";
 import ElementOptions from "./options-panel";
 
@@ -43,8 +43,8 @@ const AccessoriesPallet = () => {
     {
       id: "location",
       label: "Location",
-      type: "element",
-      defaultContent: "Kolkata, India",
+      type: "location",
+      defaultContent: "",
       defaultProperties: { fontSize: 10, fontWeight: "normal", fontStyle: "italic" },
       icon: <MapPin className="w-6 h-6" />,
     },
@@ -65,14 +65,6 @@ const AccessoriesPallet = () => {
       },
     },
       icon: <Image className="w-6 h-6" />,
-    },
-    {
-      id: "icon",
-      label: "Icon",
-      type: "element",
-      defaultContent: "",
-      defaultProperties: {},
-      icon: <SquareUser className="w-6 h-6" />,
     },
     {
       id: 'tag',

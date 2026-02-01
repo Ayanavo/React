@@ -17,7 +17,7 @@ const TokenInput = ({ value, onChange, readonly, }: { value: string; readonly?: 
             {readonly ? (<span className="whitespace-pre">{value || "—"}</span>) : (
                 <input ref={inputRef} value={value}
                     onChange={(e) => onChange?.(e.target.value)}
-                    className=" bg-transparent outline-none text-sm leading-none px-0 py-0"
+                    className=" bg-transparent outline-none text-sm leading-none px-0 py-0 mw-2"
                 />
             )}
         </>

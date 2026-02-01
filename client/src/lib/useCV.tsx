@@ -6,7 +6,7 @@ export type PageProperties = {
   color?: string;
 };
 
-export type CVElementType = "section" | "block" | "text" | "list" | "date" | "token" | "image" | "element";
+export type CVElementType = "page" | "section" | "block" | "text" | "list" | "date" | "token" | "image" | "location";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 export type DateFormat =
   | "DD_MM_YYYY"
@@ -20,6 +20,7 @@ export type DateFormat =
 export interface CVElement {
   id: string;
   type: CVElementType;
+  height?: number;
   content?: string | string[];
   properties?: {
     imageSrc?: string;
@@ -73,16 +74,18 @@ export interface CVElement {
 
 interface CVContextType {
   elements: CVElement[];
+  selectedPageId: string | null;
   selectedElement: CVElement | null;
   selectedElementId: string | null;
   selectedSectionId: string | null;
   selectedBlockId: string | null;
-  selectSection: (sectionId: string) => void;
-  selectBlock: (sectionId: string, blockId: string) => void;
+  selectPage: (pageId: string) => void;
+  selectSection: (pageId: string, sectionId: string) => void;
+  selectBlock: (pageId: string, sectionId: string, blockId: string) => void;
   selectElement: (elementId: string) => void;
-  addSection: () => void;
+  addSection: (pageId: string) => void;
   removeSection: (sectionId: string) => void;
-  addBlock: (sectionId: string) => void;
+  addBlock: (pageId: string, sectionId: string) => void;
   removeBlock: (blockId: string) => void;
   addContent: (blockId: string, element: CVElement) => void;
   updateElement: (id: string, updates: Partial<CVElement>) => void;
@@ -93,8 +96,15 @@ interface CVContextType {
   commitEdits: () => void;
   pageProperties: PageProperties;
   updatePageProperties: (props: Partial<PageProperties>) => void;
+  showPagination: boolean;
+  togglePagination: () => void;
+  addPage: (value: number) => void;
+  showSideBar: boolean;
+  toggleSideBar: () => void;
   MAX_SECTIONS: number;
   MAX_BLOCKS_PER_SECTION: number;
+  A4_WIDTH: number;
+  A4_HEIGHT: number;
 }
 
 const CVContext = createContext<CVContextType | undefined>(undefined);
@@ -104,6 +114,34 @@ const STORAGE_KEY = "cv-editor-session";
 
 const MAX_SECTIONS = 10;
 const MAX_BLOCKS_PER_SECTION = 5;
+const A4_WIDTH = 794;
+const A4_HEIGHT = 1123;
+const DEFAULT_ELEMENT_CONFIG = [{
+    id: crypto.randomUUID() as string,
+    type: "page",
+    children: [
+      {
+        id: crypto.randomUUID() as string,
+        type: "section",
+        height: A4_HEIGHT * 1,
+        children: [
+          {
+            id: crypto.randomUUID() as string,
+            type: "block",
+            children: [
+              {
+                id: crypto.randomUUID() as string,
+                type: "text",
+                content: "Header",
+                properties: { fontSize: 28, fontWeight: "medium" as fontWeight, textAlign: 'center', color: '#c5c5c5' },
+              },
+            ],
+          },
+        ],
+      },
+    ]
+  }] as const satisfies CVElement[];
+
 
 /* ---------------- HELPERS ---------------- */
 
@@ -140,34 +178,17 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
       return JSON.parse(saved);
     }
 
-    // default structure
-    return [
-      {
-        id: crypto.randomUUID(),
-        type: "section",
-        children: [
-          {
-            id: crypto.randomUUID(),
-            type: "block",
-            children: [
-              {
-                id: crypto.randomUUID(),
-                type: "text",
-                content: "Header",
-                properties: { fontSize: 28, fontWeight: "medium" },
-              },
-            ],
-          },
-        ],
-      },
-    ];
+    return DEFAULT_ELEMENT_CONFIG;
   };
 
   const [elements, setElements] = useState<CVElement[]>(getInitialElements);
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [showSectionDividers, setShowSectionDividers] = useState(false);
+  const [showPagination, setShowPagination] = useState(false);
+  const [showSideBar, setShowSideBar] = useState(false);
   const [pageProperties, setPageProperties] = useState<PageProperties>(() => {
     try {
       const saved = sessionStorage.getItem("cv-page-properties");
@@ -194,13 +215,22 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
   /* -------- SELECTION -------- */
 
-  const selectSection = (sectionId: string) => {
+  const selectPage = (pageId: string) => {
+    setSelectedPageId(pageId);
+    setSelectedSectionId(null);
+    setSelectedBlockId(null);
+    setSelectedElementId(null);
+  };
+
+  const selectSection = (pageId: string, sectionId: string) => {
+    setSelectedPageId(pageId);
     setSelectedSectionId(sectionId);
     setSelectedBlockId(null);
     setSelectedElementId(null);
   };
 
-  const selectBlock = (sectionId: string, blockId: string) => {
+  const selectBlock = (pageId: string, sectionId: string, blockId: string) => {
+    setSelectedPageId(pageId);
     setSelectedSectionId(sectionId);
     setSelectedBlockId(blockId);
     setSelectedElementId(null);
@@ -216,26 +246,30 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
   /* -------- ACTIONS -------- */
 
-  const addSection = () => {
+  const addSection = (pageId: string) => {
     const sectionId = crypto.randomUUID();
     const blockId = crypto.randomUUID();
 
     setElements((prev) => {
-      const sectionCount = prev.filter((el) => el.type === "section").length;
-      if (sectionCount >= MAX_SECTIONS) {
-        return prev;
-      }
-      return [
-        ...prev,
-        {
-          id: sectionId,
-          type: "section",
-          children: [{ id: blockId, type: "block", children: [] }],
-        },
-      ];
+      return updateTree(prev, pageId, (page) => {
+        if (page.type !== "page") return page;
+
+        const sections = page.children ?? [];
+        if (sections.length >= MAX_SECTIONS) {
+          return page;
+        }
+        return {
+          ...page,
+          children: [...sections, {
+            id: sectionId,
+            type: "section",
+            children: [{ id: blockId, type: "block", children: [] }]
+          }]
+        };
+      });
     });
 
-    selectSection(sectionId);
+    selectSection(pageId, sectionId);
   };
 
   const removeSection = (sectionId: string) => {
@@ -247,7 +281,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const addBlock = (sectionId: string) => {
+  const addBlock = (pageId: string, sectionId: string) => {
     const blockId = crypto.randomUUID();
 
     setElements((prev) =>
@@ -264,7 +298,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
       })
     );
 
-    selectBlock(sectionId, blockId);
+    selectBlock(pageId, sectionId, blockId);
   };
 
   const removeBlock = (blockId: string) => {
@@ -335,6 +369,42 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     setShowSectionDividers((prev) => !prev);
   };
 
+  const togglePagination = () => {
+    setShowPagination((prev) => !prev);
+  };
+
+  const toggleSideBar = () => {
+    setShowSideBar((prev) => !prev);
+  }
+
+  const addPage = (pageCount: number) => {
+    const pageId = crypto.randomUUID();
+    const sectionId = crypto.randomUUID();
+    const blockId = crypto.randomUUID();
+
+    setElements((prev) => {
+      const newPage: CVElement = {
+        id: pageId,
+        type: 'page',
+        children: [
+          {
+            id: sectionId,
+            type: "section",
+            children: [
+              {
+                id: blockId,
+                type: "block",
+                children: [],
+              },
+            ],
+          },
+        ],
+      };
+      return [...prev, newPage];
+    });
+  };
+
+
   const commitEdits = () => {
     // force blur of active element
     if (document.activeElement instanceof HTMLElement) {
@@ -362,11 +432,13 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
       value={{
         elements,
 
+        selectedPageId,
         selectedSectionId,
         selectedBlockId,
         selectedElementId,
         selectedElement,
 
+        selectPage,
         selectSection,
         selectBlock,
         selectElement,
@@ -388,8 +460,17 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         pageProperties,
         updatePageProperties,
 
+        addPage,
+        showPagination,
+        togglePagination,
+
+        showSideBar,
+        toggleSideBar,
+
         MAX_SECTIONS,
         MAX_BLOCKS_PER_SECTION,
+        A4_WIDTH,
+        A4_HEIGHT
       }}>
       {children}
     </CVContext.Provider>

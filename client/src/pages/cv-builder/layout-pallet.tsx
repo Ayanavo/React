@@ -1,78 +1,57 @@
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useCV, type CVElement } from "@/lib/useCV";
+import { useCV } from "@/lib/useCV";
 import { Blocks, LayoutPanelTop } from "lucide-react";
 import React from "react";
 
 const LayoutPallet = () => {
-  const { addSection, addBlock, showSectionDividers, selectedSectionId, toggleSectionDividers, MAX_SECTIONS, MAX_BLOCKS_PER_SECTION, elements, updatePageProperties, pageProperties } = useCV();
-  const sections = elements.filter((el) => el.type === "section");
-  const sectionCount = sections.length - 1;
+  const { addSection, addBlock, showSectionDividers, selectedPageId, selectedSectionId, toggleSectionDividers, MAX_SECTIONS, MAX_BLOCKS_PER_SECTION, elements, updatePageProperties, pageProperties } = useCV();
+  const showSectionCount = () => {
+    if (!selectedPageId) return 0;
+    const page = elements.find((page) => page.id === selectedPageId);
+    return (page?.children?.length ?? 0) - 1;
+  }
 
-  const showBlockCount = (section: CVElement | undefined) => {
-    if (!section) return 0;
-    const blocks = section.children ?? [];
-    if (blocks.length === 0) return 0;
-    return blocks.length - 1;
+  const showBlockCount = () => {
+    if (!selectedPageId || !selectedSectionId) return 0;
+    const page = elements.find((page) => page.id === selectedPageId);
+    if(page && page?.children?.length){
+      const section = page.children.find((section) => section.id === selectedSectionId);
+      return (section?.children?.length ?? 0)  - 1;
+    }
+    return 0;
   };
 
-  // Find selected section - either directly selected or parent of selected block
-  const findSelectedSection = (): CVElement | undefined => {
-    if (!selectedSectionId) return undefined;
-
-    const directSection = elements.find((el) => el.id === selectedSectionId && el.type === "section");
-    if (directSection) return directSection;
-
-    const findParentSection = (nodes: typeof elements, targetId: string): CVElement | undefined => {
-      for (const node of nodes) {
-        if (node.type === "section" && node.children) {
-          const found = node.children.find((child) => child.id === targetId);
-          if (found) return node;
-          for (const child of node.children) {
-            if (child.children) {
-              const nestedFound = child.children.find((c) => c.id === targetId);
-              if (nestedFound) return node;
-            }
-          }
-        }
-      }
-      return undefined;
-    };
-
-    return findParentSection(elements, selectedSectionId);
-  };
-
-  const selectedSection = findSelectedSection();
 
   return (
     <div className="space-y-6">
       {/* Add Section */}
       <button
-        onClick={addSection}
-        disabled={MAX_SECTIONS == sectionCount}
+        onClick={() => selectedPageId && addSection(selectedPageId)}
+        disabled={MAX_SECTIONS == showSectionCount()}
         className="w-full flex items-center gap-2 px-6 py-6 rounded-md
                    bg-background text-foreground hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md text-lg font-medium group
                    border border-border">
         <LayoutPanelTop className="w-6 h-6 opacity-60 group-hover:opacity-100" />
         Section
-        {sectionCount > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{sectionCount}+</span>}
+        {showSectionCount() > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{showSectionCount()}+</span>}
       </button>
 
       {/* Add Block */}
       <button
-        onClick={() => selectedSection && addBlock(selectedSection.id)}
-        disabled={!selectedSection || MAX_BLOCKS_PER_SECTION == showBlockCount(selectedSection)}
+        onClick={() => selectedPageId && selectedSectionId && addBlock(selectedPageId, selectedSectionId)}
+        disabled={!selectedSectionId || MAX_BLOCKS_PER_SECTION == showBlockCount()}
         className={`w-full flex items-center gap-2 px-6 py-6 rounded-md
           text-lg font-medium group border hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md
-          ${selectedSection ? "bg-background text-foreground hover:bg-muted" : "bg-muted text-muted-foreground cursor-not-allowed"}`}>
+          ${selectedSectionId ? "bg-background text-foreground hover:bg-muted" : "bg-muted text-muted-foreground cursor-not-allowed"}`}>
         <Blocks className="w-6 h-6 opacity-60 group-hover:opacity-100" />
         Block
-        {showBlockCount(selectedSection) > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{showBlockCount(selectedSection)}+</span>}
+        {showBlockCount() > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{showBlockCount()}+</span>}
       </button>
 
       {/* Toggle Section Divider */}
-      <div className="flex items-center justify-between px-2 py-2 rounded-md">
-        <span className="text-xs text-foreground">Add section dividers</span>
+      <div className="flex items-center justify-between py-2 rounded-md">
+        <Label className="text-xs font-medium text-muted-foreground text-nowrap">Add section dividers</Label>
         <Switch
           checked={showSectionDividers}
           onCheckedChange={toggleSectionDividers}

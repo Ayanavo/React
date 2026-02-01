@@ -5,6 +5,7 @@ import CvTextRenderer from "./cv-text-renderer";
 import CvDateRenderer from "./cv-date-renderer";
 import CvTokenRenderer from "./cv-token-renderer";
 import CvImageRenderer from "./cv-image-renderer";
+import CvLocationRenderer from "./cv-location-renderer";
 
 const CVElementRenderer = ({ element, sectionCount,  readonly = false,}: { element: CVElement; sectionCount?: number,  readonly?: boolean; }) => {
   // ---------- SECTION ----------
@@ -38,6 +39,8 @@ const CVElementRenderer = ({ element, sectionCount,  readonly = false,}: { eleme
       return <CvTokenRenderer element={element} readonly={readonly} />;
     case "image":
       return <CvImageRenderer element={element} readonly={readonly} />;
+    case "location":
+      return <CvLocationRenderer element={element} readonly={readonly} />;
     default:
       return <div>{element.content}</div>;
   }

@@ -1,43 +1,25 @@
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useCV } from "@/lib/useCV";
+import React, { useState, useEffect, useRef } from "react";
+import CVElementRenderer from "./cv-element-renderer";
+import { ChevronsUpDown, Download, Eye, Trash, X } from "lucide-react";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { Download, Eye, Trash, X } from "lucide-react";
-import React, { useRef, useState } from "react";
-import CVElementRenderer from "./cv-element-renderer";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import CVPreview, { CVPreviewRef } from "./cv-preview";
 
-const A4_WIDTH = 794;
-const A4_HEIGHT = 1123;
 const ZOOM = 1;
 
 const Canvas = () => {
-  const { elements, selectedSectionId, selectedBlockId, showSectionDividers, selectSection, selectBlock, removeSection, removeBlock, clearSelection, pageProperties } = useCV();
+  const { elements, selectedSectionId, A4_WIDTH, A4_HEIGHT, showSectionDividers, selectedBlockId, selectPage, selectSection, selectBlock, removeSection, clearSelection, pageProperties } = useCV();
 
-  const sections = elements.filter((el) => el.type === "section");
-  const canDeleteSection = sections.length > 1;
 
-  const scaledA4Height = A4_HEIGHT * ZOOM;
-  const scaledA4Width = A4_WIDTH * ZOOM;
-
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [previewScale, setPreviewScale] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
   const pageRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<CVPreviewRef>(null);
 
-  const getScaleToFit = () => {
-    const maxWidth = window.innerWidth * 0.9; // 90% of viewport
-    const maxHeight = window.innerHeight * 0.9; // 90% of viewport
 
-    const scaleX = maxWidth / A4_WIDTH;
-    const scaleY = maxHeight / A4_HEIGHT;
-
-    return Math.min(scaleX, scaleY);
-  };
-
-  const openPreview = () => {
-    setPreviewScale(getScaleToFit());
-    setIsPreviewOpen(true);
-  };
 
   const downloadPDF = async () => {
     if (!pageRef.current) return;
@@ -54,117 +36,184 @@ const Canvas = () => {
     pdf.save(new Date() + ".pdf");
   };
 
-  const zoomIn = () =>
-    setPreviewScale((s) => Math.min(s + 0.1, 2.5));
 
-  const zoomOut = () =>
-    setPreviewScale((s) => Math.max(s - 0.1, 0.4));
 
-  const resetZoom = () =>
-    setPreviewScale(getScaleToFit());
+  // Handle resizing
+  const handleMouseDown = (pageIndex: number, sectionIndex: number, e: React.MouseEvent) => {
+    setIsDragging(true);
+    setDraggingIndex(pageIndex);
+    const startY = e.clientY;
+    const startHeight = A4_HEIGHT / (elements[pageIndex]?.children?.length ?? 1);
 
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      const newHeight = Math.max(20, startHeight + (deltaY / A4_HEIGHT) * 100); // min height = 20px
+      if (elements[pageIndex]?.children?.[sectionIndex]) {
+        elements[pageIndex].children[sectionIndex].height = newHeight;
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setDraggingIndex(null);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    // Remove mouse event listeners if mouse leaves the canvas
+    const handleMouseLeave = () => {
+      if (isDragging) {
+        setIsDragging(false);
+        setDraggingIndex(null);
+        window.removeEventListener("mousemove", handleMouseMove);
+        window.removeEventListener("mouseup", handleMouseUp);
+        window.removeEventListener("mouseleave", handleMouseLeave);
+      }
+    };
+
+    window.addEventListener("mouseleave", handleMouseLeave);
+  };
 
   return (
     <aside className="flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
-      <div className="flex justify-center p-4 w-full relative">
-        <div
-          ref={pageRef}
-          onClick={(e) => e.stopPropagation()}
-          className="bg-background shadow-lg relative"
-          style={{
-            width: A4_WIDTH,
-            height: A4_HEIGHT,
-            transform: `scale(${ZOOM})`,
-            transformOrigin: "top center",
-            backgroundColor: pageProperties.backgroundColor ?? "#ffffff",
-            color: pageProperties.color ?? "#000000",
-          }}>
-          {/* Floating actions (top-left of sheet) */}
-          <div
-            className="fixed flex flex-col gap-2 z-20"
-            style={{
-              right: `calc(50% + ${scaledA4Width / 2}px + 16px)`,
-              top: "16px",
-            }}>
-            <button onClick={() => openPreview()} className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition" title="Preview CV">
-              <Eye className="h-4 w-4" />
-            </button>
+      <div
+        className="flex flex-col items-center justify-center gap-10 p-4 w-full relative"
+        style={{ pointerEvents: isDragging ? "none" : "auto" }} // Disable pointer events when dragging
+      >
+        {/* Render Pages Dynamically */}
+        {elements.map((page, pageIndex) => {
+          const sections = page.children ?? [];
 
-            <button onClick={downloadPDF} className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition" title="Download PDF">
-              <Download className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="flex flex-col w-full h-full">
-            {sections.map((section, sectionIndex) => {
-              const blocks = section.children ?? [];
-              const isSectionSelected = selectedSectionId === section.id;
-              const isLastSection = sectionIndex === sections.length - 1;
-
-              return (
+          return (
+            <div
+              key={page.id}
+              style={{
+                pointerEvents: isDragging && draggingIndex !== pageIndex ? "none" : "auto", // Disable pointer events for other pages when dragging
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                selectPage(page.id);
+              }}>
+              <div className="flex w-full h-full">
                 <div
-                  key={section.id}
-                  className={`relative flex w-full ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
-                  style={{ height: `${100 / sections.length}%` }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    selectSection(section.id);
-                  }}
-                >
-                  <div className="flex w-full h-full">
-                    {blocks.map((block) => {
-                      const isBlockSelected = selectedBlockId === block.id;
+                  ref={pageRef}
+                  onClick={(e) => e.stopPropagation()}
+                  className="bg-background shadow-lg relative"
+                  style={{
+                    width: A4_WIDTH,
+                    height: A4_HEIGHT,
+                    transform: `scale(${ZOOM})`,
+                    transformOrigin: "top center",
+                    backgroundColor: pageProperties.backgroundColor ?? "#ffffff",
+                    color: pageProperties.color ?? "#000000",
+                  }}>
+                  {/* Floating actions (top-left of sheet) */}
+                  <div
+                    className="fixed flex flex-col gap-2 z-20"
+                    style={{
+                      right: `calc(50% + ${A4_WIDTH / 2}px + 16px)`,
+                      top: "16px",
+                    }}>
+                    <button onClick={() => previewRef.current?.openPreview()} className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition" title="Preview CV">
+                      <Eye className="h-4 w-4" />
+                    </button>
 
-                      return (
-                        <div
-                          key={block.id}
-                          className={`relative flex-1 hover:bg-zinc-200 ${isBlockSelected ? "ring-2 ring-ring" : ""
-                            }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            selectBlock(section.id, block.id);
-                          }}
-                        >
-                          <CVElementRenderer element={block} />
-                        </div>
-                      );
-                    })}
+                    <button onClick={downloadPDF} className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition" title="Download PDF">
+                      <Download className="h-4 w-4" />
+                    </button>
                   </div>
+                  <div className="flex flex-col w-full h-full">
+                  {sections.map((section, sectionIndex) => {
+                    const blocks = section.children ?? [];
+                    const isSectionSelected = selectedSectionId === section.id;
+                    const isLastSection = sectionIndex === sections.length - 1;
 
-                  {/* ✅ SECTION divider ONLY */}
-                  {showSectionDividers && !isLastSection && (
-                    <div className="absolute bottom-0 left-4 right-4 h-px bg-border" />
-                  )}
+                    return (
+                      <div
+                        key={section.id}
+                        className={`relative flex w-full ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
+                        style={{ height: `${100 / sections.length}%` }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          selectSection(page.id, section.id);
+                        }}>
+                        <div className="flex w-full h-full">
+                          {blocks.map((block) => {
+                            const isBlockSelected = selectedBlockId === block.id;
+
+                            return (
+                              <div
+                                key={block.id}
+                                className={`relative flex-1 hover:bg-zinc-200 ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  selectBlock(page.id, section.id, block.id);
+                                }}>
+                                <CVElementRenderer element={block} />
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* ✅ SECTION divider ONLY */}
+                        {!isLastSection && (
+                          <div
+                            className={`absolute bottom-0 left-4 right-4 h-px cursor-pointer ${showSectionDividers && "bg-border"}`}
+                            onMouseEnter={(e) => ((e.target as HTMLElement).style.cursor = "row-resize")}
+                            onMouseLeave={(e) => ((e.target as HTMLElement).style.cursor = "default")}
+                            onClick={(e) => e.stopPropagation()} // Stop propagation for the divider, but not for the icon
+                          >
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <div
+                                    className="absolute top-1/2 z-10 -translate-y-1/2 right-0 p-2 rounded-full bg-primary text-white"
+                                    onMouseDown={(e) => handleMouseDown(pageIndex, sectionIndex, e)} // Handle resizing for sections inside pages
+                                  >
+                                    <ChevronsUpDown className="w-4 h-4 !cursor-row-resize" />
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent side="right">Resize Section</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            </div>
+          );
+        })}
 
-          </div>
-        </div>
-
-        {/* SECTION DELETE BUTTONS */}
+        {/* PAGE DELETE BUTTONS */}
         <div
           className="absolute flex flex-col"
           style={{
-            left: `calc(50% + ${scaledA4Width / 2}px + 16px)`,
+            left: `calc(50% + ${A4_WIDTH / 2}px + 16px)`,
             top: "16px",
-            height: `${scaledA4Height}px`,
+            height: `${A4_HEIGHT}px`,
           }}>
-          {sections.map((section) => {
-            const sectionHeight = scaledA4Height / sections.length;
-            const isActive = selectedSectionId === section.id;
+          {elements.map((page) => {
+            const pageHeight = A4_HEIGHT / elements.length;
+            const isActive = selectedSectionId === page.id;
 
             return (
-              <div key={section.id} className="flex items-center justify-center" style={{ height: `${sectionHeight}px` }}>
-                {isActive && canDeleteSection && (
+              <div key={page.id} className="flex items-center justify-center" style={{ height: `${pageHeight}px` }}>
+                {isActive && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button onClick={() => removeSection(section.id)} className="bg-primary text-primary-foreground p-2 rounded shadow hover:opacity-80">
+                        <button onClick={() => removeSection(page.id)} className="bg-primary text-primary-foreground p-2 rounded shadow hover:opacity-80">
                           <Trash className="h-4 w-4" />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent side="right">Delete Section</TooltipContent>
+                      <TooltipContent side="right">Delete Page</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 )}
@@ -175,59 +224,7 @@ const Canvas = () => {
       </div>
 
       {/* Preview Block */}
-
-      {isPreviewOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-
-          {/* zoom options */}
-          <div className="absolute top-2 right-2 z-30 flex gap-2 bg-black/70 rounded px-2 py-1">
-            <button onClick={zoomOut} className="text-white px-2">-</button>
-            <span className="text-white text-sm">
-              {Math.round(previewScale * 100)}%
-            </span>
-            <button onClick={zoomIn} className="text-white px-2">+</button>
-            <button onClick={resetZoom} className="text-white text-xs px-2">
-              Fit
-            </button>
-          </div>
-
-          <div className="relative flex items-center justify-center">
-            <button className="absolute top-2 right-2 z-30 bg-black/70 text-white rounded-full p-1.5 hover:bg-black transition" onClick={() => setIsPreviewOpen(false)}>
-              <X className="h-4 w-4" />
-            </button>
-
-            <div
-              style={{
-                width: A4_WIDTH * previewScale,
-                height: A4_HEIGHT * previewScale,
-              }}
-              className="relative">
-              <div
-                className="bg-white shadow-2xl"
-                style={{
-                  width: A4_WIDTH,
-                  height: A4_HEIGHT,
-                  transform: `scale(${previewScale})`,
-                  transformOrigin: "top left",
-                }}
-              >
-
-                <div className="flex flex-col w-full h-full pointer-events-none">
-                  {sections.map((section) => (
-                    <div key={section.id} className="flex w-full" style={{ height: `${100 / sections.length}%` }}>
-                      {section.children?.map((block) => (
-                        <div key={block.id} className="flex-1">
-                          <CVElementRenderer element={block} readonly />
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <CVPreview ref={previewRef} />
     </aside>
   );
 };

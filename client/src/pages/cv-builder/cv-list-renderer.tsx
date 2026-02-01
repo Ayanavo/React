@@ -221,7 +221,7 @@ const CvListRenderer = ({
       {items.map((item, index) => (
         <div
           key={index}
-          className="flex gap-2 items-start break-inside-avoid-column"
+          className="flex gap-2 items-center break-inside-avoid-column"
         >
           <ListIcon element={element} index={index} />
           {readonly ? (
