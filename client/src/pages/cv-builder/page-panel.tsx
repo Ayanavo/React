@@ -37,9 +37,9 @@ const PagePallet = () => {
             message: "Please select a page to delete.",
             type: "info",
           });
-          return prev; // Don't decrease page count if no page is selected
-        }
-      
+          return prev; 
+        };
+        removePage(selectedPageId);
       }
       return newPageCount;
     });
