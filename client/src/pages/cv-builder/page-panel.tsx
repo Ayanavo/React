@@ -4,12 +4,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useCV } from "@/lib/useCV";
+import { useConfirmDialog } from "@/shared/confirmation";
 import { Minus, Plus } from "lucide-react";
 import React, { useState } from "react";
 
 const PagePallet = () => {
-  const { addPage, showSideBar, toggleSideBar, showPagination, togglePagination } = useCV();
-  const [pageCount, setPageCount] = useState(1);
+  const { addPage, removePage, showSideBar, toggleSideBar, selectedPageId, showPagination, togglePagination, MAX_PAGES, elements } = useCV();
+  const [pageCount, setPageCount] = useState(elements.length);
+  const { confirm } = useConfirmDialog();
 
   const PaginationLocationConfig = [
     { label: "Top Left", name: "top-left" },
@@ -25,7 +27,20 @@ const PagePallet = () => {
     setPageCount((prev) => {
       const newPageCount = increment ? prev + 1 : Math.max(1, prev - 1);
       // Add page when pageCount changes
-      addPage(newPageCount);
+
+      if (increment) {
+        addPage(newPageCount);
+      } else {
+        if (selectedPageId === null) {
+          confirm({
+            title: "No Page Selected",
+            message: "Please select a page to delete.",
+            type: "info",
+          });
+          return prev; // Don't decrease page count if no page is selected
+        }
+      
+      }
       return newPageCount;
     });
   };
@@ -35,13 +50,13 @@ const PagePallet = () => {
       <div className="flex items-center justify-between py-2 rounded-md">
         <Label className="text-xs font-medium text-muted-foreground text-nowrap"> Add Page</Label>
         <ButtonGroup>
-          <Button className="p-1" variant="outline" size="sm" onClick={() => handlePageCountChange(false)}>
+          <Button disabled={pageCount <= 1} className="p-1" variant="outline" size="sm" onClick={() => handlePageCountChange(false)}>
             <Minus className="h-4 w-4" />
           </Button>
           <Button className="px-2 py-1" variant="outline" size="sm">
             {pageCount}
           </Button>
-          <Button className="p-1" variant="outline" size="sm" onClick={() => handlePageCountChange(true)}>
+          <Button disabled={pageCount >= MAX_PAGES} className="p-1" variant="outline" size="sm" onClick={() => handlePageCountChange(true)}>
             <Plus className="h-4 w-4" />
           </Button>
         </ButtonGroup>

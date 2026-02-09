@@ -1,3 +1,4 @@
+import { log } from "console";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 /* ---------------- TYPES ---------------- */
@@ -99,8 +100,10 @@ interface CVContextType {
   showPagination: boolean;
   togglePagination: () => void;
   addPage: (value: number) => void;
+  removePage: (pageId: string) => void;
   showSideBar: boolean;
   toggleSideBar: () => void;
+  MAX_PAGES: number;
   MAX_SECTIONS: number;
   MAX_BLOCKS_PER_SECTION: number;
   A4_WIDTH: number;
@@ -112,6 +115,7 @@ const STORAGE_KEY = "cv-editor-session";
 
 /* ---------------- CONSTANTS ---------------- */
 
+const MAX_PAGES = 20;
 const MAX_SECTIONS = 10;
 const MAX_BLOCKS_PER_SECTION = 5;
 const A4_WIDTH = 794;
@@ -272,13 +276,10 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     selectSection(pageId, sectionId);
   };
 
-  const removeSection = (sectionId: string) => {
-    setElements((prev) => prev.filter((s) => s.id !== sectionId));
-
-    if (selectedSectionId === sectionId) {
+  const removeSection = () => {
+    setElements((prev) => prev.filter((s) => s.id !== selectedSectionId));
       setSelectedSectionId(null);
       setSelectedBlockId(null);
-    }
   };
 
   const addBlock = (pageId: string, sectionId: string) => {
@@ -301,27 +302,25 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     selectBlock(pageId, sectionId, blockId);
   };
 
-  const removeBlock = (blockId: string) => {
+  const removeBlock = () => {
     let parentSectionId: string | null = null;
     let canDelete = false;
 
     elements.forEach((section) => {
       if (section.type !== "section") return;
       const blocks = section.children || [];
-      if (blocks.some((b) => b.id === blockId)) {
+      if (blocks.some((b) => b.id === selectedBlockId)) {
         parentSectionId = section.id;
         canDelete = blocks.length > 1;
       }
     });
 
     if (!canDelete) return;
-
-    setElements((prev) => removeFromTree(prev, blockId));
-
-    if (selectedBlockId === blockId) {
+    if(selectedBlockId === null) return;
+    setElements((prev) => removeFromTree(prev, selectedBlockId));
       setSelectedBlockId(null);
       setSelectedSectionId(parentSectionId);
-    }
+    
   };
 
   const addContent = (blockId: string, element: CVElement) => {
@@ -400,10 +399,28 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
           },
         ],
       };
+      if (pageCount >= MAX_PAGES) {
+        return prev;
+      }
       return [...prev, newPage];
     });
   };
 
+  const removePage = () => {
+    setElements((prev) => {
+      const pageToRemoveIndex = prev.findIndex((page) => page.id === selectedPageId);
+      if (pageToRemoveIndex === -1 || prev.length <= 1) {
+        return prev;
+      }
+      return prev.filter((_, index) => index !== pageToRemoveIndex);
+    });
+
+    if ( selectedPageId === selectedPageId) {
+      setSelectedPageId(null);
+      setSelectedSectionId(null);
+      setSelectedBlockId(null);
+    }
+  };
 
   const commitEdits = () => {
     // force blur of active element
@@ -461,12 +478,13 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         updatePageProperties,
 
         addPage,
+        removePage,
         showPagination,
         togglePagination,
 
         showSideBar,
         toggleSideBar,
-
+        MAX_PAGES,
         MAX_SECTIONS,
         MAX_BLOCKS_PER_SECTION,
         A4_WIDTH,

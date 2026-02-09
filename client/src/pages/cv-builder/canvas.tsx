@@ -81,7 +81,7 @@ const Canvas = () => {
     <aside className="flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
       <div
         className="flex flex-col items-center justify-center gap-10 p-4 w-full relative"
-        style={{ pointerEvents: isDragging ? "none" : "auto" }} // Disable pointer events when dragging
+        style={{ pointerEvents: isDragging ? "none" : "auto", marginBlock: `${elements.length * 580}px` }} // Disable pointer events when dragging
       >
         {/* Render Pages Dynamically */}
         {elements.map((page, pageIndex) => {
@@ -92,15 +92,10 @@ const Canvas = () => {
               key={page.id}
               style={{
                 pointerEvents: isDragging && draggingIndex !== pageIndex ? "none" : "auto", // Disable pointer events for other pages when dragging
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                selectPage(page.id);
               }}>
               <div className="flex w-full h-full">
                 <div
                   ref={pageRef}
-                  onClick={(e) => e.stopPropagation()}
                   className="bg-background shadow-lg relative"
                   style={{
                     width: A4_WIDTH,
@@ -135,11 +130,7 @@ const Canvas = () => {
                       <div
                         key={section.id}
                         className={`relative flex w-full ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
-                        style={{ height: `${100 / sections.length}%` }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          selectSection(page.id, section.id);
-                        }}>
+                        style={{ height: `${100 / sections.length}%` }}>
                         <div className="flex w-full h-full">
                           {blocks.map((block) => {
                             const isBlockSelected = selectedBlockId === block.id;
@@ -150,7 +141,10 @@ const Canvas = () => {
                                 className={`relative flex-1 hover:bg-zinc-200 ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  selectPage(page.id);
+                                  selectSection(page.id, section.id);
                                   selectBlock(page.id, section.id, block.id);
+                                  console.log(page.id, section.id, block.id);
                                 }}>
                                 <CVElementRenderer element={block} />
                               </div>
