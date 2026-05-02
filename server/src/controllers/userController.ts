@@ -188,7 +188,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
 
 export const saveUserProfile = async (req: Request, res: Response) => {
   try {
-    const userId = req.user.id;
+    const userId = req.body.user.id;
     const { full_name, profile_image, mobile, addressLine1, addressLine2, landmark, city, state, pincode } = req.body;
     if ([full_name, mobile, addressLine1, city, state, pincode].some((field) => field === undefined)) {
       return res.status(400).json({ message: "Required fields are missing" });
