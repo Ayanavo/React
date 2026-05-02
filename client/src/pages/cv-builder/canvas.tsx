@@ -54,15 +54,9 @@ const Canvas = () => {
     pdf.save(new Date() + ".pdf");
   };
 
-  const zoomIn = () =>
-    setPreviewScale((s) => Math.min(s + 0.1, 2.5));
-
-  const zoomOut = () =>
-    setPreviewScale((s) => Math.max(s - 0.1, 0.4));
-
-  const resetZoom = () =>
-    setPreviewScale(getScaleToFit());
-
+  const zoomIn = () => setPreviewScale((s) => Math.min(s + 0.1, 2.5));
+  const zoomOut = () => setPreviewScale((s) => Math.max(s - 0.1, 0.4));
+  const resetZoom = () => setPreviewScale(getScaleToFit());
 
   return (
     <aside className="flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
@@ -70,7 +64,7 @@ const Canvas = () => {
         <div
           ref={pageRef}
           onClick={(e) => e.stopPropagation()}
-          className="bg-background shadow-lg relative"
+          className="bg-background relative"
           style={{
             width: A4_WIDTH,
             height: A4_HEIGHT,
@@ -78,6 +72,7 @@ const Canvas = () => {
             transformOrigin: "top center",
             backgroundColor: pageProperties.backgroundColor ?? "#ffffff",
             color: pageProperties.color ?? "#000000",
+            boxShadow: "rgba(0, 0, 0, 0.15) 0px 15px 25px, rgba(0, 0, 0, 0.05) 0px 5px 10px",
           }}>
           {/* Floating actions (top-left of sheet) */}
           <div
@@ -97,7 +92,6 @@ const Canvas = () => {
 
           <div className="flex flex-col w-full h-full">
             {sections.map((section, sectionIndex) => {
-              const blocks = section.children ?? [];
               const isSectionSelected = selectedSectionId === section.id;
               const isLastSection = sectionIndex === sections.length - 1;
 
@@ -109,36 +103,16 @@ const Canvas = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     selectSection(section.id);
-                  }}
-                >
+                  }}>
                   <div className="flex w-full h-full">
-                    {blocks.map((block) => {
-                      const isBlockSelected = selectedBlockId === block.id;
-
-                      return (
-                        <div
-                          key={block.id}
-                          className={`relative flex-1 hover:bg-zinc-200 ${isBlockSelected ? "ring-2 ring-ring" : ""
-                            }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            selectBlock(section.id, block.id);
-                          }}
-                        >
-                          <CVElementRenderer element={block} />
-                        </div>
-                      );
-                    })}
+                    <CVElementRenderer element={section} sectionCount={sections.length} />
                   </div>
 
                   {/* ✅ SECTION divider ONLY */}
-                  {showSectionDividers && !isLastSection && (
-                    <div className="absolute bottom-0 left-4 right-4 h-px bg-border" />
-                  )}
+                  {showSectionDividers && !isLastSection && <div className="absolute bottom-0 left-4 right-4 h-px bg-border" />}
                 </div>
               );
             })}
-
           </div>
         </div>
 
@@ -178,14 +152,15 @@ const Canvas = () => {
 
       {isPreviewOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-
           {/* zoom options */}
           <div className="absolute top-2 right-2 z-30 flex gap-2 bg-black/70 rounded px-2 py-1">
-            <button onClick={zoomOut} className="text-white px-2">-</button>
-            <span className="text-white text-sm">
-              {Math.round(previewScale * 100)}%
-            </span>
-            <button onClick={zoomIn} className="text-white px-2">+</button>
+            <button onClick={zoomOut} className="text-white px-2">
+              -
+            </button>
+            <span className="text-white text-sm">{Math.round(previewScale * 100)}%</span>
+            <button onClick={zoomIn} className="text-white px-2">
+              +
+            </button>
             <button onClick={resetZoom} className="text-white text-xs px-2">
               Fit
             </button>
@@ -209,9 +184,7 @@ const Canvas = () => {
                   height: A4_HEIGHT,
                   transform: `scale(${previewScale})`,
                   transformOrigin: "top left",
-                }}
-              >
-
+                }}>
                 <div className="flex flex-col w-full h-full pointer-events-none">
                   {sections.map((section) => (
                     <div key={section.id} className="flex w-full" style={{ height: `${100 / sections.length}%` }}>

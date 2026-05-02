@@ -1,18 +1,12 @@
-import { CVElement, fontWeight, useCV } from "@/lib/useCV";
+import { CVElement, useCV } from "@/lib/useCV";
+import { fontWeightMap } from "@/lib/utils";
 import { Trash } from "lucide-react";
 import React, { CSSProperties, useRef } from "react";
 
-const CvTextRenderer = ({ element, readonly = false }: { element: CVElement, readonly?: boolean }) => {
+const CvTextRenderer = ({ element, readonly = false }: { element: CVElement; readonly?: boolean }) => {
   const { updateElement, selectedElementId, removeElement, selectElement } = useCV();
   const ref = useRef<HTMLDivElement>(null);
   const isSelected = selectedElementId === element.id;
-  const fontWeightMap: Record<fontWeight, number> = {
-    light: 300,
-    normal: 400,
-    medium: 500,
-    "semi-bold": 600,
-    bold: 700,
-  };
   const decorations: string[] = [];
 
   if (element.properties?.fontStyle?.underline) {
@@ -27,7 +21,10 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement, rea
     fontSize: element.properties?.fontSize ? `${element.properties.fontSize}px` : undefined,
     fontWeight: element.properties?.fontWeight ? fontWeightMap[element.properties.fontWeight] : undefined,
     fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
-    textDecoration: decorations.length ? decorations.join(" ") : "none",
+    textDecoration:
+      element.properties?.fontStyle?.strikethrough ? "line-through"
+      : element.properties?.fontStyle?.underline ? "underline"
+      : "none",
     textAlign: element.properties?.textAlign,
     color: element.properties?.color,
   };
@@ -40,8 +37,7 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement, rea
             e.stopPropagation();
             removeElement(element.id);
           }}
-          className="absolute top-2 right-2 bg-secondary text-secondary-foreground p-1 rounded shadow"
-        >
+          className="absolute top-2 right-2 bg-secondary text-secondary-foreground p-1 rounded shadow">
           <Trash className="h-3 w-3" />
         </button>
       )}
@@ -52,12 +48,12 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement, rea
         contentEditable={!readonly && element.editable !== false}
         suppressContentEditableWarning
         onClick={
-          !readonly
-            ? (e) => {
+          !readonly ?
+            (e) => {
               e.stopPropagation();
               selectElement(element.id);
             }
-            : undefined
+          : undefined
         }
         onBlur={() => {
           updateElement(element.id, {
@@ -82,8 +78,7 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement, rea
       empty:before:text-muted-foreground
       rounded-sm px-1 transition
       ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
-    `}
-      >
+    `}>
         {element.content}
       </p>
     </div>

@@ -6,16 +6,9 @@ export type PageProperties = {
   color?: string;
 };
 
-export type CVElementType = "section" | "block" | "text" | "list" | "date" | "token" | "element";
+export type CVElementType = "section" | "block" | "header" | "text" | "list" | "date" | "token" | "element";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
-export type DateFormat =
-  | "DD_MM_YYYY"
-  | "DD_MMM_YYYY"
-  | "DD_MMMM_YYYY"
-  | "MMM_YYYY"
-  | "MMMM_YYYY"
-  | "YYYY";
-
+export type DateFormat = "DD_MM_YYYY" | "DD_MMM_YYYY" | "DD_MMMM_YYYY" | "MMM_YYYY" | "MMMM_YYYY" | "YYYY";
 
 export interface CVElement {
   id: string;
@@ -48,7 +41,18 @@ export interface CVElement {
       enabled?: boolean;
       icon?: "dot" | "slash" | "pipe" | "arrow" | "plus";
     };
-
+    headerStyle?: {
+      content?: string;
+      color?: string;
+      fontSize?: number;
+      backgroundColor?: string;
+      textAlign?: "start" | "center" | "end";
+      underline?: {
+        enabled?: boolean;
+        width?: "fullWidth" | "fitWidth";
+        gap?: number;
+      };
+    };
   };
 
   editable?: boolean;
@@ -120,7 +124,6 @@ const findElementById = (nodes: CVElement[], id: string | null): CVElement | nul
 
 export function CVProvider({ children }: { children: React.ReactNode }) {
   const getInitialElements = (): CVElement[] => {
-
     const saved = sessionStorage.getItem(STORAGE_KEY);
     if (saved) {
       return JSON.parse(saved);
@@ -163,7 +166,6 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     }
   });
 
-
   useEffect(() => {
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(elements));
@@ -175,8 +177,6 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     sessionStorage.setItem("cv-page-properties", JSON.stringify(pageProperties));
   }, [pageProperties]);
-
-
 
   /* -------- SELECTION -------- */
 
@@ -334,8 +334,6 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
       ...props,
     }));
   };
-
-
 
   const clearSelection = () => {
     setSelectedSectionId(null);
