@@ -2,7 +2,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useCV } from "@/lib/useCV";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { ChevronsUpDown, Download, Eye, Trash } from "lucide-react";
+import { Download, Eye, Trash } from "lucide-react";
 import React, { useRef, useState } from "react";
 import CVElementRenderer from "./cv-element-renderer";
 import CVPreview, { CVPreviewRef } from "./cv-preview";
@@ -32,44 +32,46 @@ const Canvas = () => {
     pdf.save(new Date() + ".pdf");
   };
 
+  setDraggingIndex(null);
+  setIsDragging(false);
   // Handle resizing
-  const handleMouseDown = (pageIndex: number, sectionIndex: number, e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDraggingIndex(pageIndex);
-    const startY = e.clientY;
-    const startHeight = A4_HEIGHT / (elements[pageIndex]?.children?.length ?? 1);
+  // const handleMouseDown = (pageIndex: number, sectionIndex: number, e: React.MouseEvent) => {
+  //   setIsDragging(true);
+  //   setDraggingIndex(pageIndex);
+  //   const startY = e.clientY;
+  //   const startHeight = A4_HEIGHT / (elements[pageIndex]?.children?.length ?? 1);
 
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaY = moveEvent.clientY - startY;
-      const newHeight = Math.max(20, startHeight + (deltaY / A4_HEIGHT) * 100); // min height = 20px
-      if (elements[pageIndex]?.children?.[sectionIndex]) {
-        elements[pageIndex].children[sectionIndex].height = newHeight;
-      }
-    };
+  //   const handleMouseMove = (moveEvent: MouseEvent) => {
+  //     const deltaY = moveEvent.clientY - startY;
+  //     const newHeight = Math.max(20, startHeight + (deltaY / A4_HEIGHT) * 100); // min height = 20px
+  //     if (elements[pageIndex]?.children?.[sectionIndex]) {
+  //       elements[pageIndex].children[sectionIndex].height = newHeight;
+  //     }
+  //   };
 
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      setDraggingIndex(null);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
-    };
+  //   const handleMouseUp = () => {
+  //     setIsDragging(false);
+  //     setDraggingIndex(null);
+  //     window.removeEventListener("mousemove", handleMouseMove);
+  //     window.removeEventListener("mouseup", handleMouseUp);
+  //   };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+  //   window.addEventListener("mousemove", handleMouseMove);
+  //   window.addEventListener("mouseup", handleMouseUp);
 
-    // Remove mouse event listeners if mouse leaves the canvas
-    const handleMouseLeave = () => {
-      if (isDragging) {
-        setIsDragging(false);
-        setDraggingIndex(null);
-        window.removeEventListener("mousemove", handleMouseMove);
-        window.removeEventListener("mouseup", handleMouseUp);
-        window.removeEventListener("mouseleave", handleMouseLeave);
-      }
-    };
+  //   // Remove mouse event listeners if mouse leaves the canvas
+  //   const handleMouseLeave = () => {
+  //     if (isDragging) {
+  //       setIsDragging(false);
+  //       setDraggingIndex(null);
+  //       window.removeEventListener("mousemove", handleMouseMove);
+  //       window.removeEventListener("mouseup", handleMouseUp);
+  //       window.removeEventListener("mouseleave", handleMouseLeave);
+  //     }
+  //   };
 
-    window.addEventListener("mouseleave", handleMouseLeave);
-  };
+  //   window.addEventListener("mouseleave", handleMouseLeave);
+  // };
 
   return (
     <aside className="flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
@@ -137,9 +139,7 @@ const Canvas = () => {
                           {/* ✅ HEADER (FULL WIDTH) */}
                           {headerChild && (
                             <div
-                              onClick={(e) => {
-                                console.log("called");
-
+                              onClick={() => {
                                 selectHeader(page.id, section.id, headerChild.id);
                               }}>
                               <CVElementRenderer element={headerChild} />

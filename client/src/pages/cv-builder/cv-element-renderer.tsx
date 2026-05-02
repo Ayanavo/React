@@ -71,7 +71,7 @@ const CVElementRenderer = ({ element, sectionCount, readonly = false }: { elemen
               data-placeholder="Section Header"
               onClick={(e) => {
                 if (!readonly) {
-                  // e.stopPropagation();
+                  e.stopPropagation();
                   selectElement(element.id);
                 }
               }}

@@ -1,22 +1,21 @@
+import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
 import LoginComponent from "@/pages/auth/login/login";
 import RegistrationComponent from "@/pages/auth/registration/registration";
+import CVAccessGrid from "@/pages/cv-builder/cv-access-grid";
+import CVBuilder from "@/pages/cv-builder/cv-builder";
 import ActivityComponent from "@/pages/layout/activity/activity";
 import DashboardComponent from "@/pages/layout/dashboard/dashboard";
+import DetailComponent from "@/pages/layout/grid/details/details";
+import CreateComponent from "@/pages/layout/grid/update/create";
+import UpdateComponent from "@/pages/layout/grid/update/update";
+import { Layout } from "@/pages/layout/layout";
+import NoteComponent from "@/pages/layout/notes/notes-layout";
+import WhiteboardComponent from "@/pages/layout/whiteboard/whiteboard";
+import NoPageComponent from "@/pages/nopage";
 import ProfileComponent from "@/pages/profile/profile";
 import SettingsComponent from "@/pages/settings/settings";
 import React from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { Layout } from "@/pages/layout/layout";
-import DetailComponent from "@/pages/layout/grid/details/details";
-import TableComponent from "@/pages/layout/grid/table/table";
-import CreateComponent from "@/pages/layout/grid/update/create";
-import UpdateComponent from "@/pages/layout/grid/update/update";
-import NoteComponent from "@/pages/layout/notes/notes-layout";
-import WhiteboardComponent from "@/pages/layout/whiteboard/whiteboard";
-import NoPageComponent from "@/pages/nopage";
-import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
-import CVBuilder from "@/pages/cv-builder/cv-builder";
-import CVAccessGrid from "@/pages/cv-builder/cv-access-grid";
 
 export const Router = () => {
   return (

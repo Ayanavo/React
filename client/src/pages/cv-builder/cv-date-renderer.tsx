@@ -1,8 +1,8 @@
-import { CVElement, fontWeight, useCV } from "@/lib/useCV";
-import React, { CSSProperties } from "react";
+import { CVElement, useCV } from "@/lib/useCV";
+import { fontWeightMap } from "@/lib/utils";
 import { Trash } from "lucide-react";
 import moment from "moment";
-import { fontWeightMap } from "@/lib/utils";
+import React, { CSSProperties } from "react";
 
 const formatDate = (iso: string | undefined, dateFormat?: string, includeTime?: boolean, timeFormat?: "24" | "12-lower" | "12-upper") => {
   const m = moment(iso, moment.ISO_8601, true);
@@ -96,7 +96,6 @@ const CvDateRenderer = ({ element, readonly = false }: { element: CVElement; rea
       )}
 
       <div className={`rounded-sm px-1 transition ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}`} style={style}>
-        {" "}
         {formatDate(value, element.properties?.dateFormat, element.properties?.includeTime, element.properties?.timeFormat)}
       </div>
     </div>
