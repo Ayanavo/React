@@ -6,7 +6,6 @@ import "dotenv/config";
 import express, { NextFunction, Request, Response } from "express";
 
 import dotenv from "dotenv";
-import admin from "firebase-admin";
 import activityRoutes from "./routes/activityRoutes.js";
 import settingRoutes from "./routes/settingRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -77,15 +76,6 @@ app.get("/", (_req, res) => {
   const url = IS_PROD ? PROD_URL || "https://localhost" : `http://localhost:${PORT}`;
   res.send(`âœ… Server is running at ${url}`);
 });
-
-//firebase auth
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || "{}");
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-}
 
 /** --- Routes --- */
 app.use("/api/activities", activityRoutes);

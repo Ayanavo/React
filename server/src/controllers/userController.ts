@@ -3,7 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import jwt, { Secret, VerifyErrors } from "jsonwebtoken";
 import User from "../models/userModel.js";
-import admin from "firebase-admin";
+import admin from "../firebase.js";
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -188,7 +188,9 @@ export const getUserProfile = async (req: Request, res: Response) => {
 
 export const saveUserProfile = async (req: Request, res: Response) => {
   try {
-    const userId = req.body.user.id;
+    const userId = req.user?.id || req.body.user?.id;
+    if (!userId) return res.status(401).json({ message: "Not authenticated" });
+
     const { full_name, profile_image, mobile, addressLine1, addressLine2, landmark, city, state, pincode } = req.body;
     if ([full_name, mobile, addressLine1, city, state, pincode].some((field) => field === undefined)) {
       return res.status(400).json({ message: "Required fields are missing" });
