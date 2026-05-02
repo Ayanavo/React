@@ -10,7 +10,7 @@ export const Layout = () => {
   type NavItem = { label: string; icon: string; route: string };
   const NavList: Array<NavItem> = [
     { label: "Dashboard", icon: "LayoutDashboardIcon", route: "/dashboard" },
-    { label: "Logs", icon: "TableIcon", route: "/table" },
+    // { label: "Logs", icon: "TableIcon", route: "/table" },
     { label: "Activities", icon: "CalendarDaysIcon", route: "/activities" },
     {
       label: "Notes",
@@ -40,7 +40,7 @@ export const Layout = () => {
         <main>
           <Outlet />
           <Toaster />
-          <ChatbotWidget />
+          {/* <ChatbotWidget /> */}
         </main>
       </SidebarInset>
     </SidebarProvider>

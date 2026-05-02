@@ -1,4 +1,4 @@
-import imgUrl from "@/assets/3d-render-secure-login-password-illustration.jpg";
+import imgUrl from "@/assets/Notebook.jpeg";
 import GoogleIcon from "@/assets/google.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,10 +46,7 @@ function login() {
   const [loader, setLoader] = useState(false);
   const form = generateControl(formSchemaObj);
   console.log("Form errors:", form.formState.errors);
-  function renderField(field: {
-    type: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined;
-    name: React.Key | null | undefined;
-  }) {
+  function renderField(field: { type: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined; name: React.Key | null | undefined }) {
     const Component = componentMap[field.type as keyof typeof componentMap];
     return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
@@ -181,7 +178,7 @@ function login() {
               <img src={`${imgUrl}?height=600&width=400" alt="Login visual`} className="absolute inset-0 h-full w-full object-cover" />
               <div className="absolute inset-0 bg-black/20"></div>
               <div className="absolute inset-0 flex items-center justify-center p-6">
-                <h2 className="text-3xl font-bold text-white text-center">Welcome to Our Platform</h2>
+                <h2 className="text-3xl font-bold text-white text-center">All your note needs in one place</h2>
               </div>
             </div>
           </div>

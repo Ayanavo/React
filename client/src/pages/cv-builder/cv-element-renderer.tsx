@@ -5,6 +5,8 @@ import CvListRenderer from "./cv-list-renderer";
 import CvTextRenderer from "./cv-text-renderer";
 import CvDateRenderer from "./cv-date-renderer";
 import CvTokenRenderer from "./cv-token-renderer";
+import CvImageRenderer from "./cv-image-renderer";
+import CvLocationRenderer from "./cv-location-renderer";
 
 const CVElementRenderer = ({ element, sectionCount, readonly = false }: { element: CVElement; sectionCount?: number; readonly?: boolean }) => {
   const { updateElement, selectElement, selectedElementId } = useCV();
@@ -15,14 +17,19 @@ const CVElementRenderer = ({ element, sectionCount, readonly = false }: { elemen
   if (element.type === "section") {
     const headerChild = element.children?.find((c) => c.type === "header");
     const blockChildren = element.children?.filter((c) => c.type === "block") ?? [];
+
     return (
       <div
         className="flex flex-col w-full border-b last:border-b-0"
         style={{
           height: sectionCount ? `${100 / sectionCount}%` : "auto",
         }}>
-        {/* Blocks inside section */}
-        <div className="flex w-full h-full">{element.children?.map((child) => <CVElementRenderer key={child.id} element={child} sectionCount={sectionCount} />)}</div>
+        {headerChild && <CVElementRenderer key={headerChild.id} element={headerChild} readonly={readonly} />}
+        <div className="flex w-full h-full">
+          {blockChildren.map((child) => (
+            <CVElementRenderer key={child.id} element={child} sectionCount={sectionCount} readonly={readonly} />
+          ))}
+        </div>
       </div>
     );
   }
@@ -64,7 +71,7 @@ const CVElementRenderer = ({ element, sectionCount, readonly = false }: { elemen
               data-placeholder="Section Header"
               onClick={(e) => {
                 if (!readonly) {
-                  e.stopPropagation();
+                  // e.stopPropagation();
                   selectElement(element.id);
                 }
               }}
@@ -136,6 +143,10 @@ const CVElementRenderer = ({ element, sectionCount, readonly = false }: { elemen
       return <CvDateRenderer element={element} readonly={readonly} />;
     case "token":
       return <CvTokenRenderer element={element} readonly={readonly} />;
+    case "image":
+      return <CvImageRenderer element={element} readonly={readonly} />;
+    case "location":
+      return <CvLocationRenderer element={element} readonly={readonly} />;
     default:
       return <div>{element.content}</div>;
   }

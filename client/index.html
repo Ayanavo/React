@@ -1,17 +1,24 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Epsilon</title>
-    <link rel="firebase icon" href="src/assets/favicon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" type="text/css" href="./loader.css" />
-  </head>
-  <body style="pointer-events: auto">
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root">
-      <div class="loader-screen"><span class="loader"></span></div>
-    </div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Epsilon</title>
+  <link rel="firebase icon" href="src/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" type="text/css" href="./loader.css" />
+</head>
+
+<body style="pointer-events: auto">
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root">
+    <div class="loader-screen"><span class="loader"></span></div>
+  </div>
+  <script>
+    //Base Url redirect
+    if (window.location.pathname === '/') window.location.replace('/React');
+  </script>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

@@ -1,5 +1,5 @@
 import { CVElement, useCV } from "@/lib/useCV";
-import { ArrowRight, Dot, Minus, Plus, Plus as PlusIcon, Slash, Trash, X } from "lucide-react";
+import { ArrowRight, Dot, Minus, Plus, Slash, Trash, X } from "lucide-react";
 import React, { CSSProperties, ReactNode } from "react";
 import TokenInput from "./token-input";
 import { fontWeightMap } from "@/lib/utils";
@@ -13,7 +13,7 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
     slash: <Slash className="w-3 h-3" />,
     pipe: <Minus className="w-3 h-3 rotate-90" strokeWidth={2} />,
     arrow: <ArrowRight className="w-3 h-3" />,
-    plus: <PlusIcon className="w-3 h-3" />,
+    plus: <Plus className="w-3 h-3" />,
   };
 
   const interlink = element.properties?.tokenInterlink;
@@ -87,7 +87,7 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
 
       <div className="flex flex-wrap items-center gap-1" style={flexStyle}>
         {tokens.map((value, index) => (
-          <React.Fragment key={index}>
+          <React.Fragment key={`${value}-${index}`}>
             {/* TOKEN CHIP */}
             <div className="relative flex items-center gap-1 px-[4px] py-[2px] border" style={chipStyle}>
               {readonly ?
@@ -95,9 +95,7 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
                   className="whitespace-pre-wrap"
                   style={{
                     fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
-                    textDecoration:
-                      [element.properties?.fontStyle?.underline ? "underline" : "", element.properties?.fontStyle?.strikethrough ? "line-through" : ""].filter(Boolean).join(" ") ||
-                      "none",
+                    textDecoration: [element.properties?.fontStyle?.underline ? "underline" : "", element.properties?.fontStyle?.strikethrough ? "line-through" : ""].filter(Boolean).join(" ") || "none",
                   }}>
                   {value || "—"}
                 </span>
@@ -116,7 +114,6 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
                 </button>
               )}
             </div>
-
             {/* INTERLINK BETWEEN CHIPS */}
             {interlinkEnabled && index < tokens.length - 1 && <span className="mx-1 text-muted-foreground select-none flex items-center">{InterlinkIcon}</span>}
           </React.Fragment>

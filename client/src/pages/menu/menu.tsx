@@ -3,7 +3,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import showToast from "@/hooks/toast";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
-import { useConfirmationDialog } from "@/shared/confirmation";
+import { useConfirmDialog } from "@/shared/confirmation";
 import { logoutAPI } from "@/shared/services/auth";
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,10 +13,13 @@ type NavItem = { label: string; icon: string; route: string };
 function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function }) {
   const navigate = useNavigate();
   const { state } = usePersistedState<"left" | "right">("vite-ui-sidebar", "left");
-  const { openDialog, ConfirmationDialog } = useConfirmationDialog();
+  const { confirm } = useConfirmDialog();
 
   const handleConfirmation = async () => {
-    openDialog("Are you sure you want to log out?").then((res: boolean) => {
+    confirm({
+      message: "Are you sure you want to log out?",
+      title: "Logout Confirmation",
+    }).then((res: boolean) => {
       if (res) {
         logoutAPI()
           .then((res) => {
@@ -39,8 +42,6 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
   };
 
   return (
-    <>
-      {ConfirmationDialog}
       <Sidebar collapsible="icon" variant="floating" side={state}>
         <SidebarHeader>
           <SidebarMenu className="items-end">
@@ -95,7 +96,6 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-    </>
   );
 }
 

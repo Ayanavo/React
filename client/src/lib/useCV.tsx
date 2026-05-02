@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 /* ---------------- TYPES ---------------- */
 export type PageProperties = {
@@ -6,15 +6,17 @@ export type PageProperties = {
   color?: string;
 };
 
-export type CVElementType = "section" | "block" | "header" | "text" | "list" | "date" | "token" | "element";
+export type CVElementType = "page" | "section" | "block" | "text" | "list" | "date" | "token" | "image" | "location" | "header";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 export type DateFormat = "DD_MM_YYYY" | "DD_MMM_YYYY" | "DD_MMMM_YYYY" | "MMM_YYYY" | "MMMM_YYYY" | "YYYY";
 
 export interface CVElement {
   id: string;
   type: CVElementType;
+  height?: number;
   content?: string | string[];
   properties?: {
+    imageSrc?: string;
     dateFormat?: DateFormat;
     includeTime?: boolean;
     timeFormat?: "24" | "12-lower" | "12-upper";
@@ -53,6 +55,20 @@ export interface CVElement {
         gap?: number;
       };
     };
+    imageStyle?: {
+      radius?: number;
+      imageScale?: number; // default = 1
+    };
+    imageMeta?: {
+      naturalWidth?: number;
+      naturalHeight?: number;
+    };
+    imageBorder?: {
+      enabled?: boolean;
+      borderColor?: string;
+      borderWidth?: number;
+      padding?: number;
+    };
   };
 
   editable?: boolean;
@@ -63,28 +79,45 @@ export interface CVElement {
 
 interface CVContextType {
   elements: CVElement[];
+  selectedPageId: string | null;
   selectedElement: CVElement | null;
   selectedElementId: string | null;
   selectedSectionId: string | null;
   selectedBlockId: string | null;
-  selectSection: (sectionId: string) => void;
-  selectBlock: (sectionId: string, blockId: string) => void;
+  selectedHeaderId: string | null;
+  selectPage: (pageId: string) => void;
+  selectSection: (pageId: string, sectionId: string) => void;
+  selectBlock: (pageId: string, sectionId: string, blockId: string) => void;
   selectElement: (elementId: string) => void;
-  addSection: () => void;
+  selectHeader: (pageId: string, sectionId: string, headerId: string) => void;
+  addSection: (pageId: string) => void;
   removeSection: (sectionId: string) => void;
-  addBlock: (sectionId: string) => void;
+  addBlock: (pageId: string, sectionId: string) => void;
   removeBlock: (blockId: string) => void;
   addContent: (blockId: string, element: CVElement) => void;
   updateElement: (id: string, updates: Partial<CVElement>) => void;
   removeElement: (id: string) => void;
+  addHeader: (pageId: string, sectionId: string) => void;
+  updateHeader: (id: string, updates: Partial<CVElement>) => void;
+  removeHeader: () => void;
   showSectionDividers: boolean;
   toggleSectionDividers: () => void;
   clearSelection: () => void;
   commitEdits: () => void;
   pageProperties: PageProperties;
   updatePageProperties: (props: Partial<PageProperties>) => void;
+  loadCVState: (elements: CVElement[], pageProperties?: PageProperties) => void;
+  showPagination: boolean;
+  togglePagination: () => void;
+  addPage: (value: number) => void;
+  removePage: (pageId: string) => void;
+  showSideBar: boolean;
+  toggleSideBar: () => void;
+  MAX_PAGES: number;
   MAX_SECTIONS: number;
   MAX_BLOCKS_PER_SECTION: number;
+  A4_WIDTH: number;
+  A4_HEIGHT: number;
 }
 
 const CVContext = createContext<CVContextType | undefined>(undefined);
@@ -92,8 +125,38 @@ const STORAGE_KEY = "cv-editor-session";
 
 /* ---------------- CONSTANTS ---------------- */
 
+const MAX_PAGES = 20;
 const MAX_SECTIONS = 10;
 const MAX_BLOCKS_PER_SECTION = 5;
+const A4_WIDTH = 794;
+const A4_HEIGHT = 1123;
+const DEFAULT_ELEMENT_CONFIG = [
+  {
+    id: crypto.randomUUID() as string,
+    type: "page",
+    children: [
+      {
+        id: crypto.randomUUID() as string,
+        type: "section",
+        height: A4_HEIGHT * 1,
+        children: [
+          {
+            id: crypto.randomUUID() as string,
+            type: "block",
+            children: [
+              {
+                id: crypto.randomUUID() as string,
+                type: "text",
+                content: "Header",
+                properties: { fontSize: 28, fontWeight: "medium" as fontWeight, textAlign: "center", color: "#c5c5c5" },
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+] as const satisfies CVElement[];
 
 /* ---------------- HELPERS ---------------- */
 
@@ -104,8 +167,7 @@ const updateTree = (nodes: CVElement[], id: string, updater: (node: CVElement) =
     return { ...node, children: updateTree(node.children, id, updater) };
   });
 
-const removeFromTree = (nodes: CVElement[], id: string): CVElement[] =>
-  nodes.filter((n) => n.id !== id).map((n) => (n.children ? { ...n, children: removeFromTree(n.children, id) } : n));
+const removeFromTree = (nodes: CVElement[], id: string): CVElement[] => nodes.filter((n) => n.id !== id).map((n) => (n.children ? { ...n, children: removeFromTree(n.children, id) } : n));
 
 const findElementById = (nodes: CVElement[], id: string | null): CVElement | null => {
   if (!id) return null;
@@ -129,34 +191,18 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
       return JSON.parse(saved);
     }
 
-    // default structure
-    return [
-      {
-        id: crypto.randomUUID(),
-        type: "section",
-        children: [
-          {
-            id: crypto.randomUUID(),
-            type: "block",
-            children: [
-              {
-                id: crypto.randomUUID(),
-                type: "text",
-                content: "Header",
-                properties: { fontSize: 28, fontWeight: "medium" },
-              },
-            ],
-          },
-        ],
-      },
-    ];
+    return DEFAULT_ELEMENT_CONFIG;
   };
 
   const [elements, setElements] = useState<CVElement[]>(getInitialElements);
+  const [selectedPageId, setSelectedPageId] = useState<string | null>(null);
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
+  const [selectedHeaderId, setSelectedHeaderId] = useState<string | null>(null);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [showSectionDividers, setShowSectionDividers] = useState(false);
+  const [showPagination, setShowPagination] = useState(false);
+  const [showSideBar, setShowSideBar] = useState(false);
   const [pageProperties, setPageProperties] = useState<PageProperties>(() => {
     try {
       const saved = sessionStorage.getItem("cv-page-properties");
@@ -178,22 +224,46 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     sessionStorage.setItem("cv-page-properties", JSON.stringify(pageProperties));
   }, [pageProperties]);
 
+  useEffect(() => {
+    console.log(selectedHeaderId, selectedBlockId, selectedSectionId);
+  });
+
   /* -------- SELECTION -------- */
 
-  const selectSection = (sectionId: string) => {
-    setSelectedSectionId(sectionId);
+  const selectPage = (pageId: string) => {
+    setSelectedPageId(pageId);
+    setSelectedSectionId(null);
+    setSelectedHeaderId(null);
     setSelectedBlockId(null);
     setSelectedElementId(null);
   };
 
-  const selectBlock = (sectionId: string, blockId: string) => {
+  const selectSection = (pageId: string, sectionId: string) => {
+    setSelectedPageId(pageId);
+    setSelectedSectionId(sectionId);
+    setSelectedHeaderId(null);
+    setSelectedBlockId(null);
+    setSelectedElementId(null);
+  };
+
+  const selectBlock = (pageId: string, sectionId: string, blockId: string) => {
+    setSelectedPageId(pageId);
     setSelectedSectionId(sectionId);
     setSelectedBlockId(blockId);
+    setSelectedHeaderId(null);
     setSelectedElementId(null);
   };
 
   const selectElement = (elementId: string) => {
     setSelectedElementId(elementId);
+  };
+
+  const selectHeader = (pageId: string, sectionId: string, headerId: string) => {
+    setSelectedPageId(pageId);
+    setSelectedSectionId(sectionId);
+    setSelectedHeaderId(headerId);
+    setSelectedBlockId(null);
+    setSelectedElementId(null);
   };
 
   /* -------- DERIVED -------- */
@@ -202,38 +272,43 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
   /* -------- ACTIONS -------- */
 
-  const addSection = () => {
+  const addSection = (pageId: string) => {
     const sectionId = crypto.randomUUID();
     const blockId = crypto.randomUUID();
 
     setElements((prev) => {
-      const sectionCount = prev.filter((el) => el.type === "section").length;
-      if (sectionCount >= MAX_SECTIONS) {
-        return prev;
-      }
-      return [
-        ...prev,
-        {
-          id: sectionId,
-          type: "section",
-          children: [{ id: blockId, type: "block", children: [] }],
-        },
-      ];
+      return updateTree(prev, pageId, (page) => {
+        if (page.type !== "page") return page;
+
+        const sections = page.children ?? [];
+        if (sections.length >= MAX_SECTIONS) {
+          return page;
+        }
+        return {
+          ...page,
+          children: [
+            ...sections,
+            {
+              id: sectionId,
+              type: "section",
+              children: [{ id: blockId, type: "block", children: [] }],
+            },
+          ],
+        };
+      });
     });
 
-    selectSection(sectionId);
+    selectSection(pageId, sectionId);
   };
 
-  const removeSection = (sectionId: string) => {
-    setElements((prev) => prev.filter((s) => s.id !== sectionId));
+  const removeSection = () => {
+    if (!selectedSectionId) return;
 
-    if (selectedSectionId === sectionId) {
-      setSelectedSectionId(null);
-      setSelectedBlockId(null);
-    }
+    setElements((prev) => removeFromTree(prev, selectedSectionId));
+    setSelectedSectionId(null);
+    setSelectedBlockId(null);
   };
-
-  const addBlock = (sectionId: string) => {
+  const addBlock = (pageId: string, sectionId: string) => {
     const blockId = crypto.randomUUID();
 
     setElements((prev) =>
@@ -250,47 +325,37 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
       })
     );
 
-    selectBlock(sectionId, blockId);
+    selectBlock(pageId, sectionId, blockId);
   };
 
-  const removeBlock = (blockId: string) => {
+  const removeBlock = () => {
     let parentSectionId: string | null = null;
     let canDelete = false;
 
     elements.forEach((section) => {
       if (section.type !== "section") return;
       const blocks = section.children || [];
-      if (blocks.some((b) => b.id === blockId)) {
+      if (blocks.some((b) => b.id === selectedBlockId)) {
         parentSectionId = section.id;
         canDelete = blocks.length > 1;
       }
     });
 
     if (!canDelete) return;
-
-    setElements((prev) => removeFromTree(prev, blockId));
-
-    if (selectedBlockId === blockId) {
-      setSelectedBlockId(null);
-      setSelectedSectionId(parentSectionId);
-    }
+    if (selectedBlockId === null) return;
+    setElements((prev) => removeFromTree(prev, selectedBlockId));
+    setSelectedBlockId(null);
+    setSelectedSectionId(parentSectionId);
   };
 
   const addContent = (blockId: string, element: CVElement) => {
     setElements((prev) =>
-      prev.map((section) => {
-        if (section.type !== "section") return section;
+      updateTree(prev, blockId, (block) => {
+        if (block.type !== "block") return block;
 
         return {
-          ...section,
-          children: section.children?.map((block) => {
-            if (block.id !== blockId) return block;
-
-            return {
-              ...block,
-              children: [...(block.children ?? []), element],
-            };
-          }),
+          ...block,
+          children: [...(block.children ?? []), element],
         };
       })
     );
@@ -317,8 +382,122 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     setElements((prev) => removeFromTree(prev, id));
   };
 
+  const addHeader = (pageId: string, sectionId: string) => {
+    console.log("header added", pageId, sectionId);
+
+    const headerId = crypto.randomUUID();
+    setElements((prev) =>
+      updateTree(prev, sectionId, (section) => {
+        if (section.type !== "section") return section;
+        return {
+          ...section,
+          children: [
+            ...(section.children ?? []),
+            {
+              id: headerId,
+              type: "header",
+              properties: {
+                headerStyle: {
+                  content: "",
+                  color: "#000000",
+                  fontSize: 20,
+                  backgroundColor: "#ffffff",
+                  textAlign: "start",
+                  underline: {
+                    enabled: false,
+                    width: "fullWidth",
+                    gap: 4,
+                  },
+                },
+              },
+            },
+          ],
+        };
+      })
+    );
+    selectHeader(pageId, sectionId, headerId);
+  };
+
+  const updateHeader = (id: string, updates: Partial<CVElement>) => {
+    setElements((prev) => updateTree(prev, id, (el) => ({ ...el, ...updates })));
+  };
+
+  const removeHeader = () => {
+    let parentSectionId: string | null = null;
+    let canDelete = false;
+
+    elements.forEach((section) => {
+      if (section.type !== "section") return;
+      const headers = section.children || [];
+      if (headers.some((h) => h.id === selectedHeaderId)) {
+        parentSectionId = section.id;
+        canDelete = headers.length > 1;
+      }
+    });
+
+    if (!canDelete) return;
+    if (selectedHeaderId === null) return;
+    setElements((prev) => removeFromTree(prev, selectedHeaderId));
+    setSelectedHeaderId(null);
+    setSelectedSectionId(parentSectionId);
+  };
+
   const toggleSectionDividers = () => {
     setShowSectionDividers((prev) => !prev);
+  };
+
+  const togglePagination = () => {
+    setShowPagination((prev) => !prev);
+  };
+
+  const toggleSideBar = () => {
+    setShowSideBar((prev) => !prev);
+  };
+
+  const addPage = (pageCount: number) => {
+    const pageId = crypto.randomUUID();
+    const sectionId = crypto.randomUUID();
+    const blockId = crypto.randomUUID();
+
+    setElements((prev) => {
+      const newPage: CVElement = {
+        id: pageId,
+        type: "page",
+        children: [
+          {
+            id: sectionId,
+            type: "section",
+            children: [
+              {
+                id: blockId,
+                type: "block",
+                children: [],
+              },
+            ],
+          },
+        ],
+      };
+      if (pageCount >= MAX_PAGES) {
+        return prev;
+      }
+      return [...prev, newPage];
+    });
+  };
+
+  const removePage = () => {
+    setElements((prev) => {
+      const pageToRemoveIndex = prev.findIndex((page) => page.id === selectedPageId);
+      if (pageToRemoveIndex === -1 || prev.length <= 1) {
+        return prev;
+      }
+      return prev.filter((_, index) => index !== pageToRemoveIndex);
+    });
+
+    if (selectedPageId === selectedPageId) {
+      setSelectedPageId(null);
+      setSelectedSectionId(null);
+      setSelectedBlockId(null);
+    }
   };
 
   const commitEdits = () => {
@@ -335,6 +514,16 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
+  const loadCVState = useCallback((nextElements: CVElement[], nextPageProperties: PageProperties = {}) => {
+    setElements(nextElements);
+    setPageProperties(nextPageProperties);
+    setSelectedPageId(null);
+    setSelectedSectionId(null);
+    setSelectedBlockId(null);
+    setSelectedHeaderId(null);
+    setSelectedElementId(null);
+  }, []);
+
   const clearSelection = () => {
     setSelectedSectionId(null);
     setSelectedBlockId(null);
@@ -346,14 +535,18 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
       value={{
         elements,
 
+        selectedPageId,
         selectedSectionId,
         selectedBlockId,
         selectedElementId,
+        selectedHeaderId,
         selectedElement,
 
+        selectPage,
         selectSection,
         selectBlock,
         selectElement,
+        selectHeader,
 
         addSection,
         removeSection,
@@ -362,6 +555,9 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         addContent,
         updateElement,
         removeElement,
+        addHeader,
+        updateHeader,
+        removeHeader,
 
         showSectionDividers,
         toggleSectionDividers,
@@ -371,9 +567,20 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
         pageProperties,
         updatePageProperties,
+        loadCVState,
 
+        addPage,
+        removePage,
+        showPagination,
+        togglePagination,
+
+        showSideBar,
+        toggleSideBar,
+        MAX_PAGES,
         MAX_SECTIONS,
         MAX_BLOCKS_PER_SECTION,
+        A4_WIDTH,
+        A4_HEIGHT,
       }}>
       {children}
     </CVContext.Provider>

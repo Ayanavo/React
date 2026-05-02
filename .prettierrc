@@ -3,7 +3,7 @@
   "tabWidth": 2,
   "experimentalTernaries": true,
   "semi": true,
-  "printWidth": 180,
+  "printWidth": 240,
   "singleQuote": false,
   "bracketSpacing": true,
   "bracketSameLine": true,

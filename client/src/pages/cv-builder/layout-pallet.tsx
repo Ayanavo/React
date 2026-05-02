@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useCV, type CVElement } from "@/lib/useCV";
+import { useCV } from "@/lib/useCV";
 import { AlignCenter, AlignLeft, AlignRight, Blocks, LayoutPanelTop } from "lucide-react";
 import React from "react";
 
@@ -11,8 +11,11 @@ const LayoutPallet = () => {
   const {
     addSection,
     addBlock,
+    addHeader,
     showSectionDividers,
     selectedSectionId,
+    selectedPageId,
+    selectedHeaderId,
     toggleSectionDividers,
     MAX_SECTIONS,
     MAX_BLOCKS_PER_SECTION,
@@ -21,68 +24,46 @@ const LayoutPallet = () => {
     updatePageProperties,
     pageProperties,
   } = useCV();
-  const sections = elements.filter((el) => el.type === "section");
-  const sectionCount = sections.length - 1;
-
-  const showBlockCount = (section: CVElement | undefined) => {
-    if (!section) return 0;
-    const blocks = section.children ?? [];
-    if (blocks.length === 0) return 0;
-    return blocks.length - 1;
+  const selectedSection = elements.find((el) => el.id === selectedSectionId);
+  const showSectionCount = () => {
+    if (!selectedPageId) return 0;
+    const page = elements.find((page) => page.id === selectedPageId);
+    return (page?.children?.length ?? 0) - 1;
   };
-
-  // Find selected section - either directly selected or parent of selected block
-  const findSelectedSection = (): CVElement | undefined => {
-    if (!selectedSectionId) return undefined;
-
-    const directSection = elements.find((el) => el.id === selectedSectionId && el.type === "section");
-    if (directSection) return directSection;
-
-    const findParentSection = (nodes: typeof elements, targetId: string): CVElement | undefined => {
-      for (const node of nodes) {
-        if (node.type === "section" && node.children) {
-          const found = node.children.find((child) => child.id === targetId);
-          if (found) return node;
-          for (const child of node.children) {
-            if (child.children) {
-              const nestedFound = child.children.find((c) => c.id === targetId);
-              if (nestedFound) return node;
-            }
-          }
-        }
-      }
-      return undefined;
-    };
-
-    return findParentSection(elements, selectedSectionId);
+  const showBlockCount = () => {
+    if (!selectedPageId || !selectedSectionId) return 0;
+    const page = elements.find((page) => page.id === selectedPageId);
+    if (page && page?.children?.length) {
+      const section = page.children.find((section) => section.id === selectedSectionId);
+      return (section?.children?.length ?? 0) - 1;
+    }
+    return 0;
   };
-
-  const selectedSection = findSelectedSection();
 
   return (
     <div className="space-y-6">
       {/* Add Section */}
       <button
-        onClick={addSection}
-        disabled={MAX_SECTIONS == sectionCount}
+        onClick={() => selectedPageId && addSection(selectedPageId)}
+        disabled={MAX_SECTIONS == showSectionCount()}
         className="w-full flex items-center gap-2 px-6 py-6 rounded-md
                    bg-background text-foreground hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md text-lg font-medium group
                    border border-border">
         <LayoutPanelTop className="w-6 h-6 opacity-60 group-hover:opacity-100" />
         Section
-        {sectionCount > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{sectionCount}+</span>}
+        {showSectionCount() > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{showSectionCount()}+</span>}
       </button>
 
       {/* Add Block */}
       <button
-        onClick={() => selectedSection && addBlock(selectedSection.id)}
-        disabled={!selectedSection || MAX_BLOCKS_PER_SECTION == showBlockCount(selectedSection)}
+        onClick={() => selectedPageId && selectedSectionId && addBlock(selectedPageId, selectedSectionId)}
+        disabled={!selectedSectionId || MAX_BLOCKS_PER_SECTION == showBlockCount()}
         className={`w-full flex items-center gap-2 px-6 py-6 rounded-md
           text-lg font-medium group border hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md
-          ${selectedSection ? "bg-background text-foreground hover:bg-muted" : "bg-muted text-muted-foreground cursor-not-allowed"}`}>
+          ${selectedSectionId ? "bg-background text-foreground hover:bg-muted" : "bg-muted text-muted-foreground cursor-not-allowed"}`}>
         <Blocks className="w-6 h-6 opacity-60 group-hover:opacity-100" />
         Block
-        {showBlockCount(selectedSection) > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{showBlockCount(selectedSection)}+</span>}
+        {showBlockCount() > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{showBlockCount()}+</span>}
       </button>
 
       {/* Toggle Section Divider */}
@@ -94,36 +75,12 @@ const LayoutPallet = () => {
       {/* Add Section Header */}
       <button
         onClick={() => {
-          if (!selectedSection) return;
-          const headerId = crypto.randomUUID();
-          updateElement(selectedSection.id, {
-            children: [
-              {
-                id: headerId,
-                type: "header",
-                properties: {
-                  headerStyle: {
-                    content: "",
-                    color: "#000000",
-                    fontSize: 20,
-                    backgroundColor: "#ffffff",
-                    textAlign: "start",
-                    underline: {
-                      enabled: false,
-                      width: "fullWidth",
-                      gap: 4,
-                    },
-                  },
-                },
-              },
-              ...(selectedSection.children ?? []),
-            ],
-          });
+          selectedPageId && selectedSectionId && addHeader(selectedPageId, selectedSectionId);
         }}
-        disabled={!selectedSection || (selectedSection.children ?? []).some((c) => c.type === "header")}
+        disabled={!!selectedHeaderId}
         className={`w-full px-3 py-2 rounded-md text-xs font-medium transition-all
           ${
-            selectedSection && !(selectedSection.children ?? []).some((c) => c.type === "header") ?
+            selectedSectionId && !(selectedSection?.children ?? []).some((c) => c.type === "header") ?
               "bg-background border-primary text-secondary-foreground hover:bg-secondary/80 cursor-pointer"
             : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
           }`}>
@@ -136,12 +93,7 @@ const LayoutPallet = () => {
 
           <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
             <span className="w-5 h-5 rounded border" style={{ background: pageProperties.backgroundColor ?? "#ffffff" }} />
-            <input
-              type="color"
-              value={pageProperties.backgroundColor ?? "#ffffff"}
-              onChange={(e) => updatePageProperties({ backgroundColor: e.target.value })}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
+            <input type="color" value={pageProperties.backgroundColor ?? "#ffffff"} onChange={(e) => updatePageProperties({ backgroundColor: e.target.value })} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
             {pageProperties.backgroundColor ?? "#ffffff"}
           </label>
         </div>
@@ -151,22 +103,17 @@ const LayoutPallet = () => {
 
           <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
             <span className="w-5 h-5 rounded border" style={{ background: pageProperties.color ?? "#000000" }} />
-            <input
-              type="color"
-              value={pageProperties.color ?? "#000000"}
-              onChange={(e) => updatePageProperties({ color: e.target.value })}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
+            <input type="color" value={pageProperties.color ?? "#000000"} onChange={(e) => updatePageProperties({ color: e.target.value })} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
             {pageProperties.color ?? "#000000"}
           </label>
         </div>
       </div>
 
+      <div>{selectedHeaderId}</div>
       {/* Section Header */}
-      {selectedSection &&
-        (selectedSection.children ?? []).find((c) => c.type === "header") &&
+      {selectedHeaderId &&
         (() => {
-          const headerElement = (selectedSection.children ?? []).find((c) => c.type === "header");
+          const headerElement = elements.find((el) => el.id === selectedHeaderId);
           if (!headerElement) return null;
           const headerStyle = headerElement.properties?.headerStyle;
           return (

@@ -2,9 +2,18 @@ import { ChevronDown } from "lucide-react";
 import React, { useState } from "react";
 import LayoutPallet from "./layout-pallet";
 import AccessoriesPallet from "./accessories-pallet";
+import PagePallet from "./page-panel";
+
+type PALLET_CONFIG = "layout" | "accessories" | "page";
 
 const Pallet = () => {
   const sidebarConfig = [
+    {
+      title: "Page",
+      name: "page",
+      component: PagePallet,
+      area: 20
+    },
     {
       title: "Layout",
       name: "layout",
@@ -15,16 +24,17 @@ const Pallet = () => {
       title: "Typography",
       name: "accessories",
       component: AccessoriesPallet,
-      area: 80,
+      area: 60,
     },
   ] as const;
 
   const [expandedSections, setExpandedSections] = useState({
+    page: true,
     layout: true,
     accessories: true,
   });
 
-  const toggleSection = (section: "layout" | "accessories") => {
+  const toggleSection = (section: PALLET_CONFIG) => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
