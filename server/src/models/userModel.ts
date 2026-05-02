@@ -1,4 +1,4 @@
-import { compare } from "bcrypt";
+﻿import { compare } from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Document, model, Schema } from "mongoose";
 

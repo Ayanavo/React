@@ -1,4 +1,4 @@
-import { hash } from "bcrypt";
+﻿import { hash } from "bcrypt";
 import { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import jwt, { Secret, VerifyErrors } from "jsonwebtoken";

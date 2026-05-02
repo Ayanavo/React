@@ -1,6 +1,5 @@
-import { Router } from "express";
-import { login, signUp, logout, refreshToken, getUserProfile, saveUserProfile, verifyToken } from "../controllers/userController.js";
-import { RequestHandler } from "express";
+﻿import { RequestHandler, Router } from "express";
+import { getUserProfile, login, logout, refreshToken, saveUserProfile, signUp, verifyToken } from "../controllers/userController.js";
 
 const router = Router();
 

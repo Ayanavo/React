@@ -1,4 +1,4 @@
-// src/index.ts
+﻿// src/index.ts
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
@@ -14,6 +14,7 @@ import connectDB from "./utils/db.js";
 import i18n from "./utils/i18n.js";
 import aiRoutes from "./routes/aitRoutes.js";
 import { errorLogger, logger } from "./utils/logger.js";
+import cvBuilderRoutes from "./routes/cvBuilderRoutes.js";
 
 const app = express();
 dotenv.config();
@@ -74,7 +75,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 
 app.get("/", (_req, res) => {
   const url = IS_PROD ? PROD_URL || "https://localhost" : `http://localhost:${PORT}`;
-  res.send(`✅ Server is running at ${url}`);
+  res.send(`âœ… Server is running at ${url}`);
 });
 
 //firebase auth
@@ -89,6 +90,7 @@ if (!admin.apps.length) {
 /** --- Routes --- */
 app.use("/api/activities", activityRoutes);
 app.use("/api/auth", userRoutes);
+app.use("/api/cv-builder", cvBuilderRoutes);
 app.use("/api/setting", settingRoutes);
 app.use("/api/ai", aiRoutes);
 
