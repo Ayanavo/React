@@ -11,8 +11,8 @@ const ZOOM = 1;
 
 const Canvas = () => {
   const { elements, selectedSectionId, A4_WIDTH, A4_HEIGHT, showSectionDividers, selectedBlockId, selectPage, selectSection, selectBlock, selectHeader, removeSection, clearSelection, pageProperties } = useCV();
-  const [isDragging, setIsDragging] = useState(false);
-  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [isDragging] = useState(false);
+  const [draggingIndex] = useState<number | null>(null);
 
   const pageRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<CVPreviewRef>(null);
@@ -32,8 +32,6 @@ const Canvas = () => {
     pdf.save(new Date() + ".pdf");
   };
 
-  setDraggingIndex(null);
-  setIsDragging(false);
   // Handle resizing
   // const handleMouseDown = (pageIndex: number, sectionIndex: number, e: React.MouseEvent) => {
   //   setIsDragging(true);

@@ -5,7 +5,7 @@ import svgr from "vite-plugin-svgr";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: "./",
+  base: "/React/",
   plugins: [react(), svgr({ include: "**/*.svg" })],
   resolve: {
     alias: {

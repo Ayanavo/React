@@ -1,8 +1,8 @@
 {
-  "homepage": "https://ayanavo.github.io/",
+  "homepage": "https://ayanavo.github.io/React/",
   "name": "project01",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host",
