@@ -37,8 +37,8 @@ const PagePallet = () => {
             message: "Please select a page to delete.",
             type: "info",
           });
-          return prev; 
-        };
+          return prev;
+        }
         removePage(selectedPageId);
       }
       return newPageCount;

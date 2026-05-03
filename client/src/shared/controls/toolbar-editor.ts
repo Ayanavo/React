@@ -20,26 +20,7 @@ Quill.register(Font, true);
 
 // Modules object for setting up the Quill editor
 export const editorConfig: ReactQuillProps = {
-  formats: [
-    "header",
-    "font",
-    "size",
-    "bold",
-    "italic",
-    "underline",
-    "align",
-    "strike",
-    "script",
-    "blockquote",
-    "background",
-    "list",
-    "bullet",
-    "indent",
-    "link",
-    "image",
-    "color",
-    "code-block",
-  ],
+  formats: ["header", "font", "size", "bold", "italic", "underline", "align", "strike", "script", "blockquote", "background", "list", "bullet", "indent", "link", "image", "color", "code-block"],
   modules: {
     toolbar: {
       container: "#toolbar",

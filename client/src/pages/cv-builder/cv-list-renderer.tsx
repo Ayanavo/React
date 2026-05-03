@@ -3,13 +3,7 @@ import React, { CSSProperties, useRef } from "react";
 import { ListIcon } from "./list-icons";
 import { Trash } from "lucide-react";
 
-const CvListRenderer = ({
-  element,
-  readonly = false,
-}: {
-  element: CVElement;
-  readonly?: boolean;
-}) => {
+const CvListRenderer = ({ element, readonly = false }: { element: CVElement; readonly?: boolean }) => {
   const { updateElement, selectedElementId, removeElement, selectElement } = useCV();
 
   const ref = useRef<HTMLDivElement>(null);
@@ -19,9 +13,7 @@ const CvListRenderer = ({
   const isSelected = selectedElementId === element.id;
 
   // ---------- Normalize content ----------
-  const items: string[] =
-    Array.isArray(element.content)
-      ? (element.content as string[]) : [""];
+  const items: string[] = Array.isArray(element.content) ? (element.content as string[]) : [""];
 
   // ---------- Styles (same contract as text) ----------
   const decorations: string[] = [];
@@ -29,21 +21,18 @@ const CvListRenderer = ({
   if (element.properties?.fontStyle?.strikethrough) decorations.push("line-through");
 
   const style: CSSProperties = {
-    fontSize: element.properties?.fontSize
-      ? `${element.properties.fontSize}px`
-      : undefined,
+    fontSize: element.properties?.fontSize ? `${element.properties.fontSize}px` : undefined,
     fontWeight: element.properties?.fontWeight,
     fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
     textDecoration: decorations.length ? decorations.join(" ") : "none",
     color: element.properties?.color,
-    ...(isEditingRef.current
-      ? {}
-      : {
+    ...(isEditingRef.current ?
+      {}
+    : {
         columnWidth: "260px",
         columnGap: "1.5rem",
       }),
   };
-
 
   // ---------- Caret helpers ----------
   const placeCaretAtStart = (el: HTMLElement) => {
@@ -66,7 +55,6 @@ const CvListRenderer = ({
     });
   };
 
-
   // ---------- State updates ----------
   const updateItem = (index: number, value: string) => {
     const next = [...items];
@@ -81,10 +69,7 @@ const CvListRenderer = ({
   };
 
   // ---------- Keyboard handling ----------
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLSpanElement>,
-    index: number
-  ) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLSpanElement>, index: number) => {
     // Enter → new list item
     if (e.key === "Enter") {
       e.preventDefault();
@@ -136,7 +121,6 @@ const CvListRenderer = ({
       if (currentText === "") {
         if (items.length <= 1) return;
 
-
         e.preventDefault();
         const targetIndex = index - 1;
 
@@ -152,7 +136,6 @@ const CvListRenderer = ({
         return;
       }
     }
-
   };
 
   // ---------- Paste (plain text only) ----------
@@ -168,9 +151,7 @@ const CvListRenderer = ({
     isEditingRef.current = false;
     if (!ref.current) return;
 
-    const lines = Array.from(
-      ref.current.querySelectorAll("[data-list-item]")
-    ).map((el) => el.textContent ?? "");
+    const lines = Array.from(ref.current.querySelectorAll("[data-list-item]")).map((el) => el.textContent ?? "");
 
     updateElement(element.id, { content: lines });
   };
@@ -185,49 +166,41 @@ const CvListRenderer = ({
     sel?.addRange(range);
   };
 
-
-
   // ---------- Render ----------
   return (
     <div
       ref={ref}
       style={style}
       onClick={
-        !readonly
-          ? (e) => {
+        !readonly ?
+          (e) => {
             e.stopPropagation();
             selectElement(element.id);
           }
-          : undefined
+        : undefined
       }
       onBlurCapture={!readonly ? handleBlur : undefined}
       className={`
         relative max-h-[300px] overflow-hidden rounded-sm px-1 transition
         ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
-      `}
-    >
+      `}>
       {!readonly && isSelected && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             removeElement(element.id);
           }}
-          className="absolute top-2 right-2 bg-secondary text-secondary-foreground p-1 rounded shadow"
-        >
+          className="absolute top-2 right-2 bg-secondary text-secondary-foreground p-1 rounded shadow">
           <Trash className="h-3 w-3" />
         </button>
       )}
 
       {items.map((item, index) => (
-        <div
-          key={index}
-          className="flex gap-2 items-center break-inside-avoid-column"
-        >
+        <div key={index} className="flex gap-2 items-center break-inside-avoid-column">
           <ListIcon element={element} index={index} />
-          {readonly ? (
+          {readonly ?
             <span className="whitespace-pre-wrap">{item}</span>
-          ) : (
-            <span
+          : <span
               ref={(el) => (itemRefs.current[index] = el)}
               data-list-item
               data-placeholder="Type here..."
@@ -242,11 +215,10 @@ const CvListRenderer = ({
                 cursor-text outline-none min-w-[2px]
                 empty:before:content-[attr(data-placeholder)]
                 empty:before:text-muted-foreground
-              "
-            >
+              ">
               {item}
             </span>
-          )}
+          }
         </div>
       ))}
     </div>

@@ -11,17 +11,7 @@ import { cn } from "@/lib/utils";
 import { deleteActivity, fetchActivities } from "@/shared/services/activity";
 import { useSidebarLayout } from "@/shared/sidebarlayout";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import {
-  createColumnHelper,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  PaginationState,
-  SortingState,
-  Table as TableModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { createColumnHelper, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, Table as TableModel, useReactTable } from "@tanstack/react-table";
 import { CheckIcon, EllipsisIcon, EyeIcon, PencilIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
 import moment from "moment";
 import React, { useEffect, useId, useState } from "react";
@@ -267,9 +257,7 @@ function table() {
           <div className=" relative">
             <Input id={id} className="pe-11" placeholder="Search..." type="search" defaultValue={globalFilter} onKeyDown={handleSearchKey} />
             <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground">
-              <kbd className="inline-flex h-5 max-h-full items-center rounded border border-border px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
-                Enter
-              </kbd>
+              <kbd className="inline-flex h-5 max-h-full items-center rounded border border-border px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">Enter</kbd>
             </div>
           </div>
 
@@ -282,9 +270,7 @@ function table() {
                   return (
                     <Tooltip key={item.name}>
                       <TooltipTrigger asChild>
-                        <ToggleGroupItem
-                          className={cn(isFirst && "rounded-r-none", isLast && "rounded-l-none", !(isFirst || isLast) && "rounded-none border-x-0")}
-                          value={item.name}>
+                        <ToggleGroupItem className={cn(isFirst && "rounded-r-none", isLast && "rounded-l-none", !(isFirst || isLast) && "rounded-none border-x-0")} value={item.name}>
                           <IconsComponent customClass="h-4 w-4" icon={item.icon} />
                         </ToggleGroupItem>
                       </TooltipTrigger>

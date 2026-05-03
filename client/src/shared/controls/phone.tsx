@@ -85,9 +85,7 @@ function phone({ form, schema }: { form: FieldValue<any>; schema: PhoneSchema })
               </FormItem>
             )}
           />
-          {!!index && (
-            <TrashIcon className="absolute -right-5 top-3/4 -translate-y-1/2 w-4 text-destructive hover:text-destructive/90 cursor-pointer" onClick={() => remove(index)} />
-          )}
+          {!!index && <TrashIcon className="absolute -right-5 top-3/4 -translate-y-1/2 w-4 text-destructive hover:text-destructive/90 cursor-pointer" onClick={() => remove(index)} />}
         </div>
       ))}
       <Button type="button" variant="outline" size="sm" onClick={() => append({ phone: "", isPrimary: false })} className="mt-2">

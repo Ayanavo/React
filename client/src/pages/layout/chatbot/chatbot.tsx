@@ -21,11 +21,7 @@ function Bubble({ role, children }: BubbleProps) {
   return (
     <div className={cn("flex w-full", isUser ? "justify-end" : "justify-start")}>
       <div
-        className={cn(
-          "max-w-[80%] rounded-xl px-3 py-2 text-sm shadow",
-          isUser ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground border border-border",
-          isAssistant && "bg-card text-foreground border border-border"
-        )}>
+        className={cn("max-w-[80%] rounded-xl px-3 py-2 text-sm shadow", isUser ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground border border-border", isAssistant && "bg-card text-foreground border border-border")}>
         {children}
       </div>
     </div>
@@ -38,7 +34,7 @@ export function ChatbotWidget() {
   const prevCountRef = useRef(0);
   const endRef = useRef<HTMLDivElement | null>(null);
 
-  if(!localStorage.getItem('token')) return;
+  if (!localStorage.getItem("token")) return;
   const { messages, sendMessage, status } = useChat({
     transport: useMemo(() => createChatTransport(apiUrl), [apiUrl]),
   });
@@ -96,15 +92,9 @@ export function ChatbotWidget() {
       {Overlay}
 
       {/* Chat Panel */}
-      <section
-        aria-live="polite"
-        aria-label="AI Chat"
-        className={cn("fixed right-4 bottom-20 z-50 w-[90vw] max-w-sm sm:max-w-md", isOpen ? "pointer-events-auto" : "pointer-events-none")}>
+      <section aria-live="polite" aria-label="AI Chat" className={cn("fixed right-4 bottom-20 z-50 w-[90vw] max-w-sm sm:max-w-md", isOpen ? "pointer-events-auto" : "pointer-events-none")}>
         <div
-          className={cn(
-            "flex h-[70vh] max-h-[560px] flex-col rounded-xl border border-border bg-card text-foreground shadow-xl transition-all",
-            isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          )}
+          className={cn("flex h-[70vh] max-h-[560px] flex-col rounded-xl border border-border bg-card text-foreground shadow-xl transition-all", isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4")}
           role="dialog"
           aria-modal="true">
           {/* Header */}
@@ -140,14 +130,7 @@ export function ChatbotWidget() {
 
           {/* Composer */}
           <form onSubmit={onSend} className="flex items-center gap-2 p-3 border-t border-border bg-card">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Type your message…"
-              aria-label="Message"
-              disabled={status === "submitted" || status === "streaming"}
-              className="bg-background"
-            />
+            <Input value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type your message…" aria-label="Message" disabled={status === "submitted" || status === "streaming"} className="bg-background" />
             <Button type="submit" disabled={status === "submitted" || status === "streaming"} className="shrink-0">
               <Send className="h-4 w-4 mr-1" />
               Send

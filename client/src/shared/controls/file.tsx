@@ -49,14 +49,7 @@ function file({ form, schema }: { form: FieldValue<any>; schema: FileSchema }) {
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">Max Size: {schema.validation.maxSize || "500Mb"}</p>
             </div>
-            <input
-              ref={inputRef}
-              id="dropzone-file"
-              type="file"
-              className="hidden"
-              multiple={schema.validation.multiple}
-              onChange={(e) => e.target.files && form.setValue(schema.name, Array.from(e.target.files))}
-            />
+            <input ref={inputRef} id="dropzone-file" type="file" className="hidden" multiple={schema.validation.multiple} onChange={(e) => e.target.files && form.setValue(schema.name, Array.from(e.target.files))} />
           </div>
           <ol aria-label="dropzone-file-list" className="flex flex-col gap-3">
             {form.getValues(schema.name)?.map((file: File) => (

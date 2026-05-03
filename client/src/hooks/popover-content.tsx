@@ -45,13 +45,7 @@ export function CustomPopover({ content, className, controlRef }: CustomPopoverP
         <FloatingPortal>
           {isOpen && (
             <FloatingFocusManager context={context} modal={false}>
-              <PopoverContent
-                onInteractOutside={(e) => e.stopPropagation()}
-                ref={refs.setFloating}
-                style={floatingStyles}
-                {...getFloatingProps()}
-                className={cn(className)}
-                onClick={(e) => e.stopPropagation()}>
+              <PopoverContent onInteractOutside={(e) => e.stopPropagation()} ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()} className={cn(className)} onClick={(e) => e.stopPropagation()}>
                 {content}
               </PopoverContent>
             </FloatingFocusManager>

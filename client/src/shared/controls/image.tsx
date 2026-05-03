@@ -64,22 +64,12 @@ function ImageInput({ form, schema }: { form: FieldValue<any>; schema: ImageSche
       </div>
 
       <div className="flex items-center gap-4">
-        <input
-          ref={inputRef}
-          id="image-drop"
-          type="file"
-          accept="image/*"
-          {...(captureAttr ? { capture: captureAttr as any } : {})}
-          className="hidden"
-          onChange={handleImageUpload}
-        />
+        <input ref={inputRef} id="image-drop" type="file" accept="image/*" {...(captureAttr ? { capture: captureAttr as any } : {})} className="hidden" onChange={handleImageUpload} />
 
         <div className="relative w-16 h-16 border rounded-lg overflow-hidden">
           {!imagePreview ?
             <div className="absolute inset-0 flex items-center justify-center bg-primary">
-              {schema.profileDefaultLink && (
-                <img src={schema.profileDefaultLink || "/placeholder.svg"} alt="Default profile" draggable={false} className="w-full h-full object-cover" />
-              )}
+              {schema.profileDefaultLink && <img src={schema.profileDefaultLink || "/placeholder.svg"} alt="Default profile" draggable={false} className="w-full h-full object-cover" />}
               {schema.placeholder && <div className="text-4xl text-secondary transition duration-500 text-center">{schema.placeholder}</div>}
             </div>
           : <img width={64} height={64} alt="Selected preview" src={imagePreview || "/placeholder.svg"} draggable={false} className="w-full h-full object-cover" />}

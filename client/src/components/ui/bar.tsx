@@ -30,18 +30,12 @@ const Bar = ({ className, variant = "indeterminate", value = 0, bufferValue = 0,
       {...props}>
       {/* Buffer track (for buffer variant only) */}
       {variant === "buffer" ?
-        <div
-          className={cn("absolute inset-y-0 left-0 right-0 rounded-full", "bg-primary/40", "transition-transform duration-200 ease-linear")}
-          style={{ transform: `translateX(-${100 - bv}%)` }}
-        />
+        <div className={cn("absolute inset-y-0 left-0 right-0 rounded-full", "bg-primary/40", "transition-transform duration-200 ease-linear")} style={{ transform: `translateX(-${100 - bv}%)` }} />
       : null}
 
       {/* Main bar(s) */}
       {variant === "determinate" ?
-        <div
-          className={cn("absolute inset-y-0 left-0 right-0 rounded-full bg-primary", "transition-transform duration-200 ease-linear")}
-          style={{ transform: `translateX(-${100 - v}%)` }}
-        />
+        <div className={cn("absolute inset-y-0 left-0 right-0 rounded-full bg-primary", "transition-transform duration-200 ease-linear")} style={{ transform: `translateX(-${100 - v}%)` }} />
       : null}
 
       {variant === "indeterminate" ?

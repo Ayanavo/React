@@ -12,7 +12,7 @@ const Pallet = () => {
       title: "Page",
       name: "page",
       component: PagePallet,
-      area: 20
+      area: 20,
     },
     {
       title: "Layout",
