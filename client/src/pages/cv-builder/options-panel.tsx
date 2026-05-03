@@ -101,41 +101,43 @@ const ElementOptions = () => {
       </div>
 
       {/* FONT STYLE */}
-      <div className="space-y-2 flex items-center justify-between">
-        <Label className="text-xs font-medium text-muted-foreground text-nowrap">Style</Label>
+      {selectedElement.type !== "icon" && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Style</Label>
 
-        <ToggleGroup
-          size="sm"
-          type="multiple"
-          variant="outline"
-          value={[props.fontStyle?.strikethrough && "strikethrough", props.fontStyle?.italic && "italic", props.fontStyle?.underline && "underline"].filter(Boolean) as string[]}
-          onValueChange={(value) => {
-            if (!value) return;
-            updateElement(selectedElement.id, {
-              properties: {
-                ...props,
-                fontStyle: {
-                  strikethrough: value.includes("strikethrough"),
-                  italic: value.includes("italic"),
-                  underline: value.includes("underline"),
+          <ToggleGroup
+            size="sm"
+            type="multiple"
+            variant="outline"
+            value={[props.fontStyle?.strikethrough && "strikethrough", props.fontStyle?.italic && "italic", props.fontStyle?.underline && "underline"].filter(Boolean) as string[]}
+            onValueChange={(value) => {
+              if (!value) return;
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  fontStyle: {
+                    strikethrough: value.includes("strikethrough"),
+                    italic: value.includes("italic"),
+                    underline: value.includes("underline"),
+                  },
                 },
-              },
-            });
-          }}
-          className="w-32 flex gap-2">
-          <ToggleGroupItem value="underline">
-            <Underline className="h-4 w-4" />
-          </ToggleGroupItem>
+              });
+            }}
+            className="w-32 flex gap-2">
+            <ToggleGroupItem value="underline">
+              <Underline className="h-4 w-4" />
+            </ToggleGroupItem>
 
-          <ToggleGroupItem value="italic">
-            <Italic className="h-4 w-4" />
-          </ToggleGroupItem>
+            <ToggleGroupItem value="italic">
+              <Italic className="h-4 w-4" />
+            </ToggleGroupItem>
 
-          <ToggleGroupItem value="strikethrough">
-            <Strikethrough className="h-4 w-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
+            <ToggleGroupItem value="strikethrough">
+              <Strikethrough className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      )}
 
       {/* ALIGNMENT */}
       {selectedElement.type != "list" && (

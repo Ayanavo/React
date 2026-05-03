@@ -87,7 +87,7 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
 
       <div className="flex flex-wrap items-center gap-1" style={flexStyle}>
         {tokens.map((value, index) => (
-          <React.Fragment key={`${value}-${index}`}>
+          <React.Fragment key={index}>
             {/* TOKEN CHIP */}
             <div className="relative flex items-center gap-1 px-[4px] py-[2px] border" style={chipStyle}>
               {readonly ?
