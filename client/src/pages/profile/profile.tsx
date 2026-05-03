@@ -8,6 +8,7 @@ import { useZodForm } from "../layout/grid/form/validationBuilder";
 import { createProfileSchemaWithValidation } from "@/shared/validation/schema";
 import { validatePincodeAPI } from "@/shared/services/profile";
 import { Button } from "@/components/ui/button";
+import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 
 function profile() {
   const isMobileSingle = true; // set true for single phone, false for multiple
@@ -78,7 +79,10 @@ function profile() {
 
   return (
     <div className="flex flex-col h-[9vh]">
-      <div className="px-6">
+      <div className="flex items-center justify-between px-2 pt-3">
+        <BreadcrumbInbuild />
+      </div>
+      <div className="px-6 py-2 my-2 border-2 rounded-md">
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ImageComponent

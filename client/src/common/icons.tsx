@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import * as Lucide from "lucide-react";
 import React from "react";
 
-function icons({ icon, customClass }: { icon: string; customClass?: string }) {
+function icons({ icon, customClass, style }: { icon: string; customClass?: string; style?: React.CSSProperties }) {
   const IconComponent = Lucide[icon as keyof typeof Lucide] as React.ElementType;
 
   // Return a fallback if the icon doesn't exist
@@ -10,7 +10,7 @@ function icons({ icon, customClass }: { icon: string; customClass?: string }) {
     return <Lucide.XIcon />;
   }
 
-  return <IconComponent className={cn(customClass)} />;
+  return <IconComponent className={cn(customClass)} style={style} />;
 }
 
 export default icons;

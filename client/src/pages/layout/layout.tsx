@@ -8,7 +8,7 @@ import HeaderComponent from "./header/header";
 export const Layout = () => {
   type NavItem = { label: string; icon: string; route: string };
   const NavList: Array<NavItem> = [
-    { label: "Dashboard", icon: "LayoutDashboardIcon", route: "/dashboard" },
+    // { label: "Dashboard", icon: "LayoutDashboardIcon", route: "/dashboard" },
     // { label: "Logs", icon: "TableIcon", route: "/table" },
     { label: "Activities", icon: "CalendarDaysIcon", route: "/activities" },
     {

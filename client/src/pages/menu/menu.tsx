@@ -6,14 +6,19 @@ import { cn } from "@/lib/utils";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { logoutAPI } from "@/shared/services/auth";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import IconsComponent from "../../common/icons";
 
 type NavItem = { label: string; icon: string; route: string };
 function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { state } = usePersistedState<"left" | "right">("vite-ui-sidebar", "left");
   const { confirm } = useConfirmDialog();
+
+  const isRouteActive = (route: string) => {
+    return pathname === route || pathname.startsWith(`${route}/`);
+  };
 
   const handleConfirmation = async () => {
     confirm({
@@ -56,23 +61,31 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
         <SidebarContent>
           <SidebarGroup>
             <SidebarMenu>
-              {NavList.map(({ label, icon, route }: NavItem) => (
-                <TooltipProvider disableHoverableContent key={route}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton className="text-secondary hover:text-primary" onClick={() => navigate(route)}>
-                          <IconsComponent customClass="h-6 w-6" icon={icon} />
-                          <span>{label}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </TooltipTrigger>
-                    <TooltipContent className={cn(!isExpanded && "sr-only")} side="right">
-                      {label}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              ))}
+              {NavList.map(({ label, icon, route }: NavItem) => {
+                const isActive = isRouteActive(route);
+
+                return (
+                  <TooltipProvider disableHoverableContent key={route}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuItem>
+                          <SidebarMenuButton
+                            className={cn("text-secondary hover:text-primary", isActive && "text-primary")}
+                            isActive={isActive}
+                            onClick={() => navigate(route)}
+                          >
+                            <IconsComponent customClass="h-6 w-6" icon={icon} />
+                            <span>{label}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      </TooltipTrigger>
+                      <TooltipContent className={cn(!isExpanded && "sr-only")} side="right">
+                        {label}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>

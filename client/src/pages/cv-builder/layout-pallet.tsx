@@ -3,9 +3,22 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { useCV } from "@/lib/useCV";
+import { CVElement, useCV } from "@/lib/useCV";
 import { AlignCenter, AlignLeft, AlignRight, Blocks, LayoutPanelTop } from "lucide-react";
 import React from "react";
+
+const findElementById = (items: CVElement[], id: string | null): CVElement | null => {
+  if (!id) return null;
+
+  for (const item of items) {
+    if (item.id === id) return item;
+
+    const child = findElementById(item.children ?? [], id);
+    if (child) return child;
+  }
+
+  return null;
+};
 
 const LayoutPallet = () => {
   const {
@@ -24,7 +37,8 @@ const LayoutPallet = () => {
     updatePageProperties,
     pageProperties,
   } = useCV();
-  const selectedSection = elements.find((el) => el.id === selectedSectionId);
+  const selectedSection = findElementById(elements, selectedSectionId);
+  const selectedHeader = findElementById(elements, selectedHeaderId);
   const showSectionCount = () => {
     if (!selectedPageId) return 0;
     const page = elements.find((page) => page.id === selectedPageId);
@@ -109,11 +123,10 @@ const LayoutPallet = () => {
         </div>
       </div>
 
-      <div>{selectedHeaderId}</div>
       {/* Section Header */}
       {selectedHeaderId &&
         (() => {
-          const headerElement = elements.find((el) => el.id === selectedHeaderId);
+          const headerElement = selectedHeader;
           if (!headerElement) return null;
           const headerStyle = headerElement.properties?.headerStyle;
           return (

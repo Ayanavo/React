@@ -1,4 +1,4 @@
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import { CVElement, CVProvider, PageProperties, useCV } from "@/lib/useCV";
 import { request } from "@/shared/interceptors/auth-interceptor";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { FormEvent, useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Canvas from "../cv-builder/canvas";
 import Pallet from "../cv-builder/pallet";
 
@@ -139,22 +139,16 @@ const CVBuilderContent = () => {
   return (
     <div className="flex h-[90vh] flex-col overflow-hidden bg-background">
       <div className="flex items-center justify-between px-6 py-3">
-        <Breadcrumb className="flex items-center">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/cv-builder">CV Builder</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{isEditMode ? "Update" : "Create"}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <BreadcrumbInbuild isEditMode={isEditMode} />
 
         <Button type="button" onClick={openSubmitDialog} disabled={mutation.isPending || isFetching}>
-          {mutation.isPending ? (isEditMode ? "Updating..." : "Submitting...") : isEditMode ? "Update" : "Submit"}
+          {mutation.isPending ?
+            isEditMode ?
+              "Updating..."
+            : "Submitting..."
+          : isEditMode ?
+            "Update"
+          : "Submit"}
         </Button>
       </div>
 
@@ -200,7 +194,13 @@ const CVBuilderContent = () => {
                 Cancel
               </Button>
               <Button type="submit" disabled={mutation.isPending || !name.trim()}>
-                {mutation.isPending ? (isEditMode ? "Updating..." : "Submitting...") : isEditMode ? "Update" : "Submit"}
+                {mutation.isPending ?
+                  isEditMode ?
+                    "Updating..."
+                  : "Submitting..."
+                : isEditMode ?
+                  "Update"
+                : "Submit"}
               </Button>
             </DialogFooter>
           </form>

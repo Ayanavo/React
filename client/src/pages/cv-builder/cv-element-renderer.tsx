@@ -6,12 +6,12 @@ import CvTextRenderer from "./cv-text-renderer";
 import CvDateRenderer from "./cv-date-renderer";
 import CvTokenRenderer from "./cv-token-renderer";
 import CvImageRenderer from "./cv-image-renderer";
-import CvLocationRenderer from "./cv-location-renderer";
+import CvIconRenderer from "./cv-icon-renderer";
 
 const CVElementRenderer = ({ element, sectionCount, readonly = false }: { element: CVElement; sectionCount?: number; readonly?: boolean }) => {
-  const { updateElement, selectElement, selectedElementId } = useCV();
+  const { updateElement, selectElement, selectedElementId, selectedHeaderId } = useCV();
   const headerRef = useRef<HTMLDivElement>(null);
-  const isSelected = selectedElementId === element.id;
+  const isSelected = selectedElementId === element.id || selectedHeaderId === element.id;
 
   // ---------- SECTION ----------
   if (element.type === "section") {
@@ -69,9 +69,8 @@ const CVElementRenderer = ({ element, sectionCount, readonly = false }: { elemen
               contentEditable={!readonly}
               suppressContentEditableWarning
               data-placeholder="Section Header"
-              onClick={(e) => {
+              onClick={() => {
                 if (!readonly) {
-                  e.stopPropagation();
                   selectElement(element.id);
                 }
               }}
@@ -145,8 +144,8 @@ const CVElementRenderer = ({ element, sectionCount, readonly = false }: { elemen
       return <CvTokenRenderer element={element} readonly={readonly} />;
     case "image":
       return <CvImageRenderer element={element} readonly={readonly} />;
-    case "location":
-      return <CvLocationRenderer element={element} readonly={readonly} />;
+    case "icon":
+      return <CvIconRenderer element={element} readonly={readonly} />;
     default:
       return <div>{element.content}</div>;
   }

@@ -15,6 +15,7 @@ import ActivityComponent from "./activity-list";
 import DatePickerComponent from "./datepicker";
 import EventComponent from "./event";
 import "./fullcalendar.scss";
+import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 
 function activity() {
   const [showEventPopover, setShowEventPopover] = useState(false);
@@ -86,16 +87,15 @@ function activity() {
   return (
     <div className="flex flex-col h-[90vh]">
       <EventComponent setIsOpen={setIsOpen} isOpen={isOpen} momentValue={selectedDate} />
-
+      <div className="flex items-center justify-between px-2 pt-3">
+        <BreadcrumbInbuild />
+      </div>
+      {/* <div className="px-6 py-2 my-2 border rounded-md mx-5"></div> */}
       <div className="flex overflow-auto">
         <div className="ml-2 px-2 mt-3">
           <DatePickerComponent onSendData={setDate} date={date} />
 
-          <ActivityComponent
-            events={HolidayList.filter(
-              (events) => moment(events.start).month() === moment(activeMonth, "MMMM YYYY").month() && moment(events.start).year() === moment(activeMonth, "MMMM YYYY").year()
-            )}
-          />
+          <ActivityComponent events={HolidayList.filter((events) => moment(events.start).month() === moment(activeMonth, "MMMM YYYY").month() && moment(events.start).year() === moment(activeMonth, "MMMM YYYY").year())} />
         </div>
 
         {/* <ResizableHandle withHandle /> */}

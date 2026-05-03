@@ -137,7 +137,8 @@ const Canvas = () => {
                           {/* ✅ HEADER (FULL WIDTH) */}
                           {headerChild && (
                             <div
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 selectHeader(page.id, section.id, headerChild.id);
                               }}>
                               <CVElementRenderer element={headerChild} />

@@ -1,13 +1,17 @@
+import Icon from "@/common/icons";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { fontWeight, useCV } from "@/lib/useCV";
-import { AlignCenter, AlignLeft, AlignRight, ArrowRight, Dot, Italic, Minus, PlusIcon, Slash, Strikethrough, Underline } from "lucide-react";
-import React from "react";
+import * as Iconlist from "lucide-react";
+import { AlignCenter, AlignLeft, AlignRight, ArrowRight, Dot, Italic, Minus, PlusIcon, Slash, Strikethrough, Underline, X } from "lucide-react";
+import React, { useMemo, useState } from "react";
 import { ListIcon } from "./list-icons";
-import { Slider } from "@/components/ui/slider";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const ElementOptions = () => {
   const { selectedElement, updateElement } = useCV();
@@ -26,6 +30,24 @@ const ElementOptions = () => {
     { label: "Semi Bold", value: "semi-bold", css: 600 },
     { label: "Bold", value: "bold", css: 700 },
   ];
+  const ICON_LIST = Object.keys(Iconlist)
+    .filter((key) => {
+      if (key === "createLucideIcon") return false;
+      if (key.endsWith("Icon")) return false;
+      return /^[A-Z]/.test(key);
+    })
+    .map((key) => ({
+      name: key.toLowerCase(),
+      icon: key,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const [search, setSearch] = useState("");
+  const selectedIconName = props.icon ?? "Star";
+  const SelectedIcon = ICON_LIST.find((item) => item.icon === selectedIconName)?.icon || "Star";
+  const filteredIcons = useMemo(() => {
+    return ICON_LIST.filter((entry) => entry.name.includes(search.toLowerCase())).slice(0, 100);
+  }, [search]);
 
   return (
     <div className="mt-4 rounded-lg border p-3 space-y-1">
@@ -611,6 +633,65 @@ const ElementOptions = () => {
             </>
           )}
         </>
+      )}
+
+      {/* IMAGE OPTIONS */}
+      {selectedElement.type === "icon" && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon</Label>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="w-32 flex items-center gap-2 border rounded-md px-2 py-[6px] shadow cursor-pointer">
+                <Icon icon={SelectedIcon} customClass="w-4 h-4 shrink-0" />
+                <span className="text-xs capitalize text-muted-foreground truncate flex-1">{selectedIconName}</span>
+              </div>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent className="w-56 p-2 space-y-2">
+              <div className="relative">
+                <Input placeholder="Search icon..." autoFocus value={search} onChange={(e) => setSearch(e.target.value)} className="h-8 pr-7" />
+
+                {search && (
+                  <button onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted">
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+                <TooltipProvider delayDuration={500}>
+                  {filteredIcons.map((item) => {
+                    return (
+                      <Tooltip key={item.icon}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className={`p-2 rounded cursor-pointer flex items-center justify-center border ${item.icon === selectedIconName ? "bg-muted border-primary" : "hover:bg-muted"}`}
+                            onClick={() => {
+                              updateElement(selectedElement.id, {
+                                properties: {
+                                  ...props,
+                                  icon: item.icon,
+                                },
+                              });
+                              document.body.click();
+                            }}>
+                            <Icon icon={item.icon} customClass="w-4 h-4" />
+                          </div>
+                        </TooltipTrigger>
+
+                        <TooltipContent side="top">
+                          <span className="text-xs capitalize">{item.icon.replace(/([A-Z])/g, " $1")}</span>
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </TooltipProvider>
+              </div>
+
+              {filteredIcons.length === 0 && <div className="text-xs text-muted-foreground text-center py-2">No icons found</div>}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )}
     </div>
   );

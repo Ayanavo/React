@@ -7,21 +7,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import showToast from "@/hooks/toast";
 import { CVElement, PageProperties } from "@/lib/useCV";
 import { request } from "@/shared/interceptors/auth-interceptor";
-import {
-  createColumnHelper,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  PaginationState,
-  SortingState,
-  useReactTable,
-} from "@tanstack/react-table";
+import { createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DownloadIcon, EllipsisIcon, EyeIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import React, { useCallback, useId, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 
 type CVListing = {
   id: string;
@@ -99,16 +90,15 @@ const CVAccessGrid = () => {
 
   const data = useMemo(
     () =>
-      cvBuilderList
-        .map((cv) => ({
-          id: cv._id,
-          name: cv.name || "Untitled CV",
-          job: cv.job || "-",
-          tag: cv.tag || "-",
-          createdBy: formatUser(cv.createdBy),
-          modifiedBy: formatUser(cv.modifiedBy),
-        })),
-    [cvBuilderList],
+      cvBuilderList.map((cv) => ({
+        id: cv._id,
+        name: cv.name || "Untitled CV",
+        job: cv.job || "-",
+        tag: cv.tag || "-",
+        createdBy: formatUser(cv.createdBy),
+        modifiedBy: formatUser(cv.modifiedBy),
+      })),
+    [cvBuilderList]
   );
 
   const openBuilder = () => {
@@ -139,7 +129,7 @@ const CVAccessGrid = () => {
     (cvId: string) => {
       deleteMutation.mutate(cvId);
     },
-    [deleteMutation],
+    [deleteMutation]
   );
 
   const downloadCV = useCallback(async (cvId: string) => {
@@ -223,7 +213,7 @@ const CVAccessGrid = () => {
         ),
       }),
     ],
-    [deleteCV, downloadCV, navigate],
+    [deleteCV, downloadCV, navigate]
   );
 
   const tableBody = useReactTable({
@@ -247,6 +237,9 @@ const CVAccessGrid = () => {
 
   return (
     <div className="flex flex-col h-[90vh] overflow-hidden">
+      <div className="flex items-center justify-between px-2 pt-3">
+        <BreadcrumbInbuild />
+      </div>
       <div className="flex-none p-3 flex justify-between items-center gap-3">
         <div className="relative w-full max-w-sm">
           <Input id={id} className="pe-11" placeholder="Search CVs..." type="search" defaultValue={globalFilter} onKeyDown={handleSearchKey} />

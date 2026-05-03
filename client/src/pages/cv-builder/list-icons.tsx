@@ -1,7 +1,7 @@
 import { ArrowRight, Check, Minus } from "lucide-react";
 import React from "react";
 
-export function ListIcon({ element, index}: { element: any; index: number}) {
+export function ListIcon({ element, index }: { element: any; index: number }) {
   const style = {
     color: element.properties?.listStyle?.iconColor ?? "currentColor",
     fontWeight: 500,

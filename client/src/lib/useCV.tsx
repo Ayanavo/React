@@ -6,7 +6,7 @@ export type PageProperties = {
   color?: string;
 };
 
-export type CVElementType = "page" | "section" | "block" | "text" | "list" | "date" | "token" | "image" | "location" | "header";
+export type CVElementType = "page" | "section" | "block" | "text" | "list" | "date" | "token" | "image" | "icon" | "header";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 export type DateFormat = "DD_MM_YYYY" | "DD_MMM_YYYY" | "DD_MMMM_YYYY" | "MMM_YYYY" | "MMMM_YYYY" | "YYYY";
 
@@ -69,6 +69,7 @@ export interface CVElement {
       borderWidth?: number;
       padding?: number;
     };
+    icon?: string;
   };
 
   editable?: boolean;

@@ -6,6 +6,7 @@ import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/grid/form/validation";
 import { useColor, useTheme, useFont } from "./theme";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 
 function settings() {
   const settingsSchema: [
@@ -72,7 +73,10 @@ function settings() {
 
   return (
     <div className="flex flex-col h-[9vh]">
-      <div className="px-6">
+      <div className="flex items-center justify-between px-2 pt-3">
+        <BreadcrumbInbuild />
+      </div>
+      <div className="px-6 py-2 my-2 border-2 rounded-md">
         <FormProvider {...form}>
           <div className="space-y-6">
             {/* Company Logo Section */}
@@ -106,10 +110,7 @@ function settings() {
               </div>
               <div className="grid grid-cols-5 gap-4">
                 {["system", "light", "dark"].map((type) => (
-                  <Card
-                    key={type}
-                    className={`relative cursor-pointer p-1 ${theme === type ? "border-2 border-primary" : ""}`}
-                    onClick={() => setTheme(type as "system" | "light" | "dark")}>
+                  <Card key={type} className={`relative cursor-pointer p-1 ${theme === type ? "border-2 border-primary" : ""}`} onClick={() => setTheme(type as "system" | "light" | "dark")}>
                     <div className="aspect-[4/3] rounded-sm bg-muted" />
                     <p className="mt-2 text-center text-sm capitalize">{type} Mode</p>
                   </Card>

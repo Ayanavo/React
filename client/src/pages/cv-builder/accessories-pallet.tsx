@@ -1,5 +1,5 @@
 import { CVElementType, useCV } from "@/lib/useCV";
-import { Calendar, Image, List, MapPin, Tag, Text } from "lucide-react";
+import { Calendar, Image, List, Star, Tag, Text } from "lucide-react";
 import React from "react";
 import ElementOptions from "./options-panel";
 
@@ -21,7 +21,7 @@ const AccessoriesPallet = () => {
       label: "Text",
       type: "text",
       defaultContent: "",
-      defaultProperties: { fontSize: 14, fontWeight: "normal",  },
+      defaultProperties: { fontSize: 14, fontWeight: "normal" },
       icon: <Text className="w-6 h-6" />,
     },
     {
@@ -41,39 +41,42 @@ const AccessoriesPallet = () => {
       icon: <Calendar className="w-6 h-6" />,
     },
     {
-      id: "location",
-      label: "Location",
-      type: "location",
+      id: "icon",
+      label: "Icon",
+      type: "icon",
       defaultContent: "",
       defaultProperties: { fontSize: 10, fontWeight: "normal", fontStyle: "italic" },
-      icon: <MapPin className="w-6 h-6" />,
+      icon: <Star className="w-6 h-6" />,
     },
     {
       id: "image",
       label: "Profile Image",
       type: "image",
       defaultContent: "",
-      defaultProperties: { fontSize: 10, fontWeight: "normal",  imageStyle: {
-        radius: 6,
-        imageScale: 1
+      defaultProperties: {
+        fontSize: 10,
+        fontWeight: "normal",
+        imageStyle: {
+          radius: 6,
+          imageScale: 1,
+        },
+        imageBorder: {
+          enabled: false,
+          borderColor: "#000",
+          borderWidth: 1,
+          padding: 0,
+        },
       },
-      imageBorder: {
-        enabled: false,
-        borderColor: '#000',
-        borderWidth: 1,
-        padding: 0,
-      },
-    },
       icon: <Image className="w-6 h-6" />,
     },
     {
-      id: 'tag',
+      id: "tag",
       label: "Tag",
       type: "token",
       defaultContent: "",
-      defaultProperties: { fontSize: 10, fontWeight: "normal", backgroundColor: "#f1f5f9",  borderColor: "#cbd5e1", radius: 6},
+      defaultProperties: { fontSize: 10, fontWeight: "normal", backgroundColor: "#f1f5f9", borderColor: "#cbd5e1", radius: 6 },
       icon: <Tag className="w-6 h-6" />,
-    }
+    },
   ];
 
   const addAccessory = (accessory: AccessoryType) => {

@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import GridLayoutComponent from "./grid-layout";
 import ListingLayoutComponent from "./listing-layout";
 import NoteEditorComponent from "./note-editor";
+import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 // import { State } from "./state";
 
 function note() {
@@ -34,6 +35,9 @@ function note() {
   return (
     <>
       <NoteEditorComponent setIsOpen={setIsOpen} isOpen={isOpen} />
+      <div className="flex items-center justify-between px-2 pt-3">
+        <BreadcrumbInbuild />
+      </div>
       <div className="flex justify-end">
         <div className="m-3 flex items-center justify-center space-x-2">
           <TooltipProvider disableHoverableContent>
