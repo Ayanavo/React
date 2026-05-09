@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { Document, model, Schema } from "mongoose";
 
 export interface IUser extends Document {
-  profile_image?: string;
+  photoURL?: string;
   mobile?: string;
   firstName: string;
   lastName: string;
@@ -27,11 +27,21 @@ export interface IUser extends Document {
 
 const userSchema: Schema = new Schema(
   {
+    photoURL: { type: String },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
+    mobile: { type: String, default: "" },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     title: { type: String },
+    address: {
+      addressLine1: { type: String, default: "" },
+      addressLine2: { type: String, default: "" },
+      landmark: { type: String, default: "" },
+      city: { type: String, default: "" },
+      state: { type: String, default: "" },
+      pincode: { type: String, default: "" },
+    },
   },
   { timestamps: true }
 );

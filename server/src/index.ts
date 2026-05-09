@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
 import "dotenv/config";
 import express, { NextFunction, Request, Response } from "express";
-
 import dotenv from "dotenv";
 import activityRoutes from "./routes/activityRoutes.js";
 import settingRoutes from "./routes/settingRoutes.js";
@@ -51,7 +50,7 @@ app.options("*", cors(corsOptions)); // Global preflight handler
 /** --- Core middleware --- */
 app.use(cookieParser());
 // You can use express.json(); keeping bodyParser.json() to match your existing setup
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "10mb" }));
 
 /** --- i18n & logging --- */
 app.use(i18n.init);
