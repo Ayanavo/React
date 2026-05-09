@@ -64,20 +64,27 @@ export async function buildValidationSchema(formSchema: Array<FormGeneral>) {
         break;
     }
 
-    // Required rule (only for string-like fields)
-    if (field.validation?.required && schema instanceof z.ZodString) {
-      schema = schema.min(1, `${label} is required`);
-    }
-
-    // Min/Max length (only for strings)
+    // String-only rules
     if (schema instanceof z.ZodString) {
-      if (field.validation?.minLength) schema = schema.min(field.validation.minLength, `${label} must be at least ${field.validation.minLength} characters`);
-      if (field.validation?.maxLength) schema = schema.max(field.validation.maxLength, `${label} must be at most ${field.validation.maxLength} characters`);
-    }
+      let stringSchema = schema;
 
-    // Pattern (only for strings)
-    if (schema instanceof z.ZodString && field.validation?.pattern) {
-      schema = schema.regex(field.validation.pattern, `${label} has invalid format`);
+      if (field.validation?.required) {
+        stringSchema = stringSchema.min(1, `${label} is required`);
+      }
+
+      if (field.validation?.minLength) {
+        stringSchema = stringSchema.min(field.validation.minLength, `${label} must be at least ${field.validation.minLength} characters`);
+      }
+
+      if (field.validation?.maxLength) {
+        stringSchema = stringSchema.max(field.validation.maxLength, `${label} must be at most ${field.validation.maxLength} characters`);
+      }
+
+      if (field.validation?.pattern) {
+        stringSchema = stringSchema.regex(field.validation.pattern, `${label} has invalid format`);
+      }
+
+      schema = stringSchema;
     }
 
     // Async validator
