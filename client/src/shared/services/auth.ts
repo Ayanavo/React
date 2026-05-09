@@ -1,79 +1,29 @@
 // loginService.ts
-import axios from "axios";
-const apiUrl = import.meta.env.VITE_API_URL;
-import { DefaultChatTransport } from "ai";
+import { apiUrl, axiosInstance, createChatTransport } from "@/shared/services/api-header";
 
-const axiosInstance = axios.create({
-  baseURL: apiUrl,
-  withCredentials: true,
-});
+export type RegisterPayload = {
+  photoURL: string;
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  title: string;
+};
 
-// Add token to requests
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = sessionStorage.getItem("auth_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+export type LoginPayload = {
+  email: string;
+  password: string;
+  rememberMe: boolean;
+};
 
-// Handle token refresh
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // If error is 401 and we haven't tried to refresh token yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const response = await axiosInstance.post(`${apiUrl}auth/refresh-token`);
-        const { token } = response.data;
-
-        // Store new token
-        sessionStorage.setItem("auth_token", token);
-
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        // If refresh fails, clear tokens and redirect to login
-        sessionStorage.removeItem("auth_token");
-        window.location.href = "/login";
-        return Promise.reject(refreshError);
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
-
-export const loginAPI = async (email: string, password: string, rememberMe: boolean) => {
-  const response = await axiosInstance<{ user: any; message: string; token: string }>({
-    method: "POST",
-    url: `${apiUrl}auth/login`,
-    data: { email, password, rememberMe },
-  });
-
-  // Store session token
+export const loginAPI = async (payload: LoginPayload) => {
+  const response = await axiosInstance.post(apiUrl + "auth/login", payload);
   sessionStorage.setItem("auth_token", response.data.token);
   return response.data;
 };
 
-export const registerAPI = async (email: string, password: string, fname: string, lname: string, title: string) => {
-  const response = await axiosInstance.post(apiUrl + "auth/register", {
-    email,
-    password,
-    firstName: fname,
-    lastName: lname,
-    title,
-  });
+export const registerAPI = async (payload: RegisterPayload) => {
+  const response = await axiosInstance.post(apiUrl + "auth/register", payload);
   return response.data;
 };
 
@@ -100,16 +50,4 @@ export const verifyAuthAPI = async (token: string) => {
   return response.data;
 };
 
-export const createChatTransport = (apiUrl: string) => {
-  const token = JSON.parse(sessionStorage.getItem("auth_token") || "");
-  return new DefaultChatTransport({
-    api: apiUrl + "ai/chat",
-    fetch: (url, options = {}) => {
-      const headers = {
-        ...options.headers,
-        Authorization: `Bearer ${token}`,
-      };
-      return fetch(url, { ...options, headers });
-    },
-  });
-};
+export { createChatTransport };

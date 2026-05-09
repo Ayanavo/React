@@ -69,7 +69,8 @@ export const createProfileBaseSchema = (mobileSingle: boolean) =>
     themecolor: z.string().optional(),
     fullname: z.string().optional(),
     profile_image: z.string().optional(),
-    full_name: z.string().min(1, "Full name is required"),
+    firstName: z.string().min(1, "First name is required"),
+    lastName: z.string().min(1, "Last name is required"),
     mobile:
       mobileSingle ?
         z.string().min(1, "Mobile number is required")

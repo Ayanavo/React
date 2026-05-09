@@ -25,7 +25,7 @@ export async function buildValidationSchema(formSchema: Array<FormGeneral>) {
 
   for (const field of formSchema) {
     const label = field.label ?? field.name;
-    let schema: z.ZodString | z.ZodBoolean | z.ZodNumber | z.ZodDate | z.ZodEffects<any> | z.ZodUnion<[z.ZodString, z.ZodNumber]>;
+    let schema: z.ZodTypeAny;
 
     // Base schema
     switch (field.type) {
@@ -34,7 +34,6 @@ export async function buildValidationSchema(formSchema: Array<FormGeneral>) {
         break;
 
       case "number":
-        // Accept numeric string or number
         schema = z
           .union([z.string(), z.number()])
           .transform((val) => (typeof val === "string" ? parseFloat(val) : val))
@@ -48,8 +47,16 @@ export async function buildValidationSchema(formSchema: Array<FormGeneral>) {
           .transform((val) => new Date(val));
         break;
 
+      case "image":
+        schema = z.any();
+        break;
+
       case "checkbox":
         schema = z.boolean();
+        break;
+
+      case "emailsingle":
+        schema = z.string().email(`${label} must be a valid email`);
         break;
 
       default:

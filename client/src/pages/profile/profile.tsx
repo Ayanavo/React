@@ -6,9 +6,22 @@ import React, { useMemo, useEffect } from "react";
 import { FormProvider } from "react-hook-form";
 import { useZodForm } from "../layout/grid/form/validationBuilder";
 import { createProfileSchemaWithValidation } from "@/shared/validation/schema";
-import { validatePincodeAPI } from "@/shared/services/profile";
+import { updateProfileAPI, validatePincodeAPI } from "@/shared/services/profile";
 import { Button } from "@/components/ui/button";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import { getCurrentUserAPI } from "@/shared/services/auth";
+import showToast from "@/hooks/toast";
+
+const getInitials = (firstName?: string, lastName?: string) => {
+  const first = firstName?.trim() ?? "";
+  const last = lastName?.trim() ?? "";
+
+  if (first && last) return `${first[0]}${last[0]}`.toUpperCase();
+  if (first) return first.slice(0, 2).toUpperCase();
+  if (last) return last.slice(0, 2).toUpperCase();
+
+  return "N/A";
+};
 
 function profile() {
   const isMobileSingle = true; // set true for single phone, false for multiple
@@ -19,7 +32,8 @@ function profile() {
   // Use the form with async validation
   const form = useZodForm(schema, {
     profile_image: "",
-    full_name: "",
+    firstName: "",
+    lastName: "",
     mobile: isMobileSingle ? "" : [{ phone: "", isPrimary: true }],
     addressLine1: "",
     addressLine2: "",
@@ -30,8 +44,51 @@ function profile() {
   });
 
   // Watch for state and pincode changes to trigger validation
+  const profileImageValue = form.watch("profile_image");
+  const firstNameValue = form.watch("firstName");
+  const lastNameValue = form.watch("lastName");
   const stateValue = form.watch("state");
   const pincodeValue = form.watch("pincode");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCurrentUser = async () => {
+      try {
+        const user = await getCurrentUserAPI();
+        if (!isMounted || !user) return;
+
+        form.reset({
+          profile_image: user.photoURL ?? "",
+          firstName: user.firstName ?? "",
+          lastName: user.lastName ?? "",
+          mobile:
+            isMobileSingle ? (user.mobile ?? "")
+            : user.mobile ? [{ phone: user.mobile, isPrimary: true }]
+            : [{ phone: "", isPrimary: true }],
+          addressLine1: user.address?.addressLine1 ?? "",
+          addressLine2: user.address?.addressLine2 ?? "",
+          landmark: user.address?.landmark ?? "",
+          city: user.address?.city ?? "",
+          state: user.address?.state ?? "",
+          pincode: user.address?.pincode ?? "",
+        });
+      } catch (error) {
+        console.error("Get current user error:", error);
+      }
+    };
+
+    if (document.readyState === "complete") {
+      loadCurrentUser();
+    } else {
+      window.addEventListener("load", loadCurrentUser, { once: true });
+    }
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("load", loadCurrentUser);
+    };
+  }, [form, isMobileSingle]);
 
   // Manual pincode validation when state or pincode changes
   useEffect(() => {
@@ -43,7 +100,7 @@ function profile() {
 
       try {
         const response = await validatePincodeAPI({ pincode: pincodeValue, state: stateValue });
-        const result = response?.data ?? [];
+        const result = response ?? [];
 
         if (Array.isArray(result) && result.length === 0) {
           form.setError("pincode", {
@@ -69,11 +126,30 @@ function profile() {
 
   const onSubmit = async (values: any) => {
     try {
-      // Replace with API call when available
-      const response = { success: true, data: values };
+      const mobile = typeof values.mobile === "string" ? values.mobile : values.mobile?.find((item: { phone: string; isPrimary: boolean }) => item.isPrimary)?.phone || values.mobile?.[0]?.phone || "";
+
+      const response = await updateProfileAPI({
+        photoURL: values.profile_image,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        mobile,
+        addressLine1: values.addressLine1,
+        addressLine2: values.addressLine2,
+        landmark: values.landmark,
+        city: values.city,
+        state: values.state,
+        pincode: values.pincode,
+      });
+
       console.log("Update profile response:", response);
+      showToast({ title: "Profile updated successfully", variant: "success" });
     } catch (error) {
       console.error("Update profile error:", error);
+      showToast({
+        title: "Profile update failed",
+        description: error instanceof Error ? error.message : "Unable to update profile",
+        variant: "error",
+      });
     }
   };
 
@@ -90,7 +166,8 @@ function profile() {
               schema={{
                 name: "profile_image",
                 label: "Profile Image",
-                placeholder: "AL",
+                placeholder: profileImageValue ? undefined : getInitials(firstNameValue, lastNameValue),
+                profileDefaultLink: profileImageValue || undefined,
                 type: "image",
                 validation: {
                   required: true,
@@ -101,8 +178,21 @@ function profile() {
             <TextComponent
               form={form}
               schema={{
-                name: "full_name",
-                label: "Full Name (First and Last Name)",
+                name: "firstName",
+                label: "First Name",
+                placeholder: "",
+                type: "text",
+                validation: {
+                  required: true,
+                },
+              }}
+            />
+
+            <TextComponent
+              form={form}
+              schema={{
+                name: "lastName",
+                label: "Last Name",
                 placeholder: "",
                 type: "text",
                 validation: {
@@ -134,8 +224,8 @@ function profile() {
               }}></AddressComponent>
 
             <div className="mt-8 space-y-2">
-              <Button type="submit" className="w-full">
-                Update profile
+              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? "Updating..." : "Update profile"}
               </Button>
             </div>
           </form>

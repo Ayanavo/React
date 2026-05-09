@@ -1,13 +1,27 @@
-import { request } from "../interceptors/auth-interceptor";
+import { axiosInstance } from "./api-header";
 const apiUrl = import.meta.env.VITE_API_URL;
 
+export type UpdateProfilePayload = {
+  photoURL?: string;
+  firstName: string;
+  lastName: string;
+  mobile: string;
+  addressLine1: string;
+  addressLine2?: string;
+  landmark?: string;
+  city: string;
+  state: string;
+  pincode: string;
+};
+
+export const updateProfileAPI = async (data: UpdateProfilePayload) => {
+  const response = await axiosInstance.post(`${apiUrl}auth/saveUserProfile`, data);
+  return response.data;
+};
+
 export const getCurrentLocationAPI = async (data: any) => {
-  const response = await request({
-    method: "POST",
-    url: `${apiUrl}setting/getCurrentLocation`,
-    data,
-  });
-  return response;
+  const response = await axiosInstance.post(`${apiUrl}setting/getCurrentLocation`, data);
+  return response.data;
 };
 
 export const getStateListAPI = async () => {
@@ -17,18 +31,11 @@ export const getStateListAPI = async () => {
     iso2: string;
   }
 
-  const response = await request<Array<LocationInfo>>({
-    method: "GET",
-    url: `${apiUrl}setting/getStateList`,
-  });
-  return response;
+  const response = await axiosInstance.get<Array<LocationInfo>>(`${apiUrl}setting/getStateList`);
+  return response.data;
 };
 
 export const validatePincodeAPI = async (data: { pincode: string; state: string }) => {
-  const response = await request<Array<any>>({
-    method: "POST",
-    url: `${apiUrl}setting/validatePincode`,
-    data,
-  });
-  return response;
+  const response = await axiosInstance.post<Array<any>>(`${apiUrl}setting/validatePincode`, data);
+  return response.data;
 };

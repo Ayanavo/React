@@ -52,11 +52,9 @@ function login() {
   }
   function onSubmit(data: any) {
     setLoader(true);
-    console.log(data);
-
     const rememberMe = Boolean(data.RememberMe);
 
-    loginAPI(data.email, data.password, rememberMe)
+    loginAPI({ ...data, rememberMe })
       .then((userCredential) => {
         setLoader(false);
         console.log(userCredential);

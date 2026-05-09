@@ -6,7 +6,7 @@ import { auth } from "@/firebase.setup";
 import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/grid/form/field-map";
 import generateControl from "@/pages/layout/grid/form/validation";
-import { registerAPI } from "@/shared/services/auth.ts";
+import { registerAPI, RegisterPayload } from "@/shared/services/auth.ts";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { FirebaseError } from "firebase/app";
 import { GithubAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
@@ -52,13 +52,13 @@ const formSchemaObj = [
     validation: { required: true },
   },
   {
-    name: "fname",
+    name: "firstName",
     label: "First Name",
     type: "text",
     validation: { required: true },
   },
   {
-    name: "lname",
+    name: "lastName",
     label: "Last Name",
     type: "text",
     validation: { required: true },
@@ -74,7 +74,7 @@ function registration() {
     return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
   const onSubmit = (data: any) => {
-    registerAPI(data.email, data.password, data.fname, data.lname, data.title)
+    registerAPI(data as RegisterPayload)
       .then(() => {
         showToast({
           title: "Successfully signed in",
@@ -84,6 +84,7 @@ function registration() {
         navigate("/login");
       })
       .catch((error: FirebaseError) => {
+        console.log("errors", error);
         showToast({
           title: error.message,
           variant: "error",

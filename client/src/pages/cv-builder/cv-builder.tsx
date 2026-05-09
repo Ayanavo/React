@@ -6,56 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import showToast from "@/hooks/toast";
-import { CVElement, CVProvider, PageProperties, useCV } from "@/lib/useCV";
-import { request } from "@/shared/interceptors/auth-interceptor";
+import { CVElement, CVProvider, useCV } from "@/lib/useCV";
+import { fetchCVBuilderById, submitCV, updateCV, type CVSubmitPayload } from "@/shared/services/cvbuilder";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Canvas from "../cv-builder/canvas";
 import Pallet from "../cv-builder/pallet";
 
-type CVSubmitPayload = {
-  name: string;
-  job: string;
-  tag: string;
-  elements: CVElement[];
-  pageProperties: PageProperties;
-};
-
-type CVBuilderRecord = CVSubmitPayload & {
-  _id: string;
-};
-
 type CVTag = "Latest" | "Important" | "Draft";
-
-const submitCV = async (payload: CVSubmitPayload) => {
-  const response = await request({
-    method: "POST",
-    url: "cv-builder/create",
-    data: payload,
-  });
-
-  return response.data;
-};
-
-const updateCV = async (id: string, payload: CVSubmitPayload) => {
-  const response = await request({
-    method: "PUT",
-    url: `cv-builder/update/${id}`,
-    data: payload,
-  });
-
-  return response.data;
-};
-
-const fetchCVBuilderById = async (id: string) => {
-  const response = await request<{ cvBuilder: CVBuilderRecord }>({
-    method: "GET",
-    url: `cv-builder/${id}`,
-  });
-
-  return response.data.cvBuilder;
-};
 
 const findCVName = (elements: CVElement[]) => {
   const queue = [...elements];

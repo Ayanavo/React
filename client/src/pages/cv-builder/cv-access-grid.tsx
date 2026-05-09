@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import showToast from "@/hooks/toast";
 import { CVElement, PageProperties } from "@/lib/useCV";
@@ -269,11 +270,24 @@ const CVAccessGrid = () => {
           </TableHeader>
           <TableBody>
             {isLoading ?
-              <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                  Loading CVs...
-                </TableCell>
-              </TableRow>
+              Array.from({ length: pagination.pageSize }).map((_, rowIndex) => (
+                <TableRow key={rowIndex} className="h-10">
+                  {columns.map((column, columnIndex) => (
+                    <TableCell key={column.id ?? columnIndex} className="px-4">
+                      <Skeleton
+                        className={
+                          column.id === "action" ? "h-8 w-8"
+                          : columnIndex === 0 ?
+                            "h-4 w-40"
+                          : columnIndex === 2 ?
+                            "h-5 w-20 rounded-full"
+                          : "h-4 w-28"
+                        }
+                      />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
             : isError ?
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">

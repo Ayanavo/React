@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import DropdownComponent from "@/shared/controls/dropdown";
 import TextComponent from "@/shared/controls/text";
 import { getStateListAPI, getCurrentLocationAPI } from "@/shared/services/profile";
 import { Loader2, MapPin } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { Bar } from "@/components/ui/bar";
 import showToast from "@/hooks/toast";
 
 type AddressSchema = {
@@ -69,10 +69,10 @@ function address({ form, schema }: { form: UseFormReturn<any>; schema: AddressSc
   const fethStateList = async () => {
     getStateListAPI()
       .then((response) => {
-        if (response && response.data) {
-          console.log("State List API response:", response.data);
+        if (response) {
+          console.log("State List API response:", response);
 
-          setStateList(response.data.map((state) => ({ label: state.name, value: state.name })));
+          setStateList(response.map((state) => ({ label: state.name, value: state.name })));
         } else {
           console.error("Invalid response structure:", response);
         }
@@ -94,21 +94,13 @@ function address({ form, schema }: { form: UseFormReturn<any>; schema: AddressSc
         const { latitude, longitude } = position.coords;
         try {
           const response = await getCurrentLocationAPI({ latitude, longitude });
-          console.log("Location API response:", response.data);
+          console.log("Location API response:", response);
 
-          const data = response.data as {
-            address_line1?: string;
-            street?: string;
-            city?: string;
-            state?: string;
-            postcode?: string;
-          };
-
-          form.setValue("addressLine1", data.address_line1 ?? "", { shouldValidate: true, shouldDirty: true });
-          form.setValue("addressLine2", data.street ?? "", { shouldValidate: true, shouldDirty: true });
-          form.setValue("city", data.city ?? "", { shouldValidate: true, shouldDirty: true });
-          form.setValue("state", data.state, { shouldValidate: true, shouldDirty: true });
-          form.setValue("pincode", data.postcode ?? "", { shouldValidate: true, shouldDirty: true });
+          form.setValue("addressLine1", response.address_line1 ?? "", { shouldValidate: true, shouldDirty: true });
+          form.setValue("addressLine2", response.street ?? "", { shouldValidate: true, shouldDirty: true });
+          form.setValue("city", response.city ?? "", { shouldValidate: true, shouldDirty: true });
+          form.setValue("state", response.state, { shouldValidate: true, shouldDirty: true });
+          form.setValue("pincode", response.postcode ?? "", { shouldValidate: true, shouldDirty: true });
 
           showToast({ title: "Address filled from current location", variant: "success" });
         } catch (error) {
@@ -130,7 +122,19 @@ function address({ form, schema }: { form: UseFormReturn<any>; schema: AddressSc
     );
   };
   if (isLoadingState) {
-    return <Bar className="w-full h-0.5" />;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-5 w-24" />
+        <Skeleton className="h-px w-full" />
+        <Skeleton className="h-9 w-full sm:w-44" />
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <Skeleton className="h-4 w-1/3 max-w-72" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        ))}
+      </div>
+    );
   }
   return (
     <div className="space-y-4">
