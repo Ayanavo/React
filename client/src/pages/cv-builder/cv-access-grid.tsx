@@ -211,10 +211,10 @@ const CVAccessGrid = () => {
 
   return (
     <div className="flex flex-col h-[90vh] overflow-hidden">
-      <div className="flex items-center justify-between px-2 pt-3">
+      <div className="flex items-center justify-between px-6 pt-3">
         <BreadcrumbInbuild />
       </div>
-      <div className="flex-none p-3 flex justify-between items-center gap-3">
+      <div className="flex-none flex justify-between items-center gap-3 px-6 py-3">
         <div className="relative w-full max-w-sm">
           <Input id={id} className="pe-11" placeholder="Search CVs..." type="search" defaultValue={globalFilter} onKeyDown={handleSearchKey} />
           <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground">
@@ -228,7 +228,7 @@ const CVAccessGrid = () => {
         </Button>
       </div>
 
-      <div className="border-2 border-solid rounded-md relative overflow-auto h-screen">
+      <div className="border-2 border-solid rounded-md relative overflow-auto h-screen mx-6 pb-3">
         <Table className="w-full overflow-auto">
           <TableHeader className="backdrop-blur-lg sticky top-0">
             {tableBody.getHeaderGroups().map((headerGroup) => (

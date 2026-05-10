@@ -9,7 +9,7 @@ const proOptions = { hideAttribution: true };
 function whiteboard() {
   return (
     <>
-      <div className="flex items-center justify-between px-2 pt-3">
+      <div className="flex items-center justify-between px-6 pt-3">
         <BreadcrumbInbuild />
       </div>
       <div className="flex flex-col border-2 rounded-md mx-4 my-2 shadow-custom mb-5">

@@ -1,7 +1,6 @@
 import showToast from "@/hooks/toast";
 import { DefaultChatTransport } from "ai";
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
-import { useNavigate } from "react-router";
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
@@ -14,8 +13,6 @@ export const axiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
   timeout: API_TIMEOUT_MS,
 });
-export const navigate = useNavigate();
-
 const redirectToLogin = (message: string) => {
   console.log(message);
   showToast({
@@ -23,7 +20,7 @@ const redirectToLogin = (message: string) => {
     variant: "error",
   });
   sessionStorage.clear();
-  navigate("/React");
+  window.location.href = "/React/login";
 };
 
 const showForbiddenError = () => {
@@ -75,6 +72,7 @@ axiosInstance.interceptors.response.use(
           break;
         case 500:
           showServerError();
+          callRefreshToken(error.config as RetriableRequestConfig);
           break;
         default:
           // Handle other status codes if needed
@@ -88,78 +86,18 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-//Request Interceptor
-export const request = ({ ...options }): Promise<AxiosResponse> => {
-  const onSuccess = (response: AxiosResponse) => response;
-  const onError = (error: AxiosError) => {
-    console.log("API Error:", error);
-    switch (error.response?.status) {
-      case 401:
-        redirectToLogin(error.message);
-        break;
-      case 403:
-        showForbiddenError();
-        break;
-      case 500:
-        showServerError();
-        break;
-      default:
-        console.log("API Error:", error.message);
-        break;
-    }
-    return Promise.reject(error.response || error);
-  };
-
-  return axiosInstance(options).then(onSuccess, onError);
-};
-
-// Handle token refresh
-axiosInstance.interceptors.response.use(
-  (response) => response,
-  async (error: AxiosError) => {
-    const originalRequest = error.config as RetriableRequestConfig | undefined;
-    const status = error.response?.status;
-
-    // If error is 401 and we haven't tried to refresh token yet
-    if (status === 401 && originalRequest && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const response = await axiosInstance.post(`${apiUrl}auth/refresh-token`);
-        const { token } = response.data;
-
-        // Store new token
-        sessionStorage.setItem("auth_token", token);
-
-        // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        // If refresh fails, clear tokens and redirect to login
-        redirectToLogin("Unauthorized access - 401");
-        return Promise.reject(refreshError);
-      }
-    }
-
-    if (status === 403) {
-      showToast({
-        title: "Forbidden",
-        description: "You do not have permission to perform this action.",
-        variant: "error",
-      });
-    }
-
-    if (status === 500) {
-      showToast({
-        title: "Server error",
-        description: "Something went wrong on the server. Please try again.",
-        variant: "error",
-      });
-    }
-
-    return Promise.reject(error);
+const callRefreshToken = async (originalRequest: RetriableRequestConfig) => {
+  try {
+    const response = await axiosInstance.post(`${apiUrl}auth/refresh-token`);
+    const { token } = response.data;
+    sessionStorage.setItem("auth_token", token);
+    originalRequest.headers.Authorization = `Bearer ${token}`;
+    return axiosInstance(originalRequest);
+  } catch (refreshError) {
+    redirectToLogin("Unauthorized access - 401");
+    return Promise.reject(refreshError);
   }
-);
+};
 
 export const createChatTransport = (apiUrl: string) => {
   const authToken = sessionStorage.getItem("auth_token");

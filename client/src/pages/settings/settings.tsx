@@ -72,8 +72,8 @@ function settings() {
   ];
 
   return (
-    <div className="flex flex-col h-[9vh]">
-      <div className="flex items-center justify-between px-2 pt-3">
+    <div className="flex flex-col">
+      <div className="flex items-center justify-between px-6 pt-3">
         <BreadcrumbInbuild />
       </div>
       <div className="px-6 py-2 my-2 mx-4 border-2 rounded-md shadow-custom mb-5">
