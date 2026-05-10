@@ -90,6 +90,7 @@ export default {
         poppins: ["Poppins", "sans-serif"],
         paprika: ["Paprika", "sans-serif"],
         oswald: ["Oswald", "sans-serif"],
+        figtree: ["Figtree", "sans-serif"],
       },
     },
   },

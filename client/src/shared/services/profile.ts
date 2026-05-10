@@ -1,4 +1,4 @@
-import { axiosInstance } from "./api-header";
+import { axiosInstance } from "@/shared/interceptors/auth-interceptor";
 const apiUrl = import.meta.env.VITE_API_URL;
 
 export type UpdateProfilePayload = {

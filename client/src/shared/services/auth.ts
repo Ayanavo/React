@@ -1,5 +1,5 @@
 // loginService.ts
-import { apiUrl, axiosInstance, createChatTransport } from "@/shared/services/api-header";
+import { apiUrl, axiosInstance, createChatTransport } from "@/shared/interceptors/auth-interceptor";
 
 export type RegisterPayload = {
   photoURL: string;
@@ -14,6 +14,23 @@ export type LoginPayload = {
   email: string;
   password: string;
   rememberMe: boolean;
+};
+
+export type ProfileResponse = {
+  user: {
+    photoURL?: string;
+    firstName: string;
+    lastName: string;
+    mobile: string;
+    address: {
+      addressLine1: string;
+      addressLine2?: string;
+      landmark?: string;
+      city: string;
+      state: string;
+      pincode: string;
+    };
+  };
 };
 
 export const loginAPI = async (payload: LoginPayload) => {
@@ -39,8 +56,8 @@ export const logoutAPI = async () => {
 };
 
 export const getCurrentUserAPI = async () => {
-  const response = await axiosInstance.get<{ user: any }>(apiUrl + "auth/getUserProfile");
-  return response.data.user;
+  const response = await axiosInstance.get<ProfileResponse>(apiUrl + "auth/getUserProfile");
+  return response.data;
 };
 
 export const verifyAuthAPI = async (token: string) => {

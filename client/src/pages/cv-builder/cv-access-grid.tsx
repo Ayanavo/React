@@ -1,3 +1,4 @@
+import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -7,13 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import showToast from "@/hooks/toast";
 import { CVElement, PageProperties } from "@/lib/useCV";
-import { request } from "@/shared/interceptors/auth-interceptor";
-import { createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
+import { deleteCVBuilder, fetchCVBuilderById, fetchCVBuilderList } from "@/shared/services/cvbuilder";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
 import { DownloadIcon, EllipsisIcon, EyeIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import React, { useCallback, useId, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 
 type CVListing = {
   id: string;
@@ -36,33 +36,6 @@ type CVBuilderRecord = {
 };
 
 const columnHelper = createColumnHelper<CVListing>();
-
-const fetchCVBuilderList = async () => {
-  const response = await request<{ cvBuilderList: CVBuilderRecord[] }>({
-    method: "GET",
-    url: "cv-builder",
-  });
-
-  return response.data.cvBuilderList;
-};
-
-const fetchCVBuilderById = async (id: string) => {
-  const response = await request<{ cvBuilder: CVBuilderRecord }>({
-    method: "GET",
-    url: `cv-builder/${id}`,
-  });
-
-  return response.data.cvBuilder;
-};
-
-const deleteCVBuilder = async (id: string) => {
-  const response = await request({
-    method: "DELETE",
-    url: `cv-builder/delete/${id}`,
-  });
-
-  return response.data;
-};
 
 const formatUser = (user?: CVBuilderRecord["createdBy"]) => {
   if (!user) return "-";

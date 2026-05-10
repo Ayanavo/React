@@ -1,16 +1,16 @@
-@import "/src/color-themes/blue.theme.scss";
-@import "/src/color-themes/zinc.theme.scss";
-@import "/src/color-themes/green.theme.scss";
-@import "/src/color-themes/violet.theme.scss";
-@import "/src/color-themes/red.theme.scss";
-@import "/src/color-themes/teal.theme.scss";
-@import "/src/color-themes/emerald.theme.scss";
-@import "/src/color-themes/orange.theme.scss";
-@import "/src/color-themes/yellow.theme.scss";
+@use "/src/color-themes/blue.theme.scss" as blue;
+@use "/src/color-themes/zinc.theme.scss" as zinc;
+@use "/src/color-themes/green.theme.scss" as green;
+@use "/src/color-themes/violet.theme.scss" as violet;
+@use "/src/color-themes/red.theme.scss" as red;
+@use "/src/color-themes/teal.theme.scss" as teal;
+@use "/src/color-themes/emerald.theme.scss" as emerald;
+@use "/src/color-themes/orange.theme.scss" as orange;
+@use "/src/color-themes/yellow.theme.scss" as yellow;
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Paprika&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Oxanium:wght@200..800&family=Paprika&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
 @layer base {
   :root {
     --sidebar-primary: 240 5.9% 10%;
@@ -21,31 +21,31 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   :root.zinc {
-    @include root-zinc;
+    @include zinc.root-zinc;
   }
   :root.blue {
-    @include root-blue;
+    @include blue.root-blue;
   }
   :root.green {
-    @include root-green;
+    @include green.root-green;
   }
   :root.violet {
-    @include root-violet;
+    @include violet.root-violet;
   }
   :root.red {
-    @include root-red;
+    @include red.root-red;
   }
   :root.teal {
-    @include root-teal;
+    @include teal.root-teal;
   }
   :root.emerald {
-    @include root-emerald;
+    @include emerald.root-emerald;
   }
   :root.orange {
-    @include root-orange;
+    @include orange.root-orange;
   }
   :root.yellow {
-    @include root-yellow;
+    @include yellow.root-yellow;
   }
 
   .dark {
@@ -60,31 +60,31 @@
   }
 
   .dark.zinc {
-    @include dark-zinc;
+    @include zinc.dark-zinc;
   }
   .dark.blue {
-    @include dark-blue;
+    @include blue.dark-blue;
   }
   .dark.green {
-    @include dark-green;
+    @include green.dark-green;
   }
   .dark.violet {
-    @include dark-violet;
+    @include violet.dark-violet;
   }
   .dark.red {
-    @include dark-red;
+    @include red.dark-red;
   }
   .dark.teal {
-    @include dark-teal;
+    @include teal.dark-teal;
   }
   .dark.emerald {
-    @include dark-emerald;
+    @include emerald.dark-emerald;
   }
   .dark.orange {
-    @include dark-orange;
+    @include orange.dark-orange;
   }
   .dark.yellow {
-    @include dark-yellow;
+    @include yellow.dark-yellow;
   }
 }
 
@@ -227,4 +227,13 @@
 }
 .oswald {
   @apply font-oswald;
+}
+.fig-tree {
+  @apply font-figtree;
+}
+
+.shadow-custom {
+  box-shadow:
+    rgba(0, 0, 0, 0.19) 0px 10px 20px,
+    rgba(0, 0, 0, 0.23) 0px 6px 6px;
 }

@@ -7,7 +7,7 @@ function IdleTimerWrapper({ children }: { children: ReactElement }) {
   const promptSeconds = 10; // warn before idle timeout
 
   const promptShown = useRef(false);
-  const countdownTimer = useRef<NodeJS.Timeout | null>(null);
+  const countdownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const remaining = useRef(promptSeconds);
 
   const clearCountdown = () => {

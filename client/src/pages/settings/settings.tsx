@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import ImageComponent from "@/shared/controls/image";
-import React, { useState } from "react";
+import React from "react";
 import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/grid/form/validation";
 import { useColor, useTheme, useFont } from "./theme";
@@ -47,7 +47,6 @@ function settings() {
   const { color, setColor } = useColor();
   const { font, setFont } = useFont();
   // const { setState } = usePersistedState("vite-ui-sidebar", "left");
-  const [selectedView, setSelectedView] = useState("default");
   // const [selectedFont, setSelectedFont] = useState("system");
   const form = generateControl(settingsSchema);
   const colorNameConfig = [
@@ -69,6 +68,7 @@ function settings() {
     { font: "inter", name: "Inter" },
     { font: "roboto", name: "Roboto" },
     { font: "oswald", name: "Oswald" },
+    { font: "fig-tree", name: "Fig Tree" },
   ];
 
   return (
@@ -76,7 +76,7 @@ function settings() {
       <div className="flex items-center justify-between px-2 pt-3">
         <BreadcrumbInbuild />
       </div>
-      <div className="px-6 py-2 my-2 border-2 rounded-md">
+      <div className="px-6 py-2 my-2 mx-4 border-2 rounded-md shadow-custom mb-5">
         <FormProvider {...form}>
           <div className="space-y-6">
             {/* Company Logo Section */}
@@ -108,11 +108,11 @@ function settings() {
                 <Label>Dark/Light Mode</Label>
                 <p className="text-sm text-muted-foreground">Select your preferred mode.</p>
               </div>
-              <div className="grid grid-cols-5 gap-4">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 w-fit">
                 {["system", "light", "dark"].map((type) => (
-                  <Card key={type} className={`relative cursor-pointer p-1 ${theme === type ? "border-2 border-primary" : ""}`} onClick={() => setTheme(type as "system" | "light" | "dark")}>
-                    <div className="aspect-[4/3] rounded-sm bg-muted" />
-                    <p className="mt-2 text-center text-sm capitalize">{type} Mode</p>
+                  <Card key={type} className={`relative w-28 cursor-pointer p-1 ${theme === type ? "border-2 border-primary" : ""}`} onClick={() => setTheme(type as "system" | "light" | "dark")}>
+                    <div className="h-14 rounded-sm bg-muted" />
+                    <p className="mt-1 text-center text-xs capitalize">{type} Mode</p>
                   </Card>
                 ))}
               </div>
@@ -136,20 +136,20 @@ function settings() {
             </div> */}
 
             {/* Tables View Section */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Layout Theme</Label>
                 <p className="text-sm text-muted-foreground">Select your preferred layout theme.</p>
               </div>
-              <div className="grid grid-cols-5 gap-4 ">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 w-fit">
                 {["default", "compact"].map((view) => (
-                  <Card key={view} className={`relative cursor-pointer p-1 ${selectedView === view ? "border-2 border-primary" : ""}`} onClick={() => setSelectedView(view)}>
-                    <div className="aspect-[4/3] rounded-sm bg-muted" />
-                    <p className="mt-2 text-center text-sm capitalize">{view}</p>
+                  <Card key={view} className={`relative w-28 cursor-pointer p-1 ${selectedView === view ? "border-2 border-primary" : ""}`} onClick={() => setSelectedView(view)}>
+                    <div className="h-14 rounded-sm bg-muted" />
+                    <p className="mt-1 text-center text-xs capitalize">{view}</p>
                   </Card>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Fonts Section */}
             <div className="space-y-4">

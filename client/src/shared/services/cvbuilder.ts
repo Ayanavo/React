@@ -1,5 +1,5 @@
 import type { CVElement, PageProperties } from "@/lib/useCV";
-import { apiUrl, axiosInstance } from "@/shared/services/api-header";
+import { apiUrl, axiosInstance } from "@/shared/interceptors/auth-interceptor";
 
 export type CVSubmitPayload = {
   name: string;
@@ -11,6 +11,15 @@ export type CVSubmitPayload = {
 
 export type CVBuilderRecord = CVSubmitPayload & {
   _id: string;
+  createdBy: string;
+  modifiedBy: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export const fetchCVBuilderList = async () => {
+  const response = await axiosInstance.get<{ cvBuilderList: CVBuilderRecord[] }>(`${apiUrl}cv-builder`);
+  return response.data.cvBuilderList;
 };
 
 export const submitCV = async (payload: CVSubmitPayload) => {
@@ -26,4 +35,9 @@ export const updateCV = async (id: string, payload: CVSubmitPayload) => {
 export const fetchCVBuilderById = async (id: string) => {
   const response = await axiosInstance.get(`${apiUrl}cv-builder/${id}`);
   return response.data.cvBuilder;
+};
+
+export const deleteCVBuilder = async (id: string) => {
+  const response = await axiosInstance.delete(`cv-builder/delete/${id}`);
+  return response.data;
 };

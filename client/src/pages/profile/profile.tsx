@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { getCurrentUserAPI } from "@/shared/services/auth";
 import showToast from "@/hooks/toast";
+import axios from "axios";
 
 const getInitials = (firstName?: string, lastName?: string) => {
   const first = firstName?.trim() ?? "";
@@ -55,26 +56,32 @@ function profile() {
 
     const loadCurrentUser = async () => {
       try {
-        const user = await getCurrentUserAPI();
-        if (!isMounted || !user) return;
+        const response = await getCurrentUserAPI();
+        if (!isMounted || !response.user) return;
 
         form.reset({
-          profile_image: user.photoURL ?? "",
-          firstName: user.firstName ?? "",
-          lastName: user.lastName ?? "",
+          profile_image: response.user.photoURL ?? "",
+          firstName: response.user.firstName ?? "",
+          lastName: response.user.lastName ?? "",
           mobile:
-            isMobileSingle ? (user.mobile ?? "")
-            : user.mobile ? [{ phone: user.mobile, isPrimary: true }]
+            isMobileSingle ? (response.user.mobile ?? "")
+            : response.user.mobile ? [{ phone: response.user.mobile, isPrimary: true }]
             : [{ phone: "", isPrimary: true }],
-          addressLine1: user.address?.addressLine1 ?? "",
-          addressLine2: user.address?.addressLine2 ?? "",
-          landmark: user.address?.landmark ?? "",
-          city: user.address?.city ?? "",
-          state: user.address?.state ?? "",
-          pincode: user.address?.pincode ?? "",
+          addressLine1: response.user.address?.addressLine1 ?? "",
+          addressLine2: response.user.address?.addressLine2 ?? "",
+          landmark: response.user.address?.landmark ?? "",
+          city: response.user.address?.city ?? "",
+          state: response.user.address?.state ?? "",
+          pincode: response.user.address?.pincode ?? "",
         });
       } catch (error) {
-        console.error("Get current user error:", error);
+        if (axios.isAxiosError(error)) {
+          showToast({ title: "Error", description: error.message, variant: "error" });
+        } else if (error instanceof Error) {
+          showToast({ title: "Error", description: error.message, variant: "error" });
+        } else {
+          showToast({ title: "Error", description: "Failed to load user data", variant: "error" });
+        }
       }
     };
 
@@ -158,7 +165,7 @@ function profile() {
       <div className="flex items-center justify-between px-2 pt-3">
         <BreadcrumbInbuild />
       </div>
-      <div className="px-6 py-2 my-2 border-2 rounded-md">
+      <div className="px-6 py-2 my-2 mx-4 border-2 rounded-md shadow-custom mb-5">
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <ImageComponent
