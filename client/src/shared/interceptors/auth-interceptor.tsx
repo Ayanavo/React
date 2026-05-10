@@ -20,7 +20,7 @@ const redirectToLogin = (message: string) => {
     variant: "error",
   });
   sessionStorage.clear();
-  window.location.href = "/React/login";
+  window.history.pushState({}, "", "/login");
 };
 
 const showForbiddenError = () => {
