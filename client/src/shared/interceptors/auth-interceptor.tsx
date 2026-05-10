@@ -1,13 +1,11 @@
 import showToast from "@/hooks/toast";
 import { DefaultChatTransport } from "ai";
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
-import { useNavigate } from "react-router-dom";
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
 };
 
-const navigate = useNavigate();
 export const apiUrl = import.meta.env.VITE_API_URL;
 export const API_TIMEOUT_MS = 30_000;
 export const axiosInstance = axios.create({
@@ -22,7 +20,7 @@ const redirectToLogin = (message: string) => {
     variant: "error",
   });
   sessionStorage.clear();
-  navigate("/login");
+  window.location.hash = "#/";
 };
 
 const showError = (message: string) => {
