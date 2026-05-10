@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import axios from "axios";
 
+const EXTERNAL_REQUEST_TIMEOUT_MS = 30_000;
+
 /**
  * @description Gets address from latitude and longitude using Geoapify API.
  */
@@ -17,7 +19,7 @@ export const getAdressfromLatLng = async (req: Request, res: Response) => {
 
     const apiKey = process.env.GEOAPIFY_ACCESS_KEY;
     const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&apiKey=${apiKey}`;
-    const thirdPartyresponse = await axios.get<any>(url);
+    const thirdPartyresponse = await axios.get<any>(url, { timeout: EXTERNAL_REQUEST_TIMEOUT_MS });
     const { datasource, ...response } = thirdPartyresponse.data?.features?.[0]?.properties ?? {};
     return res.status(200).json(response);
   } catch (error) {
@@ -35,6 +37,7 @@ export const getStateList = async (req: Request, res: Response) => {
     const api_key = process.env.DATA_CSC_API_KEY;
     const url = `https://api.countrystatecity.in/v1/countries/${countryCode}/states`;
     const thirdPartyresponse = await axios.get<any>(url, {
+      timeout: EXTERNAL_REQUEST_TIMEOUT_MS,
       headers: { "X-CSCAPI-KEY": api_key || "" },
     });
     return res.status(200).json(thirdPartyresponse.data);
@@ -59,7 +62,7 @@ export const validatePincode = async (req: Request, res: Response) => {
     }
 
     const url = `https://api.postalpincode.in/pincode/${pincode}`;
-    const thirdPartyresponse = await axios.get<any>(url);
+    const thirdPartyresponse = await axios.get<any>(url, { timeout: EXTERNAL_REQUEST_TIMEOUT_MS });
     if (thirdPartyresponse.data[0].Status === "Success") {
       const postOffices = thirdPartyresponse.data[0].PostOffice;
       const stateMatched = postOffices.some((office: any) => office.State.toLowerCase() === state.toLowerCase());
@@ -85,6 +88,7 @@ export const getCityList = async (req: Request, res: Response) => {
     const api_key = process.env.DATA_CSC_API_KEY;
     const url = `https://api.countrystatecity.in/v1/countries/${countryCode}/states/${stateCode}/cities`;
     const thirdPartyresponse = await axios.get<any>(url, {
+      timeout: EXTERNAL_REQUEST_TIMEOUT_MS,
       headers: { "X-CSCAPI-KEY": api_key || "" },
     });
     return res.status(200).json(thirdPartyresponse.data);

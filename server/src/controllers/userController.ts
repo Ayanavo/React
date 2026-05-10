@@ -195,8 +195,6 @@ export const saveUserProfile = async (req: Request, res: Response) => {
 
       const decoded = jwt.verify(token, process.env.API_SECRET_KEY as Secret) as { id: string };
       const userId = decoded.id;
-      console.log(userId);
-
       const { photoURL, firstName, lastName, mobile, addressLine1, addressLine2, landmark, city, state, pincode } = req.body;
 
       if ([firstName, lastName, mobile, addressLine1, city, state, pincode].some((field) => field === undefined)) {

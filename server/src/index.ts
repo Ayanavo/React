@@ -23,6 +23,7 @@ const IS_PROD = process.env.NODE_ENV === "production";
 const PROD_URL = (process.env.DOMAIN_NAME || "").trim();
 const FRONTEND_URL = process.env.FRONTEND_URL?.trim();
 const DEV_URLS = ["http://localhost:3000", "http://localhost:5173"];
+const RESPONSE_TIMEOUT_MS = 30_000;
 
 /** --- DB connect before starting server --- */
 connectDB();
@@ -51,6 +52,16 @@ app.options("*", cors(corsOptions)); // Global preflight handler
 app.use(cookieParser());
 // You can use express.json(); keeping bodyParser.json() to match your existing setup
 app.use(bodyParser.json({ limit: "10mb" }));
+
+/** --- Response timeout --- */
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setTimeout(RESPONSE_TIMEOUT_MS, () => {
+    if (!res.headersSent) {
+      res.status(503).json({ message: "Request timed out. Please try again." });
+    }
+  });
+  next();
+});
 
 /** --- i18n & logging --- */
 app.use(i18n.init);
@@ -84,7 +95,10 @@ app.use("/api/setting", settingRoutes);
 app.use("/api/ai", aiRoutes);
 
 /** --- Start server (bind 0.0.0.0 on Render) --- */
-app.listen(PORT, "0.0.0.0", () => {
+const server = app.listen(PORT, "0.0.0.0", () => {
   const url = IS_PROD ? PROD_URL || `http://0.0.0.0:${PORT}` : `http://localhost:${PORT}`;
   console.log(`✅ Server running at ${url}`);
 });
+
+server.requestTimeout = RESPONSE_TIMEOUT_MS;
+server.timeout = RESPONSE_TIMEOUT_MS;
