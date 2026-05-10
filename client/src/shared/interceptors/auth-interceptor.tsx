@@ -1,11 +1,13 @@
 import showToast from "@/hooks/toast";
 import { DefaultChatTransport } from "ai";
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { useNavigate } from "react-router-dom";
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
 };
 
+const navigate = useNavigate();
 export const apiUrl = import.meta.env.VITE_API_URL;
 export const API_TIMEOUT_MS = 30_000;
 export const axiosInstance = axios.create({
@@ -20,21 +22,13 @@ const redirectToLogin = (message: string) => {
     variant: "error",
   });
   sessionStorage.clear();
-  window.history.pushState({}, "", "/login");
+  navigate("/login");
 };
 
-const showForbiddenError = () => {
+const showError = (message: string) => {
   showToast({
     title: "Forbidden",
-    description: "You do not have permission to perform this action.",
-    variant: "error",
-  });
-};
-
-const showServerError = () => {
-  showToast({
-    title: "Server error",
-    description: "Something went wrong on the server. Please try again.",
+    description: message,
     variant: "error",
   });
 };
@@ -68,10 +62,10 @@ axiosInstance.interceptors.response.use(
           redirectToLogin("Unauthorized access - 401");
           break;
         case 403:
-          showForbiddenError();
+          showError("You do not have permission to perform this action.");
           break;
         case 500:
-          showServerError();
+          showError("Internal Server Error. Please try again later.");
           callRefreshToken(error.config as RetriableRequestConfig);
           break;
         default:
