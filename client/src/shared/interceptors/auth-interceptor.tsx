@@ -12,6 +12,7 @@ export const axiosInstance = axios.create({
   baseURL: apiUrl,
   headers: { "Content-Type": "application/json" },
   timeout: API_TIMEOUT_MS,
+  withCredentials: true, // Important for sending cookies with requests
 });
 const redirectToLogin = (message: string) => {
   console.log(message);
