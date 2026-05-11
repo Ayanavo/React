@@ -19,7 +19,6 @@ const redirectToLogin = (message: string) => {
     title: "Session expired or invalid. Redirecting to login...",
     variant: "error",
   });
-  sessionStorage.clear();
   window.location.hash = "#/";
 };
 
