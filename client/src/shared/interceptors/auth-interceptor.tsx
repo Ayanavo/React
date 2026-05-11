@@ -35,7 +35,7 @@ const showError = (message: string) => {
 axiosInstance.interceptors.request.use(
   (config) => {
     const authToken = sessionStorage.getItem("auth_token");
-    authToken && config && (config.headers.Authorization = `Bearer ${JSON.parse(authToken)}`);
+    authToken && config && (config.headers.Authorization = `Bearer ${authToken}`);
     return config;
   },
   (error) => {
