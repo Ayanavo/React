@@ -12,6 +12,7 @@ export const axiosInstance = axios.create({
   baseURL: apiUrl,
   headers: { "Content-Type": "application/json" },
   timeout: API_TIMEOUT_MS,
+  withCredentials: true, // Important for sending cookies with requests
 });
 const redirectToLogin = (message: string) => {
   console.log(message);
@@ -19,7 +20,6 @@ const redirectToLogin = (message: string) => {
     title: "Session expired or invalid. Redirecting to login...",
     variant: "error",
   });
-  sessionStorage.clear();
   window.location.hash = "#/";
 };
 

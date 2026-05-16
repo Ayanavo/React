@@ -48,7 +48,7 @@ export const login = async (req: Request, res: Response) => {
     });
   }
   try {
-    const { email, password, rememberMe } = req.body;
+    const { email, password } = req.body;
 
     // Set a timeout for the database operation
     const timeoutPromise = new Promise((_, reject) => {
