@@ -231,7 +231,7 @@ function profile() {
               }}></AddressComponent>
 
             <div className="mt-8 space-y-2">
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+              <Button type="submit" className="w-full" disabled={!form.formState.isDirty || form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? "Updating..." : "Update profile"}
               </Button>
             </div>

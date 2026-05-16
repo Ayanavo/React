@@ -10,7 +10,7 @@ import CVPreview, { CVPreviewRef } from "./cv-preview";
 const ZOOM = 1;
 
 const Canvas = () => {
-  const { elements, selectedSectionId, A4_WIDTH, A4_HEIGHT, showSectionDividers, selectedBlockId, selectPage, selectSection, selectBlock, selectHeader, removeSection, clearSelection, pageProperties } = useCV();
+  const { elements, selectedPageId, selectedSectionId, A4_WIDTH, A4_HEIGHT, showSectionDividers, selectedBlockId, selectPage, selectSection, selectBlock, selectHeader, removeSection, removePage, clearSelection, pageProperties } = useCV();
   const [isDragging] = useState(false);
   const [draggingIndex] = useState<number | null>(null);
 
@@ -84,9 +84,24 @@ const Canvas = () => {
           return (
             <div
               key={page.id}
+              className="relative"
               style={{
                 pointerEvents: isDragging && draggingIndex !== pageIndex ? "none" : "auto", // Disable pointer events for other pages when dragging
               }}>
+              {selectedPageId === page.id && (
+                <div className="absolute top-4 -right-12 z-20">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button onClick={() => removePage(page.id)} className="bg-primary text-primary-foreground p-2 rounded shadow hover:opacity-80">
+                          <Trash className="h-4 w-4" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right">{elements.length === 1 ? "Reset Page" : "Delete Page"}</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
               <div className="flex w-full h-full">
                 <div
                   ref={pageRef}
@@ -134,6 +149,23 @@ const Canvas = () => {
                             e.stopPropagation();
                             selectSection(page.id, section.id);
                           }}>
+                          {isSectionSelected && sections.length > 1 && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeSection(section.id);
+                                    }}
+                                    className="absolute top-2 right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
+                                    <Trash className="h-3 w-3" />
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>Delete section</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                           {/* ✅ HEADER (FULL WIDTH) */}
                           {headerChild && (
                             <div
@@ -160,7 +192,7 @@ const Canvas = () => {
                                     selectSection(page.id, section.id);
                                     selectBlock(page.id, section.id, block.id);
                                   }}>
-                                  <CVElementRenderer element={block} />
+                                  <CVElementRenderer element={block} blockCount={blockChildren.length} />
                                 </div>
                               );
                             })}
@@ -178,36 +210,6 @@ const Canvas = () => {
           );
         })}
 
-        {/* PAGE DELETE BUTTONS */}
-        <div
-          className="absolute flex flex-col"
-          style={{
-            left: `calc(50% + ${A4_WIDTH / 2}px + 16px)`,
-            top: "16px",
-            height: `${A4_HEIGHT}px`,
-          }}>
-          {elements.map((page) => {
-            const pageHeight = A4_HEIGHT / elements.length;
-            const isActive = selectedSectionId === page.id;
-
-            return (
-              <div key={page.id} className="flex items-center justify-center" style={{ height: `${pageHeight}px` }}>
-                {isActive && (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button onClick={() => removeSection(page.id)} className="bg-primary text-primary-foreground p-2 rounded shadow hover:opacity-80">
-                          <Trash className="h-4 w-4" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="right">Delete Page</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* Preview Block */}

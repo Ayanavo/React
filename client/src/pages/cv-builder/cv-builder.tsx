@@ -141,7 +141,7 @@ const CVBuilderContent = () => {
                   <SelectValue placeholder="Select tag" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Latest">Latest</SelectItem>
+                  <SelectItem value="report">Report</SelectItem>
                   <SelectItem value="Important">Important</SelectItem>
                   <SelectItem value="Draft">Draft</SelectItem>
                 </SelectContent>

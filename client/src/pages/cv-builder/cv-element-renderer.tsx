@@ -7,9 +7,10 @@ import CvDateRenderer from "./cv-date-renderer";
 import CvTokenRenderer from "./cv-token-renderer";
 import CvImageRenderer from "./cv-image-renderer";
 import CvIconRenderer from "./cv-icon-renderer";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const CVElementRenderer = ({ element, sectionCount, readonly = false }: { element: CVElement; sectionCount?: number; readonly?: boolean }) => {
-  const { updateElement, selectElement, selectedElementId, selectedHeaderId } = useCV();
+const CVElementRenderer = ({ element, sectionCount, blockCount, readonly = false }: { element: CVElement; sectionCount?: number; blockCount?: number; readonly?: boolean }) => {
+  const { updateElement, selectElement, selectedElementId, selectedHeaderId, selectedSectionId, selectedBlockId, removeSection, removeBlock } = useCV();
   const headerRef = useRef<HTMLDivElement>(null);
   const isSelected = selectedElementId === element.id || selectedHeaderId === element.id;
 
@@ -20,14 +21,31 @@ const CVElementRenderer = ({ element, sectionCount, readonly = false }: { elemen
 
     return (
       <div
-        className="flex flex-col w-full border-b last:border-b-0"
+        className={`relative flex flex-col w-full border-b last:border-b-0 ${selectedSectionId === element.id ? "ring-2 ring-primary" : ""}`}
         style={{
           height: sectionCount ? `${100 / sectionCount}%` : "auto",
         }}>
+        {!readonly && selectedSectionId === element.id && (sectionCount ?? 0) > 1 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeSection(element.id);
+                  }}
+                  className="absolute top-2 right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
+                  <Trash className="h-3 w-3" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Delete section</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
         {headerChild && <CVElementRenderer key={headerChild.id} element={headerChild} readonly={readonly} />}
         <div className="flex w-full h-full">
           {blockChildren.map((child) => (
-            <CVElementRenderer key={child.id} element={child} sectionCount={sectionCount} readonly={readonly} />
+            <CVElementRenderer key={child.id} element={child} sectionCount={sectionCount} blockCount={blockChildren.length} readonly={readonly} />
           ))}
         </div>
       </div>
@@ -129,7 +147,30 @@ const CVElementRenderer = ({ element, sectionCount, readonly = false }: { elemen
 
   // ---------- BLOCK ----------
   if (element.type === "block") {
-    return <div className="flex-1 h-full p-4">{element.children?.map((child) => <CVElementRenderer key={child.id} element={child} />)}</div>;
+    return (
+      <div className={`relative flex-1 h-full p-4 ${selectedBlockId === element.id ? "ring-2 ring-primary" : ""}`}>
+        {!readonly && selectedBlockId === element.id && (blockCount ?? 0) > 1 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeBlock(element.id);
+                  }}
+                  className="absolute top-2 right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
+                  <Trash className="h-3 w-3" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Delete block</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+        {element.children?.map((child) => (
+          <CVElementRenderer key={child.id} element={child} readonly={readonly} />
+        ))}
+      </div>
+    );
   }
 
   // ---------- CONTENT ----------

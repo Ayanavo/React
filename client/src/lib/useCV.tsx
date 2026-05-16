@@ -92,9 +92,9 @@ interface CVContextType {
   selectElement: (elementId: string) => void;
   selectHeader: (pageId: string, sectionId: string, headerId: string) => void;
   addSection: (pageId: string) => void;
-  removeSection: (sectionId: string) => void;
+  removeSection: (sectionId?: string) => void;
   addBlock: (pageId: string, sectionId: string) => void;
-  removeBlock: (blockId: string) => void;
+  removeBlock: (blockId?: string) => void;
   addContent: (blockId: string, element: CVElement) => void;
   updateElement: (id: string, updates: Partial<CVElement>) => void;
   removeElement: (id: string) => void;
@@ -111,7 +111,7 @@ interface CVContextType {
   showPagination: boolean;
   togglePagination: () => void;
   addPage: (value: number) => void;
-  removePage: (pageId: string) => void;
+  removePage: (pageId?: string) => void;
   showSideBar: boolean;
   toggleSideBar: () => void;
   MAX_PAGES: number;
@@ -302,10 +302,12 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     selectSection(pageId, sectionId);
   };
 
-  const removeSection = () => {
-    if (!selectedSectionId) return;
+  const removeSection = (sectionId = selectedSectionId ?? undefined) => {
+    console.log(sectionId);
 
-    setElements((prev) => removeFromTree(prev, selectedSectionId));
+    if (!sectionId) return;
+
+    setElements((prev) => removeFromTree(prev, sectionId));
     setSelectedSectionId(null);
     setSelectedBlockId(null);
   };
@@ -329,22 +331,29 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     selectBlock(pageId, sectionId, blockId);
   };
 
-  const removeBlock = () => {
+  const removeBlock = (blockId = selectedBlockId ?? undefined) => {
     let parentSectionId: string | null = null;
     let canDelete = false;
 
-    elements.forEach((section) => {
-      if (section.type !== "section") return;
-      const blocks = section.children || [];
-      if (blocks.some((b) => b.id === selectedBlockId)) {
-        parentSectionId = section.id;
-        canDelete = blocks.length > 1;
+    const findParentSection = (nodes: CVElement[]) => {
+      for (const node of nodes) {
+        if (node.type === "section") {
+          const blocks = node.children?.filter((child) => child.type === "block") ?? [];
+          if (blocks.some((block) => block.id === blockId)) {
+            parentSectionId = node.id;
+            canDelete = blocks.length > 1;
+            return;
+          }
+        }
+        if (node.children) findParentSection(node.children);
       }
-    });
+    };
+
+    findParentSection(elements);
 
     if (!canDelete) return;
-    if (selectedBlockId === null) return;
-    setElements((prev) => removeFromTree(prev, selectedBlockId));
+    if (!blockId) return;
+    setElements((prev) => removeFromTree(prev, blockId));
     setSelectedBlockId(null);
     setSelectedSectionId(parentSectionId);
   };
@@ -485,16 +494,17 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removePage = () => {
+  const removePage = (pageId = selectedPageId ?? undefined) => {
     setElements((prev) => {
-      const pageToRemoveIndex = prev.findIndex((page) => page.id === selectedPageId);
-      if (pageToRemoveIndex === -1 || prev.length <= 1) {
+      const pageToRemoveIndex = prev.findIndex((page) => page.id === pageId);
+      if (pageToRemoveIndex === -1) {
         return prev;
       }
+      if (prev.length <= 1) return DEFAULT_ELEMENT_CONFIG;
       return prev.filter((_, index) => index !== pageToRemoveIndex);
     });
 
-    if (selectedPageId === selectedPageId) {
+    if (selectedPageId === pageId) {
       setSelectedPageId(null);
       setSelectedSectionId(null);
       setSelectedBlockId(null);

@@ -12,15 +12,19 @@ export const axiosInstance = axios.create({
   baseURL: apiUrl,
   headers: { "Content-Type": "application/json" },
   timeout: API_TIMEOUT_MS,
-  withCredentials: true, // Important for sending cookies with requests
+  withCredentials: true,
 });
+
 const redirectToLogin = (message: string) => {
   console.log(message);
+
   sessionStorage.removeItem("auth_token");
+
   showToast({
     title: "Session expired or invalid. Redirecting to login...",
     variant: "error",
   });
+
   window.location.hash = "#/login";
 };
 
@@ -32,65 +36,76 @@ const showError = (message: string) => {
   });
 };
 
-// Add request interceptor for authentication
+// REQUEST INTERCEPTOR
 axiosInstance.interceptors.request.use(
   (config) => {
     const authToken = sessionStorage.getItem("auth_token");
-    authToken && config && (config.headers.Authorization = `Bearer ${JSON.parse(authToken)}`);
+
+    if (authToken && config.headers) {
+      config.headers.Authorization = `Bearer ${JSON.parse(authToken)}`;
+    }
+
     return config;
   },
-  (error) => {
-    console.error("Request interceptor error:", error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response Interceptor
+// REFRESH TOKEN LOGIC
+const callRefreshToken = async (originalRequest: RetriableRequestConfig) => {
+  try {
+    const response = await axios.post(`${apiUrl}auth/refresh-token`, {}, { withCredentials: true });
+
+    const { token } = response.data;
+
+    sessionStorage.setItem("auth_token", JSON.stringify(token));
+
+    if (originalRequest.headers) {
+      originalRequest.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return axiosInstance(originalRequest);
+  } catch (refreshError) {
+    redirectToLogin("Refresh token expired");
+    return Promise.reject(refreshError);
+  }
+};
+
+// RESPONSE INTERCEPTOR
 axiosInstance.interceptors.response.use(
-  (response: AxiosResponse) => {
-    return response;
-  },
-  (error: AxiosError) => {
-    console.warn("Response Interceptor Error:", error);
+  (response: AxiosResponse) => response,
+
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetriableRequestConfig;
 
     if (error.response) {
       const status = error.response.status;
 
       switch (status) {
         case 401:
-          redirectToLogin("Unauthorized access - 401");
+          if (!originalRequest._retry) {
+            originalRequest._retry = true;
+
+            return callRefreshToken(originalRequest);
+          }
+
+          redirectToLogin("Unauthorized access");
           break;
+
         case 403:
           showError("You do not have permission to perform this action.");
           break;
+
         case 500:
-          showError("Internal Server Error. Please try again later.");
-          callRefreshToken(error.config as RetriableRequestConfig);
-          break;
-        default:
-          // Handle other status codes if needed
+          showError("Internal Server Error. Please try again.");
           break;
       }
     } else {
-      console.log("Network or server error:", error.message);
+      console.log("Network/server error:", error.message);
     }
 
     return Promise.reject(error);
   }
 );
-
-const callRefreshToken = async (originalRequest: RetriableRequestConfig) => {
-  try {
-    const response = await axiosInstance.post(`${apiUrl}auth/refresh-token`);
-    const { token } = response.data;
-    sessionStorage.setItem("auth_token", token);
-    originalRequest.headers.Authorization = `Bearer ${token}`;
-    return axiosInstance(originalRequest);
-  } catch (refreshError) {
-    redirectToLogin("Unauthorized access - 401");
-    return Promise.reject(refreshError);
-  }
-};
 
 export const createChatTransport = (apiUrl: string) => {
   const authToken = sessionStorage.getItem("auth_token");
