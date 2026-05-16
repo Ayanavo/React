@@ -106,8 +106,8 @@ const CVBuilderContent = () => {
               "Updating..."
             : "Submitting..."
           : isEditMode ?
-            "Update"
-          : "Submit"}
+            "Update CV"
+          : "Submit CV"}
         </Button>
       </div>
 

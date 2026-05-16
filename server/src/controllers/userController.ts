@@ -224,6 +224,35 @@ export const saveUserProfile = async (req: Request, res: Response) => {
   }
 };
 
+export const saveSettings = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Not authenticated" });
+
+    const { date_format, currency_format, font_style, theme } = req.body;
+    if ([date_format, currency_format, font_style, theme].some((field) => field === undefined || field === "")) {
+      return res.status(400).json({ message: "Required fields are missing" });
+    }
+
+    const decoded = jwt.verify(token, process.env.API_SECRET_KEY as Secret) as { id: string };
+    const user = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.settings = {
+      date_format,
+      currency_format,
+      font_style,
+      theme,
+    };
+
+    await user.save();
+    res.status(200).json({ message: "Settings saved successfully", settings: user.settings });
+  } catch (error) {
+    console.error("Error saving settings:", error);
+    res.status(500).json({ message: "Failed to save settings" });
+  }
+};
+
 export const verifyToken = async (req: Request, res: Response) => {
   try {
     const accessToken = req.query.access as string;

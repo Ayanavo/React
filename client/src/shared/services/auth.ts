@@ -16,6 +16,13 @@ export type LoginPayload = {
   rememberMe: boolean;
 };
 
+export type SaveSettingsPayload = {
+  date_format: string;
+  currency_format: string;
+  font_style: string;
+  theme: string;
+};
+
 export type ProfileResponse = {
   user: {
     photoURL?: string;
@@ -64,6 +71,11 @@ export const verifyAuthAPI = async (token: string) => {
   const response = await axiosInstance.get(apiUrl + "auth/verifyToken", {
     params: { access: token },
   });
+  return response.data;
+};
+
+export const saveSettingsAPI = async (payload: SaveSettingsPayload) => {
+  const response = await axiosInstance.post(apiUrl + "auth/saveSettings", payload);
   return response.data;
 };
 

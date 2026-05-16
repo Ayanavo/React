@@ -1,31 +1,124 @@
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import showToast from "@/hooks/toast";
+import DropdownComponent from "@/shared/controls/dropdown";
 import ImageComponent from "@/shared/controls/image";
+import { saveSettingsAPI } from "@/shared/services/auth";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/grid/form/validation";
 import { useColor, useFont, useTheme } from "./theme";
 
+const currencyOptions = [
+  { label: "Indian Rupees - ₹", value: "INR" },
+  { label: "US Dollar - $", value: "USD" },
+  { label: "Euro - €", value: "EUR" },
+  { label: "British Pound - £", value: "GBP" },
+  { label: "Japanese Yen - ¥", value: "JPY" },
+  { label: "Australian Dollar - A$", value: "AUD" },
+  { label: "Canadian Dollar - C$", value: "CAD" },
+  { label: "Singapore Dollar - S$", value: "SGD" },
+  { label: "Swiss Franc - CHF", value: "CHF" },
+  { label: "Chinese Yuan - ¥", value: "CNY" },
+  { label: "UAE Dirham - د.إ", value: "AED" },
+  { label: "Saudi Riyal - ﷼", value: "SAR" },
+  { label: "New Zealand Dollar - NZ$", value: "NZD" },
+  { label: "South African Rand - R", value: "ZAR" },
+  { label: "Hong Kong Dollar - HK$", value: "HKD" },
+  { label: "Swedish Krona - kr", value: "SEK" },
+];
+
+const dateFormatOptions = ["/", "-", "."].flatMap((delimiter) =>
+  ["MM", "MMM", "MMMM"].flatMap((month) =>
+    [
+      ["DD", month, "YYYY"],
+      ["DD", "YYYY", month],
+      [month, "DD", "YYYY"],
+      [month, "YYYY", "DD"],
+      ["YYYY", "DD", month],
+      ["YYYY", month, "DD"],
+    ].map((parts) => {
+      const value = parts.join(delimiter);
+      return { label: value, value };
+    })
+  )
+);
+
+const getDelimiter = (dateFormat: string) => dateFormat.match(/[\/.-]/)?.[0] ?? "/";
+
 function settings() {
-  const settingsSchema: [
-    {
-      name: string;
-      label: string;
-      type: "color";
-      placeholder?: string;
-      validation: { required: boolean };
+  const { theme, setTheme } = useTheme();
+  const { color, setColor } = useColor();
+  const { font, setFont } = useFont();
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [savedSettings, setSavedSettings] = React.useState(() => ({
+    date_format: sessionStorage.getItem("date_format") ?? "DD/MM/YYYY",
+    currency_format: sessionStorage.getItem("currency_code") ?? "INR",
+    font_style: sessionStorage.getItem("font_style") ?? font,
+    theme: sessionStorage.getItem("theme") ?? theme,
+  }));
+
+  const dateFormatSchema = {
+    name: "date_format",
+    label: "Date Format",
+    placeholder: "Select date format",
+    type: "list" as "list",
+    options: dateFormatOptions,
+    default: sessionStorage.getItem("date_format") ?? "DD/MM/YYYY",
+    validation: {
+      required: true,
     },
-    {
-      name: string;
-      label: string;
-      type: "image";
-      placeholder?: string;
-      validation: { required: boolean };
+  };
+
+  const currencyFormatSchema = {
+    name: "currency_format",
+    label: "Currency Format",
+    placeholder: "Select currency format",
+    type: "list" as "list",
+    options: currencyOptions,
+    default: sessionStorage.getItem("currency_code") ?? "INR",
+    validation: {
+      required: true,
     },
-  ] = [
+  };
+
+  const companyNameSchema = {
+    name: "company_name",
+    label: "",
+    placeholder: "CP",
+    type: "image" as "image",
+    validation: {
+      required: false,
+    },
+  };
+
+  const fontSchema = {
+    name: "font_style",
+    label: "Font Style",
+    placeholder: "Select font style",
+    type: "list" as "list",
+    options: [
+      { label: "System", value: "system" },
+      { label: "Poppins", value: "poppins" },
+      { label: "Paprika", value: "paprika" },
+      { label: "Inter", value: "inter" },
+      { label: "Roboto", value: "roboto" },
+      { label: "Oswald", value: "oswald" },
+      { label: "Fig Tree", value: "fig-tree" },
+    ],
+    default: font,
+    validation: {
+      required: true,
+    },
+  };
+
+  const settingsSchema = [
+    dateFormatSchema,
+    currencyFormatSchema,
+    fontSchema,
     {
       name: "themecolor",
       label: "",
@@ -34,22 +127,55 @@ function settings() {
         required: false,
       },
     },
-    {
-      name: "company_name",
-      label: "",
-      placeholder: "CP",
-      type: "image" as "image",
-      validation: {
-        required: false,
-      },
-    },
+    companyNameSchema,
   ];
 
-  const { theme, setTheme } = useTheme();
-  const { color, setColor } = useColor();
-  const { font, setFont } = useFont();
-
   const form = generateControl(settingsSchema);
+  const selectedDateFormat = form.watch("date_format");
+  const selectedCurrencyCode = form.watch("currency_format");
+  const selectedFontStyle = form.watch("font_style");
+
+  React.useEffect(() => {
+    if (selectedFontStyle) {
+      setFont(selectedFontStyle as Parameters<typeof setFont>[0]);
+    }
+  }, [selectedFontStyle, setFont]);
+
+  const hasUpdates = selectedDateFormat !== savedSettings.date_format || selectedCurrencyCode !== savedSettings.currency_format || selectedFontStyle !== savedSettings.font_style || theme !== savedSettings.theme;
+
+  const saveSettings = async () => {
+    try {
+      setIsSaving(true);
+      await saveSettingsAPI({
+        date_format: selectedDateFormat,
+        currency_format: selectedCurrencyCode,
+        font_style: selectedFontStyle,
+        theme,
+      });
+
+      sessionStorage.setItem("date_format", selectedDateFormat);
+      sessionStorage.setItem("delimiter", getDelimiter(selectedDateFormat));
+      sessionStorage.setItem("currency_code", selectedCurrencyCode);
+      sessionStorage.setItem("font_style", selectedFontStyle);
+      sessionStorage.setItem("theme", theme);
+      setSavedSettings({
+        date_format: selectedDateFormat,
+        currency_format: selectedCurrencyCode,
+        font_style: selectedFontStyle,
+        theme,
+      });
+
+      showToast({ title: "Settings saved successfully", variant: "success" });
+    } catch (error) {
+      showToast({
+        title: "Settings save failed",
+        description: error instanceof Error ? error.message : "Unable to save settings",
+        variant: "error",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const colorNameConfig = [
     { color: "zinc", hexcode: "#2F2F31" },
@@ -61,16 +187,6 @@ function settings() {
     { color: "red", hexcode: "#FF2D55" },
     { color: "orange", hexcode: "#F97316" },
     { color: "yellow", hexcode: "#FFC107" },
-  ];
-
-  const FontNameConfig = [
-    { font: "system", name: "System" },
-    { font: "poppins", name: "Poppins" },
-    { font: "paprika", name: "Paprika" },
-    { font: "inter", name: "Inter" },
-    { font: "roboto", name: "Roboto" },
-    { font: "oswald", name: "Oswald" },
-    { font: "fig-tree", name: "Fig Tree" },
   ];
 
   const themeModes = [
@@ -100,8 +216,18 @@ function settings() {
       <div className="px-6 py-5 my-2 mx-4 border rounded-md shadow-custom mb-5 bg-background">
         <FormProvider {...form}>
           <div className="space-y-8">
-            {/* Logo Upload */}
-            <ImageComponent form={form} schema={settingsSchema[1]} />
+            <div className="space-y-4 max-w-sm">
+              <DropdownComponent form={form} schema={dateFormatSchema} />
+            </div>
+
+            <div className="space-y-4 max-w-sm">
+              <DropdownComponent form={form} schema={currencyFormatSchema} />
+            </div>
+
+            {/* Fonts */}
+            <div className="space-y-4 max-w-sm">
+              <DropdownComponent form={form} schema={fontSchema} />
+            </div>
 
             {/* Theme Colors */}
             <div className="space-y-4">
@@ -161,27 +287,12 @@ function settings() {
               </div>
             </div>
 
-            {/* Fonts */}
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <Label className="text-base font-semibold">Fonts</Label>
-                <p className="text-sm text-muted-foreground">Select your preferred application font.</p>
-              </div>
+            {/* Logo Upload */}
+            <ImageComponent form={form} schema={companyNameSchema} />
 
-              <Select defaultValue={font} onValueChange={setFont}>
-                <SelectTrigger className="w-[240px] rounded-xl">
-                  <SelectValue placeholder="Select font" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {FontNameConfig.map((font) => (
-                    <SelectItem key={font.font} value={font.font}>
-                      {font.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Button type="button" className="w-full" onClick={saveSettings} disabled={!hasUpdates || isSaving}>
+              {isSaving ? "Updating..." : "Update Settings"}
+            </Button>
           </div>
         </FormProvider>
       </div>

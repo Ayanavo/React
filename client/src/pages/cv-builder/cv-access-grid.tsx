@@ -21,7 +21,9 @@ type CVListing = {
   job: string;
   tag: string;
   createdBy: string;
+  createdAt: string;
   modifiedBy: string;
+  modifiedAt: string;
 };
 
 type CVBuilderRecord = {
@@ -29,6 +31,8 @@ type CVBuilderRecord = {
   name?: string;
   job?: string;
   tag?: string;
+  createdAt?: string;
+  updatedAt?: string;
   createdBy?: string | { firstName?: string; lastName?: string; email?: string };
   modifiedBy?: string | { firstName?: string; lastName?: string; email?: string };
   elements: CVElement[];
@@ -44,6 +48,8 @@ const formatUser = (user?: CVBuilderRecord["createdBy"]) => {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
   return fullName || user.email || "-";
 };
+
+const formatDate = (date?: string) => (date ? new Date(date).toLocaleDateString() : "-");
 
 const CVAccessGrid = () => {
   const id = useId();
@@ -70,7 +76,9 @@ const CVAccessGrid = () => {
         job: cv.job || "-",
         tag: cv.tag || "-",
         createdBy: formatUser(cv.createdBy),
+        createdAt: formatDate(cv.createdAt),
         modifiedBy: formatUser(cv.modifiedBy),
+        modifiedAt: formatDate(cv.updatedAt),
       })),
     [cvBuilderList]
   );
@@ -143,12 +151,12 @@ const CVAccessGrid = () => {
           </Badge>
         ),
       }),
-      columnHelper.accessor("createdBy", {
-        header: "Created By",
+      columnHelper.accessor("createdAt", {
+        header: "Created Date",
         cell: (info) => info.getValue(),
       }),
-      columnHelper.accessor("modifiedBy", {
-        header: "Modified By",
+      columnHelper.accessor("modifiedAt", {
+        header: "Modified Date",
         cell: (info) => info.getValue(),
       }),
       columnHelper.display({

@@ -20,6 +20,12 @@ export interface IUser extends Document {
     state: string;
     pincode: string;
   };
+  settings: {
+    date_format: string;
+    currency_format: string;
+    font_style: string;
+    theme: string;
+  };
   matchPassword: (enteredPassword: string) => Promise<boolean>;
   generateJwt: () => string;
   generateRefreshToken: () => string;
@@ -41,6 +47,12 @@ const userSchema: Schema = new Schema(
       city: { type: String, default: "" },
       state: { type: String, default: "" },
       pincode: { type: String, default: "" },
+    },
+    settings: {
+      date_format: { type: String, default: "DD/MM/YYYY" },
+      currency_format: { type: String, default: "INR" },
+      font_style: { type: String, default: "system" },
+      theme: { type: String, default: "system" },
     },
   },
   { timestamps: true }

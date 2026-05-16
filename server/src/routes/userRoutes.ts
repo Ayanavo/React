@@ -1,5 +1,5 @@
 ﻿import { RequestHandler, Router } from "express";
-import { getUserProfile, login, logout, refreshToken, saveUserProfile, signUp, verifyToken } from "../controllers/userController.js";
+import { getUserProfile, login, logout, refreshToken, saveSettings, saveUserProfile, signUp, verifyToken } from "../controllers/userController.js";
 
 const router = Router();
 
@@ -9,6 +9,8 @@ router.post("/logout", logout as RequestHandler);
 router.post("/refresh-token", refreshToken as RequestHandler);
 router.get("/getUserProfile", getUserProfile as RequestHandler);
 router.post("/saveUserProfile", saveUserProfile as RequestHandler);
+router.get("/saveSetting", saveSettings as RequestHandler);
+router.post("/SaveSettings", saveSettings as RequestHandler);
 router.get("/verifyToken", verifyToken as RequestHandler);
 
 export default router;
