@@ -1,12 +1,13 @@
+import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ImageComponent from "@/shared/controls/image";
+import { Check, Monitor, Moon, Sun } from "lucide-react";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/grid/form/validation";
-import { useColor, useTheme, useFont } from "./theme";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import { useColor, useFont, useTheme } from "./theme";
 
 function settings() {
   const settingsSchema: [
@@ -43,12 +44,13 @@ function settings() {
       },
     },
   ];
+
   const { theme, setTheme } = useTheme();
   const { color, setColor } = useColor();
   const { font, setFont } = useFont();
-  // const { setState } = usePersistedState("vite-ui-sidebar", "left");
-  // const [selectedFont, setSelectedFont] = useState("system");
+
   const form = generateControl(settingsSchema);
+
   const colorNameConfig = [
     { color: "zinc", hexcode: "#2F2F31" },
     { color: "violet", hexcode: "#7C3AED" },
@@ -71,96 +73,106 @@ function settings() {
     { font: "fig-tree", name: "Fig Tree" },
   ];
 
+  const themeModes = [
+    {
+      type: "system",
+      label: "System Mode",
+      icon: Monitor,
+    },
+    {
+      type: "light",
+      label: "Light Mode",
+      icon: Sun,
+    },
+    {
+      type: "dark",
+      label: "Dark Mode",
+      icon: Moon,
+    },
+  ];
+
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between px-6 pt-3">
         <BreadcrumbInbuild />
       </div>
-      <div className="px-6 py-2 my-2 mx-4 border-2 rounded-md shadow-custom mb-5">
-        <FormProvider {...form}>
-          <div className="space-y-6">
-            {/* Company Logo Section */}
 
+      <div className="px-6 py-5 my-2 mx-4 border rounded-md shadow-custom mb-5 bg-background">
+        <FormProvider {...form}>
+          <div className="space-y-8">
+            {/* Logo Upload */}
             <ImageComponent form={form} schema={settingsSchema[1]} />
 
+            {/* Theme Colors */}
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Theme color</Label>
-                <p className="text-sm text-muted-foreground">Select a theme.</p>
+              <div className="space-y-1">
+                <Label className="text-base font-semibold">Theme color</Label>
+                <p className="text-sm text-muted-foreground">Select a theme accent color.</p>
               </div>
-              <div className="flex items-center gap-4">
-                <div className="flex gap-2">
-                  {colorNameConfig.map((type) => (
-                    <button
-                      onClick={() => setColor(type.color)}
-                      key={type.color}
-                      className={`w-8 h-8 rounded-lg border-2 transition-colors ${color === type.color ? "border-primary" : "border-transparent"}`}
-                      style={{ backgroundColor: type.hexcode }}
-                    />
-                  ))}
-                </div>
+
+              <div className="flex flex-wrap items-center gap-3">
+                {colorNameConfig.map((type) => (
+                  <button
+                    type="button"
+                    key={type.color}
+                    onClick={() => setColor(type.color)}
+                    className={`relative flex items-center justify-center w-10 h-10 rounded-xl border-2 transition-all duration-200 hover:scale-105 ${color === type.color ? "border-primary ring-2 ring-primary/20" : "border-border"}`}
+                    style={{ backgroundColor: type.hexcode }}>
+                    {color === type.color && <Check className="w-4 h-4 text-white drop-shadow-sm" />}
+                  </button>
+                ))}
+
+                {/* Custom Multi Color Picker */}
+                <button type="button" className="relative flex items-center justify-center w-10 h-10 rounded-xl border-2 border-border hover:scale-105 transition-all duration-200 hover:scale-105 overflow-hidden" title="Custom Color Picker">
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: "conic-gradient(from 180deg at 50% 50%, #ff4d4d, #ff9900, #ffd500, #00d084, #00c2ff, #3b82f6, #8b5cf6, #ff4d9d, #ff4d4d)",
+                    }}
+                  />
+                </button>
               </div>
             </div>
 
-            {/* Interface Theme Section */}
+            {/* Theme Mode */}
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Dark/Light Mode</Label>
-                <p className="text-sm text-muted-foreground">Select your preferred mode.</p>
+              <div className="space-y-1">
+                <Label className="text-base font-semibold">Dark/Light Mode</Label>
+                <p className="text-sm text-muted-foreground">Select your preferred appearance.</p>
               </div>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 w-fit">
-                {["system", "light", "dark"].map((type) => (
-                  <Card key={type} className={`relative w-28 cursor-pointer p-1 ${theme === type ? "border-2 border-primary" : ""}`} onClick={() => setTheme(type as "system" | "light" | "dark")}>
-                    <div className="h-14 rounded-sm bg-muted" />
-                    <p className="mt-1 text-center text-xs capitalize">{type} Mode</p>
-                  </Card>
-                ))}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-fit">
+                {themeModes.map((mode) => {
+                  const Icon = mode.icon;
+
+                  return (
+                    <Card
+                      key={mode.type}
+                      onClick={() => setTheme(mode.type as "system" | "light" | "dark")}
+                      className={`relative w-36 cursor-pointer rounded-2xl p-3 transition-all duration-200 hover:shadow-md ${theme === mode.type ? "border-2 border-primary shadow-sm" : "border"}`}>
+                      <div className="flex items-center justify-center h-20 rounded-xl bg-muted">
+                        <Icon className="w-8 h-8 text-foreground" />
+                      </div>
+
+                      <p className="mt-3 text-sm font-medium text-center">{mode.label}</p>
+                    </Card>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Sidebar Feature Section */}
-            {/* <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Sidebar feature</Label>
-                <p className="text-sm text-muted-foreground">Which side is your desktop sidebar.</p>
-              </div>
-              <Select defaultValue="left" onValueChange={setState}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select feature" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="left">Left</SelectItem>
-                  <SelectItem value="right">Right</SelectItem>
-                </SelectContent>
-              </Select>
-            </div> */}
-
-            {/* Tables View Section */}
-            {/* <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Layout Theme</Label>
-                <p className="text-sm text-muted-foreground">Select your preferred layout theme.</p>
-              </div>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 w-fit">
-                {["default", "compact"].map((view) => (
-                  <Card key={view} className={`relative w-28 cursor-pointer p-1 ${selectedView === view ? "border-2 border-primary" : ""}`} onClick={() => setSelectedView(view)}>
-                    <div className="h-14 rounded-sm bg-muted" />
-                    <p className="mt-1 text-center text-xs capitalize">{view}</p>
-                  </Card>
-                ))}
-              </div>
-            </div> */}
-
-            {/* Fonts Section */}
+            {/* Fonts */}
             <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Fonts</Label>
-                <p className="text-sm text-muted-foreground">Which side is your desktop sidebar.</p>
+              <div className="space-y-1">
+                <Label className="text-base font-semibold">Fonts</Label>
+                <p className="text-sm text-muted-foreground">Select your preferred application font.</p>
               </div>
+
               <Select defaultValue={font} onValueChange={setFont}>
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select feature" />
+                <SelectTrigger className="w-[240px] rounded-xl">
+                  <SelectValue placeholder="Select font" />
                 </SelectTrigger>
+
                 <SelectContent>
                   {FontNameConfig.map((font) => (
                     <SelectItem key={font.font} value={font.font}>
@@ -171,8 +183,6 @@ function settings() {
               </Select>
             </div>
           </div>
-
-          {/* Action Buttons */}
         </FormProvider>
       </div>
     </div>
