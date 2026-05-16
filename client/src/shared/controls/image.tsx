@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ImageCropper } from "@/components/ui/image-cropper";
 import { Label } from "@/components/ui/label";
-import { Search, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import React, { type ChangeEvent, useMemo, useRef, useState } from "react";
 import type { FieldValue } from "react-hook-form";
 
@@ -82,7 +82,6 @@ function ImageInput({ form, schema }: { form: FieldValue<any>; schema: ImageSche
 
   // Cropper modal state and raw selected image
   const [cropOpen, setCropOpen] = useState(false);
-  const [viewerOpen, setViewerOpen] = useState(false);
   const [rawImage, setRawImage] = useState<string>("");
 
   const aspect = useMemo(() => schema.aspect ?? 1, [schema.aspect]);
@@ -105,7 +104,6 @@ function ImageInput({ form, schema }: { form: FieldValue<any>; schema: ImageSche
     form.setValue(schema.name, "");
     setImagePreview("");
     setRawImage("");
-    setViewerOpen(false);
   };
 
   // Derive capture attribute
@@ -126,21 +124,10 @@ function ImageInput({ form, schema }: { form: FieldValue<any>; schema: ImageSche
       <div className="flex items-center gap-4">
         <input ref={inputRef} id="image-drop" type="file" accept="image/*" {...(captureAttr ? { capture: captureAttr as any } : {})} className="hidden" onChange={handleImageUpload} />
 
-        <button
-          type="button"
-          className="group relative w-16 h-16 border rounded-lg overflow-hidden disabled:cursor-default"
-          onClick={() => displayImage && setViewerOpen(true)}
-          disabled={!displayImage}
-          aria-label={displayImage ? "View selected image" : undefined}>
+        <button type="button" className="group relative w-16 h-16 border rounded-lg overflow-hidden disabled:cursor-default" disabled={!displayImage} aria-label={displayImage ? "View selected image" : undefined}>
           {!displayImage ?
             <div className="absolute inset-0 flex items-center justify-center bg-primary">{schema.placeholder && <div className="text-4xl text-secondary transition duration-500 text-center">{schema.placeholder}</div>}</div>
-          : <>
-              <img width={64} height={64} alt="Selected preview" src={displayImage || "/placeholder.svg"} draggable={false} className="w-full h-full object-cover" />
-              <span className="absolute inset-0 flex items-center justify-center bg-black/45 opacity-0 transition-opacity group-hover:opacity-100">
-                <Search className="h-5 w-5 text-white" aria-hidden="true" />
-              </span>
-            </>
-          }
+          : <img width={64} height={64} alt="Selected preview" src={displayImage || "/placeholder.svg"} draggable={false} className="w-full h-full object-cover" />}
         </button>
 
         <Button variant="outline" type="button" size="sm" onClick={() => inputRef.current?.click()}>
@@ -168,8 +155,6 @@ function ImageInput({ form, schema }: { form: FieldValue<any>; schema: ImageSche
           setCropOpen(false);
         }}
       />
-
-      <ImageCropper open={viewerOpen} image={displayImage} aspect={aspect} onClose={() => setViewerOpen(false)} onRemove={handleRemove} viewOnly />
     </div>
   );
 }

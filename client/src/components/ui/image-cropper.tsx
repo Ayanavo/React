@@ -11,9 +11,7 @@ type ImageCropperProps = {
   image: string;
   aspect?: number;
   onClose: () => void;
-  onCropped?: (dataUrl: string) => void;
-  onRemove?: () => void;
-  viewOnly?: boolean;
+  onCropped: (dataUrl: string) => void;
 };
 
 function dataURLToImage(src: string): Promise<HTMLImageElement> {
@@ -43,16 +41,15 @@ async function getCroppedDataUrl(imageSrc: string, crop: Area): Promise<string> 
   return canvas.toDataURL("image/png");
 }
 
-const ImageCropper = ({ open, image, aspect = 1, onClose, onCropped, onRemove, viewOnly = false }: ImageCropperProps) => {
+const ImageCropper = ({ open, image, aspect = 1, onClose, onCropped }: ImageCropperProps) => {
   const [crop, setCrop] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState<number>(1);
-  const [viewZoom, setViewZoom] = useState<number>(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
 
   const onCropComplete = useCallback((_area: Area, areaPx: Area) => setCroppedAreaPixels(areaPx), []);
 
   const handleConfirm = useCallback(async () => {
-    if (!image || !croppedAreaPixels || !onCropped) return;
+    if (!image || !croppedAreaPixels) return;
     try {
       const dataUrl = await getCroppedDataUrl(image, croppedAreaPixels);
       onCropped(dataUrl);
@@ -65,42 +62,28 @@ const ImageCropper = ({ open, image, aspect = 1, onClose, onCropped, onRemove, v
     <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
       <DialogContent className="max-w-[90vw] md:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{viewOnly ? "View image" : "Crop your image"}</DialogTitle>
+          <DialogTitle>Crop your image</DialogTitle>
         </DialogHeader>
 
         <div className="relative w-full h-[50vh] bg-background/50 rounded-md overflow-hidden">
-          {image && viewOnly ?
-            <img src={image} alt="Selected preview" draggable={false} className="h-full w-full object-contain transition-transform" style={{ transform: `scale(${viewZoom})` }} />
-          : image ?
-            <Cropper image={image} crop={crop} zoom={zoom} aspect={aspect} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={onCropComplete} showGrid restrictPosition={false} objectFit="contain" />
-          : null}
+          {image && <Cropper image={image} crop={crop} zoom={zoom} aspect={aspect} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={onCropComplete} showGrid restrictPosition={false} objectFit="contain" />}
         </div>
 
         <div className="flex items-center gap-4 pt-4">
           <Label className="min-w-12">Zoom</Label>
-          <Slider value={[viewOnly ? viewZoom : zoom]} onValueChange={(v) => (viewOnly ? setViewZoom(v[0] ?? 1) : setZoom(v[0] ?? 1))} min={viewOnly ? 1 : 0.5} max={3} step={0.05} className="w-full" />
+          <Slider value={[zoom]} onValueChange={(v) => setZoom(v[0] ?? 1)} min={0.5} max={3} step={0.05} className="w-full" />
         </div>
 
-        {viewOnly && onRemove && (
-          <DialogFooter>
-            <Button type="button" variant="destructive" onClick={onRemove}>
-              Remove
-            </Button>
-          </DialogFooter>
-        )}
-
-        {!viewOnly && (
-          <DialogFooter className="gap-2">
-            <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Cancel crop">
-              <SquareX className="h-5 w-5" />
-              <span className="sr-only">Cancel</span>
-            </Button>
-            <Button type="button" size="icon" onClick={handleConfirm} aria-label="Save crop">
-              <Save className="h-5 w-5" />
-              <span className="sr-only">Save</span>
-            </Button>
-          </DialogFooter>
-        )}
+        <DialogFooter className="gap-2">
+          <Button type="button" variant="ghost" size="icon" onClick={onClose} aria-label="Cancel crop">
+            <SquareX className="h-5 w-5" />
+            <span className="sr-only">Cancel</span>
+          </Button>
+          <Button type="button" size="icon" onClick={handleConfirm} aria-label="Save crop">
+            <Save className="h-5 w-5" />
+            <span className="sr-only">Save</span>
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

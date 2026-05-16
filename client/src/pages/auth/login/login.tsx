@@ -31,13 +31,6 @@ const formSchemaObj = [
     default: "",
     validation: { required: true, minLength: 6 },
   },
-  {
-    name: "RememberMe",
-    label: "Remember me",
-    type: "checkbox",
-    default: false,
-    validation: { required: false },
-  },
 ];
 
 function login() {
