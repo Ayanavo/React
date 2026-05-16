@@ -40,10 +40,7 @@ export const getStateList = async (req: Request, res: Response) => {
       timeout: EXTERNAL_REQUEST_TIMEOUT_MS,
       headers: { "X-CSCAPI-KEY": api_key || "" },
     });
-     console.log(thirdPartyresponse);
     return res.status(200).json(thirdPartyresponse.data);
-   
-    
   } catch (error) {
     return res.status(500).json({ message: error });
   }

@@ -82,7 +82,6 @@ export const login = async (req: Request, res: Response) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
-      maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined, // 7 days or session
       path: "/",
     };
 
@@ -217,7 +216,7 @@ export const saveUserProfile = async (req: Request, res: Response) => {
       user.address.pincode = pincode;
 
       await user.save();
-      res.status(200).json({ message: "Profile updated successfully", user: user.toObject({ versionKey: false }) });
+      res.status(200).json({ message: "Profile updated successfully" });
     }
   } catch (error) {
     console.error("Error updating profile:", error);
