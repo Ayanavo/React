@@ -16,6 +16,7 @@ export const axiosInstance = axios.create({
 });
 const redirectToLogin = (message: string) => {
   console.log(message);
+  sessionStorage.removeItem("auth_token");
   showToast({
     title: "Session expired or invalid. Redirecting to login...",
     variant: "error",
