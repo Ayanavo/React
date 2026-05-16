@@ -21,7 +21,7 @@ const redirectToLogin = (message: string) => {
     title: "Session expired or invalid. Redirecting to login...",
     variant: "error",
   });
-  window.location.hash = "#/";
+  window.location.hash = "#/login";
 };
 
 const showError = (message: string) => {
