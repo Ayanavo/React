@@ -2,21 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArchiveIcon, MoreVertical, TrashIcon } from "lucide-react";
-import React, { useEffect } from "react";
+import React from "react";
 import { State } from "./state";
-let noteListing: Array<State> = [];
-function listinglayout({ setIsOpen, isOpen }: { setIsOpen: (arg: boolean) => void; isOpen: boolean }) {
-  useEffect(() => {
-    // (isOpen?.description || isOpen?.title) && noteListing.push(isOpen);
-    return () => {
-      isOpen && setIsOpen(false);
-    };
-  }, []);
 
+function listinglayout({ noteListing, onSelect }: { noteListing: State[]; onSelect: (note: State) => void }) {
   return (
     <>
       {noteListing.map((item: State, index: number) => (
-        <Card key={index} className="m-3 shadow-none hover:shadow transition-shadow" onClick={() => setIsOpen(true)}>
+        <Card key={index} className="m-3 shadow-none hover:shadow transition-shadow" onClick={() => onSelect(item)}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{item?.title}</CardTitle>
             <DropdownMenu>

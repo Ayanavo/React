@@ -9,7 +9,7 @@ import GridLayoutComponent from "./grid-layout";
 import ListingLayoutComponent from "./listing-layout";
 import NoteEditorComponent from "./note-editor";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
-// import { State } from "./state";
+import { State } from "./state";
 
 function note() {
   const NotesLayout = [
@@ -19,22 +19,32 @@ function note() {
       label: "Grid View",
       icon: "Grid2X2Icon",
     },
-    // {
-    //   name: "kanban",
-    //   label: "Kanban View",
-    //   icon: "SquareKanbanIcon",
-    // },
   ];
-  // Toggle between list and grid view
+
   const [layout, setLayout] = useState<string>("list");
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [noteListing, setNoteListing] = useState<State[]>([]);
+  const [selectedNote, setSelectedNote] = useState<State | undefined>(undefined);
 
-  const handleCreate = () => setIsOpen(true); //
+  const handleCreate = () => {
+    setSelectedNote(undefined);
+    setIsOpen(true);
+  };
 
-  // const [state, disapatch] = useReducer(reducer, InitialState);
+  const handleSave = (note: State) => {
+    setNoteListing((prev) => [note, ...prev]);
+    setIsOpen(false);
+    setSelectedNote(undefined);
+  };
+
+  const handleSelect = (note: State) => {
+    setSelectedNote(note);
+    setIsOpen(true);
+  };
+
   return (
     <>
-      <NoteEditorComponent setIsOpen={setIsOpen} isOpen={isOpen} />
+      <NoteEditorComponent setIsOpen={setIsOpen} isOpen={isOpen} formData={selectedNote} onSave={handleSave} />
       <div className="flex items-center justify-between px-2 pt-3">
         <BreadcrumbInbuild />
       </div>
@@ -66,8 +76,8 @@ function note() {
         </div>
       </div>
 
-      {layout === "list" && <ListingLayoutComponent setIsOpen={setIsOpen} isOpen={isOpen} />}
-      {layout === "grid" && <GridLayoutComponent setIsOpen={setIsOpen} isOpen={isOpen} />}
+      {layout === "list" && <ListingLayoutComponent noteListing={noteListing} onSelect={handleSelect} />}
+      {layout === "grid" && <GridLayoutComponent noteListing={noteListing} onSelect={handleSelect} setIsOpen={setIsOpen} isOpen={isOpen} />}
     </>
   );
 }
