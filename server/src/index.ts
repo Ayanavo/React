@@ -13,6 +13,7 @@ import i18n from "./utils/i18n.js";
 import aiRoutes from "./routes/aitRoutes.js";
 import { errorLogger, logger } from "./utils/logger.js";
 import cvBuilderRoutes from "./routes/cvBuilderRoutes.js";
+import noteRoutes from "./routes/noteRoutes.js";
 
 const app = express();
 dotenv.config();
@@ -93,6 +94,7 @@ app.use("/api/auth", userRoutes);
 app.use("/api/cv-builder", cvBuilderRoutes);
 app.use("/api/setting", settingRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/notes", noteRoutes);
 
 /** --- Start server (bind 0.0.0.0 on Render) --- */
 const server = app.listen(PORT, "0.0.0.0", () => {
