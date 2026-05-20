@@ -8,9 +8,10 @@ interface CustomPopoverProps {
   content: ReactNode;
   className?: string;
   controlRef?: RefObject<{ open: () => void; close: () => void }>;
+  anchorRef?: RefObject<HTMLElement | null>;
 }
 
-export function CustomPopover({ content, className, controlRef }: CustomPopoverProps) {
+export function CustomPopover({ content, className, controlRef, anchorRef }: CustomPopoverProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { refs, floatingStyles, context } = useFloating({
@@ -36,10 +37,16 @@ export function CustomPopover({ content, className, controlRef }: CustomPopoverP
     close: () => setIsOpen(false),
   }));
 
+  React.useEffect(() => {
+    if (anchorRef?.current) {
+      refs.setReference(anchorRef.current);
+    }
+  }, [anchorRef, refs, isOpen]);
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <div ref={refs.setReference} {...getReferenceProps()}></div>
+        <div ref={anchorRef ? undefined : refs.setReference} {...getReferenceProps()} className={anchorRef ? "hidden" : undefined}></div>
       </PopoverTrigger>
       {isOpen && (
         <FloatingPortal>

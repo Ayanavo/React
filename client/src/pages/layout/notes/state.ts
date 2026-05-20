@@ -1,6 +1,9 @@
 export type State = {
+  _id?: string;
   title: string;
   description: string;
+  backgroundColor?: string;
+  image?: string[];
 } | null;
 
 export type Action = {

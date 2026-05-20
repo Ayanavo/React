@@ -2,14 +2,19 @@ import IconsComponent from "@/common/icons";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import showToast from "@/hooks/toast";
 import { cn } from "@/lib/utils";
+import { getNoteById, getNotes } from "@/shared/services/note";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { PlusIcon } from "lucide-react";
 import React, { useState } from "react";
 import GridLayoutComponent from "./grid-layout";
 import ListingLayoutComponent from "./listing-layout";
 import NoteEditorComponent from "./note-editor";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import { mapNoteRecordToState } from "./note-mapper";
 import { State } from "./state";
+import "./note.scss";
 
 function note() {
   const NotesLayout = [
@@ -21,30 +26,62 @@ function note() {
     },
   ];
 
+  const queryClient = useQueryClient();
   const [layout, setLayout] = useState<string>("list");
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [noteListing, setNoteListing] = useState<State[]>([]);
   const [selectedNote, setSelectedNote] = useState<State | undefined>(undefined);
+  const [isLoadingNote, setIsLoadingNote] = useState(false);
+
+  const { data: notes = [], isLoading } = useQuery({
+    queryKey: ["notes"],
+    queryFn: getNotes,
+  });
+
+  const noteListing: State[] = notes.map(mapNoteRecordToState);
 
   const handleCreate = () => {
     setSelectedNote(undefined);
     setIsOpen(true);
   };
 
-  const handleSave = (note: State) => {
-    setNoteListing((prev) => [note, ...prev]);
+  const handleSave = () => {
+    queryClient.invalidateQueries({ queryKey: ["notes"] });
     setIsOpen(false);
     setSelectedNote(undefined);
   };
 
-  const handleSelect = (note: State) => {
-    setSelectedNote(note);
-    setIsOpen(true);
+  const handleDelete = () => {
+    queryClient.invalidateQueries({ queryKey: ["notes"] });
+    setIsOpen(false);
+    setSelectedNote(undefined);
+  };
+
+  const handleSelect = async (note: State) => {
+    if (!note?._id) {
+      setSelectedNote(note);
+      setIsOpen(true);
+      return;
+    }
+
+    try {
+      setIsLoadingNote(true);
+      const noteDetail = await getNoteById(note._id);
+      setSelectedNote(mapNoteRecordToState(noteDetail));
+      setIsOpen(true);
+    } catch (error) {
+      showToast({
+        title: "Failed to load note",
+        description: error instanceof Error ? error.message : "Something went wrong",
+        variant: "error",
+      });
+    } finally {
+      setIsLoadingNote(false);
+    }
   };
 
   return (
     <>
-      <NoteEditorComponent setIsOpen={setIsOpen} isOpen={isOpen} formData={selectedNote} onSave={handleSave} />
+      <NoteEditorComponent setIsOpen={setIsOpen} isOpen={isOpen} formData={selectedNote} onSave={handleSave} onDelete={handleDelete} />
       <div className="flex items-center justify-between px-2 pt-3">
         <BreadcrumbInbuild />
       </div>
@@ -76,8 +113,9 @@ function note() {
         </div>
       </div>
 
-      {layout === "list" && <ListingLayoutComponent noteListing={noteListing} onSelect={handleSelect} />}
-      {layout === "grid" && <GridLayoutComponent noteListing={noteListing} onSelect={handleSelect} setIsOpen={setIsOpen} isOpen={isOpen} />}
+      {isLoadingNote && <p className="px-3 text-sm text-muted-foreground">Loading note...</p>}
+      {layout === "list" && <ListingLayoutComponent noteListing={noteListing} onSelect={handleSelect} isLoading={isLoading} />}
+      {layout === "grid" && <GridLayoutComponent noteListing={noteListing} onSelect={handleSelect} setIsOpen={setIsOpen} isOpen={isOpen} isLoading={isLoading} />}
     </>
   );
 }
