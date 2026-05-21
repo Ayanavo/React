@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import imageFile from "@/hooks/image-file";
+import { formatAppDate } from "@/lib/date-format";
 import { X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
@@ -16,19 +17,7 @@ import { createNote, deleteNote, updateNote } from "@/shared/services/note";
 import { note_actions } from "./note-action-config";
 import { mapStateToNotePayload } from "./note-mapper";
 
-function noteeditor({
-  setIsOpen,
-  isOpen,
-  formData,
-  onSave,
-  onDelete,
-}: {
-  setIsOpen: (arg: boolean) => void;
-  isOpen: boolean;
-  formData?: State;
-  onSave: () => void;
-  onDelete: () => void;
-}) {
+function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOpen: (arg: boolean) => void; isOpen: boolean; formData?: State; onSave: () => void; onDelete: () => void }) {
   const { image, renderInputField, activateInput, clearImage, setImage } = imageFile();
   const { confirm } = useConfirmDialog();
   const [isSaving, setIsSaving] = useState(false);
@@ -41,6 +30,7 @@ function noteeditor({
   const recognitionRef = useRef<any>(null);
   const [listening, setListening] = useState(false);
   const { color: noteColor, onHexChange: setNoteColor } = useColorPicker(formData?.backgroundColor);
+  const modifiedDate = formatAppDate(formData?.updatedAt);
   const form = useForm<{
     title: string;
     description: string;
@@ -91,10 +81,7 @@ function noteeditor({
     title: string;
     description: string;
   }> = async (data) => {
-    const payload = mapStateToNotePayload(
-      { title: data.title, description: data.description, backgroundColor: noteColor },
-      image
-    );
+    const payload = mapStateToNotePayload({ title: data.title, description: data.description, backgroundColor: noteColor }, image);
 
     try {
       setIsSaving(true);
@@ -226,7 +213,7 @@ function noteeditor({
       <DialogTrigger asChild>
         <Button className="hidden"></Button>
       </DialogTrigger>
-      <DialogContent className="relative note-box transition-colors flex flex-col gap-0" style={{ backgroundColor: noteColor }}>
+      <DialogContent className="note-box transition-colors flex flex-col gap-0" style={{ backgroundColor: noteColor }}>
         {image && (
           <div className="mb-2 shrink-0">
             <div className="relative w-16 h-16">
@@ -237,6 +224,7 @@ function noteeditor({
             </div>
           </div>
         )}
+        {modifiedDate && <p className="mb-1 text-xs text-muted-foreground/70">Modified {modifiedDate}</p>}
         <form className="min-w-0 flex-1" onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle>
@@ -294,13 +282,7 @@ function noteeditor({
                     item.active && (
                       <Tooltip key={item.name}>
                         <TooltipTrigger asChild>
-                          <Button
-                            ref={item.name === "color" ? colorButtonRef : undefined}
-                            variant="outline"
-                            size="icon"
-                            type="button"
-                            disabled={item.name === "delete" && isDeleting}
-                            onClick={() => activateAction(item.name)}>
+                          <Button ref={item.name === "color" ? colorButtonRef : undefined} variant="outline" size="icon" type="button" disabled={item.name === "delete" && isDeleting} onClick={() => activateAction(item.name)}>
                             <IconsComponent customClass="cursor-pointer" icon={item.icon} />
                           </Button>
                         </TooltipTrigger>

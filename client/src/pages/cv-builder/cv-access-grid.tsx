@@ -7,11 +7,12 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import showToast from "@/hooks/toast";
+import { formatAppDate } from "@/lib/date-format";
 import { CVElement, PageProperties } from "@/lib/useCV";
 import { deleteCVBuilder, fetchCVBuilderById, fetchCVBuilderList } from "@/shared/services/cvbuilder";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
-import { DownloadIcon, EllipsisIcon, EyeIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { DownloadIcon, EllipsisIcon, EyeIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import React, { useCallback, useId, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -49,8 +50,6 @@ const formatUser = (user?: CVBuilderRecord["createdBy"]) => {
   return fullName || user.email || "-";
 };
 
-const formatDate = (date?: string) => (date ? new Date(date).toLocaleDateString() : "-");
-
 const CVAccessGrid = () => {
   const id = useId();
   const navigate = useNavigate();
@@ -76,9 +75,9 @@ const CVAccessGrid = () => {
         job: cv.job || "-",
         tag: cv.tag || "-",
         createdBy: formatUser(cv.createdBy),
-        createdAt: formatDate(cv.createdAt),
+        createdAt: formatAppDate(cv.createdAt, "-"),
         modifiedBy: formatUser(cv.modifiedBy),
-        modifiedAt: formatDate(cv.updatedAt),
+        modifiedAt: formatAppDate(cv.updatedAt, "-"),
       })),
     [cvBuilderList]
   );
@@ -172,10 +171,6 @@ const CVAccessGrid = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-[160px]">
-                <DropdownMenuItem role="button" onSelect={() => navigate(`/cv-builder/${row.original.id}`)}>
-                  <PencilIcon className="h-4 w-4 mr-2" />
-                  <span>Edit</span>
-                </DropdownMenuItem>
                 <DropdownMenuItem role="button" onSelect={() => navigate(`/cv-builder/${row.original.id}`)}>
                   <EyeIcon className="h-4 w-4 mr-2" />
                   <span>View</span>

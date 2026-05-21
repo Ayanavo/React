@@ -4,6 +4,8 @@ export type State = {
   description: string;
   backgroundColor?: string;
   image?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 } | null;
 
 export type Action = {

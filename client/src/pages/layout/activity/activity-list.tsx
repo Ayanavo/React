@@ -1,5 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import moment from "moment";
+import { formatAppDate } from "@/lib/date-format";
 import React from "react";
 
 function activitylist({
@@ -24,7 +24,7 @@ function activitylist({
                 <li key={i} className="text-sm">
                   <div className="grid grid-cols-2 items-center pb-2 border-gray-300">
                     <span className="truncate font-semibold">{activity.title}</span>
-                    <span className="text-gray-500">{moment(activity.start).format("DD MM YYYY")}</span>
+                    <span className="text-gray-500">{formatAppDate(activity.start)}</span>
                   </div>
                 </li>
               ))}

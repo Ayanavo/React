@@ -37,7 +37,7 @@ const AccessoriesPallet = () => {
       label: "Date",
       type: "date",
       defaultContent: "",
-      defaultProperties: { fontSize: 12, fontWeight: "normal", dateFormat: "DD_MM_YYYY", includeTime: false, timeFormat: "24" },
+      defaultProperties: { fontSize: 12, fontWeight: "normal", includeTime: false, timeFormat: "24" },
       icon: <Calendar className="w-6 h-6" />,
     },
     {

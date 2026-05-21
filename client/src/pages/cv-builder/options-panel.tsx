@@ -12,6 +12,7 @@ import { AlignCenter, AlignLeft, AlignRight, ArrowRight, Dot, Italic, Minus, Plu
 import React, { useMemo, useState } from "react";
 import { ListIcon } from "./list-icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import DatePickerComponent from "../layout/activity/datepicker";
 
 const ElementOptions = () => {
   const { selectedElement, updateElement } = useCV();
@@ -301,6 +302,20 @@ const ElementOptions = () => {
             />
           </div>
         </>
+      )}
+
+      {selectedElement.type === "date" && (
+        <div className="space-y-2">
+          <Label className="text-xs font-medium text-muted-foreground">Pick date</Label>
+          <DatePickerComponent
+            date={selectedElement.content ? new Date(String(selectedElement.content)) : new Date()}
+            onSendData={(d: Date) => {
+              updateElement(selectedElement.id, {
+                content: d.toISOString(),
+              });
+            }}
+          />
+        </div>
       )}
 
       {props.includeTime && (

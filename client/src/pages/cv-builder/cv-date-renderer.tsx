@@ -1,4 +1,5 @@
 import { CVElement, useCV } from "@/lib/useCV";
+import { getSessionDateFormat } from "@/lib/date-format";
 import { fontWeightMap } from "@/lib/utils";
 import { Trash } from "lucide-react";
 import moment from "moment";
@@ -8,27 +9,29 @@ const formatDate = (iso: string | undefined, dateFormat?: string, includeTime?: 
   const m = moment(iso, moment.ISO_8601, true);
   const safe = m.isValid() ? m : moment();
 
-  let base = "DD MM YYYY";
+  let base = getSessionDateFormat();
 
-  switch (dateFormat) {
-    case "DD_MMM_YYYY":
-      base = "DD MMM YYYY";
-      break;
-    case "DD_MMMM_YYYY":
-      base = "DD MMMM YYYY";
-      break;
-    case "MMM_YYYY":
-      base = "MMM YYYY";
-      break;
-    case "MMMM_YYYY":
-      base = "MMMM YYYY";
-      break;
-    case "YYYY":
-      base = "YYYY";
-      break;
-    case "DD_MM_YYYY":
-    default:
-      base = "DD MM YYYY";
+  if (dateFormat) {
+    switch (dateFormat) {
+      case "DD_MMM_YYYY":
+        base = "DD MMM YYYY";
+        break;
+      case "DD_MMMM_YYYY":
+        base = "DD MMMM YYYY";
+        break;
+      case "MMM_YYYY":
+        base = "MMM YYYY";
+        break;
+      case "MMMM_YYYY":
+        base = "MMMM YYYY";
+        break;
+      case "YYYY":
+        base = "YYYY";
+        break;
+      case "DD_MM_YYYY":
+      default:
+        base = getSessionDateFormat();
+    }
   }
 
   if (!includeTime) {

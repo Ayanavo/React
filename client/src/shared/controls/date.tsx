@@ -1,11 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { formatAppDate, formatAppMonthYear } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
-import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import moment from "moment";
 import React from "react";
 import DatePicker from "react-datepicker";
 
@@ -44,7 +43,7 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
             <PopoverTrigger asChild>
               <FormControl>
                 <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                  {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                  {field.value ? formatAppDate(field.value) : <span>Pick a date</span>}
                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
               </FormControl>
@@ -58,7 +57,7 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
                         <ChevronLeftIcon />
                       </Button>
                       <div className="text-sm font-medium" aria-live="polite">
-                        {moment(date).format("MMMM YYYY")}
+                        {formatAppMonthYear(date)}
                       </div>
                       <Button variant="outline" size="icon" className="size-7 opacity-50 hover:opacity-100" onClick={increaseMonth} disabled={nextMonthButtonDisabled}>
                         <ChevronRightIcon />

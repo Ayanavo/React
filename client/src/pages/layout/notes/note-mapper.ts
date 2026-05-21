@@ -8,6 +8,8 @@ export function mapNoteRecordToState(note: NoteRecord): NonNullable<State> {
     description: note.body,
     backgroundColor: note.color,
     image: note.image ?? [],
+    createdAt: note.createdAt,
+    updatedAt: note.updatedAt,
   };
 }
 

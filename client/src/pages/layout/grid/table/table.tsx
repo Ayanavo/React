@@ -7,13 +7,13 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
+import { formatAppDate } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { deleteActivity, fetchActivities } from "@/shared/services/activity";
 import { useSidebarLayout } from "@/shared/sidebarlayout";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createColumnHelper, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, Table as TableModel, useReactTable } from "@tanstack/react-table";
 import { CheckIcon, EllipsisIcon, EyeIcon, PencilIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
-import moment from "moment";
 import React, { useEffect, useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ColumnComponent from "./column";
@@ -159,7 +159,7 @@ function table() {
           header: () => column.label,
           cell: (info) => {
             const value = info.getValue();
-            return moment(value).format("YYYY-MM-DD");
+            return formatAppDate(value, "-");
           },
         });
       }

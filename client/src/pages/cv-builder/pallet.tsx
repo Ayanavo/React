@@ -3,8 +3,9 @@ import React, { useState } from "react";
 import LayoutPallet from "./layout-pallet";
 import AccessoriesPallet from "./accessories-pallet";
 import PagePallet from "./page-panel";
+import NotesPallet from "./notes-pallet";
 
-type PALLET_CONFIG = "layout" | "accessories" | "page";
+type PALLET_CONFIG = "layout" | "accessories" | "page" | "notes";
 
 const Pallet = () => {
   const sidebarConfig = [
@@ -26,12 +27,19 @@ const Pallet = () => {
       component: AccessoriesPallet,
       area: 60,
     },
+    {
+      title: "Notes",
+      name: "notes",
+      component: NotesPallet,
+      area: 40,
+    },
   ] as const;
 
   const [expandedSections, setExpandedSections] = useState({
     page: true,
     layout: true,
     accessories: true,
+    notes: true,
   });
 
   const toggleSection = (section: PALLET_CONFIG) => {

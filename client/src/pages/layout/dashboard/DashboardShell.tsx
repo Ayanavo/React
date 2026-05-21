@@ -1,4 +1,5 @@
 import { Moon, Sun } from "lucide-react";
+import { formatAppDateTime } from "@/lib/date-format";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
 import ActivityTimeline from "./ActivityTimeline";
@@ -35,8 +36,7 @@ const DashboardShell: React.FC = () => {
     const updateTime = () => {
       const now = moment();
       const hour = now.hour();
-      const storedFormat = sessionStorage.getItem("date_format") ?? "DD/MM/YYYY";
-      setTimeText(now.format(`${storedFormat} hh:mm A`));
+      setTimeText(formatAppDateTime(now));
       setIsDaytime(hour >= 6 && hour < 18);
       if (hour >= 18 || hour < 5) {
         setGreetingLabel("Good Evening");
