@@ -28,6 +28,8 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
   const popoverRef = useRef<{ open: () => void; close: () => void }>(null);
   const colorButtonRef = useRef<HTMLButtonElement>(null);
   const recognitionRef = useRef<any>(null);
+  const voiceHoverRef = useRef(false);
+  const voiceRestartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [listening, setListening] = useState(false);
   const { color: noteColor, onHexChange: setNoteColor } = useColorPicker(formData?.backgroundColor);
   const modifiedDate = formatAppDate(formData?.updatedAt);
@@ -54,6 +56,12 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
     }
   };
 
+  const clearVoiceRestart = () => {
+    if (!voiceRestartTimeoutRef.current) return;
+    clearTimeout(voiceRestartTimeoutRef.current);
+    voiceRestartTimeoutRef.current = null;
+  };
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -69,6 +77,24 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
       clearImage();
     }
   }, [formData, isOpen, reset, setNoteColor, setImage, clearImage]);
+
+  useEffect(() => {
+    if (isOpen) return;
+
+    voiceHoverRef.current = false;
+    clearVoiceRestart();
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setListening(false);
+  }, [isOpen]);
+
+  useEffect(() => {
+    return () => {
+      voiceHoverRef.current = false;
+      clearVoiceRestart();
+      recognitionRef.current?.stop();
+    };
+  }, []);
 
   const handleInput = () => {
     if ((textareaRef as any).current) {
@@ -157,17 +183,24 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
   }
 
   const toggleVoice = () => {
+    if (listening) {
+      stopVoice();
+      return;
+    }
+
+    startVoice();
+  };
+
+  const startVoice = () => {
     const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
     if (!SpeechRecognition) {
       alert("Speech recognition not supported in this browser.");
       return;
     }
 
-    if (listening) {
-      recognitionRef.current?.stop();
-      setListening(false);
-      return;
-    }
+    if (recognitionRef.current) return;
+
+    clearVoiceRestart();
 
     const target = voiceTargetRef.current;
     const baseline = getValues(target)?.trim() ?? "";
@@ -195,17 +228,31 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
     };
 
     recog.onend = () => {
+      recognitionRef.current = null;
       setListening(false);
+      if (voiceHoverRef.current) {
+        voiceRestartTimeoutRef.current = setTimeout(() => {
+          voiceRestartTimeoutRef.current = null;
+          startVoice();
+        }, 150);
+      }
     };
 
     recog.onerror = (err: any) => {
       console.error("Speech recognition error", err);
-      setListening(false);
     };
 
     recognitionRef.current = recog;
     recog.start();
     setListening(true);
+  };
+
+  const stopVoice = () => {
+    voiceHoverRef.current = false;
+    clearVoiceRestart();
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setListening(false);
   };
 
   return (
@@ -282,7 +329,25 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
                     item.active && (
                       <Tooltip key={item.name}>
                         <TooltipTrigger asChild>
-                          <Button ref={item.name === "color" ? colorButtonRef : undefined} variant="outline" size="icon" type="button" disabled={item.name === "delete" && isDeleting} onClick={() => activateAction(item.name)}>
+                          <Button
+                            ref={item.name === "color" ? colorButtonRef : undefined}
+                            variant="outline"
+                            size="icon"
+                            type="button"
+                            disabled={item.name === "delete" && isDeleting}
+                            onMouseEnter={
+                              item.name === "voice" ?
+                                () => {
+                                  voiceHoverRef.current = true;
+                                  startVoice();
+                                }
+                              : undefined
+                            }
+                            onMouseLeave={item.name === "voice" ? stopVoice : undefined}
+                            onClick={() => {
+                              if (item.name === "voice") return;
+                              activateAction(item.name);
+                            }}>
                             <IconsComponent customClass="cursor-pointer" icon={item.icon} />
                           </Button>
                         </TooltipTrigger>

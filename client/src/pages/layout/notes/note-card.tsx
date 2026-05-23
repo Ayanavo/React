@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatAppDate } from "@/lib/date-format";
+import { formatAppDateTime } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import React from "react";
 import { State } from "./state";
@@ -11,7 +11,7 @@ type NoteCardProps = {
 };
 
 function notecard({ item, onSelect, className }: NoteCardProps) {
-  const modifiedDate = formatAppDate(item?.updatedAt);
+  const modifiedDate = formatAppDateTime(item?.updatedAt);
 
   return (
     <Card
