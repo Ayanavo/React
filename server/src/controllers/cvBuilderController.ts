@@ -1,5 +1,44 @@
 import { Request, Response } from "express";
+import axios from "axios";
 import CvBuilder from "../models/cvBuilderModel.js";
+
+const EXTERNAL_REQUEST_TIMEOUT_MS = 30_000;
+
+/**
+ * @description Gets address suggestions from a text search using Geoapify API.
+ */
+export const getAddressSuggestions = async (req: Request, res: Response) => {
+  try {
+    const text = typeof req.query.text === "string" ? req.query.text : req.body?.text;
+
+    if (!text || typeof text !== "string" || !text.trim()) {
+      return res.status(400).json({ message: "Search text is required." });
+    }
+
+    const apiKey = process.env.GEOAPIFY_ACCESS_KEY;
+    if (!apiKey) {
+      return res.status(500).json({ message: "Geoapify API key is not configured." });
+    }
+
+    const thirdPartyresponse = await axios.get<any>("https://api.geoapify.com/v1/geocode/autocomplete", {
+      timeout: EXTERNAL_REQUEST_TIMEOUT_MS,
+      params: {
+        text: text.trim(),
+        apiKey,
+      },
+    });
+
+    const addresses =
+      thirdPartyresponse.data?.features?.map((feature: any) => {
+        const { datasource, ...properties } = feature.properties ?? {};
+        return properties;
+      }) ?? [];
+
+    return res.status(200).json(addresses);
+  } catch (error) {
+    return res.status(500).json({ message: error });
+  }
+};
 
 export const saveCvbuilder = async (req: Request, res: Response) => {
   try {
