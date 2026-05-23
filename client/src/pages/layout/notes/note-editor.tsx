@@ -32,7 +32,7 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
   const voiceRestartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [listening, setListening] = useState(false);
   const { color: noteColor, onHexChange: setNoteColor } = useColorPicker(formData?.backgroundColor);
-  const modifiedDate = formatAppDate(formData?.updatedAt);
+  const modifiedDate = formatAppDate(formData?.updatedAt, true);
   const form = useForm<{
     title: string;
     description: string;
