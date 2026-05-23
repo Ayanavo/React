@@ -10,6 +10,7 @@ import showToast from "@/hooks/toast";
 import { formatAppDate } from "@/lib/date-format";
 import { CVElement, PageProperties } from "@/lib/useCV";
 import { deleteCVBuilder, fetchCVBuilderById, fetchCVBuilderList } from "@/shared/services/cvbuilder";
+import { getTags, type TagRecord } from "@/shared/services/tag";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createColumnHelper, flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
 import { DownloadIcon, EllipsisIcon, EyeIcon, PlusIcon, Trash2Icon } from "lucide-react";
@@ -21,6 +22,8 @@ type CVListing = {
   name: string;
   job: string;
   tag: string;
+  tagName: string;
+  tagColor?: string;
   createdBy: string;
   createdAt: string;
   modifiedBy: string;
@@ -67,19 +70,32 @@ const CVAccessGrid = () => {
     queryFn: fetchCVBuilderList,
   });
 
+  const { data: tags = [] } = useQuery<TagRecord[]>({
+    queryKey: ["tags"],
+    queryFn: getTags,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const tagMap = useMemo(() => new Map(tags.map((tag) => [tag._id, tag])), [tags]);
+
   const data = useMemo(
     () =>
-      cvBuilderList.map((cv) => ({
-        id: cv._id,
-        name: cv.name || "Untitled CV",
-        job: cv.job || "-",
-        tag: cv.tag || "-",
-        createdBy: formatUser(cv.createdBy),
-        createdAt: formatAppDate(cv.createdAt, "-"),
-        modifiedBy: formatUser(cv.modifiedBy),
-        modifiedAt: formatAppDate(cv.updatedAt, "-"),
-      })),
-    [cvBuilderList]
+      cvBuilderList.map((cv) => {
+        const tagRecord = tagMap.get(cv.tag || "");
+        return {
+          id: cv._id,
+          name: cv.name || "Untitled CV",
+          job: cv.job || "-",
+          tag: cv.tag || "-",
+          tagName: tagRecord?.name ?? cv.tag ?? "-",
+          tagColor: tagRecord?.color,
+          createdBy: formatUser(cv.createdBy),
+          createdAt: formatAppDate(cv.createdAt, "-"),
+          modifiedBy: formatUser(cv.modifiedBy),
+          modifiedAt: formatAppDate(cv.updatedAt, "-"),
+        };
+      }),
+    [cvBuilderList, tagMap]
   );
 
   const openBuilder = () => {
@@ -142,13 +158,19 @@ const CVAccessGrid = () => {
         header: "Job",
         cell: (info) => info.getValue(),
       }),
-      columnHelper.accessor("tag", {
+      columnHelper.accessor("tagName", {
         header: "Tag",
-        cell: (info) => (
-          <Badge variant="outline" className="cursor-default">
-            {info.getValue()}
-          </Badge>
-        ),
+        cell: (info) => {
+          const row = info.row.original as CVListing;
+          return (
+            <Badge variant="outline" className="cursor-default flex items-center gap-2">
+              {row.tagColor ?
+                <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.tagColor }} />
+              : null}
+              {info.getValue()}
+            </Badge>
+          );
+        },
       }),
       columnHelper.accessor("createdAt", {
         header: "Created Date",

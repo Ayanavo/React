@@ -1,5 +1,5 @@
+import { Bookmark, Star } from "lucide-react";
 import React from "react";
-import { Star, Bookmark } from "lucide-react";
 
 const notes = [
   { id: 1, title: "Design system notes", preview: "Ideas for colors, spacing, tokens...", tags: ["design", "ui"], time: "2h ago", fav: true },
@@ -7,43 +7,34 @@ const notes = [
   { id: 3, title: "AI prompt experiments", preview: "Testing summarization prompts...", tags: ["ai", "research"], time: "Mon", fav: false },
 ];
 
-const NoteCard: React.FC<{ n: any }> = ({ n }) => {
-  return (
-    <div className="p-4 rounded-2xl bg-card/75 border border-border shadow-sm transition hover:bg-card/95">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="font-semibold text-foreground">{n.title}</div>
-          <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">{n.preview}</div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {n.tags.map((t: string) => (
-              <span key={t} className="text-xs bg-accent/10 px-2 py-1 rounded-full text-accent-foreground">
-                {t}
-              </span>
-            ))}
-          </div>
-        </div>
-        <div className="text-slate-500 dark:text-slate-400 text-xs text-right">
-          <div>{n.time}</div>
-          <div className="mt-2">
-            {n.fav ?
-              <Star className="w-4 h-4 text-accent-foreground" />
-            : <Bookmark className="w-4 h-4 text-slate-500 dark:text-slate-400" />}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const RecentNotesList: React.FC = () => {
   return (
-    <div>
-      <h4 className="text-md font-medium text-foreground mb-3">Recent Notes</h4>
-      <div className="space-y-3">
-        {notes.map((n) => (
-          <NoteCard key={n.id} n={n} />
-        ))}
-      </div>
+    <div className="space-y-3">
+      {notes.map((note) => (
+        <div key={note.id} className="rounded-xl border bg-muted/30 p-4 transition-colors hover:bg-muted/50">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="font-medium text-foreground">{note.title}</p>
+              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{note.preview}</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {note.tags.map((tag) => (
+                  <span key={tag} className="rounded-md bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="text-xs text-muted-foreground">{note.time}</p>
+              <div className="mt-2 flex justify-end">
+                {note.fav ?
+                  <Star className="h-4 w-4 text-primary" />
+                : <Bookmark className="h-4 w-4 text-muted-foreground" />}
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };

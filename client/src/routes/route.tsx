@@ -10,6 +10,9 @@ import CreateComponent from "@/pages/layout/grid/update/create";
 import UpdateComponent from "@/pages/layout/grid/update/update";
 import { Layout } from "@/pages/layout/layout";
 import NoteComponent from "@/pages/layout/notes/notes-layout";
+import TagsLayoutComponent from "@/pages/layout/tags/tags-layout";
+import TagsCreateComponent from "@/pages/layout/tags/tags-create";
+import TagsUpdateComponent from "@/pages/layout/tags/tags-update";
 import WhiteboardComponent from "@/pages/layout/whiteboard/whiteboard";
 import NoPageComponent from "@/pages/nopage";
 import ProfileComponent from "@/pages/profile/profile";
@@ -34,6 +37,9 @@ export const Router = () => {
         <Route caseSensitive path="whiteboard" element={<WhiteboardComponent />} />
         <Route caseSensitive path="profile" element={<ProfileComponent />} />
         <Route caseSensitive path="notes" element={<NoteComponent />} />
+        <Route caseSensitive path="tags" element={<TagsLayoutComponent />} />
+        <Route caseSensitive path="tags/create" element={<TagsCreateComponent />} />
+        <Route caseSensitive path="tags/update/:id" element={<TagsUpdateComponent />} />
         <Route caseSensitive path="settings" element={<SettingsComponent />} />
         <Route caseSensitive path="table/create" element={<CreateComponent />} />
         <Route caseSensitive path="table/details/:id" element={<DetailComponent />} />

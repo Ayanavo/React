@@ -10,6 +10,7 @@ import { getCurrentUserAPI } from "@/shared/services/auth";
 import CategoryDistribution from "./widgets/CategoryDistribution";
 import NotesPerWeek from "./widgets/NotesPerWeek";
 import StatsGrid from "./widgets/StatsGrid";
+import DashboardCard from "./DashboardCard";
 
 const DashboardShell: React.FC = () => {
   const [userName, setUserName] = useState("Ayanavo");
@@ -59,45 +60,49 @@ const DashboardShell: React.FC = () => {
   const GreetingIcon = isDaytime ? Sun : Moon;
 
   return (
-    <div className="min-h-screen flex bg-background text-foreground">
-      <main className="flex-1 p-6 space-y-6">
-        <header className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold text-foreground">
-              {greetingLabel}, {userName} <GreetingIcon className="inline-block w-7 h-7 align-middle text-sky-400" />
+    <div className="min-h-full bg-background text-foreground">
+      <main className="space-y-6 p-6">
+        <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-muted-foreground">Dashboard</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+              {greetingLabel}, {userName}{" "}
+              <GreetingIcon className="inline-block h-6 w-6 align-middle text-primary md:h-7 md:w-7" />
             </h1>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">You captured 12 ideas this week — keep building.</p>
-            <div className="mt-2 text-sm text-slate-500 dark:text-slate-400">Current time: {timeText}</div>
+            <p className="text-sm text-muted-foreground">Plan, capture, and review your notes from one place.</p>
+            <p className="text-xs text-muted-foreground">{timeText}</p>
           </div>
           <QuickActions />
         </header>
 
         <StatsGrid />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-3xl bg-card/90 border border-border backdrop-blur-md p-6 shadow-xl">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="space-y-6 lg:col-span-2">
+            <DashboardCard title="Notes Created This Week" description="Activity over the last 7 days">
               <NotesPerWeek />
-            </div>
+            </DashboardCard>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="rounded-3xl bg-card/90 border border-border backdrop-blur-md p-6 shadow-xl">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <DashboardCard title="Category Distribution" description="How your notes are grouped">
                 <CategoryDistribution />
-              </div>
-              <div className="rounded-3xl bg-card/90 border border-border backdrop-blur-md p-6 shadow-xl">
+              </DashboardCard>
+              <DashboardCard title="Recent Activity" description="Latest updates across your workspace">
                 <ActivityTimeline />
-              </div>
+              </DashboardCard>
             </div>
           </div>
 
           <aside className="space-y-6">
-            <div className="rounded-3xl bg-card/90 border border-border backdrop-blur-md p-4 shadow-xl">
+            <DashboardCard title="AI Insights" description="Patterns from your writing habits">
               <AIInsights />
-            </div>
-
-            <div className="rounded-3xl bg-card/90 border border-border backdrop-blur-md p-4 shadow-xl">
+            </DashboardCard>
+            <DashboardCard
+              title="Recent Notes"
+              description="Quick access to what you worked on last"
+              headerAction={<span className="text-xs font-medium text-primary">View all</span>}>
               <RecentNotesList />
-            </div>
+            </DashboardCard>
           </aside>
         </div>
       </main>

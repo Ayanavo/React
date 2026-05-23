@@ -17,6 +17,11 @@ export const Layout = () => {
       route: "/notes",
     },
     {
+      label: "Tags",
+      icon: "TagsIcon",
+      route: "/tags",
+    },
+    {
       label: "CV Builder",
       icon: "FileTextIcon",
       route: "/cv-builder",

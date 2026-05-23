@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogOverlay, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { LoaderCircleIcon } from "lucide-react";
 import React, { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useState } from "react";
 
@@ -54,42 +54,37 @@ function ConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogOverlay
-        className="DialogOverlay"
-        // if you want to block closing via overlay click, prevent pointer events or ignore close
-        onPointerDown={(e) => {
-          if (!closeOnBackdrop) e.preventDefault();
+      <DialogContent
+        className="sm:max-w-md"
+        onInteractOutside={(event) => {
+          if (!closeOnBackdrop) event.preventDefault();
         }}>
-        <DialogContent>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{message}</DialogDescription>
+        <DialogTitle>{title}</DialogTitle>
+        <DialogDescription>{message}</DialogDescription>
 
-          {type === "confirm" && (
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setLoading(false);
-                  onCancel();
-                }}>
-                {cancelText}
-              </Button>
+        {type === "confirm" && (
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setLoading(false);
+                onCancel();
+              }}>
+              {cancelText}
+            </Button>
 
-              <Button
-                variant="outline"
-                disabled={loading}
-                className="bg-primary text-secondary hover:bg-primary hover:text-secondary"
-                onClick={() => {
-                  if (showLoadingOnConfirmClick) setLoading(true);
-                  onConfirm();
-                }}>
-                {loading && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
-                {confirmText}
-              </Button>
-            </DialogFooter>
-          )}
-        </DialogContent>
-      </DialogOverlay>
+            <Button
+              disabled={loading}
+              onClick={() => {
+                if (showLoadingOnConfirmClick) setLoading(true);
+                onConfirm();
+              }}>
+              {loading && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
+              {confirmText}
+            </Button>
+          </DialogFooter>
+        )}
+      </DialogContent>
     </Dialog>
   );
 }
