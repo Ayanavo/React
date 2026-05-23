@@ -62,10 +62,10 @@ const PagePallet = () => {
         </ButtonGroup>
       </div>
 
-      <div className="flex items-center justify-between py-2 rounded-md">
+      {/* <div className="flex items-center justify-between py-2 rounded-md">
         <Label className="text-xs font-medium text-muted-foreground text-nowrap"> Add SideBar</Label>
         <Switch checked={showSideBar} onCheckedChange={toggleSideBar} />
-      </div>
+      </div> */}
 
       {showSideBar && (
         <div className="space-y-2 flex items-center justify-between">
