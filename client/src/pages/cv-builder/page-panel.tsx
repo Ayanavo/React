@@ -9,7 +9,7 @@ import { Minus, Plus } from "lucide-react";
 import React, { useState } from "react";
 
 const PagePallet = () => {
-  const { addPage, removePage, showSideBar, toggleSideBar, selectedPageId, showPagination, togglePagination, paginationLocation, setPaginationLocation, MAX_PAGES, elements } = useCV();
+  const { addPage, removePage, showSideBar, selectedPageId, showPagination, togglePagination, paginationLocation, setPaginationLocation, MAX_PAGES, elements } = useCV();
   const [pageCount, setPageCount] = useState(elements.length);
   const { confirm } = useConfirmDialog();
 
