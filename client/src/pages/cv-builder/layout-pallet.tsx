@@ -30,6 +30,7 @@ const LayoutPallet = () => {
     selectedPageId,
     selectedHeaderId,
     toggleSectionDividers,
+    removeHeader,
     MAX_SECTIONS,
     MAX_BLOCKS_PER_SECTION,
     elements,
@@ -39,6 +40,7 @@ const LayoutPallet = () => {
   } = useCV();
   const selectedSection = findElementById(elements, selectedSectionId);
   const selectedHeader = findElementById(elements, selectedHeaderId);
+  const selectedSectionHeader = selectedSection?.children?.find((child) => child.type === "header");
   const showSectionCount = () => {
     if (!selectedPageId) return 0;
     const page = elements.find((page) => page.id === selectedPageId);
@@ -86,20 +88,22 @@ const LayoutPallet = () => {
         <Switch checked={showSectionDividers} onCheckedChange={toggleSectionDividers} />
       </div>
 
-      {/* Add Section Header */}
-      <button
-        onClick={() => {
-          selectedPageId && selectedSectionId && addHeader(selectedPageId, selectedSectionId);
-        }}
-        disabled={!!selectedHeaderId}
-        className={`w-full px-3 py-2 rounded-md text-xs font-medium transition-all
-          ${
-            selectedSectionId && !(selectedSection?.children ?? []).some((c) => c.type === "header") ?
-              "bg-background border-primary text-secondary-foreground hover:bg-secondary/80 cursor-pointer"
-            : "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
-          }`}>
-        Add section header
-      </button>
+      {/* Toggle Section Header */}
+      <div className="flex items-center justify-between px-2 py-2 rounded-md">
+        <span className="text-xs text-foreground">Add section header</span>
+        <Switch
+          checked={!!selectedSectionHeader}
+          disabled={!selectedPageId || !selectedSectionId}
+          onCheckedChange={(checked) => {
+            if (!selectedPageId || !selectedSectionId) return;
+            if (checked) {
+              if (!selectedSectionHeader) addHeader(selectedPageId, selectedSectionId);
+              return;
+            }
+            if (selectedSectionHeader) removeHeader(selectedSectionHeader.id);
+          }}
+        />
+      </div>
 
       <div className="mt-4 rounded-lg border p-3 space-y-1">
         <div className="space-y-2 flex items-center justify-between">

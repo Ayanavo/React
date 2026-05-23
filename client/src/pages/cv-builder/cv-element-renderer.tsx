@@ -7,10 +7,11 @@ import CvDateRenderer from "./cv-date-renderer";
 import CvTokenRenderer from "./cv-token-renderer";
 import CvImageRenderer from "./cv-image-renderer";
 import CvIconRenderer from "./cv-icon-renderer";
+import CvLocationRenderer from "./cv-location-renderer";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const CVElementRenderer = ({ element, sectionCount, blockCount, readonly = false }: { element: CVElement; sectionCount?: number; blockCount?: number; readonly?: boolean }) => {
-  const { updateElement, selectElement, selectedElementId, selectedHeaderId, selectedSectionId, selectedBlockId, removeSection, removeBlock } = useCV();
+  const { updateElement, selectElement, selectedElementId, selectedHeaderId, selectedSectionId, selectedBlockId, removeSection, removeBlock, removeHeader } = useCV();
   const headerRef = useRef<HTMLDivElement>(null);
   const isSelected = selectedElementId === element.id || selectedHeaderId === element.id;
 
@@ -71,8 +72,9 @@ const CVElementRenderer = ({ element, sectionCount, blockCount, readonly = false
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                removeHeader(element.id);
               }}
-              className="absolute top-0 right-0 bg-secondary text-secondary-foreground p-1 rounded shadow">
+              className="absolute top-[5px] right-0 bg-secondary text-secondary-foreground p-1 rounded shadow">
               <Trash className="h-3 w-3" />
             </button>
           )}
@@ -187,6 +189,8 @@ const CVElementRenderer = ({ element, sectionCount, blockCount, readonly = false
       return <CvImageRenderer element={element} readonly={readonly} />;
     case "icon":
       return <CvIconRenderer element={element} readonly={readonly} />;
+    case "location":
+      return <CvLocationRenderer element={element} readonly={readonly} />;
     default:
       return <div>{element.content}</div>;
   }

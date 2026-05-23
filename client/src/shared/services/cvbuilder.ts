@@ -17,6 +17,19 @@ export type CVBuilderRecord = CVSubmitPayload & {
   updatedAt: string;
 };
 
+export type AddressSuggestion = {
+  formatted?: string;
+  address_line1?: string;
+  address_line2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postcode?: string;
+  lat?: number;
+  lon?: number;
+  [key: string]: unknown;
+};
+
 export const fetchCVBuilderList = async () => {
   const response = await axiosInstance.get<{ cvBuilderList: CVBuilderRecord[] }>(`${apiUrl}cv-builder`);
   return response.data.cvBuilderList;
@@ -39,5 +52,12 @@ export const fetchCVBuilderById = async (id: string) => {
 
 export const deleteCVBuilder = async (id: string) => {
   const response = await axiosInstance.delete(`cv-builder/delete/${id}`);
+  return response.data;
+};
+
+export const fetchAddressSuggestions = async (text: string) => {
+  const response = await axiosInstance.get<AddressSuggestion[]>(`${apiUrl}cv-builder/address-suggestions`, {
+    params: { text },
+  });
   return response.data;
 };

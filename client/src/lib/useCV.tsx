@@ -8,7 +8,7 @@ export type PageProperties = {
   color?: string;
 };
 
-export type CVElementType = "page" | "section" | "block" | "text" | "list" | "date" | "token" | "image" | "icon" | "header";
+export type CVElementType = "page" | "section" | "block" | "text" | "list" | "date" | "token" | "image" | "icon" | "header" | "location";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 export type DateFormat = "DD_MM_YYYY" | "DD_MMM_YYYY" | "DD_MMMM_YYYY" | "MMM_YYYY" | "MMMM_YYYY" | "YYYY";
 
@@ -105,7 +105,7 @@ interface CVContextType {
   removeElement: (id: string) => void;
   addHeader: (pageId: string, sectionId: string) => void;
   updateHeader: (id: string, updates: Partial<CVElement>) => void;
-  removeHeader: () => void;
+  removeHeader: (headerId?: string) => void;
   showSectionDividers: boolean;
   toggleSectionDividers: () => void;
   clearSelection: () => void;
@@ -440,23 +440,24 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     setElements((prev) => updateTree(prev, id, (el) => ({ ...el, ...updates })));
   };
 
-  const removeHeader = () => {
+  const removeHeader = (headerId = selectedHeaderId ?? undefined) => {
+    if (!headerId) return;
+
     let parentSectionId: string | null = null;
-    let canDelete = false;
 
-    elements.forEach((section) => {
-      if (section.type !== "section") return;
-      const headers = section.children || [];
-      if (headers.some((h) => h.id === selectedHeaderId)) {
-        parentSectionId = section.id;
-        canDelete = headers.length > 1;
+    const findParentSection = (nodes: CVElement[]) => {
+      for (const node of nodes) {
+        if (node.type === "section" && node.children?.some((child) => child.id === headerId)) {
+          parentSectionId = node.id;
+          return;
+        }
+        if (node.children) findParentSection(node.children);
       }
-    });
+    };
 
-    if (!canDelete) return;
-    if (selectedHeaderId === null) return;
-    setElements((prev) => removeFromTree(prev, selectedHeaderId));
-    setSelectedHeaderId(null);
+    findParentSection(elements);
+    setElements((prev) => removeFromTree(prev, headerId));
+    if (selectedHeaderId === headerId) setSelectedHeaderId(null);
     setSelectedSectionId(parentSectionId);
   };
 

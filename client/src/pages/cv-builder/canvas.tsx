@@ -189,7 +189,7 @@ const Canvas = () => {
                                       e.stopPropagation();
                                       removeSection(section.id);
                                     }}
-                                    className="absolute top-2 right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
+                                    className="absolute right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
                                     <Trash className="h-3 w-3" />
                                   </button>
                                 </TooltipTrigger>

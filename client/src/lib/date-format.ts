@@ -13,9 +13,11 @@ function toMoment(date?: MomentInput) {
   return parsed.isValid() ? parsed : null;
 }
 
-export function formatAppDate(date?: MomentInput, includeTime = false, fallback = "") {
+export function formatAppDate(date?: MomentInput, includeTimeOrFallback: boolean | string = false, fallback = "") {
   const parsed = toMoment(date);
-  if (!parsed) return fallback;
+  const includeTime = typeof includeTimeOrFallback === "boolean" ? includeTimeOrFallback : false;
+  const fallbackText = typeof includeTimeOrFallback === "string" ? includeTimeOrFallback : fallback;
+  if (!parsed) return fallbackText;
 
   const dateFormat = getSessionDateFormat();
   if (includeTime) {
