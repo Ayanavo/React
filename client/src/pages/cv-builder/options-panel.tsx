@@ -44,11 +44,76 @@ const ElementOptions = () => {
     .sort((a, b) => a.name.localeCompare(b.name));
 
   const [search, setSearch] = useState("");
-  const selectedIconName = props.icon ?? "Star";
-  const SelectedIcon = ICON_LIST.find((item) => item.icon === selectedIconName)?.icon || "Star";
   const filteredIcons = useMemo(() => {
     return ICON_LIST.filter((entry) => entry.name.includes(search.toLowerCase())).slice(0, 100);
   }, [search]);
+  const isPresetBulletIcon = (icon?: string) => BULLET_ICONS.includes(icon ?? "");
+
+  const IconPicker = ({ value, onSelect }: { value?: string; onSelect: (icon: string) => void }) => {
+    const selectedIconName = value ?? "Star";
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <div className="w-32 flex items-center gap-2 border rounded-md px-2 py-[6px] shadow cursor-pointer">
+            <Icon icon={selectedIconName} customClass="w-4 h-4 shrink-0" />
+            <span className="text-xs capitalize text-muted-foreground truncate flex-1">{selectedIconName}</span>
+          </div>
+        </DropdownMenuTrigger>
+
+        <DropdownMenuContent className="w-56 p-2 space-y-2">
+          <div className="relative">
+            <Input
+              placeholder="Search icon..."
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              className="h-8 pr-7"
+            />
+
+            {search && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setSearch("");
+                }}
+                onKeyDown={(e) => e.stopPropagation()}
+                className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted">
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+            <TooltipProvider delayDuration={500}>
+              {filteredIcons.map((item) => (
+                <Tooltip key={item.icon}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className={`p-2 rounded cursor-pointer flex items-center justify-center border ${item.icon === selectedIconName ? "bg-muted border-primary" : "hover:bg-muted"}`}
+                      onClick={() => {
+                        onSelect(item.icon);
+                        document.body.click();
+                      }}>
+                      <Icon icon={item.icon} customClass="w-4 h-4" />
+                    </div>
+                  </TooltipTrigger>
+
+                  <TooltipContent side="top">
+                    <span className="text-xs capitalize">{item.icon.replace(/([A-Z])/g, " $1")}</span>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </TooltipProvider>
+          </div>
+
+          {filteredIcons.length === 0 && <div className="text-xs text-muted-foreground text-center py-2">No icons found</div>}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
 
   return (
     <div className="mt-4 rounded-lg border p-3 space-y-1">
@@ -197,6 +262,66 @@ const ElementOptions = () => {
         </label>
       </div>
 
+      {selectedElement.type === "text" && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground">Add icon</Label>
+          <Switch
+            checked={props.showIcon ?? false}
+            onCheckedChange={(checked) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  showIcon: checked,
+                  icon: checked ? props.icon ?? "Star" : props.icon,
+                },
+              })
+            }
+          />
+        </div>
+      )}
+
+      {selectedElement.type === "text" && props.showIcon && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon</Label>
+          <IconPicker
+            value={props.icon ?? "Star"}
+            onSelect={(icon) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  showIcon: true,
+                  icon,
+                },
+              })
+            }
+          />
+        </div>
+      )}
+
+      {selectedElement.type === "text" && props.showIcon && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon Style</Label>
+          <Select
+            value={props.iconFill ?? "unfill"}
+            onValueChange={(value) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  iconFill: value as "fill" | "unfill",
+                },
+              })
+            }>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="unfill">Unfill</SelectItem>
+              <SelectItem value="fill">Fill</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       {/* BULLET ICONS */}
       {selectedElement.type === "list" && (
         <div className="space-y-2 flex items-center justify-between">
@@ -226,6 +351,53 @@ const ElementOptions = () => {
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
+        </div>
+      )}
+
+      {selectedElement.type === "list" && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Custom Icon</Label>
+          <IconPicker
+            value={isPresetBulletIcon(props.listStyle?.icon) ? "Star" : props.listStyle?.icon ?? "Star"}
+            onSelect={(icon) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  listStyle: {
+                    ...props.listStyle,
+                    icon,
+                  },
+                },
+              })
+            }
+          />
+        </div>
+      )}
+
+      {selectedElement.type === "list" && !isPresetBulletIcon(props.listStyle?.icon) && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon Style</Label>
+          <Select
+            value={props.listStyle?.iconFill ?? "unfill"}
+            onValueChange={(value) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  listStyle: {
+                    ...props.listStyle,
+                    iconFill: value as "fill" | "unfill",
+                  },
+                },
+              })
+            }>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="unfill">Unfill</SelectItem>
+              <SelectItem value="fill">Fill</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       )}
       {/* Bullet Color */}
@@ -652,64 +824,6 @@ const ElementOptions = () => {
         </>
       )}
 
-      {/* IMAGE OPTIONS */}
-      {selectedElement.type === "icon" && (
-        <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon</Label>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="w-32 flex items-center gap-2 border rounded-md px-2 py-[6px] shadow cursor-pointer">
-                <Icon icon={SelectedIcon} customClass="w-4 h-4 shrink-0" />
-                <span className="text-xs capitalize text-muted-foreground truncate flex-1">{selectedIconName}</span>
-              </div>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent className="w-56 p-2 space-y-2">
-              <div className="relative">
-                <Input placeholder="Search icon..." autoFocus value={search} onChange={(e) => setSearch(e.target.value)} className="h-8 pr-7" />
-
-                {search && (
-                  <button onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted">
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-              <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
-                <TooltipProvider delayDuration={500}>
-                  {filteredIcons.map((item) => {
-                    return (
-                      <Tooltip key={item.icon}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className={`p-2 rounded cursor-pointer flex items-center justify-center border ${item.icon === selectedIconName ? "bg-muted border-primary" : "hover:bg-muted"}`}
-                            onClick={() => {
-                              updateElement(selectedElement.id, {
-                                properties: {
-                                  ...props,
-                                  icon: item.icon,
-                                },
-                              });
-                              document.body.click();
-                            }}>
-                            <Icon icon={item.icon} customClass="w-4 h-4" />
-                          </div>
-                        </TooltipTrigger>
-
-                        <TooltipContent side="top">
-                          <span className="text-xs capitalize">{item.icon.replace(/([A-Z])/g, " $1")}</span>
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </TooltipProvider>
-              </div>
-
-              {filteredIcons.length === 0 && <div className="text-xs text-muted-foreground text-center py-2">No icons found</div>}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
     </div>
   );
 };

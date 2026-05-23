@@ -35,7 +35,10 @@ export interface CVElement {
     listStyle?: {
       icon?: string;
       iconColor?: string;
+      iconFill?: "fill" | "unfill";
     };
+    showIcon?: boolean;
+    iconFill?: "fill" | "unfill";
     tokenStyle?: {
       backgroundColor?: string;
       borderColor?: string;
