@@ -1,6 +1,8 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 /* ---------------- TYPES ---------------- */
+export type PaginationLocation = "top-left" | "top" | "top-right" | "bottom-left" | "bottom" | "bottom-right";
+
 export type PageProperties = {
   backgroundColor?: string;
   color?: string;
@@ -110,6 +112,8 @@ interface CVContextType {
   loadCVState: (elements: CVElement[], pageProperties?: PageProperties) => void;
   showPagination: boolean;
   togglePagination: () => void;
+  paginationLocation: PaginationLocation;
+  setPaginationLocation: (location: PaginationLocation) => void;
   addPage: (value: number) => void;
   removePage: (pageId?: string) => void;
   showSideBar: boolean;
@@ -145,12 +149,12 @@ const DEFAULT_ELEMENT_CONFIG = [
             id: crypto.randomUUID() as string,
             type: "block",
             children: [
-              {
-                id: crypto.randomUUID() as string,
-                type: "text",
-                content: "Header",
-                properties: { fontSize: 28, fontWeight: "medium" as fontWeight, textAlign: "center", color: "#c5c5c5" },
-              },
+              // {
+              //   id: crypto.randomUUID() as string,
+              //   type: "text",
+              //   content: "Header",
+              //   properties: { fontSize: 28, fontWeight: "medium" as fontWeight, textAlign: "center", color: "#c5c5c5" },
+              // },
             ],
           },
         ],
@@ -203,6 +207,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [showSectionDividers, setShowSectionDividers] = useState(false);
   const [showPagination, setShowPagination] = useState(false);
+  const [paginationLocation, setPaginationLocation] = useState<PaginationLocation>("bottom-right");
   const [showSideBar, setShowSideBar] = useState(false);
   const [pageProperties, setPageProperties] = useState<PageProperties>(() => {
     try {
@@ -584,6 +589,8 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         removePage,
         showPagination,
         togglePagination,
+        paginationLocation,
+        setPaginationLocation,
 
         showSideBar,
         toggleSideBar,

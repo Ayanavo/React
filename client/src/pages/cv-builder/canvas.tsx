@@ -10,7 +10,25 @@ import CVPreview, { CVPreviewRef } from "./cv-preview";
 const ZOOM = 1;
 
 const Canvas = () => {
-  const { elements, selectedPageId, selectedSectionId, A4_WIDTH, A4_HEIGHT, showSectionDividers, selectedBlockId, selectPage, selectSection, selectBlock, selectHeader, removeSection, removePage, clearSelection, pageProperties } = useCV();
+  const {
+    elements,
+    selectedPageId,
+    selectedSectionId,
+    A4_WIDTH,
+    A4_HEIGHT,
+    showSectionDividers,
+    selectedBlockId,
+    selectPage,
+    selectSection,
+    selectBlock,
+    selectHeader,
+    removeSection,
+    removePage,
+    clearSelection,
+    pageProperties,
+    showPagination,
+    paginationLocation,
+  } = useCV();
   const [isDragging] = useState(false);
   const [draggingIndex] = useState<number | null>(null);
 
@@ -132,7 +150,20 @@ const Canvas = () => {
                     </button>
                   </div>
 
-                  <div className="flex flex-col w-full h-full">
+                  <div className="relative flex flex-col w-full h-full">
+                    {showPagination && (
+                      <div
+                        className={`absolute z-20 rounded-md bg-background/90 px-2 py-1 text-xs font-medium text-muted-foreground ${
+                          paginationLocation === "top-left" ? "top-4 left-4"
+                          : paginationLocation === "top" ? "top-4 left-1/2 -translate-x-1/2"
+                          : paginationLocation === "top-right" ? "top-4 right-4"
+                          : paginationLocation === "bottom-left" ? "bottom-4 left-4"
+                          : paginationLocation === "bottom" ? "bottom-4 left-1/2 -translate-x-1/2"
+                          : "bottom-4 right-4"
+                        }`}>
+                        Page {pageIndex + 1} / {elements.length}
+                      </div>
+                    )}
                     {sections.map((section, sectionIndex) => {
                       const headerChild = section.children?.find((c) => c.type === "header");
                       const blockChildren = section.children?.filter((c) => c.type === "block") ?? [];
@@ -209,7 +240,6 @@ const Canvas = () => {
             </div>
           );
         })}
-
       </div>
 
       {/* Preview Block */}
