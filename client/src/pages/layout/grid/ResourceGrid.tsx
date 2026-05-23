@@ -21,7 +21,7 @@ import "./table/table.css";
 export type GridColumnType = "text" | "date" | "color";
 
 export type GridColumnConfig<T> = {
-  key: keyof T | "select" | "action";
+  key: (keyof T & string) | "select" | "action";
   label: string;
   type?: GridColumnType;
 };
@@ -36,15 +36,7 @@ type ResourceGridProps<T extends { _id: string }> = {
   deleteResource: (id: string) => Promise<unknown>;
 };
 
-function ResourceGrid<T extends { _id: string }>({
-  queryKey,
-  resourceLabel,
-  basePath,
-  addLabel,
-  columns: columnConfig,
-  fetchList,
-  deleteResource,
-}: ResourceGridProps<T>) {
+function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, basePath, addLabel, columns: columnConfig, fetchList, deleteResource }: ResourceGridProps<T>) {
   const columnHelper = createColumnHelper<T>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -125,22 +117,22 @@ function ResourceGrid<T extends { _id: string }>({
       if (column.key === "select") {
         return columnHelper.display({
           id: "select",
-          header: ({ table }) => (
-            <Checkbox aria-label="Select all" checked={table.getIsAllPageRowsSelected()} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} />
-          ),
+          header: ({ table }) => <Checkbox aria-label="Select all" checked={table.getIsAllPageRowsSelected()} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} />,
           cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />,
         });
       }
 
       if (column.type === "date") {
-        return columnHelper.accessor(column.key as keyof T & string, {
+        return columnHelper.accessor((row) => row[column.key as keyof T], {
+          id: column.key,
           header: () => column.label,
           cell: (info) => formatAppDate(info.getValue() as string, "-"),
         });
       }
 
       if (column.type === "color") {
-        return columnHelper.accessor(column.key as keyof T & string, {
+        return columnHelper.accessor((row) => row[column.key as keyof T], {
+          id: column.key,
           header: () => column.label,
           cell: (info) => {
             const value = info.getValue() as string;
@@ -154,7 +146,8 @@ function ResourceGrid<T extends { _id: string }>({
         });
       }
 
-      return columnHelper.accessor(column.key as keyof T & string, {
+      return columnHelper.accessor((row) => row[column.key as keyof T], {
+        id: column.key,
         header: () => column.label,
         cell: (info) => {
           const value = info.getValue();
@@ -203,9 +196,7 @@ function ResourceGrid<T extends { _id: string }>({
                 return (
                   <Tooltip key={item.name}>
                     <TooltipTrigger asChild>
-                      <ToggleGroupItem
-                        className={cn(isFirst && "rounded-r-none", isLast && "rounded-l-none", !(isFirst || isLast) && "rounded-none border-x-0")}
-                        value={item.name}>
+                      <ToggleGroupItem className={cn(isFirst && "rounded-r-none", isLast && "rounded-l-none", !(isFirst || isLast) && "rounded-none border-x-0")} value={item.name}>
                         <IconsComponent customClass="h-4 w-4" icon={item.icon} />
                       </ToggleGroupItem>
                     </TooltipTrigger>

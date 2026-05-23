@@ -42,8 +42,8 @@ function ResourceFormBuilder<T extends Record<string, unknown>>({ formJson, quer
     if (id && fetchResource) {
       fetchResource(id)
         .then((detail) => {
-          Object.keys(detail).forEach((key) => {
-            form.setValue(key as keyof T, detail[key as keyof T] as never);
+          (Object.keys(detail) as Array<keyof T & string>).forEach((key) => {
+            form.setValue(key, detail[key] as never);
           });
         })
         .catch((error: Error) => {
