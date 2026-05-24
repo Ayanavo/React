@@ -4,7 +4,6 @@ import "./App.scss";
 import { Toaster } from "./components/ui/sonner";
 import { ThemeProvider } from "./pages/settings/theme";
 import { Router } from "./routes/route";
-import IdleTimer from "./components/idleTimeout";
 import { ConfirmDialogProvider } from "./shared/confirmation";
 const queryClient = new QueryClient();
 
@@ -13,9 +12,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme" colorTheme="zinc">
         <ConfirmDialogProvider>
-          <IdleTimer>
-            <Router />
-          </IdleTimer>
+          <Router />
         </ConfirmDialogProvider>
         <Toaster position="bottom-left" visibleToasts={6} />
       </ThemeProvider>
