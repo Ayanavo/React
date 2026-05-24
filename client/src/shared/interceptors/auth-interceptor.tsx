@@ -76,7 +76,6 @@ axiosInstance.interceptors.response.use(
 
   async (error: AxiosError) => {
     const originalRequest = error.config as RetriableRequestConfig;
-
     if (error.response) {
       const status = error.response.status;
 
@@ -84,7 +83,6 @@ axiosInstance.interceptors.response.use(
         case 401:
           if (!originalRequest._retry) {
             originalRequest._retry = true;
-
             return callRefreshToken(originalRequest);
           }
 
@@ -127,4 +125,17 @@ export const createChatTransport = (apiUrl: string) => {
       });
     },
   });
+};
+
+//get axios error message from an unknown error type
+export const getAxiosErrorMessage = (error: unknown) => {
+  if (axios.isAxiosError(error)) {
+    return (error.response?.data as { message?: string })?.message || error.message;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Something went wrong";
 };

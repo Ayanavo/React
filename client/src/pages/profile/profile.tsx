@@ -12,6 +12,7 @@ import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { getCurrentUserAPI } from "@/shared/services/auth";
 import showToast from "@/hooks/toast";
 import axios from "axios";
+import { getAxiosErrorMessage } from "@/shared/interceptors/auth-interceptor";
 
 const getInitials = (firstName?: string, lastName?: string) => {
   const first = firstName?.trim() ?? "";
@@ -121,7 +122,7 @@ function profile() {
         console.error("Manual pincode validation error:", error);
         form.setError("pincode", {
           type: "manual",
-          message: (error as { data?: { message: string } })?.data?.message,
+          message: getAxiosErrorMessage(error),
         });
       }
     };
