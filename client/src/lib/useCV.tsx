@@ -291,17 +291,31 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         if (page.type !== "page") return page;
 
         const sections = page.children ?? [];
+
         if (sections.length >= MAX_SECTIONS) {
           return page;
         }
+
+        const updatedSections = sections.map((section) => ({
+          ...section,
+          height: 100 / (sections.length + 1),
+        }));
+
         return {
           ...page,
           children: [
-            ...sections,
+            ...updatedSections,
             {
               id: sectionId,
               type: "section",
-              children: [{ id: blockId, type: "block", children: [] }],
+              height: equalHeight,
+              children: [
+                {
+                  id: blockId,
+                  type: "block",
+                  children: [],
+                },
+              ],
             },
           ],
         };
