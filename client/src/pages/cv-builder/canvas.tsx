@@ -30,7 +30,6 @@ const Canvas = () => {
     selectedSectionId,
     A4_WIDTH,
     A4_HEIGHT,
-    showSectionDividers,
     selectedBlockId,
     selectPage,
     selectSection,
