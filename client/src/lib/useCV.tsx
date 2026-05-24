@@ -308,7 +308,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
             {
               id: sectionId,
               type: "section",
-              height: equalHeight,
+              height: 100 / (sections.length + 1),
               children: [
                 {
                   id: blockId,
