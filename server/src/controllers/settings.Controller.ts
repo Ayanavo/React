@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import axios from "axios";
+import picodePicker from "@devzoy/indian-pincode";
 
 const EXTERNAL_REQUEST_TIMEOUT_MS = 30_000;
 
@@ -50,29 +51,38 @@ export const validatePincode = async (req: Request, res: Response) => {
   try {
     const { pincode, state } = req.body;
     if (!pincode) {
-      return res.status(400).json({ message: "Pincode is required." });
+      return res.status(404).json({ message: "Pincode is required." });
     }
     const pincodeRegex = /^[1-9][0-9]{5}$/;
     if (!pincodeRegex.test(pincode)) {
-      return res.status(400).json({ message: "Invalid pincode format." });
+      return res.status(404).json({ message: "Invalid pincode format." });
     }
 
     if (!state || typeof state !== "string") {
-      return res.status(400).json({ message: "State Name is required for pincode validation." });
+      return res.status(404).json({ message: "State Name is required for pincode validation." });
     }
 
-    const url = `https://api.postalpincode.in/pincode/${pincode}`;
-    const thirdPartyresponse = await axios.get<any>(url, { timeout: EXTERNAL_REQUEST_TIMEOUT_MS });
-    if (thirdPartyresponse.data[0].Status === "Success") {
-      const postOffices = thirdPartyresponse.data[0].PostOffice;
-      const stateMatched = postOffices.some((office: any) => office.State.toLowerCase() === state.toLowerCase());
-      if (!stateMatched) {
-        return res.status(400).json({ message: "Pincode does not match the provided state." });
-      }
-      return res.status(200).json(thirdPartyresponse.data[0].PostOffice);
-    } else {
+    const isValidPincode = picodePicker.validate(pincode);
+    if (!isValidPincode) {
       return res.status(404).json({ message: "Pincode not found." });
     }
+
+    const details = await picodePicker.lookup(pincode);
+
+    if (!details || details.length === 0) {
+      return res.status(404).json({
+        message: "No post offices found.",
+      });
+    }
+
+    const stateMatched = details.some((office: any) => office.state?.toLowerCase() === state.toLowerCase());
+
+    if (!stateMatched) {
+      return res.status(400).json({
+        message: "Pincode does not match the provided state.",
+      });
+    }
+    return res.status(200).json(details);
   } catch (error) {
     return res.status(500).json({ message: error });
   }
