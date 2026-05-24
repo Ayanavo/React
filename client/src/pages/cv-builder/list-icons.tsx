@@ -12,7 +12,7 @@ export function ListIcon({ element, index }: { element: any; index: number }) {
 
   switch (iconName) {
     case "number":
-      return <span style={style}>1.</span>;
+      return <span style={style}>{index + 1}.</span>;
     case "check":
       return <Check size={14} style={style} />;
     case "dash":

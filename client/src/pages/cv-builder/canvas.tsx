@@ -8,6 +8,20 @@ import CVElementRenderer from "./cv-element-renderer";
 import CVPreview, { CVPreviewRef } from "./cv-preview";
 
 const ZOOM = 1;
+const MIN_SECTION_HEIGHT = 80;
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const getSectionHeights = (sections: Array<{ height?: number }>) => {
+  if (sections.length === 0) return [];
+
+  const fallback = 100 / sections.length;
+  const heights = sections.map((section) => (typeof section.height === "number" && section.height > 0 ? section.height : fallback));
+  const total = heights.reduce((sum, height) => sum + height, 0);
+
+  if (total <= 0) return sections.map(() => fallback);
+  return heights.map((height) => (height / total) * 100);
+};
 
 const Canvas = () => {
   const {
@@ -28,9 +42,10 @@ const Canvas = () => {
     pageProperties,
     showPagination,
     paginationLocation,
+    updateElement,
   } = useCV();
-  const [isDragging] = useState(false);
-  const [draggingIndex] = useState<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
   const pageRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<CVPreviewRef>(null);
@@ -89,6 +104,41 @@ const Canvas = () => {
   //   window.addEventListener("mouseleave", handleMouseLeave);
   // };
 
+  const handleSectionResizeStart = (pageIndex: number, sections: Array<{ id: string; height?: number }>, sectionIndex: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startY = e.clientY;
+    const startHeights = getSectionHeights(sections);
+    const pairTotal = startHeights[sectionIndex] + startHeights[sectionIndex + 1];
+    const minPercent = Math.min((MIN_SECTION_HEIGHT / A4_HEIGHT) * 100, pairTotal / 2);
+
+    setIsDragging(true);
+    setDraggingIndex(pageIndex);
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaPercent = ((moveEvent.clientY - startY) / A4_HEIGHT) * 100;
+      const nextTopHeight = clamp(startHeights[sectionIndex] + deltaPercent, minPercent, pairTotal - minPercent);
+      const nextHeights = [...startHeights];
+      nextHeights[sectionIndex] = nextTopHeight;
+      nextHeights[sectionIndex + 1] = pairTotal - nextTopHeight;
+
+      sections.forEach((section, index) => {
+        updateElement(section.id, { height: Number(nextHeights[index].toFixed(4)) });
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setDraggingIndex(null);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
   return (
     <aside className="flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
       <div
@@ -98,6 +148,7 @@ const Canvas = () => {
         {/* Render Pages Dynamically */}
         {elements.map((page, pageIndex) => {
           const sections = page.children ?? [];
+          const sectionHeights = getSectionHeights(sections);
 
           return (
             <div
@@ -175,7 +226,7 @@ const Canvas = () => {
                         <div
                           key={section.id}
                           className={`relative flex flex-col w-full ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
-                          style={{ height: `${100 / sections.length}%` }}
+                          style={{ height: `${sectionHeights[sectionIndex]}%` }}
                           onClick={(e) => {
                             e.stopPropagation();
                             selectSection(page.id, section.id);
@@ -230,7 +281,12 @@ const Canvas = () => {
                           </div>
 
                           {/* ✅ SECTION DIVIDER */}
-                          {!isLastSection && <div className={`absolute bottom-0 left-4 right-4 h-px ${showSectionDividers && "bg-border"}`}>{/* same divider code */}</div>}
+                          {!isLastSection && (
+                            <div className="group absolute bottom-0 left-4 right-4 z-20 h-3 translate-y-1/2 cursor-ns-resize" onMouseDown={(e) => handleSectionResizeStart(pageIndex, sections, sectionIndex, e)}>
+                              <div className={`absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 ${showSectionDividers ? "bg-border" : "bg-transparent"} group-hover:bg-primary/40`} />
+                              <div className="absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 translate-x-1/2 rounded-full border border-primary bg-background opacity-0 shadow transition-opacity group-hover:opacity-100" />
+                            </div>
+                          )}
                         </div>
                       );
                     })}
