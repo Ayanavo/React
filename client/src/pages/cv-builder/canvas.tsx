@@ -280,9 +280,9 @@ const Canvas = () => {
                           </div>
 
                           {/* ✅ SECTION DIVIDER */}
-                          {!isLastSection && (
+                          {isSectionSelected && (
                             <div className="group absolute bottom-0 left-4 right-4 z-20 h-3 translate-y-1/2 cursor-ns-resize" onMouseDown={(e) => handleSectionResizeStart(pageIndex, sections, sectionIndex, e)}>
-                              <GripHorizontal className="absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 bg-muted opacity-0 shadow transition-opacity group-hover:opacity-100" />
+                              <GripHorizontal className="absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 bg-muted shadow" />
                             </div>
                           )}
                         </div>
