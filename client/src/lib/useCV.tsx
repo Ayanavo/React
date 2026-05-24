@@ -36,6 +36,7 @@ export interface CVElement {
       icon?: string;
       iconColor?: string;
       iconFill?: "fill" | "unfill";
+      direction?: "row" | "column";
     };
     showIcon?: boolean;
     iconFill?: "fill" | "unfill";

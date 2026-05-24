@@ -3,7 +3,7 @@ import { ArrowRight, Check, Minus } from "lucide-react";
 import React from "react";
 
 export function ListIcon({ element, index }: { element: any; index: number }) {
-  const iconName = typeof element === "string" ? element : element.properties?.listStyle?.icon ?? "bullet";
+  const iconName = typeof element === "string" ? element : (element.properties?.listStyle?.icon ?? "bullet");
   const style = {
     color: element.properties?.listStyle?.iconColor ?? "currentColor",
     fill: element.properties?.listStyle?.iconFill === "fill" ? "currentColor" : "none",
@@ -12,7 +12,7 @@ export function ListIcon({ element, index }: { element: any; index: number }) {
 
   switch (iconName) {
     case "number":
-      return <span style={style}>{index + 1}.</span>;
+      return <span style={style}>1.</span>;
     case "check":
       return <Check size={14} style={style} />;
     case "dash":

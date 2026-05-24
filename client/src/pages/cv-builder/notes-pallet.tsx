@@ -3,6 +3,7 @@ import { getNotes, NoteRecord } from "@/shared/services/note";
 import { useCV } from "@/lib/useCV";
 import showToast from "@/hooks/toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FileText, Plus } from "lucide-react";
 
 const NotesPallet = () => {
   const [notes, setNotes] = useState<NoteRecord[]>([]);
@@ -73,10 +74,14 @@ const NotesPallet = () => {
 
   if (loading)
     return (
-      <div className="space-y-2">
+      <div className="space-y-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="w-full">
-            <Skeleton className="h-10 w-full rounded" />
+          <div key={i} className="flex items-center gap-3 rounded-md border p-3">
+            <Skeleton className="h-10 w-10 rounded-md" />
+            <div className="min-w-0 flex-1 space-y-2">
+              <Skeleton className="h-3 w-2/3" />
+              <Skeleton className="h-3 w-full" />
+            </div>
           </div>
         ))}
       </div>
@@ -89,24 +94,27 @@ const NotesPallet = () => {
       : notes.map((note) => {
           const bg = note.color || "#ffffff";
 
-          const getTextColor = (hex: string) => {
-            try {
-              const cleaned = hex.replace("#", "");
-              const r = parseInt(cleaned.length === 3 ? cleaned[0] + cleaned[0] : cleaned.substring(0, 2), 16);
-              const g = parseInt(cleaned.length === 3 ? cleaned[1] + cleaned[1] : cleaned.substring(2, 4), 16);
-              const b = parseInt(cleaned.length === 3 ? cleaned[2] + cleaned[2] : cleaned.substring(4, 6), 16);
-              const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-              return luminance > 0.6 ? "#000000" : "#ffffff";
-            } catch {
-              return "#000000";
-            }
-          };
-
-          const textColor = getTextColor(bg);
-
           return (
-            <button key={note._id} onClick={() => insertNote(note)} className="w-full text-left p-3 rounded border border-border hover:opacity-90" style={{ backgroundColor: bg, color: textColor }}>
-              <div className="font-semibold truncate">{note.title || "Untitled"}</div>
+            <button
+              key={note._id}
+              onClick={() => insertNote(note)}
+              className="
+                group relative w-full overflow-hidden rounded-md border border-dashed border-border bg-background p-3 text-left
+                transition-all hover:border-primary/50 hover:bg-muted/40 hover:shadow-sm
+              ">
+              <span className="absolute inset-y-2 left-0 w-1 rounded-r-full" style={{ backgroundColor: bg }} />
+              <div className="flex min-w-0 items-start gap-3 pl-1">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border bg-muted/60 text-muted-foreground transition-colors group-hover:text-primary">
+                  <FileText className="h-5 w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <p className="min-w-0 flex-1 truncate text-xs font-medium leading-5 text-foreground">{note.title || "Untitled"}</p>
+                    <Plus className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-xs leading-4 text-muted-foreground">{note.body || "No description"}</p>
+                </div>
+              </div>
             </button>
           );
         })
