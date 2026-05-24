@@ -2,7 +2,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useCV } from "@/lib/useCV";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { Download, Eye, Trash } from "lucide-react";
+import { Download, Eye, GripHorizontal, Trash } from "lucide-react";
 import React, { useRef, useState } from "react";
 import CVElementRenderer from "./cv-element-renderer";
 import CVPreview, { CVPreviewRef } from "./cv-preview";
@@ -225,7 +225,7 @@ const Canvas = () => {
                       return (
                         <div
                           key={section.id}
-                          className={`relative flex flex-col w-full ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
+                          className={`relative flex flex-col w-full overflow-visible  ${isSectionSelected ? "ring-2 ring-ring" : ""} ${sectionIndex > 0 ? "my-[1px]" : "mb-[1px]"} ${!isLastSection ? "mb-1" : ""}`}
                           style={{ height: `${sectionHeights[sectionIndex]}%` }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -283,8 +283,7 @@ const Canvas = () => {
                           {/* ✅ SECTION DIVIDER */}
                           {!isLastSection && (
                             <div className="group absolute bottom-0 left-4 right-4 z-20 h-3 translate-y-1/2 cursor-ns-resize" onMouseDown={(e) => handleSectionResizeStart(pageIndex, sections, sectionIndex, e)}>
-                              <div className={`absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 ${showSectionDividers ? "bg-border" : "bg-transparent"} group-hover:bg-primary/40`} />
-                              <div className="absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 translate-x-1/2 rounded-full border border-primary bg-background opacity-0 shadow transition-opacity group-hover:opacity-100" />
+                              <GripHorizontal className="absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 bg-muted opacity-0 shadow transition-opacity group-hover:opacity-100" />
                             </div>
                           )}
                         </div>
