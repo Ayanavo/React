@@ -8,10 +8,6 @@ function listinglayout({ noteListing, onSelect, isLoading }: { noteListing: Stat
     return <NoteListSkeleton />;
   }
 
-  if (!noteListing.length) {
-    return <p className="m-3 text-sm text-muted-foreground">No notes yet. Create one to get started.</p>;
-  }
-
   return (
     <>
       {noteListing.map((item: State) => (

@@ -163,7 +163,7 @@ const CVAccessGrid = () => {
         cell: (info) => {
           const row = info.row.original as CVListing;
           return (
-            <Badge variant="outline" className="cursor-default flex items-center gap-2">
+            <Badge variant="secondary" className="cursor-default gap-2 rounded-lg" style={{ borderColor: row.tagColor + "4f", backgroundColor: row.tagColor + "40" }}>
               {row.tagColor ?
                 <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.tagColor }} />
               : null}

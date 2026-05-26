@@ -6,7 +6,7 @@ import showToast from "@/hooks/toast";
 import { cn } from "@/lib/utils";
 import { getNoteById, getNotes } from "@/shared/services/note";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { PlusIcon } from "lucide-react";
+import { FileText, Plus, PlusIcon } from "lucide-react";
 import React, { useState } from "react";
 import GridLayoutComponent from "./grid-layout";
 import ListingLayoutComponent from "./listing-layout";
@@ -112,8 +112,33 @@ function note() {
           </Button>
         </div>
       </div>
-
       {isLoadingNote && <p className="px-3 text-sm text-muted-foreground">Loading note...</p>}
+      {!noteListing.length && !isLoading && (
+        <div className="m-3 overflow-hidden rounded-xl border bg-gradient-to-br from-background via-muted/30 to-muted/60 shadow-sm">
+          <div className="relative flex flex-col items-center px-6 py-10 text-center">
+            {/* Decorative glow */}
+            <div className="absolute -top-10 h-fit w-fit rounded-full bg-primary/10 blur-3xl" />
+
+            {/* Icon */}
+            <div
+              className="
+          relative z-10 flex h-16 w-16 items-center justify-center
+          rounded-2xl border bg-background shadow-sm
+        ">
+              <FileText className="h-7 w-7 text-primary" />
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10 mt-5 space-y-2">
+              <h3 className="text-base font-semibold tracking-tight">No notes created yet</h3>
+              <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">Start building your knowledge base by creating reusable notes for resumes, projects, experience, skills, and more.</p>
+            </div>
+
+            {/* Bottom decoration */}
+            <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+          </div>
+        </div>
+      )}
       {layout === "list" && <ListingLayoutComponent noteListing={noteListing} onSelect={handleSelect} isLoading={isLoading} />}
       {layout === "grid" && <GridLayoutComponent noteListing={noteListing} onSelect={handleSelect} setIsOpen={setIsOpen} isOpen={isOpen} isLoading={isLoading} />}
     </>
