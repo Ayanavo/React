@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { createColumnHelper, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
-import { EllipsisIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { EllipsisIcon, PencilIcon, PlusIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
 import React, { useEffect, useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ColumnComponent from "./table/column";
@@ -25,6 +25,7 @@ export type GridColumnConfig<T> = {
   key: (keyof T & string) | "select" | "action";
   label: string;
   type?: GridColumnType;
+  align?: "left" | "center" | "right";
   render?: (value: any, row: T) => React.ReactNode;
 };
 
@@ -38,6 +39,7 @@ type ResourceGridProps<T extends { _id: string }> = {
   deleteResource: (id: string) => Promise<unknown>;
   actionRenderer?: (row: T, deleteResource: (id: string) => void) => React.ReactNode;
   showAddButton?: boolean;
+  onAddClick?: () => void;
   actionConfig?: {
     showEdit?: boolean;
     showPermissions?: boolean;
@@ -54,14 +56,19 @@ type ResourceGridProps<T extends { _id: string }> = {
   };
 };
 
-function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, basePath, addLabel, columns: columnConfig, fetchList, deleteResource, actionRenderer, showAddButton = true, actionConfig }: ResourceGridProps<T>) {
+function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, basePath, addLabel, columns: columnConfig, fetchList, deleteResource, actionRenderer, showAddButton = true, onAddClick, actionConfig }: ResourceGridProps<T>) {
   const columnHelper = createColumnHelper<T>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const id = useId();
   const { confirm } = useConfirmDialog();
 
-  const { data: list = [], isSuccess } = useQuery({
+  const {
+    data: list = [],
+    isLoading,
+    isFetching,
+    isSuccess,
+  } = useQuery({
     queryKey: [queryKey],
     queryFn: fetchList,
   });
@@ -108,7 +115,12 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
         return columnHelper.display({
           id: "action",
           header: column.label,
+          meta: { align: column.align ?? "right" },
           cell: ({ row }) => {
+            if (actionRenderer) {
+              return <div className="flex justify-end">{actionRenderer(row.original, (resourceId) => deleteMutation.mutate(resourceId))}</div>;
+            }
+
             // default action menu is configurable via actionConfig prop
             const { showEdit = true, showPermissions = false, onOpenPermissions, showDelete = true, confirmOnDelete = true, deleteConfirmOptions } = actionConfig || {};
 
@@ -143,7 +155,10 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
                     )}
                     {showPermissions && onOpenPermissions && (
                       <>
-                        <DropdownMenuItem onSelect={() => onOpenPermissions(row.original)}>Permissions</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => onOpenPermissions(row.original)}>
+                          <ShieldCheckIcon className="mr-2 h-4 w-4" />
+                          Permissions
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                       </>
                     )}
@@ -164,8 +179,9 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
       if (column.key === "select") {
         return columnHelper.display({
           id: "select",
-          header: ({ table }) => <Checkbox aria-label="Select all" checked={table.getIsAllPageRowsSelected()} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} />,
-          cell: ({ row }) => <Checkbox checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />,
+          meta: { align: column.align ?? "center" },
+          header: ({ table }) => <Checkbox className="border-primary/60 shadow-none" aria-label="Select all" checked={table.getIsAllPageRowsSelected()} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} />,
+          cell: ({ row }) => <Checkbox className="border-primary/60 shadow-none" checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />,
         });
       }
 
@@ -173,6 +189,7 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
         return columnHelper.accessor((row) => row[column.key as keyof T], {
           id: column.key,
           header: () => column.label,
+          meta: { align: column.align },
           cell: (info) => formatAppDate(info.getValue() as string, "-"),
         });
       }
@@ -181,6 +198,7 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
         return columnHelper.accessor((row) => row[column.key as keyof T], {
           id: column.key,
           header: () => column.label,
+          meta: { align: column.align },
           cell: (info) => {
             const value = info.getValue() as string;
             return (
@@ -196,6 +214,7 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
       return columnHelper.accessor((row) => row[column.key as keyof T], {
         id: column.key,
         header: () => column.label,
+        meta: { align: column.align },
         cell: (info) => {
           const value = info.getValue();
           if (column.render) return column.render(value, info.row.original);
@@ -226,16 +245,16 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
   };
 
   return (
-    <div className="flex h-[90vh] flex-col overflow-hidden">
-      <div className="flex flex-none items-center justify-between space-x-2 p-3">
-        <div className="relative">
-          <Input id={id} className="pe-11" placeholder="Search..." type="search" defaultValue={globalFilter} onKeyDown={handleSearchKey} />
+    <div className="flex h-[90vh] flex-col overflow-hidden bg-background">
+      <div className="flex flex-none items-center justify-between gap-3 px-0.5 py-3">
+        <div className="relative w-full max-w-xs">
+          <Input id={id} className="h-9 rounded-lg border-border/70 bg-card pe-16 shadow-sm" placeholder="Search..." type="search" defaultValue={globalFilter} onKeyDown={handleSearchKey} />
           <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground">
-            <kbd className="inline-flex h-5 max-h-full items-center rounded-md border border-border px-1 text-[0.625rem] font-medium text-muted-foreground/70">Enter</kbd>
+            <kbd className="inline-flex h-5 max-h-full items-center rounded-md border border-border/70 bg-muted/40 px-1 text-[0.625rem] font-medium text-muted-foreground/70">Enter</kbd>
           </div>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex shrink-0 items-center gap-2">
           <TooltipProvider disableHoverableContent>
             <ToggleGroup className="gap-0" type="single" variant="outline" value={layout} onValueChange={(value) => value && setLayout(value)}>
               {TableLayout.map((item, index) => {
@@ -244,7 +263,7 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
                 return (
                   <Tooltip key={item.name}>
                     <TooltipTrigger asChild>
-                      <ToggleGroupItem className={cn(isFirst && "rounded-r-none", isLast && "rounded-l-none", !(isFirst || isLast) && "rounded-none border-x-0")} value={item.name}>
+                      <ToggleGroupItem className={cn("h-9 bg-card shadow-sm", isFirst && "rounded-r-none", isLast && "rounded-l-none", !(isFirst || isLast) && "rounded-none border-x-0")} value={item.name}>
                         <IconsComponent customClass="h-4 w-4" icon={item.icon} />
                       </ToggleGroupItem>
                     </TooltipTrigger>
@@ -255,7 +274,7 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
             </ToggleGroup>
           </TooltipProvider>
           {showAddButton ?
-            <Button onClick={() => navigate(`${basePath}/create`)} className="flex items-center space-x-2">
+            <Button onClick={onAddClick ?? (() => navigate(`${basePath}/create`))} className="flex h-9 items-center gap-2 rounded-lg shadow-sm">
               <PlusIcon className="h-4 w-4" />
               <span>{addLabel ?? `Add ${resourceLabel}`}</span>
             </Button>
@@ -263,7 +282,7 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
         </div>
       </div>
 
-      {layout === "column" && <ColumnComponent tableBody={tableBody as never} setSorting={setSorting} />}
+      {layout === "column" && <ColumnComponent tableBody={tableBody as never} setSorting={setSorting} isLoading={isLoading || (isFetching && data.length === 0)} pageSize={pagination.pageSize} />}
       {layout === "kanban" && <KanbanComponent tableBody={tableBody as never} />}
       <PaginationComponent tableBody={tableBody as never} pagination={pagination} setPagination={setPagination} />
     </div>

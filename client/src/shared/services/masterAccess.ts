@@ -13,7 +13,7 @@ export const deleteUser = async (id: string) => {
 };
 
 export const fetchPermissions = async (userId: string) => {
-  const response = await axiosInstance.get<{ permissions?: { allowedRoutes: string[] } }>(`${base}/permissions/${userId}`);
+  const response = await axiosInstance.get<{ permissions?: { allowedRoutes: string[] }; allowedRoutes?: string[] }>(`${base}/permissions/${userId}`);
   return response.data || { allowedRoutes: [] };
 };
 

@@ -4,7 +4,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import ResourceGrid, { GridColumnConfig } from "@/pages/layout/grid/ResourceGrid";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { deleteUser, fetchUsers, savePermissions } from "@/shared/services/masterAccess";
-import { EllipsisIcon } from "lucide-react";
+import { EllipsisIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
 import React, { useState } from "react";
 import PermissionsDialog from "./permissions-dialog";
 // import { User } from "./user.model";
@@ -32,8 +32,9 @@ const MasterAccess = () => {
     {
       key: "isLoggedIn",
       label: "Active Login",
+      align: "center",
       render: (_value, row) => (
-        <div className="flex items-center justify-center">
+        <div className="flex w-full items-center justify-center">
           <span className={`inline-flex h-3 w-3 rounded-full ${row.isLoggedIn ? "bg-green-500" : "bg-gray-400"}`} />
         </div>
       ),
@@ -50,8 +51,11 @@ const MasterAccess = () => {
             <EllipsisIcon className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={() => openPermissions(row._id)}>Permissions</DropdownMenuItem>
+        <DropdownMenuContent align="end" className="w-[160px]">
+          <DropdownMenuItem onSelect={() => openPermissions(row._id)}>
+            <ShieldCheckIcon className="mr-2 h-4 w-4" />
+            Permissions
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onSelect={async () => {
@@ -59,6 +63,7 @@ const MasterAccess = () => {
               if (ok) del(row._id);
             }}
             className="text-destructive">
+            <Trash2Icon className="mr-2 h-4 w-4" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -68,13 +73,10 @@ const MasterAccess = () => {
 
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between px-6 pt-3">
+      <div className="flex items-center justify-between px-2 pt-3">
         <BreadcrumbInbuild />
       </div>
-      <div className="px-6">
-        <ResourceGrid queryKey="master-access-users" resourceLabel="User" basePath="/master-access" columns={columns} fetchList={fetchUsers} deleteResource={deleteUser} actionRenderer={actionRenderer} showAddButton={false} />
-      </div>
-
+      <ResourceGrid queryKey="master-access-users" resourceLabel="User" basePath="/master-access" columns={columns} fetchList={fetchUsers} deleteResource={deleteUser} actionRenderer={actionRenderer} showAddButton={false} />
       {openPermissionsFor && selectedUserId && <PermissionsDialog userId={selectedUserId} onClose={() => setOpenPermissionsFor(null)} onSave={onSavePermissions} />}
     </div>
   );
