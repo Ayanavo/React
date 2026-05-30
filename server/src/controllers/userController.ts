@@ -4,6 +4,7 @@ import { body, validationResult } from "express-validator";
 import jwt, { Secret, VerifyErrors } from "jsonwebtoken";
 import admin from "../firebase.js";
 import User from "../models/userModel.js";
+import { getUserDataByToken } from "../services/userAcess.js";
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -146,10 +147,7 @@ export const refreshToken = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "No refresh token provided" });
     }
 
-    // Verify the refresh token
-    const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET as Secret) as { id: string };
-    const user = await User.findById(decoded.id);
-
+    const user = await getUserDataByToken(refreshToken);
     if (!user) {
       return res.status(401).json({ message: "Invalid refresh token" });
     }
@@ -172,13 +170,12 @@ export const getUserProfile = async (req: Request, res: Response) => {
   try {
     if (req.headers?.authorization) {
       const token = req.headers.authorization.split(" ")[1];
-
-      const decoded = jwt.verify(token, process.env.API_SECRET_KEY as Secret) as { id: string };
-      const user = await User.findById(decoded.id).select("-password -__v");
-      if (!user) {
+      const decoded = await getUserDataByToken(token);
+      if (decoded === null) return res.status(401).json({ message: "Invalid token" });
+      if (!decoded) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.status(200).json({ user });
+      res.status(200).json({ user: decoded });
     }
   } catch (error) {
     console.error("Error fetching profile:", error);
@@ -191,9 +188,9 @@ export const saveUserProfile = async (req: Request, res: Response) => {
     if (req.headers?.authorization) {
       const token = req.headers.authorization.split(" ")[1];
       if (!token) return res.status(401).json({ message: "Not authenticated" });
-
-      const decoded = jwt.verify(token, process.env.API_SECRET_KEY as Secret) as { id: string };
-      const userId = decoded.id;
+      const decoded = await getUserDataByToken(token);
+      if (decoded === null) return res.status(401).json({ message: "Invalid token" });
+      const userId = decoded._id;
       const { photoURL, firstName, lastName, mobile, addressLine1, addressLine2, landmark, city, state, pincode } = req.body;
 
       if ([firstName, lastName, mobile, addressLine1, city, state, pincode].some((field) => field === undefined)) {
@@ -234,9 +231,10 @@ export const saveSettings = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Required fields are missing" });
     }
 
-    const decoded = jwt.verify(token, process.env.API_SECRET_KEY as Secret) as { id: string };
-    const user = await User.findById(decoded.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await getUserDataByToken(token);
+    if (user === null) {
+      return res.status(401).json({ message: "User not found" });
+    }
 
     user.settings = {
       date_format,
@@ -260,7 +258,6 @@ export const verifyToken = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "No access token provided" });
     }
     const decoded = await admin.auth().verifyIdToken(accessToken);
-    console.log("Decoded Firebase Token:", decoded);
     req.user = { id: decoded.uid, email: decoded.email };
 
     res.status(200).json({ token: decoded, message: "Successfully logged in", expiresIn: 1 * 60 * 60 });

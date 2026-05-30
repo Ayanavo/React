@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
-import User from "../models/userModel.js";
 import MasterAccess from "../models/masterAccessModel.js";
+import User from "../models/userModel.js";
+import { getUserDataByToken } from "../services/userAcess.js";
 
 const requiredRoutes = ["/profile", "/settings"];
 
@@ -56,5 +57,24 @@ export const savePermissions = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to save permissions" });
+  }
+};
+
+export const getPermissionsByToken = async (req: Request, res: Response) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Not authenticated" });
+    const decoded = await getUserDataByToken(token);
+    if (decoded === null) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    const userId = decoded._id;
+    const record = await MasterAccess.findOne({ userId }).select("allowedRoutes").lean();
+    console.log(record);
+    
+    res.status(200).json(record?.allowedRoutes || requiredRoutes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch permissions" });
   }
 };
