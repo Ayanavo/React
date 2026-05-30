@@ -2,6 +2,7 @@ import IconsComponent from "@/common/icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 import { NavList } from "@/config/nav";
 import { fetchPermissions } from "@/shared/services/masterAccess";
 import { ShieldCheckIcon } from "lucide-react";
@@ -27,17 +28,26 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
   const [open, setOpen] = useState(true);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const selectedCount = NavList.filter((item) => checked[item.route]).length;
 
   useEffect(() => {
-    fetchPermissions(userId).then((res) => {
-      const allowed: string[] = res?.permissions?.allowedRoutes || [];
-      const map: Record<string, boolean> = {};
-      allowed.forEach((r: string) => (map[r] = true));
-      const next = withLockedRoutes(map);
-      setChecked(next);
-      setSelectAll(NavList.every((n) => next[n.route]));
-    });
+    const loadPermissions = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetchPermissions(userId);
+        const allowed: string[] = res?.permissions?.allowedRoutes || [];
+        const map: Record<string, boolean> = {};
+        allowed.forEach((r: string) => (map[r] = true));
+        const next = withLockedRoutes(map);
+        setChecked(next);
+        setSelectAll(NavList.every((n) => next[n.route]));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadPermissions();
   }, [userId]);
 
   const toggle = (route: string) => {
@@ -97,25 +107,38 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
 
           <div className="max-h-[360px] overflow-auto rounded-lg border border-border/70">
             <div className="grid divide-y divide-border/70">
-              {NavList.map((item) => {
-                const isChecked = !!checked[item.route];
-                const isLocked = lockedRoutes.has(item.route);
-
-                return (
-                  <label key={item.route} className={`flex items-center justify-between bg-card px-3 py-2.5 transition-colors ${isLocked ? "cursor-not-allowed opacity-75" : "cursor-pointer hover:bg-muted/35"}`}>
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground">
-                        <IconsComponent icon={item.icon} customClass="h-4 w-4" />
-                      </span>
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium text-foreground">{item.label}</div>
-                        <div className="truncate text-xs text-muted-foreground">{item.route}</div>
+              {isLoading
+                ? Array.from({ length: 6 }).map((_, index) => (
+                    <div key={index} className="flex items-center justify-between bg-card px-3 py-2.5">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Skeleton className="h-8 w-8 shrink-0 rounded-md" />
+                        <div className="min-w-0 space-y-2 py-1">
+                          <Skeleton className="h-3 w-32 rounded-md" />
+                          <Skeleton className="h-2 w-24 rounded-md" />
+                        </div>
                       </div>
+                      <Skeleton className="h-4 w-6 rounded-full" />
                     </div>
-                    <Checkbox className="ml-3 border-primary/60 shadow-none" checked={isLocked || isChecked} disabled={isLocked} onCheckedChange={() => toggle(item.route)} aria-label={`Toggle ${item.label} permission`} />
-                  </label>
-                );
-              })}
+                  ))
+                : NavList.map((item) => {
+                    const isChecked = !!checked[item.route];
+                    const isLocked = lockedRoutes.has(item.route);
+
+                    return (
+                      <label key={item.route} className={`flex items-center justify-between bg-card px-3 py-2.5 transition-colors ${isLocked ? "cursor-not-allowed opacity-75" : "cursor-pointer hover:bg-muted/35"}`}>
+                        <div className="flex min-w-0 items-center gap-3">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground">
+                            <IconsComponent icon={item.icon} customClass="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-medium text-foreground">{item.label}</div>
+                            <div className="truncate text-xs text-muted-foreground">{item.route}</div>
+                          </div>
+                        </div>
+                        <Checkbox className="ml-3 border-primary/60 shadow-none" checked={isLocked || isChecked} disabled={isLocked} onCheckedChange={() => toggle(item.route)} aria-label={`Toggle ${item.label} permission`} />
+                      </label>
+                    );
+                  })}
             </div>
           </div>
         </div>

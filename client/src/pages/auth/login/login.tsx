@@ -7,7 +7,6 @@ import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/grid/form/field-map";
 import generateControl from "@/pages/layout/grid/form/validation";
 import { loginAPI, verifyAuthAPI } from "@/shared/services/auth.ts";
-import { fetchPermissionsByToken } from "@/shared/services/masterAccess";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { FirebaseError } from "firebase/app";
