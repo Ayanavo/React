@@ -13,7 +13,7 @@ export const deleteUser = async (id: string) => {
 };
 
 export const fetchPermissions = async (userId: string) => {
-  const response = await axiosInstance.get<{ permissions?: { allowedRoutes: string[] }; allowedRoutes?: string[] }>(`${base}/permissions/${userId}`);
+  const response = await axiosInstance.get<{ permissions?: { allowedRoutes: string[] } }>(`${base}/permissions/${userId}`);
   return response.data || { allowedRoutes: [] };
 };
 
@@ -21,3 +21,8 @@ export const savePermissions = async (userId: string, routes: string[]) => {
   const response = await axiosInstance.post(`${base}/save`, { userId, routes });
   return response.data;
 };
+
+export const fetchPermissionsByToken = async () => {
+  const response = await axiosInstance.post<Array<string>>(`${base}/permissionsAuth`);
+  return response.data || [];
+}

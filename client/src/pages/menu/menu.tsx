@@ -8,6 +8,7 @@ import { logoutAPI } from "@/shared/services/auth";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import IconsComponent from "../../common/icons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type NavItem = { label: string; icon: string; route: string };
 function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function }) {
@@ -61,27 +62,52 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {NavList.map(({ label, icon, route }: NavItem) => {
-              const isActive = isRouteActive(route);
+            {NavList.length === 0
+              ? Array.from({ length: 7 }).map((_, index) => (
+                <SidebarMenuItem key={index}>
+                  <div className="flex items-center gap-2 px-2 py-2">
+                    <Skeleton className="h-6 w-6 rounded-md" />
+                    {isExpanded && (
+                      <Skeleton className="h-4 flex-1 max-w-[120px]" />
+                    )}
+                  </div>
+                </SidebarMenuItem>
+              ))
+              : NavList.map(({ label, icon, route }: NavItem) => {
+                const isActive = isRouteActive(route);
 
-              return (
-                <TooltipProvider disableHoverableContent key={route}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton className={cn("text-secondary hover:text-primary", isActive && "text-primary")} isActive={isActive} onClick={() => navigate(route)}>
-                          <IconsComponent customClass="h-6 w-6" icon={icon} />
-                          <span>{label}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </TooltipTrigger>
-                    <TooltipContent className={cn(!isExpanded && "sr-only")} side="right">
-                      {label}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              );
-            })}
+                return (
+                  <TooltipProvider disableHoverableContent key={route}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <SidebarMenuItem>
+                          <SidebarMenuButton
+                            className={cn(
+                              "text-secondary hover:text-primary",
+                              isActive && "text-primary"
+                            )}
+                            isActive={isActive}
+                            onClick={() => navigate(route)}
+                          >
+                            <IconsComponent
+                              customClass="h-6 w-6"
+                              icon={icon}
+                            />
+                            <span>{label}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      </TooltipTrigger>
+
+                      <TooltipContent
+                        className={cn(!isExpanded && "sr-only")}
+                        side="right"
+                      >
+                        {label}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              })}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

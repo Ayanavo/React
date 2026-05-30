@@ -1,3 +1,7 @@
+import React from "react";
+import { Navigate, useRoutes } from "react-router-dom";
+import { usePermissions } from "@/shared/context/PermissionsContext";
+
 import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
 import LoginComponent from "@/pages/auth/login/login";
 import RegistrationComponent from "@/pages/auth/registration/registration";
@@ -5,9 +9,6 @@ import CVAccessGrid from "@/pages/cv-builder/cv-access-grid";
 import CVBuilder from "@/pages/cv-builder/cv-builder";
 import ActivityComponent from "@/pages/layout/activity/activity";
 import DashboardComponent from "@/pages/layout/dashboard/dashboard";
-import DetailComponent from "@/pages/layout/grid/details/details";
-import CreateComponent from "@/pages/layout/grid/update/create";
-import UpdateComponent from "@/pages/layout/grid/update/update";
 import { Layout } from "@/pages/layout/layout";
 import NoteComponent from "@/pages/layout/notes/notes-layout";
 import TagsLayoutComponent from "@/pages/layout/tags/tags-layout";
@@ -18,36 +19,65 @@ import MasterAccessComponent from "@/pages/master-access/master-access";
 import NoPageComponent from "@/pages/nopage";
 import ProfileComponent from "@/pages/profile/profile";
 import SettingsComponent from "@/pages/settings/settings";
-import React from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+
+export type RouteConfig = {
+  path?: string;
+  element?: React.ReactNode;
+  children?: RouteConfig[];
+  index?: boolean;
+};
+
+/** Static routes - Always available regardless of permissions */
+const STATIC_ROUTES: RouteConfig[] = [
+  { path: "/login", element: <LoginComponent /> },
+  { path: "/register", element: <RegistrationComponent /> },
+  { path: "/forgot-password", element: <ForgotPasswordComponent /> },
+];
+
+/** Protected layout routes */
+const PROTECTED_LAYOUT_ROUTES: RouteConfig[] = [
+  { index: true, element: <Navigate to="/dashboard" replace /> },
+  { path: "dashboard", element: <DashboardComponent /> },
+  { path: "profile", element: <ProfileComponent /> },
+  { path: "settings", element: <SettingsComponent /> },
+];
+
+/** Dynamic routes - permission based */
+const DYNAMIC_ROUTES: RouteConfig[] = [
+  { path: "master-access", element: <MasterAccessComponent /> },
+  { path: "activities", element: <ActivityComponent /> },
+  { path: "cv-builder", element: <CVAccessGrid /> },
+  { path: "cv-builder/create", element: <CVBuilder /> },
+  { path: "cv-builder/:id", element: <CVBuilder /> },
+  { path: "whiteboard", element: <WhiteboardComponent /> },
+  { path: "notes", element: <NoteComponent /> },
+  { path: "tags", element: <TagsLayoutComponent /> },
+  { path: "tags/create", element: <TagsCreateComponent /> },
+  { path: "tags/update/:id", element: <TagsUpdateComponent /> },
+];
+
+const filterRoutesByPermissions = (permissions: string[]): RouteConfig[] => {
+  return DYNAMIC_ROUTES.filter((route) => {
+    if (!route.path) return false;
+    const base = `/${route.path}`.split("/")[1];
+    return permissions.some((perm) => perm === `/${base}` || perm.startsWith(`/${base}`));
+  });
+};
+
+const getRouteConfiguration = (permissions: string[]): RouteConfig[] => {
+  const permittedDynamicRoutes = filterRoutesByPermissions(permissions);
+  return [
+    ...STATIC_ROUTES,
+    { path: "/", element: <Layout />, children: [...PROTECTED_LAYOUT_ROUTES, ...permittedDynamicRoutes] },
+    { path: "*", element: <NoPageComponent /> },
+  ];
+};
 
 export const Router = () => {
-  return (
-    <Routes>
-      <Route path="/login" element={<LoginComponent />} />
-      <Route path="/register" element={<RegistrationComponent />} />
-      <Route path="/forgot-password" element={<ForgotPasswordComponent />} />
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Navigate to="/dashboard" replace />} />
-        <Route caseSensitive path="/dashboard" element={<DashboardComponent />} />
-        {/* <Route caseSensitive path="table" element={<TableComponent />} /> */}
-        <Route caseSensitive path="activities" element={<ActivityComponent />} />
-        <Route caseSensitive path="cv-builder" element={<CVAccessGrid />} />
-        <Route caseSensitive path="cv-builder/create" element={<CVBuilder />} />
-        <Route caseSensitive path="cv-builder/:id" element={<CVBuilder />} />
-        <Route caseSensitive path="whiteboard" element={<WhiteboardComponent />} />
-        <Route caseSensitive path="profile" element={<ProfileComponent />} />
-        <Route caseSensitive path="notes" element={<NoteComponent />} />
-        <Route caseSensitive path="tags" element={<TagsLayoutComponent />} />
-        <Route caseSensitive path="tags/create" element={<TagsCreateComponent />} />
-        <Route caseSensitive path="tags/update/:id" element={<TagsUpdateComponent />} />
-        <Route caseSensitive path="settings" element={<SettingsComponent />} />
-        <Route caseSensitive path="master-access" element={<MasterAccessComponent />} />
-        <Route caseSensitive path="table/create" element={<CreateComponent />} />
-        <Route caseSensitive path="table/details/:id" element={<DetailComponent />} />
-        <Route caseSensitive path="table/update/:id" element={<UpdateComponent />} />
-      </Route>
-      <Route path="*" element={<NoPageComponent />} />
-    </Routes>
-  );
+  const { permissions, isLoading } = usePermissions();
+  const routeConfiguration = getRouteConfiguration(permissions);
+  const routes = useRoutes(routeConfiguration as any);
+  if (isLoading) return <LoginComponent />;
+
+  return routes;
 };

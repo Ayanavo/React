@@ -31,7 +31,7 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
 
   useEffect(() => {
     fetchPermissions(userId).then((res) => {
-      const allowed: string[] = res?.permissions?.allowedRoutes || res?.allowedRoutes || [];
+      const allowed: string[] = res?.permissions?.allowedRoutes || [];
       const map: Record<string, boolean> = {};
       allowed.forEach((r: string) => (map[r] = true));
       const next = withLockedRoutes(map);

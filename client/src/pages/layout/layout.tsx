@@ -1,24 +1,37 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import React, { useState } from "react";
+import { NavExclusionList, NavList } from "@/config/nav";
+import { usePermissions } from "@/shared/context/PermissionsContext";
+import React, { useMemo, useState } from "react";
 import { Outlet } from "react-router-dom";
 import MenuComponent from "../menu/menu";
 import HeaderComponent from "./header/header";
-import { NavList, NavExclusionList } from "@/config/nav";
 
 export const Layout = () => {
-  // NavList and exclusion config moved to shared config/nav.ts
   const exclutionList = NavExclusionList;
   const [isExpanded, setIsExpanded] = useState(false);
+  const { permissions } = usePermissions();
+
+  const filteredNavList = useMemo(() => {
+    return NavList.filter((item) => (permissions ?? []).includes(item.route));
+  }, [permissions]);
+
   return (
     <SidebarProvider defaultOpen={false}>
-      <MenuComponent NavList={NavList} isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
+      <MenuComponent
+        NavList={filteredNavList}
+        isExpanded={isExpanded}
+        setIsExpanded={setIsExpanded}
+      />
+
       <SidebarInset>
-        <HeaderComponent NavList={NavList} exclutionList={exclutionList} />
+        <HeaderComponent
+          NavList={filteredNavList}
+          exclutionList={exclutionList}
+        />
         <main>
           <Outlet />
           <Toaster />
-          {/* <ChatbotWidget /> */}
         </main>
       </SidebarInset>
     </SidebarProvider>

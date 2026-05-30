@@ -64,7 +64,6 @@ const DashboardShell: React.FC = () => {
       <main className="space-y-6 p-6">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">Dashboard</p>
             <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
               {greetingLabel}, {userName}{" "}
               <GreetingIcon className="inline-block h-6 w-6 align-middle text-primary md:h-7 md:w-7" />

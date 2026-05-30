@@ -7,6 +7,7 @@ import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/grid/form/field-map";
 import generateControl from "@/pages/layout/grid/form/validation";
 import { loginAPI, verifyAuthAPI } from "@/shared/services/auth.ts";
+import { fetchPermissionsByToken } from "@/shared/services/masterAccess";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { FirebaseError } from "firebase/app";
@@ -43,30 +44,32 @@ function login() {
     const Component = componentMap[field.type as keyof typeof componentMap];
     return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
-  function onSubmit(data: any) {
+
+  async function onSubmit(data: any) {
     setLoader(true);
-    const rememberMe = Boolean(data.RememberMe);
-
-    loginAPI({ ...data, rememberMe })
-      .then((userCredential) => {
-        setLoader(false);
-        console.log(userCredential);
-        sessionStorage.setItem("auth_token", JSON.stringify(userCredential.token));
-        showToast({
-          title: userCredential.message,
-          variant: "success",
-        });
-        navigate("/dashboard");
-      })
-      .catch((error) => {
-        setLoader(false);
-        showToast({
-          title: error.response?.data.message,
-          variant: "error",
-        });
+    try {
+      const rememberMe = Boolean(data.RememberMe);
+      const userCredential = await loginAPI({
+        ...data,
+        rememberMe,
       });
-  }
 
+      sessionStorage.setItem("auth_token", JSON.stringify(userCredential.token));
+      showToast({
+        title: userCredential.message,
+        variant: "success",
+      });
+
+      navigate("/dashboard");
+    } catch (error: any) {
+      showToast({
+        title: error.response?.data?.message || "Login failed",
+        variant: "error",
+      });
+    } finally {
+      setLoader(false);
+    }
+  }
   function handleSigninProvider(typeofProvider: string): void {
     let loginProvider;
 
@@ -111,6 +114,7 @@ function login() {
         });
       });
   }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4 md:p-8">
       <Card className="w-[700px] max-w-4xl overflow-hidden">
