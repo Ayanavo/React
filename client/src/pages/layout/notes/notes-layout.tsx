@@ -1,4 +1,5 @@
 import IconsComponent from "@/common/icons";
+import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -6,15 +7,14 @@ import showToast from "@/hooks/toast";
 import { cn } from "@/lib/utils";
 import { getNoteById, getNotes } from "@/shared/services/note";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, Plus, PlusIcon } from "lucide-react";
+import { FileText, PlusIcon } from "lucide-react";
 import React, { useState } from "react";
 import GridLayoutComponent from "./grid-layout";
 import ListingLayoutComponent from "./listing-layout";
 import NoteEditorComponent from "./note-editor";
-import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { mapNoteRecordToState } from "./note-mapper";
-import { State } from "./state";
 import "./note.scss";
+import { State } from "./state";
 
 function note() {
   const NotesLayout = [

@@ -9,6 +9,7 @@ import showToast from "@/hooks/toast";
 import { formatAppDate } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useConfirmDialog } from "@/shared/confirmation";
 import { createColumnHelper, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
 import { EllipsisIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
 import React, { useEffect, useId, useState } from "react";
@@ -24,6 +25,7 @@ export type GridColumnConfig<T> = {
   key: (keyof T & string) | "select" | "action";
   label: string;
   type?: GridColumnType;
+  render?: (value: any, row: T) => React.ReactNode;
 };
 
 type ResourceGridProps<T extends { _id: string }> = {
@@ -34,13 +36,30 @@ type ResourceGridProps<T extends { _id: string }> = {
   columns: GridColumnConfig<T>[];
   fetchList: () => Promise<T[]>;
   deleteResource: (id: string) => Promise<unknown>;
+  actionRenderer?: (row: T, deleteResource: (id: string) => void) => React.ReactNode;
+  showAddButton?: boolean;
+  actionConfig?: {
+    showEdit?: boolean;
+    showPermissions?: boolean;
+    onOpenPermissions?: (row: T) => void;
+    showDelete?: boolean;
+    confirmOnDelete?: boolean;
+    deleteConfirmOptions?: {
+      title?: string;
+      message?: string;
+      confirmText?: string;
+      cancelText?: string;
+      showLoadingOnConfirmClick?: boolean;
+    };
+  };
 };
 
-function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, basePath, addLabel, columns: columnConfig, fetchList, deleteResource }: ResourceGridProps<T>) {
+function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, basePath, addLabel, columns: columnConfig, fetchList, deleteResource, actionRenderer, showAddButton = true, actionConfig }: ResourceGridProps<T>) {
   const columnHelper = createColumnHelper<T>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const id = useId();
+  const { confirm } = useConfirmDialog();
 
   const { data: list = [], isSuccess } = useQuery({
     queryKey: [queryKey],
@@ -89,28 +108,56 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
         return columnHelper.display({
           id: "action",
           header: column.label,
-          cell: ({ row }) => (
-            <div className="opacity-0 transition-opacity group-hover:opacity-100">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-8 w-8">
-                    <EllipsisIcon className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={() => navigate(`${basePath}/update/${row.original._id}`)}>
-                    <PencilIcon className="mr-2 h-4 w-4" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive" onSelect={() => deleteMutation.mutate(row.original._id)}>
-                    <Trash2Icon className="mr-2 h-4 w-4" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ),
+          cell: ({ row }) => {
+            // default action menu is configurable via actionConfig prop
+            const { showEdit = true, showPermissions = false, onOpenPermissions, showDelete = true, confirmOnDelete = true, deleteConfirmOptions } = actionConfig || {};
+
+            const handleDeleteSelect = async () => {
+              if (confirmOnDelete) {
+                const ok = await confirm({
+                  title: deleteConfirmOptions?.title ?? "Delete",
+                  message: deleteConfirmOptions?.message ?? "Are you sure you want to delete this item?",
+                  confirmText: deleteConfirmOptions?.confirmText ?? "Delete",
+                  cancelText: deleteConfirmOptions?.cancelText ?? "Cancel",
+                  showLoadingOnConfirmClick: deleteConfirmOptions?.showLoadingOnConfirmClick ?? false,
+                });
+                if (!ok) return;
+              }
+              deleteMutation.mutate(row.original._id);
+            };
+
+            return (
+              <div className="opacity-0 transition-opacity group-hover:opacity-100">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-8 w-8">
+                      <EllipsisIcon className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {showEdit && (
+                      <DropdownMenuItem onSelect={() => navigate(`${basePath}/update/${row.original._id}`)}>
+                        <PencilIcon className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                    )}
+                    {showPermissions && onOpenPermissions && (
+                      <>
+                        <DropdownMenuItem onSelect={() => onOpenPermissions(row.original)}>Permissions</DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    {showDelete && (
+                      <DropdownMenuItem className="text-destructive" onSelect={handleDeleteSelect}>
+                        <Trash2Icon className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            );
+          },
         });
       }
 
@@ -151,6 +198,7 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
         header: () => column.label,
         cell: (info) => {
           const value = info.getValue();
+          if (column.render) return column.render(value, info.row.original);
           return value ?? "-";
         },
       });
@@ -206,10 +254,12 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
               })}
             </ToggleGroup>
           </TooltipProvider>
-          <Button onClick={() => navigate(`${basePath}/create`)} className="flex items-center space-x-2">
-            <PlusIcon className="h-4 w-4" />
-            <span>{addLabel ?? `Add ${resourceLabel}`}</span>
-          </Button>
+          {showAddButton ?
+            <Button onClick={() => navigate(`${basePath}/create`)} className="flex items-center space-x-2">
+              <PlusIcon className="h-4 w-4" />
+              <span>{addLabel ?? `Add ${resourceLabel}`}</span>
+            </Button>
+          : null}
         </div>
       </div>
 
