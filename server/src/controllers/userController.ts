@@ -75,6 +75,9 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
+    user.isLoggedIn = true;
+    await user.save();
+
     const jwt = await user.generateJwt();
     const refreshToken = await user.generateRefreshToken();
 
@@ -114,6 +117,18 @@ export const login = async (req: Request, res: Response) => {
 // Logout
 export const logout = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+
+    if (!token) return res.status(401).json({ message: "Not authenticated" });
+    const decoded = await getUserDataByToken(token);
+    if (decoded === null) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+    await User.findByIdAndUpdate(decoded._id, {
+      isLoggedIn: false,
+    });
+
     res.clearCookie("authToken");
     res.json({ message: "Logged out successfully" });
   } catch (error) {

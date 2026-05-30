@@ -12,6 +12,7 @@ export interface IUser extends Document {
   title: string;
   createdAt: Date;
   updatedAt: Date;
+  isLoggedIn: boolean;
   address: {
     addressLine1: string;
     addressLine2: string;
@@ -40,6 +41,7 @@ const userSchema: Schema = new Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     title: { type: String },
+    isLoggedIn: { type: Boolean, default: false },
     address: {
       addressLine1: { type: String, default: "" },
       addressLine2: { type: String, default: "" },
