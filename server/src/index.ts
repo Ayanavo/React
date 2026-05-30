@@ -15,6 +15,7 @@ import { errorLogger, logger } from "./utils/logger.js";
 import cvBuilderRoutes from "./routes/cvBuilderRoutes.js";
 import noteRoutes from "./routes/noteRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
+import masterAccessRoutes from "./routes/masterAccessRoutes.js";
 
 const app = express();
 dotenv.config();
@@ -97,6 +98,7 @@ app.use("/api/setting", settingRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/tags", tagRoutes);
+app.use("/api/master-access", masterAccessRoutes);
 
 /** --- Start server (bind 0.0.0.0 on Render) --- */
 const server = app.listen(PORT, "0.0.0.0", () => {
