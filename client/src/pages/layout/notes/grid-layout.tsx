@@ -1,19 +1,23 @@
 import React, { useEffect } from "react";
+import NoteCard from "./note-card";
+import { NoteGridSkeleton } from "./note-skeleton";
 import { State } from "./state";
-function gridlayout({ setIsOpen, isOpen, noteListing, onSelect }: { setIsOpen: (arg: boolean) => void; isOpen: boolean; noteListing: State[]; onSelect: (note: State) => void }) {
+
+function gridlayout({ setIsOpen, isOpen, noteListing, onSelect, isLoading }: { setIsOpen: (arg: boolean) => void; isOpen: boolean; noteListing: State[]; onSelect: (note: State) => void; isLoading?: boolean }) {
   useEffect(() => {
     return () => {
       isOpen && setIsOpen(false);
     };
   }, [isOpen, setIsOpen]);
+
+  if (isLoading) {
+    return <NoteGridSkeleton />;
+  }
+
   return (
-    <div className="m-3">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-      {noteListing.map((item: State, index: number) => (
-        <div key={index} className="rounded-lg border p-4 cursor-pointer hover:shadow" onClick={() => onSelect(item)}>
-          <h3 className="font-bold text-lg">{item?.title}</h3>
-          <p className="text-gray-600">{item?.description}</p>
-        </div>
+    <div className="m-3 columns-1 gap-4 sm:columns-2 md:columns-3 xl:columns-4">
+      {noteListing.map((item: State) => (
+        <NoteCard key={item?._id ?? `${item?.title}-${item?.description}`} item={item} onSelect={onSelect} className="mb-4 break-inside-avoid w-full" />
       ))}
     </div>
   );

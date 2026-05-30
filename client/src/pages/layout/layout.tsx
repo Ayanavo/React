@@ -4,32 +4,11 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import MenuComponent from "../menu/menu";
 import HeaderComponent from "./header/header";
+import { NavList, NavExclusionList } from "@/config/nav";
 
 export const Layout = () => {
-  type NavItem = { label: string; icon: string; route: string };
-  const NavList: Array<NavItem> = [
-    // { label: "Dashboard", icon: "LayoutDashboardIcon", route: "/dashboard" },
-    // { label: "Logs", icon: "TableIcon", route: "/table" },
-    { label: "Activities", icon: "CalendarDaysIcon", route: "/activities" },
-    {
-      label: "Notes",
-      icon: "NotebookPenIcon",
-      route: "/notes",
-    },
-    {
-      label: "CV Builder",
-      icon: "FileTextIcon",
-      route: "/cv-builder",
-    },
-    {
-      label: "Whiteboard",
-      icon: "WorkflowIcon",
-      route: "/whiteboard",
-    },
-    { label: "Profile", icon: "UserIcon", route: "/profile" },
-    { label: "Settings", icon: "SettingsIcon", route: "/settings" },
-  ];
-  const exclutionList = ["/profile", "/settings", "/dashboard"];
+  // NavList and exclusion config moved to shared config/nav.ts
+  const exclutionList = NavExclusionList;
   const [isExpanded, setIsExpanded] = useState(false);
   return (
     <SidebarProvider defaultOpen={false}>

@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { OpacityIcon } from "@radix-ui/react-icons";
 import React from "react";
-import { ColorResult, SketchPicker } from "react-color";
+import { ColorPickerPanel } from "@/shared/color-picker";
 import { FieldValue } from "react-hook-form";
 
 type ColorSchema = {
@@ -16,8 +16,8 @@ type ColorSchema = {
 };
 
 function color({ form, schema }: { form: FieldValue<any>; schema: ColorSchema }) {
-  const handleColorChange = (color: ColorResult) => {
-    form.setValue(schema.name, color.hex);
+  const handleColorChange = (hex: string) => {
+    form.setValue(schema.name, hex);
   };
 
   return (
@@ -44,7 +44,7 @@ function color({ form, schema }: { form: FieldValue<any>; schema: ColorSchema })
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
-              <SketchPicker color={field.value} onChange={handleColorChange} />
+              <ColorPickerPanel color={field.value} onChange={handleColorChange} />
             </PopoverContent>
           </Popover>
           <FormMessage />

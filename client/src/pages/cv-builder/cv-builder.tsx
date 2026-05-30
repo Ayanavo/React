@@ -8,13 +8,14 @@ import { Textarea } from "@/components/ui/textarea";
 import showToast from "@/hooks/toast";
 import { CVElement, CVProvider, useCV } from "@/lib/useCV";
 import { fetchCVBuilderById, submitCV, updateCV, type CVSubmitPayload } from "@/shared/services/cvbuilder";
+import { getTags, type TagRecord } from "@/shared/services/tag";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import React, { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Canvas from "../cv-builder/canvas";
 import Pallet from "../cv-builder/pallet";
 
-type CVTag = "Latest" | "Important" | "Draft";
+type CVTag = string;
 
 const findCVName = (elements: CVElement[]) => {
   const queue = [...elements];
@@ -43,7 +44,7 @@ const CVBuilderContent = () => {
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [job, setJob] = useState("");
-  const [tag, setTag] = useState<CVTag>("Draft");
+  const [tag, setTag] = useState<CVTag>("");
 
   const { data: cvBuilder, isFetching } = useQuery({
     queryKey: ["cv-builder", id],
@@ -51,14 +52,23 @@ const CVBuilderContent = () => {
     enabled: Boolean(id),
   });
 
+  const { data: tags = [], isFetching: isTagsFetching } = useQuery<TagRecord[]>({
+    queryKey: ["tags"],
+    queryFn: getTags,
+    staleTime: 1000 * 60 * 5,
+  });
+
   useEffect(() => {
     if (cvBuilder?.elements) {
       loadCVState(cvBuilder.elements, cvBuilder.pageProperties);
       setName(cvBuilder.name || "");
       setJob(cvBuilder.job || "");
-      setTag((cvBuilder.tag as CVTag) || "Draft");
+
+      const requestedTag = cvBuilder.tag || "";
+      const selectedTag = tags.find((tagItem) => tagItem._id === requestedTag) ?? tags.find((tagItem) => tagItem.name === requestedTag);
+      setTag((selectedTag?._id ?? requestedTag) as CVTag);
     }
-  }, [cvBuilder, loadCVState]);
+  }, [cvBuilder, loadCVState, tags]);
 
   const mutation = useMutation<unknown, Error, CVSubmitPayload>({
     mutationFn: (payload) => (id ? updateCV(id, payload) : submitCV(payload)),
@@ -81,6 +91,7 @@ const CVBuilderContent = () => {
   const openSubmitDialog = () => {
     commitEdits();
     setName((current) => current || findCVName(elements));
+    setTag((current) => current || tags[0]?._id || "");
     setIsSubmitDialogOpen(true);
   };
 
@@ -138,12 +149,22 @@ const CVBuilderContent = () => {
               <Label>Tag</Label>
               <Select value={tag} onValueChange={(value) => setTag(value as CVTag)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select tag" />
+                  <SelectValue placeholder={isTagsFetching ? "Loading tags..." : "Select tag"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="report">Report</SelectItem>
-                  <SelectItem value="Important">Important</SelectItem>
-                  <SelectItem value="Draft">Draft</SelectItem>
+                  {tags.length > 0 ?
+                    tags.map((tagItem) => (
+                      <SelectItem key={tagItem._id} value={tagItem._id} className="pl-0">
+                        <span className="mr-2 inline-flex h-2.5 w-2.5 shrink-0 rounded-full border border-border" style={{ backgroundColor: tagItem.color }} />
+                        <span>{tagItem.name}</span>
+                      </SelectItem>
+                    ))
+                  : <>
+                      <SelectItem value="Latest">Latest</SelectItem>
+                      <SelectItem value="Important">Important</SelectItem>
+                      <SelectItem value="Draft">Draft</SelectItem>
+                    </>
+                  }
                 </SelectContent>
               </Select>
             </div>

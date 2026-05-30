@@ -1,12 +1,14 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 
 /* ---------------- TYPES ---------------- */
+export type PaginationLocation = "top-left" | "top" | "top-right" | "bottom-left" | "bottom" | "bottom-right";
+
 export type PageProperties = {
   backgroundColor?: string;
   color?: string;
 };
 
-export type CVElementType = "page" | "section" | "block" | "text" | "list" | "date" | "token" | "image" | "icon" | "header";
+export type CVElementType = "page" | "section" | "block" | "text" | "list" | "date" | "token" | "image" | "icon" | "header" | "location";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 export type DateFormat = "DD_MM_YYYY" | "DD_MMM_YYYY" | "DD_MMMM_YYYY" | "MMM_YYYY" | "MMMM_YYYY" | "YYYY";
 
@@ -33,7 +35,11 @@ export interface CVElement {
     listStyle?: {
       icon?: string;
       iconColor?: string;
+      iconFill?: "fill" | "unfill";
+      direction?: "row" | "column";
     };
+    showIcon?: boolean;
+    iconFill?: "fill" | "unfill";
     tokenStyle?: {
       backgroundColor?: string;
       borderColor?: string;
@@ -100,7 +106,7 @@ interface CVContextType {
   removeElement: (id: string) => void;
   addHeader: (pageId: string, sectionId: string) => void;
   updateHeader: (id: string, updates: Partial<CVElement>) => void;
-  removeHeader: () => void;
+  removeHeader: (headerId?: string) => void;
   showSectionDividers: boolean;
   toggleSectionDividers: () => void;
   clearSelection: () => void;
@@ -110,6 +116,8 @@ interface CVContextType {
   loadCVState: (elements: CVElement[], pageProperties?: PageProperties) => void;
   showPagination: boolean;
   togglePagination: () => void;
+  paginationLocation: PaginationLocation;
+  setPaginationLocation: (location: PaginationLocation) => void;
   addPage: (value: number) => void;
   removePage: (pageId?: string) => void;
   showSideBar: boolean;
@@ -145,12 +153,12 @@ const DEFAULT_ELEMENT_CONFIG = [
             id: crypto.randomUUID() as string,
             type: "block",
             children: [
-              {
-                id: crypto.randomUUID() as string,
-                type: "text",
-                content: "Header",
-                properties: { fontSize: 28, fontWeight: "medium" as fontWeight, textAlign: "center", color: "#c5c5c5" },
-              },
+              // {
+              //   id: crypto.randomUUID() as string,
+              //   type: "text",
+              //   content: "Header",
+              //   properties: { fontSize: 28, fontWeight: "medium" as fontWeight, textAlign: "center", color: "#c5c5c5" },
+              // },
             ],
           },
         ],
@@ -203,6 +211,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
   const [showSectionDividers, setShowSectionDividers] = useState(false);
   const [showPagination, setShowPagination] = useState(false);
+  const [paginationLocation, setPaginationLocation] = useState<PaginationLocation>("bottom-right");
   const [showSideBar, setShowSideBar] = useState(false);
   const [pageProperties, setPageProperties] = useState<PageProperties>(() => {
     try {
@@ -282,17 +291,31 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         if (page.type !== "page") return page;
 
         const sections = page.children ?? [];
+
         if (sections.length >= MAX_SECTIONS) {
           return page;
         }
+
+        const updatedSections = sections.map((section) => ({
+          ...section,
+          height: 100 / (sections.length + 1),
+        }));
+
         return {
           ...page,
           children: [
-            ...sections,
+            ...updatedSections,
             {
               id: sectionId,
               type: "section",
-              children: [{ id: blockId, type: "block", children: [] }],
+              height: 100 / (sections.length + 1),
+              children: [
+                {
+                  id: blockId,
+                  type: "block",
+                  children: [],
+                },
+              ],
             },
           ],
         };
@@ -432,23 +455,24 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     setElements((prev) => updateTree(prev, id, (el) => ({ ...el, ...updates })));
   };
 
-  const removeHeader = () => {
+  const removeHeader = (headerId = selectedHeaderId ?? undefined) => {
+    if (!headerId) return;
+
     let parentSectionId: string | null = null;
-    let canDelete = false;
 
-    elements.forEach((section) => {
-      if (section.type !== "section") return;
-      const headers = section.children || [];
-      if (headers.some((h) => h.id === selectedHeaderId)) {
-        parentSectionId = section.id;
-        canDelete = headers.length > 1;
+    const findParentSection = (nodes: CVElement[]) => {
+      for (const node of nodes) {
+        if (node.type === "section" && node.children?.some((child) => child.id === headerId)) {
+          parentSectionId = node.id;
+          return;
+        }
+        if (node.children) findParentSection(node.children);
       }
-    });
+    };
 
-    if (!canDelete) return;
-    if (selectedHeaderId === null) return;
-    setElements((prev) => removeFromTree(prev, selectedHeaderId));
-    setSelectedHeaderId(null);
+    findParentSection(elements);
+    setElements((prev) => removeFromTree(prev, headerId));
+    if (selectedHeaderId === headerId) setSelectedHeaderId(null);
     setSelectedSectionId(parentSectionId);
   };
 
@@ -584,6 +608,8 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         removePage,
         showPagination,
         togglePagination,
+        paginationLocation,
+        setPaginationLocation,
 
         showSideBar,
         toggleSideBar,

@@ -1,39 +1,37 @@
 import React from "react";
-import { LineChart } from "../../../../components/ui/chart";
+import { BarChart } from "../../../../components/ui/chart";
+import { dashboardScaleOptions, FULL_BAR_RADIUS, useChartThemeColors } from "../chart-theme";
 
 const NotesPerWeek: React.FC = () => {
+  const colors = useChartThemeColors();
   const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const values = [3, 5, 4, 8, 6, 7, 5];
+
   const data = {
     labels,
     datasets: [
       {
         label: "Notes",
-        data: [3, 5, 4, 8, 6, 7, 5],
-        borderColor: "rgba(99,102,241,0.9)",
-        backgroundColor: "rgba(99,102,241,0.12)",
-        tension: 0.4,
-        fill: true,
-        pointRadius: 0,
+        data: values,
+        backgroundColor: values.map((_, index) => colors.primaryShades[index % 2 === 0 ? 0 : 2]),
+        hoverBackgroundColor: values.map((_, index) => colors.primaryShades[index % 2 === 0 ? 1 : 0]),
+        borderRadius: FULL_BAR_RADIUS,
+        borderSkipped: false,
+        barThickness: 32,
+        maxBarThickness: 36,
       },
     ],
   };
 
   const options = {
-    plugins: { legend: { display: false } },
+    plugins: { legend: { display: false }, tooltip: { enabled: true } },
     maintainAspectRatio: false,
-    scales: {
-      x: { grid: { display: false }, ticks: { color: "#94a3b8" } },
-      y: { grid: { color: "rgba(148,163,184,0.06)" }, ticks: { color: "#94a3b8" } },
-    },
-    animations: { tension: { duration: 800, easing: "easeOutQuart" } },
+    scales: dashboardScaleOptions(colors),
   };
 
   return (
-    <div className="w-full h-64">
-      <h3 className="text-lg font-medium text-foreground mb-2">Notes Created This Week</h3>
-      <div className="w-full h-52">
-        <LineChart data={data} options={options} />
-      </div>
+    <div className="h-56 w-full">
+      <BarChart data={data} options={options} />
     </div>
   );
 };

@@ -1,40 +1,17 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArchiveIcon, MoreVertical, TrashIcon } from "lucide-react";
 import React from "react";
+import NoteCard from "./note-card";
+import { NoteListSkeleton } from "./note-skeleton";
 import { State } from "./state";
 
-function listinglayout({ noteListing, onSelect }: { noteListing: State[]; onSelect: (note: State) => void }) {
+function listinglayout({ noteListing, onSelect, isLoading }: { noteListing: State[]; onSelect: (note: State) => void; isLoading?: boolean }) {
+  if (isLoading) {
+    return <NoteListSkeleton />;
+  }
+
   return (
     <>
-      {noteListing.map((item: State, index: number) => (
-        <Card key={index} className="m-3 shadow-none hover:shadow transition-shadow" onClick={() => onSelect(item)}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{item?.title}</CardTitle>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem>
-                  <ArchiveIcon className="mr-2 h-4 w-4" />
-                  <span>Archive</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <TrashIcon className="mr-2 h-4 w-4" />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600">{item?.description}</p>
-          </CardContent>
-        </Card>
+      {noteListing.map((item: State) => (
+        <NoteCard key={item?._id ?? `${item?.title}-${item?.description}`} item={item} onSelect={onSelect} className="m-3" />
       ))}
     </>
   );

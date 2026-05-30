@@ -1,3 +1,4 @@
+import Icon from "@/common/icons";
 import { CVElement, useCV } from "@/lib/useCV";
 import { fontWeightMap } from "@/lib/utils";
 import { Trash } from "lucide-react";
@@ -5,7 +6,7 @@ import React, { CSSProperties, useRef } from "react";
 
 const CvTextRenderer = ({ element, readonly = false }: { element: CVElement; readonly?: boolean }) => {
   const { updateElement, selectedElementId, removeElement, selectElement } = useCV();
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useRef<HTMLParagraphElement>(null);
   const isSelected = selectedElementId === element.id;
   const decorations: string[] = [];
 
@@ -28,6 +29,15 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement; rea
     textAlign: element.properties?.textAlign,
     color: element.properties?.color,
   };
+  const justifyContent =
+    element.properties?.textAlign === "center" ? "center"
+    : element.properties?.textAlign === "end" ? "flex-end"
+    : "flex-start";
+  const showIcon = element.properties?.showIcon && element.properties?.icon;
+  const iconStyle: CSSProperties = {
+    color: element.properties?.color,
+    fill: element.properties?.iconFill === "fill" ? "currentColor" : "none",
+  };
 
   return (
     <div className="relative">
@@ -42,11 +52,7 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement; rea
         </button>
       )}
 
-      <p
-        ref={ref}
-        style={style}
-        contentEditable={!readonly && element.editable !== false}
-        suppressContentEditableWarning
+      <div
         onClick={
           !readonly ?
             (e) => {
@@ -55,32 +61,50 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement; rea
             }
           : undefined
         }
-        onBlur={() => {
-          updateElement(element.id, {
-            content: ref.current?.innerText ?? "",
-          });
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            document.execCommand("insertLineBreak");
-          }
-        }}
-        onPaste={(e) => {
-          e.preventDefault();
-          const text = e.clipboardData.getData("text/plain");
-          document.execCommand("insertText", false, text);
-        }}
-        data-placeholder="Type here..."
         className={`
-      cursor-text outline-none
-      empty:before:content-[attr(data-placeholder)]
-      empty:before:text-muted-foreground
-      rounded-sm px-1 transition
-      ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
-    `}>
-        {element.content}
-      </p>
+          flex items-center gap-2 rounded-sm px-1 transition
+          ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
+        `}
+        style={{ justifyContent }}>
+        {showIcon && <Icon icon={element.properties?.icon ?? "Star"} customClass="shrink-0" style={iconStyle} size={element.properties?.fontSize ?? 14} />}
+        <p
+          ref={ref}
+          style={{ ...style, textAlign: undefined }}
+          contentEditable={!readonly && element.editable !== false}
+          suppressContentEditableWarning
+          onClick={
+            !readonly ?
+              (e) => {
+                e.stopPropagation();
+                selectElement(element.id);
+              }
+            : undefined
+          }
+          onBlur={() => {
+            updateElement(element.id, {
+              content: ref.current?.innerText ?? "",
+            });
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              document.execCommand("insertLineBreak");
+            }
+          }}
+          onPaste={(e) => {
+            e.preventDefault();
+            const text = e.clipboardData.getData("text/plain");
+            document.execCommand("insertText", false, text);
+          }}
+          data-placeholder="Type here..."
+          className="
+            cursor-text outline-none min-w-[2px] whitespace-pre-wrap
+            empty:before:content-[attr(data-placeholder)]
+            empty:before:text-muted-foreground
+          ">
+          {element.content}
+        </p>
+      </div>
     </div>
   );
 };

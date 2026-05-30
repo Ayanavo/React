@@ -10,24 +10,21 @@ const activities = [
 
 const ActivityTimeline: React.FC = () => {
   return (
-    <div>
-      <h4 className="text-md font-medium text-foreground mb-3">Activity</h4>
-      <div className="space-y-4">
-        {activities.map((a) => {
-          const Icon = a.icon;
-          return (
-            <div key={a.id} className="flex items-start gap-3 rounded-2xl bg-card/75 border border-border p-3 shadow-sm">
-              <div className="mt-1 p-2 rounded-full bg-accent/10 text-accent-foreground">
-                <Icon className="w-4 h-4" />
-              </div>
-              <div className="flex-1">
-                <div className="text-foreground">{a.type}</div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">{a.time}</div>
-              </div>
+    <div className="space-y-3">
+      {activities.map((activity) => {
+        const Icon = activity.icon;
+        return (
+          <div key={activity.id} className="flex items-start gap-3 rounded-xl border bg-muted/30 p-3">
+            <div className="rounded-xl bg-background p-2 text-primary">
+              <Icon className="h-4 w-4" />
             </div>
-          );
-        })}
-      </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-foreground">{activity.type}</p>
+              <p className="text-xs text-muted-foreground">{activity.time}</p>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

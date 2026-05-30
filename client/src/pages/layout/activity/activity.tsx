@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { formatAppDate, formatAppMonthYear } from "@/lib/date-format";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionGridPlugin, { DateClickArg } from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
@@ -22,6 +23,7 @@ function activity() {
   const [selectedDate, setSelectedDate] = useState<moment.Moment>(moment());
   const calendarRef = useRef<FullCalendar | null>(null);
   const [activeMonth, setActiveMonth] = useState("");
+  const [activeMonthDate, setActiveMonthDate] = useState<moment.Moment>(moment());
   const [date, setDate] = useState<Date>(new Date());
   const [grid, setGrid] = useState<string>("dayGridMonth");
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -41,8 +43,9 @@ function activity() {
   useEffect(() => {
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
-      const currentMonth = moment(calendarApi.getDate()).format("MMMM YYYY");
-      setActiveMonth(currentMonth);
+      const currentMonthDate = moment(calendarApi.getDate());
+      setActiveMonthDate(currentMonthDate);
+      setActiveMonth(formatAppMonthYear(currentMonthDate));
       calendarApi.gotoDate(date);
     }
   }, [date]);
@@ -79,8 +82,9 @@ function activity() {
     if (calendarRef.current) {
       const calendarApi = calendarRef.current.getApi();
       const currentDate = calendarApi.getDate();
-      const currentMonth = moment(currentDate).format("MMMM YYYY");
-      setActiveMonth(currentMonth);
+      const currentMonthDate = moment(currentDate);
+      setActiveMonthDate(currentMonthDate);
+      setActiveMonth(formatAppMonthYear(currentMonthDate));
     }
   }
 
@@ -95,7 +99,7 @@ function activity() {
         <div className="ml-2 px-2 mt-3">
           <DatePickerComponent onSendData={setDate} date={date} />
 
-          <ActivityComponent events={HolidayList.filter((events) => moment(events.start).month() === moment(activeMonth, "MMMM YYYY").month() && moment(events.start).year() === moment(activeMonth, "MMMM YYYY").year())} />
+          <ActivityComponent events={HolidayList.filter((events) => moment(events.start).month() === activeMonthDate.month() && moment(events.start).year() === activeMonthDate.year())} />
         </div>
 
         {/* <ResizableHandle withHandle /> */}
@@ -151,9 +155,9 @@ function activity() {
                 dayHeaderContent={(args) => {
                   switch (args.view.type) {
                     case "dayGridDay":
-                      return moment(args.date).format("DD dddd");
+                      return `${formatAppDate(args.date)} ${moment(args.date).format("dddd")}`;
                     case "dayGridWeek":
-                      return moment(args.date).format("DD ddd");
+                      return `${formatAppDate(args.date)} ${moment(args.date).format("ddd")}`;
                     case "dayGridMonth":
                       return moment(args.date).format("ddd");
                   }

@@ -9,7 +9,7 @@ import { Minus, Plus } from "lucide-react";
 import React, { useState } from "react";
 
 const PagePallet = () => {
-  const { addPage, removePage, showSideBar, toggleSideBar, selectedPageId, showPagination, togglePagination, MAX_PAGES, elements } = useCV();
+  const { addPage, removePage, showSideBar, selectedPageId, showPagination, togglePagination, paginationLocation, setPaginationLocation, MAX_PAGES, elements } = useCV();
   const [pageCount, setPageCount] = useState(elements.length);
   const { confirm } = useConfirmDialog();
 
@@ -62,10 +62,10 @@ const PagePallet = () => {
         </ButtonGroup>
       </div>
 
-      <div className="flex items-center justify-between py-2 rounded-md">
+      {/* <div className="flex items-center justify-between py-2 rounded-md">
         <Label className="text-xs font-medium text-muted-foreground text-nowrap"> Add SideBar</Label>
         <Switch checked={showSideBar} onCheckedChange={toggleSideBar} />
-      </div>
+      </div> */}
 
       {showSideBar && (
         <div className="space-y-2 flex items-center justify-between">
@@ -100,9 +100,9 @@ const PagePallet = () => {
         <div className="space-y-2 flex items-center justify-between">
           <Label className="text-xs font-medium text-muted-foreground text-nowrap"> Pagination Location</Label>
           <Select
-            defaultValue="bottom-right"
+            value={paginationLocation}
             onValueChange={(value) => {
-              console.log(value);
+              setPaginationLocation(value as typeof paginationLocation);
             }}>
             <SelectTrigger className="w-32">
               <SelectValue />

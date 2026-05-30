@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import showToast from "@/hooks/toast";
+import { DEFAULT_DATE_FORMAT } from "@/lib/date-format";
 import DropdownComponent from "@/shared/controls/dropdown";
 import ImageComponent from "@/shared/controls/image";
 import { saveSettingsAPI } from "@/shared/services/auth";
 import { Check, Monitor, Moon, Sun } from "lucide-react";
+import moment from "moment";
 import React from "react";
 import { FormProvider } from "react-hook-form";
 import generateControl from "../layout/grid/form/validation";
@@ -42,7 +44,7 @@ const dateFormatOptions = ["/", "-", "."].flatMap((delimiter) =>
       ["YYYY", month, "DD"],
     ].map((parts) => {
       const value = parts.join(delimiter);
-      return { label: value, value };
+      return { label: moment().format(value), value };
     })
   )
 );
@@ -55,7 +57,7 @@ function settings() {
   const { font, setFont } = useFont();
   const [isSaving, setIsSaving] = React.useState(false);
   const [savedSettings, setSavedSettings] = React.useState(() => ({
-    date_format: sessionStorage.getItem("date_format") ?? "DD/MM/YYYY",
+    date_format: sessionStorage.getItem("date_format") ?? DEFAULT_DATE_FORMAT,
     currency_format: sessionStorage.getItem("currency_code") ?? "INR",
     font_style: sessionStorage.getItem("font_style") ?? font,
     theme: sessionStorage.getItem("theme") ?? theme,
@@ -67,7 +69,7 @@ function settings() {
     placeholder: "Select date format",
     type: "list" as "list",
     options: dateFormatOptions,
-    default: sessionStorage.getItem("date_format") ?? "DD/MM/YYYY",
+    default: sessionStorage.getItem("date_format") ?? DEFAULT_DATE_FORMAT,
     validation: {
       required: true,
     },

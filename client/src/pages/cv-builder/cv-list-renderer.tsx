@@ -9,8 +9,12 @@ const CvListRenderer = ({ element, readonly = false }: { element: CVElement; rea
   const ref = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLSpanElement | null)[]>([]);
   const isInternalFocusRef = useRef(false);
-  const isEditingRef = useRef(false);
   const isSelected = selectedElementId === element.id;
+  const direction = element.properties?.listStyle?.direction ?? "column";
+  const alignment =
+    element.properties?.textAlign === "center" ? "center"
+    : element.properties?.textAlign === "end" ? "flex-end"
+    : "flex-start";
 
   // ---------- Normalize content ----------
   const items: string[] = Array.isArray(element.content) ? (element.content as string[]) : [""];
@@ -26,12 +30,6 @@ const CvListRenderer = ({ element, readonly = false }: { element: CVElement; rea
     fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
     textDecoration: decorations.length ? decorations.join(" ") : "none",
     color: element.properties?.color,
-    ...(isEditingRef.current ?
-      {}
-    : {
-        columnWidth: "260px",
-        columnGap: "1.5rem",
-      }),
   };
 
   // ---------- Caret helpers ----------
@@ -148,7 +146,6 @@ const CvListRenderer = ({ element, readonly = false }: { element: CVElement; rea
   // ---------- Blur → save ----------
   const handleBlur = () => {
     if (isInternalFocusRef.current) return;
-    isEditingRef.current = false;
     if (!ref.current) return;
 
     const lines = Array.from(ref.current.querySelectorAll("[data-list-item]")).map((el) => el.textContent ?? "");
@@ -195,32 +192,33 @@ const CvListRenderer = ({ element, readonly = false }: { element: CVElement; rea
         </button>
       )}
 
-      {items.map((item, index) => (
-        <div key={index} className="flex gap-2 items-center break-inside-avoid-column">
-          <ListIcon element={element} index={index} />
-          {readonly ?
-            <span className="whitespace-pre-wrap">{item}</span>
-          : <span
-              ref={(el) => (itemRefs.current[index] = el)}
-              data-list-item
-              data-placeholder="Type here..."
-              contentEditable
-              suppressContentEditableWarning
-              onFocus={() => {
-                isEditingRef.current = true;
-              }}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              onPaste={handlePaste}
-              className="
-                cursor-text outline-none min-w-[2px]
-                empty:before:content-[attr(data-placeholder)]
-                empty:before:text-muted-foreground
-              ">
-              {item}
-            </span>
-          }
-        </div>
-      ))}
+      <div
+        className={`flex ${direction === "row" ? "flex-row flex-wrap gap-x-4 gap-y-1" : "flex-col gap-1"}`}
+        style={direction === "row" ? { justifyContent: alignment } : { alignItems: alignment }}>
+        {items.map((item, index) => (
+          <div key={index} className="flex gap-2 items-center">
+            <ListIcon element={element} index={index} />
+            {readonly ?
+              <span className="whitespace-pre-wrap">{item}</span>
+            : <span
+                ref={(el) => (itemRefs.current[index] = el)}
+                data-list-item
+                data-placeholder="Type here..."
+                contentEditable
+                suppressContentEditableWarning
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                onPaste={handlePaste}
+                className="
+                  cursor-text outline-none min-w-[2px]
+                  empty:before:content-[attr(data-placeholder)]
+                  empty:before:text-muted-foreground
+                ">
+                {item}
+              </span>
+            }
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

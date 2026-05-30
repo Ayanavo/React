@@ -1,5 +1,5 @@
 import { CVElementType, useCV } from "@/lib/useCV";
-import { Calendar, Image, List, Star, Tag, Text } from "lucide-react";
+import { Calendar, Image, List, MapPin, Tag, Text } from "lucide-react";
 import React from "react";
 import ElementOptions from "./options-panel";
 
@@ -37,16 +37,16 @@ const AccessoriesPallet = () => {
       label: "Date",
       type: "date",
       defaultContent: "",
-      defaultProperties: { fontSize: 12, fontWeight: "normal", dateFormat: "DD_MM_YYYY", includeTime: false, timeFormat: "24" },
+      defaultProperties: { fontSize: 12, fontWeight: "normal", includeTime: false, timeFormat: "24" },
       icon: <Calendar className="w-6 h-6" />,
     },
     {
-      id: "icon",
-      label: "Icon",
-      type: "icon",
+      id: "location",
+      label: "Location",
+      type: "location",
       defaultContent: "",
-      defaultProperties: { fontSize: 10, fontWeight: "normal", fontStyle: "italic" },
-      icon: <Star className="w-6 h-6" />,
+      defaultProperties: { fontSize: 14, fontWeight: "normal" },
+      icon: <MapPin className="w-6 h-6" />,
     },
     {
       id: "image",

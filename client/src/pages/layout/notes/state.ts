@@ -1,6 +1,11 @@
 export type State = {
+  _id?: string;
   title: string;
   description: string;
+  backgroundColor?: string;
+  image?: string[];
+  createdAt?: string;
+  updatedAt?: string;
 } | null;
 
 export type Action = {

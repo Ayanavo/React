@@ -2,17 +2,49 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useCV } from "@/lib/useCV";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { Download, Eye, Trash } from "lucide-react";
+import { Download, Eye, GripHorizontal, Trash } from "lucide-react";
 import React, { useRef, useState } from "react";
 import CVElementRenderer from "./cv-element-renderer";
 import CVPreview, { CVPreviewRef } from "./cv-preview";
 
 const ZOOM = 1;
+const MIN_SECTION_HEIGHT = 80;
+
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const getSectionHeights = (sections: Array<{ height?: number }>) => {
+  if (sections.length === 0) return [];
+
+  const fallback = 100 / sections.length;
+  const heights = sections.map((section) => (typeof section.height === "number" && section.height > 0 ? section.height : fallback));
+  const total = heights.reduce((sum, height) => sum + height, 0);
+
+  if (total <= 0) return sections.map(() => fallback);
+  return heights.map((height) => (height / total) * 100);
+};
 
 const Canvas = () => {
-  const { elements, selectedPageId, selectedSectionId, A4_WIDTH, A4_HEIGHT, showSectionDividers, selectedBlockId, selectPage, selectSection, selectBlock, selectHeader, removeSection, removePage, clearSelection, pageProperties } = useCV();
-  const [isDragging] = useState(false);
-  const [draggingIndex] = useState<number | null>(null);
+  const {
+    elements,
+    selectedPageId,
+    selectedSectionId,
+    A4_WIDTH,
+    A4_HEIGHT,
+    selectedBlockId,
+    selectPage,
+    selectSection,
+    selectBlock,
+    selectHeader,
+    removeSection,
+    removePage,
+    clearSelection,
+    pageProperties,
+    showPagination,
+    paginationLocation,
+    updateElement,
+  } = useCV();
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
 
   const pageRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<CVPreviewRef>(null);
@@ -71,6 +103,41 @@ const Canvas = () => {
   //   window.addEventListener("mouseleave", handleMouseLeave);
   // };
 
+  const handleSectionResizeStart = (pageIndex: number, sections: Array<{ id: string; height?: number }>, sectionIndex: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startY = e.clientY;
+    const startHeights = getSectionHeights(sections);
+    const pairTotal = startHeights[sectionIndex] + startHeights[sectionIndex + 1];
+    const minPercent = Math.min((MIN_SECTION_HEIGHT / A4_HEIGHT) * 100, pairTotal / 2);
+
+    setIsDragging(true);
+    setDraggingIndex(pageIndex);
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaPercent = ((moveEvent.clientY - startY) / A4_HEIGHT) * 100;
+      const nextTopHeight = clamp(startHeights[sectionIndex] + deltaPercent, minPercent, pairTotal - minPercent);
+      const nextHeights = [...startHeights];
+      nextHeights[sectionIndex] = nextTopHeight;
+      nextHeights[sectionIndex + 1] = pairTotal - nextTopHeight;
+
+      sections.forEach((section, index) => {
+        updateElement(section.id, { height: Number(nextHeights[index].toFixed(4)) });
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+      setDraggingIndex(null);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
   return (
     <aside className="flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
       <div
@@ -80,6 +147,7 @@ const Canvas = () => {
         {/* Render Pages Dynamically */}
         {elements.map((page, pageIndex) => {
           const sections = page.children ?? [];
+          const sectionHeights = getSectionHeights(sections);
 
           return (
             <div
@@ -132,7 +200,20 @@ const Canvas = () => {
                     </button>
                   </div>
 
-                  <div className="flex flex-col w-full h-full">
+                  <div className="relative flex flex-col w-full h-full">
+                    {showPagination && (
+                      <div
+                        className={`absolute z-20 rounded-md bg-background/90 px-2 py-1 text-xs font-medium text-muted-foreground ${
+                          paginationLocation === "top-left" ? "top-4 left-4"
+                          : paginationLocation === "top" ? "top-4 left-1/2 -translate-x-1/2"
+                          : paginationLocation === "top-right" ? "top-4 right-4"
+                          : paginationLocation === "bottom-left" ? "bottom-4 left-4"
+                          : paginationLocation === "bottom" ? "bottom-4 left-1/2 -translate-x-1/2"
+                          : "bottom-4 right-4"
+                        }`}>
+                        Page {pageIndex + 1} / {elements.length}
+                      </div>
+                    )}
                     {sections.map((section, sectionIndex) => {
                       const headerChild = section.children?.find((c) => c.type === "header");
                       const blockChildren = section.children?.filter((c) => c.type === "block") ?? [];
@@ -143,8 +224,8 @@ const Canvas = () => {
                       return (
                         <div
                           key={section.id}
-                          className={`relative flex flex-col w-full ${isSectionSelected ? "ring-2 ring-ring" : ""}`}
-                          style={{ height: `${100 / sections.length}%` }}
+                          className={`relative flex flex-col w-full overflow-visible  ${isSectionSelected ? "ring-2 ring-ring" : ""} ${sectionIndex > 0 ? "my-[1px]" : "mb-[1px]"} ${!isLastSection ? "mb-1" : ""}`}
+                          style={{ height: `${sectionHeights[sectionIndex]}%` }}
                           onClick={(e) => {
                             e.stopPropagation();
                             selectSection(page.id, section.id);
@@ -158,7 +239,7 @@ const Canvas = () => {
                                       e.stopPropagation();
                                       removeSection(section.id);
                                     }}
-                                    className="absolute top-2 right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
+                                    className="absolute right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
                                     <Trash className="h-3 w-3" />
                                   </button>
                                 </TooltipTrigger>
@@ -199,7 +280,11 @@ const Canvas = () => {
                           </div>
 
                           {/* ✅ SECTION DIVIDER */}
-                          {!isLastSection && <div className={`absolute bottom-0 left-4 right-4 h-px ${showSectionDividers && "bg-border"}`}>{/* same divider code */}</div>}
+                          {isSectionSelected && (
+                            <div className="group absolute bottom-0 left-4 right-4 z-20 h-3 translate-y-1/2 cursor-ns-resize" onMouseDown={(e) => handleSectionResizeStart(pageIndex, sections, sectionIndex, e)}>
+                              <GripHorizontal className="absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 bg-muted shadow" />
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -209,7 +294,6 @@ const Canvas = () => {
             </div>
           );
         })}
-
       </div>
 
       {/* Preview Block */}

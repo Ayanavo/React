@@ -8,17 +8,100 @@ import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { fontWeight, useCV } from "@/lib/useCV";
 import * as Iconlist from "lucide-react";
-import { AlignCenter, AlignLeft, AlignRight, ArrowRight, Dot, Italic, Minus, PlusIcon, Slash, Strikethrough, Underline, X } from "lucide-react";
+import { AlignCenter, AlignLeft, AlignRight, ArrowRight, Columns2, Dot, Italic, Minus, PlusIcon, Rows2, Slash, Strikethrough, Underline, X } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { ListIcon } from "./list-icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import DatePickerComponent from "../layout/activity/datepicker";
+
+const BULLET_ICONS: string[] = ["bullet", "arrow", "dash", "check", "number"];
+const ICON_LIST = Object.keys(Iconlist)
+  .filter((key) => {
+    if (key === "createLucideIcon") return false;
+    if (key.endsWith("Icon")) return false;
+    return /^[A-Z]/.test(key);
+  })
+  .map((key) => ({
+    name: key.toLowerCase(),
+    icon: key,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const IconPicker = ({ value, onSelect }: { value?: string; onSelect: (icon: string) => void }) => {
+  const [search, setSearch] = useState("");
+  const selectedIconName = value ?? "Star";
+  const filteredIcons = useMemo(() => {
+    return ICON_LIST.filter((entry) => entry.name.includes(search.toLowerCase())).slice(0, 100);
+  }, [search]);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <div className="w-32 flex items-center gap-2 border rounded-md px-2 py-[6px] shadow cursor-pointer">
+          <Icon icon={selectedIconName} customClass="w-4 h-4 shrink-0" />
+          <span className="text-xs capitalize text-muted-foreground truncate flex-1">{selectedIconName}</span>
+        </div>
+      </DropdownMenuTrigger>
+
+      <DropdownMenuContent className="w-56 p-2 space-y-2" onKeyDown={(e) => e.stopPropagation()}>
+        <div className="relative">
+          <Input
+            placeholder="Search icon..."
+            autoFocus
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            className="h-8 pr-7"
+          />
+
+          {search && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setSearch("");
+              }}
+              onKeyDown={(e) => e.stopPropagation()}
+              className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted">
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
+          <TooltipProvider delayDuration={500}>
+            {filteredIcons.map((item) => (
+              <Tooltip key={item.icon}>
+                <TooltipTrigger asChild>
+                  <div
+                    className={`p-2 rounded cursor-pointer flex items-center justify-center border ${item.icon === selectedIconName ? "bg-muted border-primary" : "hover:bg-muted"}`}
+                    onClick={() => {
+                      onSelect(item.icon);
+                      document.body.click();
+                    }}>
+                    <Icon icon={item.icon} customClass="w-4 h-4" />
+                  </div>
+                </TooltipTrigger>
+
+                <TooltipContent side="top">
+                  <span className="text-xs capitalize">{item.icon.replace(/([A-Z])/g, " $1")}</span>
+                </TooltipContent>
+              </Tooltip>
+            ))}
+          </TooltipProvider>
+        </div>
+
+        {filteredIcons.length === 0 && <div className="text-xs text-muted-foreground text-center py-2">No icons found</div>}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+};
 
 const ElementOptions = () => {
   const { selectedElement, updateElement } = useCV();
   if (!selectedElement || !selectedElement.properties) return null;
 
   const props = selectedElement.properties;
-  const BULLET_ICONS: string[] = ["bullet", "arrow", "dash", "check", "number"];
   const FONT_WEIGHTS: {
     label: string;
     value: fontWeight;
@@ -30,24 +113,7 @@ const ElementOptions = () => {
     { label: "Semi Bold", value: "semi-bold", css: 600 },
     { label: "Bold", value: "bold", css: 700 },
   ];
-  const ICON_LIST = Object.keys(Iconlist)
-    .filter((key) => {
-      if (key === "createLucideIcon") return false;
-      if (key.endsWith("Icon")) return false;
-      return /^[A-Z]/.test(key);
-    })
-    .map((key) => ({
-      name: key.toLowerCase(),
-      icon: key,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name));
-
-  const [search, setSearch] = useState("");
-  const selectedIconName = props.icon ?? "Star";
-  const SelectedIcon = ICON_LIST.find((item) => item.icon === selectedIconName)?.icon || "Star";
-  const filteredIcons = useMemo(() => {
-    return ICON_LIST.filter((entry) => entry.name.includes(search.toLowerCase())).slice(0, 100);
-  }, [search]);
+  const isPresetBulletIcon = (icon?: string) => BULLET_ICONS.includes(icon ?? "");
 
   return (
     <div className="mt-4 rounded-lg border p-3 space-y-1">
@@ -140,39 +206,37 @@ const ElementOptions = () => {
       )}
 
       {/* ALIGNMENT */}
-      {selectedElement.type != "list" && (
-        <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Align</Label>
+      <div className="space-y-2 flex items-center justify-between">
+        <Label className="text-xs font-medium text-muted-foreground text-nowrap">Align</Label>
 
-          <ToggleGroup
-            size="sm"
-            type="single"
-            variant="outline"
-            value={props.textAlign ?? "start"}
-            onValueChange={(value) => {
-              if (!value) return;
-              updateElement(selectedElement.id, {
-                properties: {
-                  ...props,
-                  textAlign: value as "start" | "center" | "end",
-                },
-              });
-            }}
-            className="w-32 flex gap-2">
-            <ToggleGroupItem value="start">
-              <AlignLeft className="h-4 w-4" />
-            </ToggleGroupItem>
+        <ToggleGroup
+          size="sm"
+          type="single"
+          variant="outline"
+          value={props.textAlign ?? "start"}
+          onValueChange={(value) => {
+            if (!value) return;
+            updateElement(selectedElement.id, {
+              properties: {
+                ...props,
+                textAlign: value as "start" | "center" | "end",
+              },
+            });
+          }}
+          className="w-32 flex gap-2">
+          <ToggleGroupItem value="start">
+            <AlignLeft className="h-4 w-4" />
+          </ToggleGroupItem>
 
-            <ToggleGroupItem value="center">
-              <AlignCenter className="h-4 w-4" />
-            </ToggleGroupItem>
+          <ToggleGroupItem value="center">
+            <AlignCenter className="h-4 w-4" />
+          </ToggleGroupItem>
 
-            <ToggleGroupItem value="end">
-              <AlignRight className="h-4 w-4" />
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-      )}
+          <ToggleGroupItem value="end">
+            <AlignRight className="h-4 w-4" />
+          </ToggleGroupItem>
+        </ToggleGroup>
+      </div>
 
       {/* TEXT COLOR */}
       <div className="space-y-2 flex items-center justify-between">
@@ -195,6 +259,66 @@ const ElementOptions = () => {
           {props.color ?? "#000000"}
         </label>
       </div>
+
+      {selectedElement.type === "text" && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground">Add icon</Label>
+          <Switch
+            checked={props.showIcon ?? false}
+            onCheckedChange={(checked) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  showIcon: checked,
+                  icon: checked ? props.icon ?? "Star" : props.icon,
+                },
+              })
+            }
+          />
+        </div>
+      )}
+
+      {selectedElement.type === "text" && props.showIcon && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon</Label>
+          <IconPicker
+            value={props.icon ?? "Star"}
+            onSelect={(icon) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  showIcon: true,
+                  icon,
+                },
+              })
+            }
+          />
+        </div>
+      )}
+
+      {selectedElement.type === "text" && props.showIcon && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon Style</Label>
+          <Select
+            value={props.iconFill ?? "unfill"}
+            onValueChange={(value) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  iconFill: value as "fill" | "unfill",
+                },
+              })
+            }>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="unfill">Unfill</SelectItem>
+              <SelectItem value="fill">Fill</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* BULLET ICONS */}
       {selectedElement.type === "list" && (
@@ -225,6 +349,85 @@ const ElementOptions = () => {
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
+        </div>
+      )}
+
+      {selectedElement.type === "list" && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Direction</Label>
+
+          <ToggleGroup
+            size="sm"
+            type="single"
+            variant="outline"
+            value={props.listStyle?.direction ?? "column"}
+            onValueChange={(value) => {
+              if (!value) return;
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  listStyle: {
+                    ...props.listStyle,
+                    direction: value as "row" | "column",
+                  },
+                },
+              });
+            }}
+            className="w-32 flex gap-2">
+            <ToggleGroupItem value="column" className="text-xs">
+              <Rows2 className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="row" className="text-xs">
+              <Columns2 className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      )}
+
+      {selectedElement.type === "list" && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Custom Icon</Label>
+          <IconPicker
+            value={isPresetBulletIcon(props.listStyle?.icon) ? "Star" : props.listStyle?.icon ?? "Star"}
+            onSelect={(icon) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  listStyle: {
+                    ...props.listStyle,
+                    icon,
+                  },
+                },
+              })
+            }
+          />
+        </div>
+      )}
+
+      {selectedElement.type === "list" && !isPresetBulletIcon(props.listStyle?.icon) && (
+        <div className="space-y-2 flex items-center justify-between">
+          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon Style</Label>
+          <Select
+            value={props.listStyle?.iconFill ?? "unfill"}
+            onValueChange={(value) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  listStyle: {
+                    ...props.listStyle,
+                    iconFill: value as "fill" | "unfill",
+                  },
+                },
+              })
+            }>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="unfill">Unfill</SelectItem>
+              <SelectItem value="fill">Fill</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       )}
       {/* Bullet Color */}
@@ -301,6 +504,20 @@ const ElementOptions = () => {
             />
           </div>
         </>
+      )}
+
+      {selectedElement.type === "date" && (
+        <div className="space-y-2">
+          <Label className="text-xs font-medium text-muted-foreground">Pick date</Label>
+          <DatePickerComponent
+            date={selectedElement.content ? new Date(String(selectedElement.content)) : new Date()}
+            onSendData={(d: Date) => {
+              updateElement(selectedElement.id, {
+                content: d.toISOString(),
+              });
+            }}
+          />
+        </div>
       )}
 
       {props.includeTime && (
@@ -637,64 +854,6 @@ const ElementOptions = () => {
         </>
       )}
 
-      {/* IMAGE OPTIONS */}
-      {selectedElement.type === "icon" && (
-        <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon</Label>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="w-32 flex items-center gap-2 border rounded-md px-2 py-[6px] shadow cursor-pointer">
-                <Icon icon={SelectedIcon} customClass="w-4 h-4 shrink-0" />
-                <span className="text-xs capitalize text-muted-foreground truncate flex-1">{selectedIconName}</span>
-              </div>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent className="w-56 p-2 space-y-2">
-              <div className="relative">
-                <Input placeholder="Search icon..." autoFocus value={search} onChange={(e) => setSearch(e.target.value)} className="h-8 pr-7" />
-
-                {search && (
-                  <button onClick={() => setSearch("")} className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted">
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </div>
-              <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto">
-                <TooltipProvider delayDuration={500}>
-                  {filteredIcons.map((item) => {
-                    return (
-                      <Tooltip key={item.icon}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className={`p-2 rounded cursor-pointer flex items-center justify-center border ${item.icon === selectedIconName ? "bg-muted border-primary" : "hover:bg-muted"}`}
-                            onClick={() => {
-                              updateElement(selectedElement.id, {
-                                properties: {
-                                  ...props,
-                                  icon: item.icon,
-                                },
-                              });
-                              document.body.click();
-                            }}>
-                            <Icon icon={item.icon} customClass="w-4 h-4" />
-                          </div>
-                        </TooltipTrigger>
-
-                        <TooltipContent side="top">
-                          <span className="text-xs capitalize">{item.icon.replace(/([A-Z])/g, " $1")}</span>
-                        </TooltipContent>
-                      </Tooltip>
-                    );
-                  })}
-                </TooltipProvider>
-              </div>
-
-              {filteredIcons.length === 0 && <div className="text-xs text-muted-foreground text-center py-2">No icons found</div>}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
     </div>
   );
 };

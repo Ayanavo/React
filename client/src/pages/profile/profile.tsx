@@ -12,6 +12,7 @@ import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { getCurrentUserAPI } from "@/shared/services/auth";
 import showToast from "@/hooks/toast";
 import axios from "axios";
+import { getAxiosErrorMessage } from "@/shared/interceptors/auth-interceptor";
 
 const getInitials = (firstName?: string, lastName?: string) => {
   const first = firstName?.trim() ?? "";
@@ -121,7 +122,7 @@ function profile() {
         console.error("Manual pincode validation error:", error);
         form.setError("pincode", {
           type: "manual",
-          message: (error as { data?: { message: string } })?.data?.message,
+          message: getAxiosErrorMessage(error),
         });
       }
     };
@@ -231,7 +232,7 @@ function profile() {
               }}></AddressComponent>
 
             <div className="mt-8 space-y-2">
-              <Button type="submit" className="w-full" disabled={!form.formState.isDirty || form.formState.isSubmitting}>
+              <Button type="submit" className="w-full" disabled={!form.formState.isDirty || form.formState.isSubmitting || !form.formState.isValid}>
                 {form.formState.isSubmitting ? "Updating..." : "Update profile"}
               </Button>
             </div>
