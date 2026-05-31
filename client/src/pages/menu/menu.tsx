@@ -34,7 +34,6 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
               variant: "success",
             });
             sessionStorage.removeItem("auth_token");
-            // openCloseCallback(false);
             navigate("/login");
           })
           .catch((error) => {

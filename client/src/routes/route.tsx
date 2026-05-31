@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate, useRoutes } from "react-router-dom";
-import { usePermissions } from "@/shared/context/PermissionsContext";
-
+import { usePermissions, useHasAuthToken } from "@/shared/context/PermissionsContext";
+import { LoaderCircleIcon } from "lucide-react";
 import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
 import LoginComponent from "@/pages/auth/login/login";
 import RegistrationComponent from "@/pages/auth/registration/registration";
@@ -27,14 +27,66 @@ export type RouteConfig = {
   index?: boolean;
 };
 
+const authToken = sessionStorage.getItem("auth_token");
+
+const AppLoader = () => (
+  <div className="flex min-h-screen items-center justify-center bg-background">
+    <LoaderCircleIcon className="h-8 w-8 animate-spin text-muted-foreground" aria-label="Loading" />
+  </div>
+);
+
+const GuestOnly = ({ children }: { children: React.ReactNode }) => {
+  const hasToken = useHasAuthToken();
+  if (hasToken) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+};
+
+const RequireAuth = ({ children }: { children: React.ReactNode }) => {
+  const { isLoading, isInitialized } = usePermissions();
+  if (!authToken) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isInitialized || isLoading) {
+    return <AppLoader />;
+  }
+
+  return <>{children}</>;
+};
+
 /** Static routes - Always available regardless of permissions */
+
 const STATIC_ROUTES: RouteConfig[] = [
-  { path: "/login", element: <LoginComponent /> },
-  { path: "/register", element: <RegistrationComponent /> },
-  { path: "/forgot-password", element: <ForgotPasswordComponent /> },
+  {
+    path: "/login",
+    element: (
+      <GuestOnly>
+        <LoginComponent />
+      </GuestOnly>
+    ),
+  },
+
+  {
+    path: "/register",
+    element: (
+      <GuestOnly>
+        <RegistrationComponent />
+      </GuestOnly>
+    ),
+  },
+
+  {
+    path: "/forgot-password",
+    element: (
+      <GuestOnly>
+        <ForgotPasswordComponent />
+      </GuestOnly>
+    ),
+  },
 ];
 
 /** Protected layout routes */
+
 const PROTECTED_LAYOUT_ROUTES: RouteConfig[] = [
   { index: true, element: <Navigate to="/dashboard" replace /> },
   { path: "dashboard", element: <DashboardComponent /> },
@@ -66,18 +118,24 @@ const filterRoutesByPermissions = (permissions: string[]): RouteConfig[] => {
 
 const getRouteConfiguration = (permissions: string[]): RouteConfig[] => {
   const permittedDynamicRoutes = filterRoutesByPermissions(permissions);
+
   return [
     ...STATIC_ROUTES,
-    { path: "/", element: <Layout />, children: [...PROTECTED_LAYOUT_ROUTES, ...permittedDynamicRoutes] },
+    {
+      path: "/",
+      element: (
+        <RequireAuth>
+          <Layout />
+        </RequireAuth>
+      ),
+      children: [...PROTECTED_LAYOUT_ROUTES, ...permittedDynamicRoutes],
+    },
     { path: "*", element: <NoPageComponent /> },
   ];
 };
 
 export const Router = () => {
-  const { permissions, isLoading } = usePermissions();
+  const { permissions } = usePermissions();
   const routeConfiguration = getRouteConfiguration(permissions);
-  const routes = useRoutes(routeConfiguration as any);
-  if (isLoading) return <LoginComponent />;
-
-  return routes;
+  return useRoutes(routeConfiguration as any);
 };
