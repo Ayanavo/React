@@ -1,4 +1,5 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
 import { usePersistedState } from "@/hooks/usePersistedState";
@@ -8,8 +9,6 @@ import { logoutAPI } from "@/shared/services/auth";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import IconsComponent from "../../common/icons";
-import { Skeleton } from "@/components/ui/skeleton";
-import { usePermissions } from "@/shared/context/PermissionsContext";
 
 type NavItem = { label: string; icon: string; route: string };
 function menu({ NavList, isExpanded, isInitialized }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function, isInitialized: boolean }) {
