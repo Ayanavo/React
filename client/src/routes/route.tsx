@@ -27,7 +27,7 @@ export type RouteConfig = {
   index?: boolean;
 };
 
-const authToken = sessionStorage.getItem("auth_token");
+const auth_token = sessionStorage.getItem("auth_token");
 
 const AppLoader = () => (
   <div className="flex min-h-screen items-center justify-center bg-background">
@@ -36,17 +36,19 @@ const AppLoader = () => (
 );
 
 const GuestOnly = ({ children }: { children: React.ReactNode }) => {
-  if (authToken) return <Navigate to="/dashboard" replace />;
+  if (auth_token) return <Navigate to="/dashboard" replace />;
+
   return <>{children}</>;
 };
 
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
-  const { isLoading } = usePermissions();
-  if (!authToken) {
+
+ const { isLoading, isInitialized } = usePermissions();
+  if (!auth_token) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!authToken || isLoading) {
+  if (!auth_token || isLoading) {
     return <AppLoader />;
   }
 
@@ -78,7 +80,7 @@ const STATIC_ROUTES: RouteConfig[] = [
     path: "/forgot-password",
     element: (
       <GuestOnly>
-        <ForgotPasswordComponent />
+      <ForgotPasswordComponent />
       </GuestOnly>
     ),
   },
