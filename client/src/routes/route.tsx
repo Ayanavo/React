@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, useRoutes } from "react-router-dom";
-import { usePermissions, useHasAuthToken } from "@/shared/context/PermissionsContext";
+import { usePermissions } from "@/shared/context/PermissionsContext";
 import { LoaderCircleIcon } from "lucide-react";
 import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
 import LoginComponent from "@/pages/auth/login/login";
@@ -36,18 +36,17 @@ const AppLoader = () => (
 );
 
 const GuestOnly = ({ children }: { children: React.ReactNode }) => {
-  const hasToken = useHasAuthToken();
-  if (hasToken) return <Navigate to="/dashboard" replace />;
+  if (authToken) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 };
 
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
-  const { isLoading, isInitialized } = usePermissions();
+  const { isLoading } = usePermissions();
   if (!authToken) {
     return <Navigate to="/login" replace />;
   }
 
-  if (!isInitialized || isLoading) {
+  if (!authToken || isLoading) {
     return <AppLoader />;
   }
 
