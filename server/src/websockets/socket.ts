@@ -1,65 +1,53 @@
-// src/websockets/socket.ts
+import type { Server as HttpServer } from "http";
+import jwt, { Secret } from "jsonwebtoken";
+import { Server } from "socket.io";
+import { isOriginAllowed } from "../config/cors.js";
 
-import { Server as HttpServer } from "http";
-import { Server, Socket } from "socket.io";
+export const USER_LOGIN_STATUS_EVENT = "user:login-status";
 
 let io: Server | null = null;
 
-export const initializeSocket = (
-  server: HttpServer
-): Server => {
-  if (io) {
-    return io;
-  }
-
-  const allowedOrigins = [
-    process.env.FRONTEND_URL,
-    "http://localhost:3000",
-    "http://localhost:5173",
-  ].filter(Boolean) as string[];
+export const initializeSocket = (server: HttpServer): Server => {
+  if (io) return io;
 
   io = new Server(server, {
     cors: {
-      origin: allowedOrigins,
+      origin: (origin, cb) => {
+        if (isOriginAllowed(origin)) return cb(null, true);
+        cb(new Error(`Not allowed by CORS: ${origin}`));
+      },
       credentials: true,
-      methods: ["GET", "POST"],
     },
-
     transports: ["websocket", "polling"],
-
-    pingInterval: 25000,
-    pingTimeout: 60000,
   });
 
-  registerSocketEvents(io);
+  io.use((socket, next) => {
+    const token =
+      (socket.handshake.auth?.token as string | undefined) ??
+      socket.handshake.headers.authorization?.replace("Bearer ", "");
+
+    if (!token) return next(new Error("Authentication required"));
+
+    jwt.verify(token, process.env.API_SECRET_KEY as Secret, (err) => {
+      if (err) return next(new Error("Invalid or expired token"));
+      next();
+    });
+  });
+
+  io.on("connection", (socket) => {
+    console.log(`Socket connected: ${socket.id}`);
+    socket.on("disconnect", () => console.log(`Socket disconnected: ${socket.id}`));
+  });
+
   return io;
 };
 
-const registerSocketEvents = (io: Server): void => {
-  io.on("connection", (socket: Socket) => {
-    console.log(`🔌 Socket connected: ${socket.id}`);
-
-    socket.on("disconnect", (reason) => {
-      console.log(
-        `❌ Socket disconnected: ${socket.id} | Reason: ${reason}`
-      );
-    });
-
-    socket.on("error", (error) => {
-      console.error(
-        `⚠️ Socket error: ${socket.id}`,
-        error
-      );
-    });
-  });
+export const emitUserLoginStatus = (userId: string, isLoggedIn: boolean): void => {
+  io?.emit(USER_LOGIN_STATUS_EVENT, { userId, isLoggedIn });
 };
 
-export const getIO = (): Server => {
-  if (!io) {
-    throw new Error(
-      "Socket.IO has not been initialized."
-    );
-  }
-
-  return io;
+export const shutdownSocket = async (): Promise<void> => {
+  if (!io) return;
+  await io.close();
+  io = null;
 };

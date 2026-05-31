@@ -5,6 +5,7 @@ import jwt, { Secret, VerifyErrors } from "jsonwebtoken";
 import admin from "../firebase.js";
 import User from "../models/userModel.js";
 import { getUserDataByToken } from "../services/userAcess.js";
+import { emitUserLoginStatus } from "../websockets/socket.js";
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -78,6 +79,8 @@ export const login = async (req: Request, res: Response) => {
     user.isLoggedIn = true;
     await user.save();
 
+    emitUserLoginStatus(user._id.toString(), true);
+
     const jwt = await user.generateJwt();
     const refreshToken = await user.generateRefreshToken();
 
@@ -128,6 +131,8 @@ export const logout = async (req: Request, res: Response) => {
     await User.findByIdAndUpdate(decoded._id, {
       isLoggedIn: false,
     });
+
+    emitUserLoginStatus(decoded._id.toString(), false);
 
     res.clearCookie("authToken");
     res.json({ message: "Logged out successfully" });

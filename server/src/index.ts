@@ -16,7 +16,8 @@ import cvBuilderRoutes from "./routes/cvBuilderRoutes.js";
 import noteRoutes from "./routes/noteRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import masterAccessRoutes from "./routes/masterAccessRoutes.js";
-import { initializeSocket } from "./websockets/socket.js";
+import { corsAllowlist } from "./config/cors.js";
+import { initializeSocket, shutdownSocket } from "./websockets/socket.js";
 import http from "http";
 
 const app = express();
@@ -27,8 +28,6 @@ dotenv.config();
 const PORT = Number(process.env.PORT) || 5000;
 const IS_PROD = process.env.NODE_ENV === "production";
 const PROD_URL = (process.env.DOMAIN_NAME || "").trim();
-const FRONTEND_URL = process.env.FRONTEND_URL?.trim();
-const DEV_URLS = ["http://localhost:3000", "http://localhost:5173"];
 const RESPONSE_TIMEOUT_MS = 30_000;
 
 /** --- DB connect before starting server --- */
@@ -38,11 +37,9 @@ connectDB();
 app.set("trust proxy", 1);
 
 /** --- CORS setup (must be BEFORE routes) --- */
-const allowlist: string[] = IS_PROD ? ([FRONTEND_URL, PROD_URL, "https://ayanavo.github.io"].filter(Boolean) as string[]) : DEV_URLS;
-
 const corsOptions: CorsOptions = {
   origin(origin, cb) {
-    if (!origin || allowlist.includes(origin)) return cb(null, true);
+    if (!origin || corsAllowlist.includes(origin)) return cb(null, true);
     return cb(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true, // set true only if you use cookies; fine here since cookie-parser is used
@@ -115,3 +112,17 @@ const server = httpServer.listen(PORT, "0.0.0.0", () => {
 
 server.requestTimeout = RESPONSE_TIMEOUT_MS;
 server.timeout = RESPONSE_TIMEOUT_MS;
+
+/** --- Graceful shutdown (SIGTERM on Render, SIGINT locally) --- */
+const gracefulShutdown = (signal: string) => {
+  console.log(`[${signal}] Shutting down gracefully...`);
+  void shutdownSocket().finally(() => {
+    server.close(() => {
+      console.log("HTTP server closed");
+      process.exit(0);
+    });
+  });
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
