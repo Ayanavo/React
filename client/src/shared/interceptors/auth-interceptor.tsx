@@ -1,6 +1,7 @@
 import showToast from "@/hooks/toast";
 import { DefaultChatTransport } from "ai";
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { clearAuthToken, getAuthToken, setAuthToken } from "@/shared/utils/auth-token";
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
@@ -18,7 +19,7 @@ export const axiosInstance = axios.create({
 const redirectToLogin = (message: string) => {
   console.log(message);
 
-  sessionStorage.removeItem("auth_token");
+  clearAuthToken();
 
   showToast({
     title: "Session expired or invalid. Redirecting to login...",
@@ -39,10 +40,10 @@ const showError = (message: string) => {
 // REQUEST INTERCEPTOR
 axiosInstance.interceptors.request.use(
   (config) => {
-    const authToken = sessionStorage.getItem("auth_token");
+    const authToken = getAuthToken();
 
     if (authToken && config.headers) {
-      config.headers.Authorization = `Bearer ${JSON.parse(authToken)}`;
+      config.headers.Authorization = `Bearer ${authToken}`;
     }
 
     return config;
@@ -57,7 +58,7 @@ const callRefreshToken = async (originalRequest: RetriableRequestConfig) => {
 
     const { token } = response.data;
 
-    sessionStorage.setItem("auth_token", JSON.stringify(token));
+    setAuthToken(token);
 
     if (originalRequest.headers) {
       originalRequest.headers.Authorization = `Bearer ${token}`;
@@ -106,7 +107,7 @@ axiosInstance.interceptors.response.use(
 );
 
 export const createChatTransport = (apiUrl: string) => {
-  const authToken = sessionStorage.getItem("auth_token");
+  const authToken = getAuthToken();
 
   return new DefaultChatTransport({
     api: apiUrl + "ai/chat",

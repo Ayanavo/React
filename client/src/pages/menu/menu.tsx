@@ -5,13 +5,23 @@ import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { logoutAPI } from "@/shared/services/auth";
+import { disconnectSocket } from "@/shared/services/socket";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import IconsComponent from "../../common/icons";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type NavItem = { label: string; icon: string; route: string };
-function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function }) {
+function menu({
+  NavList,
+  isExpanded,
+  isLoadingPermissions = false,
+}: {
+  NavList: Array<NavItem>;
+  isExpanded: boolean;
+  setIsExpanded: Function;
+  isLoadingPermissions?: boolean;
+}) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { state } = usePersistedState<"left" | "right">("vite-ui-sidebar", "left");
@@ -33,8 +43,7 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
               title: res.message,
               variant: "success",
             });
-            sessionStorage.removeItem("auth_token");
-            // openCloseCallback(false);
+            disconnectSocket();
             navigate("/login");
           })
           .catch((error) => {
@@ -62,7 +71,7 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {NavList.length === 0
+            {isLoadingPermissions
               ? Array.from({ length: 7 }).map((_, index) => (
                 <SidebarMenuItem key={index}>
                   <div className="flex items-center gap-2 px-2 py-2">

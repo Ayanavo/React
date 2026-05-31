@@ -7,6 +7,7 @@ import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/grid/form/field-map";
 import generateControl from "@/pages/layout/grid/form/validation";
 import { loginAPI, verifyAuthAPI } from "@/shared/services/auth.ts";
+import { setAuthToken } from "@/shared/utils/auth-token";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { FirebaseError } from "firebase/app";
@@ -53,7 +54,6 @@ function login() {
         rememberMe,
       });
 
-      sessionStorage.setItem("auth_token", JSON.stringify(userCredential.token));
       showToast({
         title: userCredential.message,
         variant: "success",
@@ -89,8 +89,7 @@ function login() {
         user.getIdToken().then((token) => {
           verifyAuthAPI(token)
             .then((res) => {
-              console.log(res);
-              sessionStorage.setItem("auth_token", JSON.stringify(res.token));
+              setAuthToken(res.token);
               showToast({
                 title: "Successfully logged in",
                 variant: "success",

@@ -10,7 +10,7 @@ import HeaderComponent from "./header/header";
 export const Layout = () => {
   const exclutionList = NavExclusionList;
   const [isExpanded, setIsExpanded] = useState(false);
-  const { permissions } = usePermissions();
+  const { permissions, isLoading } = usePermissions();
 
   const filteredNavList = useMemo(() => {
     return NavList.filter((item) => (permissions ?? []).includes(item.route));
@@ -22,6 +22,7 @@ export const Layout = () => {
         NavList={filteredNavList}
         isExpanded={isExpanded}
         setIsExpanded={setIsExpanded}
+        isLoadingPermissions={isLoading}
       />
 
       <SidebarInset>

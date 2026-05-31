@@ -1,5 +1,6 @@
 // loginService.ts
 import { apiUrl, axiosInstance, createChatTransport } from "@/shared/interceptors/auth-interceptor";
+import { clearAuthToken, setAuthToken } from "@/shared/utils/auth-token";
 
 export type RegisterPayload = {
   photoURL: string;
@@ -42,7 +43,7 @@ export type ProfileResponse = {
 
 export const loginAPI = async (payload: LoginPayload) => {
   const response = await axiosInstance.post(apiUrl + "auth/login", payload);
-  sessionStorage.setItem("auth_token", response.data.token);
+  setAuthToken(response.data.token);
   return response.data;
 };
 
@@ -58,7 +59,7 @@ export const forgotPasswordAPI = async (email: string) => {
 
 export const logoutAPI = async () => {
   const response = await axiosInstance.post(apiUrl + "auth/logout");
-  sessionStorage.removeItem("auth_token");
+  clearAuthToken();
   return response.data;
 };
 
