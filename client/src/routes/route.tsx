@@ -48,7 +48,7 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (!auth_token || isLoading) {
+  if (!isInitialized || isLoading) {
     return <AppLoader />;
   }
 
