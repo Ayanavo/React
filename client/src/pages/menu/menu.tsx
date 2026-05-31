@@ -9,9 +9,10 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import IconsComponent from "../../common/icons";
 import { Skeleton } from "@/components/ui/skeleton";
+import { usePermissions } from "@/shared/context/PermissionsContext";
 
 type NavItem = { label: string; icon: string; route: string };
-function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function }) {
+function menu({ NavList, isExpanded, isInitialized }: { NavList: Array<NavItem>; isExpanded: boolean; setIsExpanded: Function, isInitialized: boolean }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { state } = usePersistedState<"left" | "right">("vite-ui-sidebar", "left");
@@ -61,7 +62,7 @@ function menu({ NavList, isExpanded }: { NavList: Array<NavItem>; isExpanded: bo
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {NavList.length === 0
+            {NavList.length === 0 && !isInitialized
               ? Array.from({ length: 7 }).map((_, index) => (
                 <SidebarMenuItem key={index}>
                   <div className="flex items-center gap-2 px-2 py-2">
