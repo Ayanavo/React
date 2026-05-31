@@ -1,18 +1,37 @@
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import ResourceGrid, { GridColumnConfig } from "@/pages/layout/grid/ResourceGrid";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { deleteUser, fetchUsers, savePermissions } from "@/shared/services/masterAccess";
+import { getSocket } from "@/shared/services/socket";
+import { useQueryClient } from "@tanstack/react-query";
 import { EllipsisIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PermissionsDialog from "./permissions-dialog";
-// import { User } from "./user.model";
 
 const MasterAccess = () => {
   const [openPermissionsFor, setOpenPermissionsFor] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const { confirm } = useConfirmDialog();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const socket = getSocket();
+    socket.connect();
+    const onLoginStatus = ({ userId, isLoggedIn }: { userId: string; isLoggedIn: boolean }) => {
+      queryClient.setQueryData<Array<{ _id: string; isLoggedIn?: boolean }>>(
+        ["master-access-users"],
+        (users) => users?.map((user) => (user._id === userId ? { ...user, isLoggedIn } : user))
+      );
+    };
+    socket.on("user:login-status", onLoginStatus);
+    return () => {
+      socket.off("user:login-status", onLoginStatus);
+      socket.disconnect();
+    };
+  }, [queryClient]);
 
   const openPermissions = (userId: string) => {
     setSelectedUserId(userId);
@@ -23,7 +42,6 @@ const MasterAccess = () => {
     await savePermissions(userId, routes);
     setOpenPermissionsFor(null);
   };
-
   const columns: GridColumnConfig<any>[] = [
     { key: "select", label: "Select" },
     { key: "firstName", label: "First Name" },
@@ -41,7 +59,6 @@ const MasterAccess = () => {
     },
     { key: "action", label: "Actions" },
   ];
-
   const actionRenderer = (row: any, del: (id: string) => void) => (
     <div className="opacity-0 transition-opacity group-hover:opacity-100">
       <DropdownMenu>
@@ -70,7 +87,6 @@ const MasterAccess = () => {
       </DropdownMenu>
     </div>
   );
-
   return (
     <div className="flex flex-col">
       <div className="flex items-center justify-between px-2 pt-3">
