@@ -16,9 +16,12 @@ import cvBuilderRoutes from "./routes/cvBuilderRoutes.js";
 import noteRoutes from "./routes/noteRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import masterAccessRoutes from "./routes/masterAccessRoutes.js";
+import { initializeSocket } from "./websockets/socket.js";
+import http from "http";
 
 const app = express();
 dotenv.config();
+
 
 /** --- Env & config --- */
 const PORT = Number(process.env.PORT) || 5000;
@@ -100,8 +103,12 @@ app.use("/api/notes", noteRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/master-access", masterAccessRoutes);
 
+/** --- Web Socket Server Connection */
+const httpServer = http.createServer(app);
+initializeSocket(httpServer);
+
 /** --- Start server (bind 0.0.0.0 on Render) --- */
-const server = app.listen(PORT, "0.0.0.0", () => {
+const server = httpServer.listen(PORT, "0.0.0.0", () => {
   const url = IS_PROD ? PROD_URL || `http://0.0.0.0:${PORT}` : `http://localhost:${PORT}`;
   console.log(`✅ Server running at ${url}`);
 });

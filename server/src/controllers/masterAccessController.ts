@@ -69,9 +69,7 @@ export const getPermissionsByToken = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid token" });
     }
     const userId = decoded._id;
-    const record = await MasterAccess.findOne({ userId }).select("allowedRoutes").lean();
-    console.log(record);
-    
+    const record = await MasterAccess.findOne({ userId }).select("allowedRoutes").lean();    
     res.status(200).json(record?.allowedRoutes || requiredRoutes);
   } catch (error) {
     console.error(error);
