@@ -1,3 +1,4 @@
+// PermissionsContext.tsx
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { fetchPermissionsByToken } from "@/shared/services/masterAccess";
 
@@ -6,6 +7,8 @@ type PermissionsContextType = {
   isInitialized: boolean;
   isLoading: boolean;
   error: Error | null;
+  authToken: string | null;
+  setAuthToken: (token: string | null) => void;
   refetchPermissions: () => Promise<void>;
 };
 
@@ -16,9 +19,10 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [isLoading, setIsLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const auth_token = sessionStorage.getItem("auth_token");
-    const refetchPermissions = useCallback(async () => {
-    if (!auth_token) {
+  const [authToken, setAuthToken] = useState<string | null>(sessionStorage.getItem("auth_token"));
+
+  const refetchPermissions = useCallback(async () => {
+    if (!authToken) {
       setPermissions([]);
       setError(null);
       setIsLoading(false);
@@ -38,27 +42,15 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
       setIsLoading(false);
       setIsInitialized(true);
     }
-  }, []);
+  }, [authToken]);
 
+  // whenever authToken changes, refetch permissions
   useEffect(() => {
-    const loadPermissions = async () => {
-      try {
-        setIsLoading(true);
-        const result = await fetchPermissionsByToken();
-        setPermissions(result || []);
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error("Failed to fetch permissions"));
-        setPermissions([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadPermissions();
-  }, []);
+    refetchPermissions();
+  }, [authToken, refetchPermissions]);
 
   return (
-    <PermissionsContext.Provider value={{ permissions, isInitialized, isLoading, error,  refetchPermissions }}>
+    <PermissionsContext.Provider value={{ permissions, isInitialized, isLoading, error, authToken, setAuthToken, refetchPermissions }}>
       {children}
     </PermissionsContext.Provider>
   );
@@ -66,8 +58,6 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
 
 export const usePermissions = () => {
   const context = useContext(PermissionsContext);
-  if (!context) {
-    throw new Error("usePermissions must be used within PermissionsProvider");
-  }
+  if (!context) throw new Error("usePermissions must be used within PermissionsProvider");
   return context;
 };

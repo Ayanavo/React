@@ -27,7 +27,7 @@ export type RouteConfig = {
   index?: boolean;
 };
 
-const auth_token = sessionStorage.getItem("auth_token");
+
 
 const AppLoader = () => (
   <div className="flex min-h-screen items-center justify-center bg-background">
@@ -36,13 +36,14 @@ const AppLoader = () => (
 );
 
 const GuestOnly = ({ children }: { children: React.ReactNode }) => {
+  const auth_token = sessionStorage.getItem("auth_token");
   if (auth_token) return <Navigate to="/dashboard" replace />;
 
   return <>{children}</>;
 };
 
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
-
+const auth_token = sessionStorage.getItem("auth_token");
  const { isLoading, isInitialized } = usePermissions();
   if (!auth_token) {
     return <Navigate to="/login" replace />;
