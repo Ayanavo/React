@@ -16,6 +16,7 @@ export interface CVElement {
   id: string;
   type: CVElementType;
   height?: number;
+  width?: number;
   content?: string | string[];
   properties?: {
     imageSrc?: string;

@@ -62,24 +62,50 @@ const LayoutPallet = () => {
       <button
         onClick={() => selectedPageId && addSection(selectedPageId)}
         disabled={MAX_SECTIONS == showSectionCount()}
-        className="w-full flex items-center gap-2 px-6 py-6 rounded-md
-                   bg-background text-foreground hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md text-lg font-medium group
-                   border border-border">
-        <LayoutPanelTop className="w-6 h-6 opacity-60 group-hover:opacity-100" />
-        Section
-        {showSectionCount() > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{showSectionCount()}+</span>}
+        className="w-full flex items-center gap-3 p-3.5 rounded-xl
+                   bg-card text-card-foreground hover:border-primary/50 hover:bg-accent/40 hover:shadow-md transition-all duration-300 group
+                   border border-border disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-border disabled:hover:bg-card">
+        <div className="w-10 h-10 shrink-0 rounded-lg flex items-center justify-center bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+          <LayoutPanelTop className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+        </div>
+        <div className="flex-1 text-left min-w-0">
+          <p className="text-sm font-semibold leading-tight text-foreground">Add Section</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5 truncate">Create a new horizontal row</p>
+        </div>
+        <div className="shrink-0 text-xs px-2 py-1 rounded-md bg-muted border border-border font-medium text-muted-foreground group-hover:border-primary/30 transition-colors">
+          {showSectionCount()}/{MAX_SECTIONS}
+        </div>
       </button>
 
       {/* Add Block */}
       <button
         onClick={() => selectedPageId && selectedSectionId && addBlock(selectedPageId, selectedSectionId)}
         disabled={!selectedSectionId || MAX_BLOCKS_PER_SECTION == showBlockCount()}
-        className={`w-full flex items-center gap-2 px-6 py-6 rounded-md
-          text-lg font-medium group border hover:border-primary/50 hover:bg-muted transition-all hover:shadow-md
-          ${selectedSectionId ? "bg-background text-foreground hover:bg-muted" : "bg-muted text-muted-foreground cursor-not-allowed"}`}>
-        <Blocks className="w-6 h-6 opacity-60 group-hover:opacity-100" />
-        Block
-        {showBlockCount() > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{showBlockCount()}+</span>}
+        className={`w-full flex items-center gap-3 p-3.5 rounded-xl border transition-all duration-300 group
+          ${selectedSectionId 
+            ? "bg-card text-card-foreground border-border hover:border-primary/50 hover:bg-accent/40 hover:shadow-md cursor-pointer" 
+            : "bg-muted/40 text-muted-foreground border-dashed border-border cursor-not-allowed opacity-60"
+          }`}
+      >
+        <div className={`w-10 h-10 shrink-0 rounded-lg flex items-center justify-center transition-all duration-300
+          ${selectedSectionId 
+            ? "bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground" 
+            : "bg-muted text-muted-foreground"
+          }`}
+        >
+          <Blocks className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" />
+        </div>
+        <div className="flex-1 text-left min-w-0">
+          <p className={`text-sm font-semibold leading-tight ${selectedSectionId ? "text-foreground" : "text-muted-foreground"}`}>Add Block</p>
+          <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+            {selectedSectionId ? "Divide section into columns" : "Select a section first"}
+          </p>
+        </div>
+        {selectedSectionId && (
+          <div className="shrink-0 text-xs px-2 py-1 rounded-md bg-muted border border-border font-medium text-muted-foreground group-hover:border-primary/30 transition-colors">
+            {showBlockCount()}/{MAX_BLOCKS_PER_SECTION}
+          </div>
+        )}
       </button>
 
       {/* Toggle Section Divider */}

@@ -6,10 +6,11 @@ import ElementOptions from "./options-panel";
 interface AccessoryType {
   id: string;
   label: string;
+  description: string;
   type: CVElementType;
   defaultContent: string | string[];
   defaultProperties: Record<string, any>;
-  icon: React.ReactNode;
+  icon: React.ComponentType<{ className?: string }>;
 }
 
 const AccessoriesPallet = () => {
@@ -18,39 +19,44 @@ const AccessoriesPallet = () => {
   const accessories: AccessoryType[] = [
     {
       id: "text",
-      label: "Text",
+      label: "Text Block",
+      description: "Paragraphs and headings",
       type: "text",
       defaultContent: "",
       defaultProperties: { fontSize: 14, fontWeight: "normal" },
-      icon: <Text className="w-6 h-6" />,
+      icon: Text,
     },
     {
       id: "list",
-      label: "List",
+      label: "List Items",
+      description: "Bullet or structured lists",
       type: "list",
       defaultContent: [""],
       defaultProperties: { fontSize: 14, fontWeight: "normal" },
-      icon: <List className="w-6 h-6" />,
+      icon: List,
     },
     {
       id: "date",
-      label: "Date",
+      label: "Date / Time",
+      description: "Timeline and milestones",
       type: "date",
       defaultContent: "",
       defaultProperties: { fontSize: 12, fontWeight: "normal", includeTime: false, timeFormat: "24" },
-      icon: <Calendar className="w-6 h-6" />,
+      icon: Calendar,
     },
     {
       id: "location",
       label: "Location",
+      description: "Addresses and countries",
       type: "location",
       defaultContent: "",
       defaultProperties: { fontSize: 14, fontWeight: "normal" },
-      icon: <MapPin className="w-6 h-6" />,
+      icon: MapPin,
     },
     {
       id: "image",
       label: "Profile Image",
+      description: "Avatar or image upload",
       type: "image",
       defaultContent: "",
       defaultProperties: {
@@ -67,15 +73,16 @@ const AccessoriesPallet = () => {
           padding: 0,
         },
       },
-      icon: <Image className="w-6 h-6" />,
+      icon: Image,
     },
     {
       id: "tag",
-      label: "Tag",
+      label: "Tag / Token",
+      description: "Skills and keywords",
       type: "token",
       defaultContent: "",
       defaultProperties: { fontSize: 10, fontWeight: "normal", backgroundColor: "#f1f5f9", borderColor: "#cbd5e1", radius: 6 },
-      icon: <Tag className="w-6 h-6" />,
+      icon: Tag,
     },
   ];
 
@@ -92,32 +99,62 @@ const AccessoriesPallet = () => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* ACCESSORIES */}
-      <div className="grid grid-cols-3 gap-6">
-        {accessories.map((accessory) => {
-          const disabled = !selectedBlockId;
+      <div>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <h3 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Content Elements
+          </h3>
+          {!selectedBlockId && (
+            <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium animate-pulse">
+              Select a canvas block first
+            </span>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {accessories.map((accessory) => {
+            const Icon = accessory.icon;
+            const disabled = !selectedBlockId;
 
-          return (
-            <button
-              key={accessory.id}
-              disabled={disabled}
-              onClick={() => addAccessory(accessory)}
-              title={disabled ? "Select a block to add content" : `Add ${accessory.label}`}
-              className={`
-              aspect-square flex flex-col items-center justify-center gap-2
-              rounded-lg border transition-all
-              ${disabled ? "opacity-40 cursor-not-allowed bg-muted" : "bg-background border-border hover:border-primary/50 hover:bg-muted hover:shadow-md"}
-            `}>
-              <div className="text-muted-foreground">{accessory.icon}</div>
-              <span className="text-xs font-medium text-foreground text-center leading-tight">{accessory.label}</span>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={accessory.id}
+                disabled={disabled}
+                onClick={() => addAccessory(accessory)}
+                title={disabled ? "Select a block on the canvas to add content" : `Add ${accessory.label}`}
+                className={`
+                  flex items-center gap-2 p-2 rounded-lg border bg-card text-card-foreground text-left
+                  hover:border-primary/50 hover:bg-accent/40 transition-all duration-300 group
+                  disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-border disabled:hover:bg-card border-border
+                `}
+              >
+                <div className={`w-8 h-8 shrink-0 rounded-md flex items-center justify-center transition-all duration-300
+                  ${disabled
+                    ? "bg-muted text-muted-foreground"
+                    : "bg-primary/5 text-primary group-hover:bg-primary group-hover:text-primary-foreground"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5 transition-transform duration-300 group-hover:scale-105" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-[11px] font-semibold leading-tight text-foreground group-hover:text-primary transition-colors">
+                    {accessory.label}
+                  </p>
+                  <p className="text-[9.5px] text-muted-foreground mt-0.5 leading-snug truncate">
+                    {accessory.description}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* OPTIONS */}
-      <ElementOptions />
+      <div className="border-t border-border pt-4">
+        <ElementOptions />
+      </div>
     </div>
   );
 };

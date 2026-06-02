@@ -115,10 +115,10 @@ const CVBuilderContent = () => {
           {mutation.isPending ?
             isEditMode ?
               "Updating..."
-            : "Submitting..."
-          : isEditMode ?
-            "Update CV"
-          : "Submit CV"}
+              : "Submitting..."
+            : isEditMode ?
+              "Update CV"
+              : "Submit CV"}
         </Button>
       </div>
 
@@ -147,23 +147,18 @@ const CVBuilderContent = () => {
 
             <div className="space-y-2">
               <Label>Tag</Label>
-              <Select value={tag} onValueChange={(value) => setTag(value as CVTag)}>
+              <Select value={tag} onValueChange={(value) => setTag(value as CVTag)} disabled={tags.length == 0}>
                 <SelectTrigger>
                   <SelectValue placeholder={isTagsFetching ? "Loading tags..." : "Select tag"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {tags.length > 0 ?
+                  {
                     tags.map((tagItem) => (
                       <SelectItem key={tagItem._id} value={tagItem._id} className="pl-0">
                         <span className="mr-2 inline-flex h-2.5 w-2.5 shrink-0 rounded-full border border-border" style={{ backgroundColor: tagItem.color }} />
                         <span>{tagItem.name}</span>
                       </SelectItem>
                     ))
-                  : <>
-                      <SelectItem value="Latest">Latest</SelectItem>
-                      <SelectItem value="Important">Important</SelectItem>
-                      <SelectItem value="Draft">Draft</SelectItem>
-                    </>
                   }
                 </SelectContent>
               </Select>
@@ -177,10 +172,10 @@ const CVBuilderContent = () => {
                 {mutation.isPending ?
                   isEditMode ?
                     "Updating..."
-                  : "Submitting..."
-                : isEditMode ?
-                  "Update"
-                : "Submit"}
+                    : "Submitting..."
+                  : isEditMode ?
+                    "Update"
+                    : "Submit"}
               </Button>
             </DialogFooter>
           </form>

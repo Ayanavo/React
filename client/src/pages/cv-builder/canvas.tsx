@@ -2,13 +2,14 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useCV } from "@/lib/useCV";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { Download, Eye, GripHorizontal, Trash } from "lucide-react";
+import { Download, Eye, GripHorizontal, GripVertical, Trash } from "lucide-react";
 import React, { useRef, useState } from "react";
 import CVElementRenderer from "./cv-element-renderer";
 import CVPreview, { CVPreviewRef } from "./cv-preview";
 
 const ZOOM = 1;
 const MIN_SECTION_HEIGHT = 80;
+const MIN_BLOCK_WIDTH = 60;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -21,6 +22,17 @@ const getSectionHeights = (sections: Array<{ height?: number }>) => {
 
   if (total <= 0) return sections.map(() => fallback);
   return heights.map((height) => (height / total) * 100);
+};
+
+const getBlockWidths = (blocks: Array<{ width?: number }>) => {
+  if (blocks.length === 0) return [];
+
+  const fallback = 100 / blocks.length;
+  const widths = blocks.map((block) => (typeof block.width === "number" && block.width > 0 ? block.width : fallback));
+  const total = widths.reduce((sum, w) => sum + w, 0);
+
+  if (total <= 0) return blocks.map(() => fallback);
+  return widths.map((w) => (w / total) * 100);
 };
 
 const Canvas = () => {
@@ -45,6 +57,8 @@ const Canvas = () => {
   } = useCV();
   const [isDragging, setIsDragging] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [isBlockDragging, setIsBlockDragging] = useState(false);
+  const [blockDraggingSectionId, setBlockDraggingSectionId] = useState<string | null>(null);
 
   const pageRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<CVPreviewRef>(null);
@@ -130,6 +144,41 @@ const Canvas = () => {
     const handleMouseUp = () => {
       setIsDragging(false);
       setDraggingIndex(null);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const handleBlockResizeStart = (sectionId: string, blocks: Array<{ id: string; width?: number }>, blockIndex: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startX = e.clientX;
+    const startWidths = getBlockWidths(blocks);
+    const pairTotal = startWidths[blockIndex] + startWidths[blockIndex + 1];
+    const minPercent = Math.min((MIN_BLOCK_WIDTH / A4_WIDTH) * 100, pairTotal / 2);
+
+    setIsBlockDragging(true);
+    setBlockDraggingSectionId(sectionId);
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaPercent = ((moveEvent.clientX - startX) / A4_WIDTH) * 100;
+      const nextLeftWidth = clamp(startWidths[blockIndex] + deltaPercent, minPercent, pairTotal - minPercent);
+      const nextWidths = [...startWidths];
+      nextWidths[blockIndex] = nextLeftWidth;
+      nextWidths[blockIndex + 1] = pairTotal - nextLeftWidth;
+
+      blocks.forEach((block, index) => {
+        updateElement(block.id, { width: Number(nextWidths[index].toFixed(4)) });
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsBlockDragging(false);
+      setBlockDraggingSectionId(null);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
@@ -239,7 +288,7 @@ const Canvas = () => {
                                       e.stopPropagation();
                                       removeSection(section.id);
                                     }}
-                                    className="absolute right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
+                                    className="absolute top-1 left-1 z-20 bg-secondary text-primary p-1 rounded shadow flex items-center gap-1">
                                     <Trash className="h-3 w-3" />
                                   </button>
                                 </TooltipTrigger>
@@ -258,26 +307,43 @@ const Canvas = () => {
                             </div>
                           )}
 
-                          {/* ✅ BLOCK ROW */}
-                          <div className="flex w-full flex-1">
-                            {blockChildren.map((block) => {
+                          {(() => {
+                            const blockWidths = getBlockWidths(blockChildren);
+                            return (
+                          <div className="flex w-full flex-1" style={{ pointerEvents: isBlockDragging && blockDraggingSectionId !== section.id ? "none" : "auto" }}>
+                            {blockChildren.map((block, blockIndex) => {
                               const isBlockSelected = selectedBlockId === block.id;
+                              const isLastBlock = blockIndex === blockChildren.length - 1;
 
                               return (
-                                <div
-                                  key={block.id}
-                                  className={`relative flex-1 hover:bg-zinc-200 ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    selectPage(page.id);
-                                    selectSection(page.id, section.id);
-                                    selectBlock(page.id, section.id, block.id);
-                                  }}>
-                                  <CVElementRenderer element={block} blockCount={blockChildren.length} />
-                                </div>
+                                <React.Fragment key={block.id}>
+                                  <div
+                                    className={`relative hover:bg-zinc-200 ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
+                                    style={{ width: `${blockWidths[blockIndex]}%` }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      selectPage(page.id);
+                                      selectSection(page.id, section.id);
+                                      selectBlock(page.id, section.id, block.id);
+                                    }}>
+                                    <CVElementRenderer element={block} blockCount={blockChildren.length} />
+                                  </div>
+                                  {/* ✅ VERTICAL BLOCK JOCKEY */}
+                                  {!isLastBlock && isSectionSelected && (
+                                    <div
+                                      className="group relative z-20 w-3 cursor-ew-resize flex-shrink-0"
+                                      style={{ marginInline: "-6px" }}
+                                      onMouseDown={(e) => handleBlockResizeStart(section.id, blockChildren, blockIndex, e)}>
+                                      <div className="absolute inset-y-4 left-1/2 -translate-x-1/2 w-[2px] bg-ring/40 group-hover:bg-ring transition-colors" />
+                                      <GripVertical className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 bg-muted shadow rounded-sm" />
+                                    </div>
+                                  )}
+                                </React.Fragment>
                               );
                             })}
                           </div>
+                            );
+                          })()}
 
                           {/* ✅ SECTION DIVIDER */}
                           {isSectionSelected && (
