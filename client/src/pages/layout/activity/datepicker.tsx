@@ -7,7 +7,7 @@ import { CalendarIcon, Clock } from "lucide-react";
 import moment from "moment";
 import React, { useEffect, useMemo, useState } from "react";
 import DatePicker from "react-datepicker";
-import "/src/shared/controls/datepicker.scss";
+import "@/shared/controls/datepicker.scss";
 import "./activity-picker.scss";
 
 export type DatePickerType = "datetime" | "date" | "time" | "month" | "year";

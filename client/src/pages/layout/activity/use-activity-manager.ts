@@ -225,7 +225,7 @@ export function useActivityManager(focusDate: Date, calendarView: CalendarView) 
     activities,
     calendarEvents,
     stats,
-    isLoading: holidaysQuery.isPending || apiQuery.isPending,
+    isLoading: holidaysQuery.isLoading || apiQuery.isLoading,
     createActivity,
     updateActivity,
     deleteActivity,

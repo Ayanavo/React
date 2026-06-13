@@ -19,6 +19,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import PermissionsDialog from "./permissions-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { getSocket } from "@/shared/services/socket";
+import { formatAppDateTime } from "@/lib/date-format";
 
 type MasterAccessUser = {
   _id: string;
@@ -27,12 +28,6 @@ type MasterAccessUser = {
   email?: string;
   isLoggedIn?: boolean;
   lastLoginAt?: string | null;
-};
-
-const formatLastLogin = (value: string | null | undefined): string => {
-  if (!value) return "—";
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
 };
 
 const MasterAccess = () => {
@@ -94,7 +89,7 @@ const MasterAccess = () => {
       key: "lastLoginAt",
       label: "Last Logged In",
       render: (_value, row) => (
-        <span className="text-sm text-muted-foreground">{formatLastLogin(row.lastLoginAt)}</span>
+        <span className="text-sm text-muted-foreground">{formatAppDateTime(row.lastLoginAt, "—")}</span>
       ),
     },
     { key: "action", label: "Actions" },

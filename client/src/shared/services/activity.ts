@@ -111,6 +111,7 @@ export function useHolidayEvents(focusDate: Date, view: CalendarView) {
     queryKey: ["h-events", rangeKey],
     queryFn: () => fetchHolidayEvents(timeMin, timeMax),
     enabled: Boolean(getHolidayApiKey()),
+    placeholderData: [],
     staleTime: 1000 * 60 * 60 * 6,
     gcTime: 1000 * 60 * 60 * 24,
     retry: 1,

@@ -30,7 +30,6 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
 
   const chipStyle: CSSProperties = {
     backgroundColor: tokenStyle.backgroundColor ?? "transparent",
-    borderColor: tokenStyle.borderColor ?? "currentColor",
     borderRadius: tokenStyle.radius ?? 6,
   };
 
