@@ -4,15 +4,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import showToast from "@/hooks/toast";
-import { createActivity, fetchActivityDetail, updateActivity } from "@/shared/services/activity";
+import { ActivityPayload, createActivity, fetchActivityDetail, updateActivity } from "@/shared/services/activity";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
-import { User } from "../table/user.model";
 import { componentMap } from "./field-map";
 import formJson from "./form_new";
 import generateControl from "./validation";
+
+type ActivityFormValues = {
+  name?: string;
+  title?: string;
+  description?: string;
+  start?: string;
+  end?: string;
+  allDay?: boolean;
+  color?: string;
+  priority?: ActivityPayload["priority"];
+  location?: string;
+  tag?: string;
+};
 
 function FormBuilder() {
   const { id } = useParams<{ id: string }>();
@@ -35,13 +47,23 @@ function FormBuilder() {
     }>
   );
 
-  const mutation = useMutation<unknown, Error, { activity: User }>({
-    mutationFn: async ({ activity }) => {
+  const mutation = useMutation<unknown, Error, ActivityFormValues>({
+    mutationFn: async (formValues) => {
+      const payload = {
+        title: (formValues.title ?? "").trim(),
+        description: formValues.description?.trim() || undefined,
+        start: formValues.start ?? new Date().toISOString(),
+        end: formValues.end,
+        allDay: formValues.allDay,
+        color: formValues.color,
+        priority: formValues.priority,
+        location: formValues.location,
+        tag: formValues.tag,
+      };
       if (id) {
-        return await updateActivity(id, activity);
-      } else {
-        return await createActivity(activity);
+        return await updateActivity(id, payload);
       }
+      return await createActivity(payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["activities"] });
@@ -62,12 +84,9 @@ function FormBuilder() {
 
   const fetchDetails = () => {
     fetchActivityDetail(id as string)
-      .then((activityDetail) => {
-        if (activityDetail && typeof activityDetail === "object") {
-          Object.keys(activityDetail).forEach((key) => {
-            form.setValue(key as keyof User, (activityDetail as any)[key]);
-          });
-        }
+      .then(({ activity }) => {
+        form.setValue("name", activity.name ?? activity.title ?? "");
+        form.setValue("description", activity.description ?? "");
       })
       .catch((error: Error) => {
         showToast({
@@ -78,8 +97,8 @@ function FormBuilder() {
       });
   };
 
-  const onSubmit = (res: { [index: string]: any }) => {
-    mutation.mutate({ activity: res as User });
+  const onSubmit = (values: ActivityFormValues) => {
+    mutation.mutate(values);
   };
 
   const getColumn = {
