@@ -1,6 +1,7 @@
 import type { Server as HttpServer } from "http";
 import jwt, { Secret } from "jsonwebtoken";
 import { Server } from "socket.io";
+import { corsAllowlist, isOriginAllowed } from "../config/cors.js";
 
 export const USER_LOGIN_STATUS_EVENT = "user:login-status";
 
@@ -11,7 +12,10 @@ export const initializeSocket = (server: HttpServer): Server => {
 
   io = new Server(server, {
     cors: {
-      origin: "*",
+      origin: (origin, cb) => {
+        if (isOriginAllowed(origin)) return cb(null, origin ?? corsAllowlist);
+        cb(new Error(`Not allowed by CORS: ${origin}`), false);
+      },
       credentials: true,
     },
     transports: ["websocket", "polling"],

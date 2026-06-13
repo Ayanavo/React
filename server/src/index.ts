@@ -16,7 +16,7 @@ import cvBuilderRoutes from "./routes/cvBuilderRoutes.js";
 import noteRoutes from "./routes/noteRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import masterAccessRoutes from "./routes/masterAccessRoutes.js";
-import { corsAllowlist, isOriginAllowed } from "./config/cors.js";
+import { isOriginAllowed } from "./config/cors.js";
 import { initializeSocket, shutdownSocket } from "./websockets/socket.js";
 import http from "http";
 
@@ -39,8 +39,9 @@ app.set("trust proxy", 1);
 /** --- CORS setup (must be BEFORE routes) --- */
 const corsOptions: CorsOptions = {
   origin(origin, cb) {
-    if (isOriginAllowed(origin)) return cb(null, true);
-    return cb(new Error(`Not allowed by CORS: ${origin}`));
+    if (isOriginAllowed(origin)) return cb(null, origin ?? true);
+    console.warn(`CORS blocked origin: ${origin ?? "(none)"}`);
+    return cb(null, false);
   },
   credentials: true, // set true only if you use cookies; fine here since cookie-parser is used
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
