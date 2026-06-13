@@ -18,6 +18,7 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  // const [authToken, setAuthToken] = useState<string | null>(sessionStorage.getItem("auth_token"));
 
   const refetchPermissions = useCallback(async () => {
     if (!isAuthenticated()) {
@@ -70,9 +71,7 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
 
 export const usePermissions = () => {
   const context = useContext(PermissionsContext);
-  if (!context) {
-    throw new Error("usePermissions must be used within PermissionsProvider");
-  }
+  if (!context) throw new Error("usePermissions must be used within PermissionsProvider");
   return context;
 };
 

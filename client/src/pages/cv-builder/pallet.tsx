@@ -54,7 +54,6 @@ const Pallet = () => {
   };
 
   const isAnyExpanded = Object.values(expandedSections).some(Boolean);
-
   const handleToggleAll = () => {
     const nextState = !isAnyExpanded;
     setExpandedSections({

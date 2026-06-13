@@ -150,10 +150,10 @@ const CVBuilderContent = () => {
           {mutation.isPending ?
             isEditMode ?
               "Updating..."
-            : "Submitting..."
-          : isEditMode ?
-            "Update CV"
-          : "Submit CV"}
+              : "Submitting..."
+            : isEditMode ?
+              "Update CV"
+              : "Submit CV"}
         </Button>
       </div>
 
@@ -220,10 +220,10 @@ const CVBuilderContent = () => {
                 {mutation.isPending ?
                   isEditMode ?
                     "Updating..."
-                  : "Submitting..."
-                : isEditMode ?
-                  "Update"
-                : "Submit"}
+                    : "Submitting..."
+                  : isEditMode ?
+                    "Update"
+                    : "Submit"}
               </Button>
             </DialogFooter>
           </form>

@@ -1,4 +1,5 @@
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,8 +15,10 @@ import { useConfirmDialog } from "@/shared/confirmation";
 import { useUserLoginStatusSocket } from "@/shared/hooks/useUserLoginStatusSocket";
 import { deleteUser, fetchUsers, savePermissions } from "@/shared/services/masterAccess";
 import { EllipsisIcon, ListFilterIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import PermissionsDialog from "./permissions-dialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { getSocket } from "@/shared/services/socket";
 
 type MasterAccessUser = {
   _id: string;
@@ -37,6 +40,23 @@ const MasterAccess = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [activeLoginOnly, setActiveLoginOnly] = useState(false);
   const { confirm } = useConfirmDialog();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const socket = getSocket();
+    socket.connect();
+    const onLoginStatus = ({ userId, isLoggedIn }: { userId: string; isLoggedIn: boolean }) => {
+      queryClient.setQueryData<Array<{ _id: string; isLoggedIn?: boolean }>>(
+        ["master-access-users"],
+        (users) => users?.map((user) => (user._id === userId ? { ...user, isLoggedIn } : user))
+      );
+    };
+    socket.on("user:login-status", onLoginStatus);
+    return () => {
+      socket.off("user:login-status", onLoginStatus);
+      socket.disconnect();
+    };
+  }, [queryClient]);
 
   useUserLoginStatusSocket<MasterAccessUser>({ queryKey: "master-access-users", enabled: true });
 
