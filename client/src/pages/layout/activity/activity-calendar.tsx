@@ -20,7 +20,7 @@ type ActivityCalendarProps = {
   view: CalendarView;
   focusDate: Date;
   events: CalendarEvent[];
-  focusedEventId?: string | null;
+  focusedDate?: Date | null;
   onDateClick: (date: Date) => void;
   onEventClick: (event: CalendarEvent, date: Date) => void;
 };
@@ -75,13 +75,15 @@ function CalendarTooltip({ content, children }: { content: React.ReactNode; chil
   );
 }
 
+function isSameDay(a: moment.Moment, b: Date | null | undefined) {
+  return Boolean(b && a.isSame(moment(b), "day"));
+}
+
 function EventChip({
   event,
-  isFocused,
   onClick,
 }: {
   event: CalendarEvent;
-  isFocused?: boolean;
   onClick: (event: React.MouseEvent) => void;
 }) {
   return (
@@ -89,7 +91,7 @@ function EventChip({
       <button
         type="button"
         onClick={onClick}
-        className={cn("activity-calendar__event", isFocused && "activity-calendar__event--focused")}
+        className="activity-calendar__event"
         style={{ backgroundColor: event.color ?? "hsl(var(--primary))" }}>
         <span className="activity-calendar__event-label">{event.title}</span>
       </button>
@@ -97,7 +99,7 @@ function EventChip({
   );
 }
 
-function MonthView({ focusDate, events, focusedEventId, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
+function MonthView({ focusDate, events, focusedDate, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
   const focus = moment(focusDate);
   const days = useMemo(() => getMonthDays(focus), [focusDate]);
 
@@ -116,6 +118,7 @@ function MonthView({ focusDate, events, focusedEventId, onDateClick, onEventClic
           const dayEvents = getEventsForDay(events, day);
           const isToday = day.isSame(moment(), "day");
           const isCurrentMonth = day.isSame(focus, "month");
+          const isFocused = isSameDay(day, focusedDate);
           const visibleEvents = dayEvents.slice(0, 3);
           const hiddenCount = dayEvents.length - visibleEvents.length;
 
@@ -128,6 +131,7 @@ function MonthView({ focusDate, events, focusedEventId, onDateClick, onEventClic
                 "activity-calendar__cell",
                 !isCurrentMonth && "activity-calendar__cell--outside",
                 isToday && "activity-calendar__cell--today",
+                isFocused && "activity-calendar__cell--focused",
               )}
               onClick={() => onDateClick(day.toDate())}
             >
@@ -140,7 +144,6 @@ function MonthView({ focusDate, events, focusedEventId, onDateClick, onEventClic
                   <EventChip
                     key={event.id ?? `${event.title}-${event.start}`}
                     event={event}
-                    isFocused={Boolean(focusedEventId && event.id === focusedEventId)}
                     onClick={(clickEvent) => {
                       clickEvent.stopPropagation();
                       onEventClick(event, day.toDate());
@@ -168,7 +171,7 @@ function MonthView({ focusDate, events, focusedEventId, onDateClick, onEventClic
   );
 }
 
-function WeekView({ focusDate, events, focusedEventId, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
+function WeekView({ focusDate, events, focusedDate, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
   const days = useMemo(() => getWeekDays(moment(focusDate)), [focusDate]);
 
   return (
@@ -176,6 +179,7 @@ function WeekView({ focusDate, events, focusedEventId, onDateClick, onEventClick
       <div className="activity-calendar__week-header">
         {days.map((day) => {
           const isToday = day.isSame(moment(), "day");
+          const isFocused = isSameDay(day, focusedDate);
 
           return (
             <button
@@ -184,7 +188,8 @@ function WeekView({ focusDate, events, focusedEventId, onDateClick, onEventClick
               aria-current={isToday ? "date" : undefined}
               className={cn(
                 "activity-calendar__week-day-header",
-                isToday && "activity-calendar__week-day-header--today"
+                isToday && "activity-calendar__week-day-header--today",
+                isFocused && "activity-calendar__week-day-header--focused",
               )}
               onClick={() => onDateClick(day.toDate())}>
               <span className="activity-calendar__week-day-name">{day.format("ddd")}</span>
@@ -203,13 +208,18 @@ function WeekView({ focusDate, events, focusedEventId, onDateClick, onEventClick
         {days.map((day) => {
           const dayEvents = getEventsForDay(events, day);
           const isToday = day.isSame(moment(), "day");
+          const isFocused = isSameDay(day, focusedDate);
 
           return (
             <button
               key={day.format("YYYY-MM-DD")}
               type="button"
               aria-current={isToday ? "date" : undefined}
-              className={cn("activity-calendar__week-column", isToday && "activity-calendar__week-column--today")}
+              className={cn(
+                "activity-calendar__week-column",
+                isToday && "activity-calendar__week-column--today",
+                isFocused && "activity-calendar__week-column--focused",
+              )}
               onClick={() => onDateClick(day.toDate())}
             >
               {dayEvents.length === 0 ?
@@ -218,7 +228,6 @@ function WeekView({ focusDate, events, focusedEventId, onDateClick, onEventClick
                   <EventChip
                     key={event.id ?? `${event.title}-${event.start}`}
                     event={event}
-                    isFocused={Boolean(focusedEventId && event.id === focusedEventId)}
                     onClick={(clickEvent) => {
                       clickEvent.stopPropagation();
                       onEventClick(event, day.toDate());
@@ -234,17 +243,22 @@ function WeekView({ focusDate, events, focusedEventId, onDateClick, onEventClick
   );
 }
 
-function DayView({ focusDate, events, focusedEventId, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
+function DayView({ focusDate, events, focusedDate, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
   const day = moment(focusDate);
   const dayEvents = getEventsForDay(events, day);
   const isToday = day.isSame(moment(), "day");
+  const isFocused = isSameDay(day, focusedDate);
 
   return (
     <div className="activity-calendar__day">
       <button
         type="button"
         aria-current={isToday ? "date" : undefined}
-        className={cn("activity-calendar__day-banner", isToday && "activity-calendar__day-banner--today")}
+        className={cn(
+          "activity-calendar__day-banner",
+          isToday && "activity-calendar__day-banner--today",
+          isFocused && "activity-calendar__day-banner--focused",
+        )}
         onClick={() => onDateClick(day.toDate())}>
         <span className="activity-calendar__day-banner-weekday">
           {isToday ? "Today" : day.format("dddd")}
@@ -254,17 +268,16 @@ function DayView({ focusDate, events, focusedEventId, onDateClick, onEventClick 
         </span>
       </button>
 
-      <div className="activity-calendar__day-events" onClick={() => onDateClick(day.toDate())}>
+      <div
+        className={cn("activity-calendar__day-events", isFocused && "activity-calendar__day-events--focused")}
+        onClick={() => onDateClick(day.toDate())}>
         {dayEvents.length === 0 ?
           <span className="activity-calendar__empty-day">No events scheduled. Click to add one.</span>
         : dayEvents.map((event) => (
             <button
               key={event.id ?? `${event.title}-${event.start}`}
               type="button"
-              className={cn(
-                "activity-calendar__day-event-card",
-                focusedEventId && event.id === focusedEventId && "activity-calendar__day-event-card--focused",
-              )}
+              className="activity-calendar__day-event-card"
               onClick={(clickEvent) => {
                 clickEvent.stopPropagation();
                 onEventClick(event, day.toDate());
@@ -291,13 +304,13 @@ function DayView({ focusDate, events, focusedEventId, onDateClick, onEventClick 
 function MiniMonth({
   month,
   events,
-  focusedEventId,
+  focusedDate,
   onDateClick,
   onEventClick,
 }: {
   month: moment.Moment;
   events: CalendarEvent[];
-  focusedEventId?: string | null;
+  focusedDate?: Date | null;
   onDateClick: (date: Date) => void;
   onEventClick: (event: CalendarEvent, date: Date) => void;
 }) {
@@ -317,8 +330,7 @@ function MiniMonth({
           const dayEvents = getEventsForDay(events, day);
           const isToday = day.isSame(moment(), "day");
           const inMonth = day.isSame(month, "month");
-
-          const hasFocusedEvent = Boolean(focusedEventId && dayEvents.some((event) => event.id === focusedEventId));
+          const isFocused = isSameDay(day, focusedDate);
 
           const dayButton = (
             <button
@@ -329,7 +341,7 @@ function MiniMonth({
                 !inMonth && "activity-calendar__year-day--outside",
                 isToday && "activity-calendar__year-day--today",
                 dayEvents.length > 0 && "activity-calendar__year-day--has-events",
-                hasFocusedEvent && "activity-calendar__year-day--focused-event",
+                isFocused && "activity-calendar__year-day--focused",
               )}
               onClick={() => {
                 if (dayEvents.length === 1) {
@@ -379,7 +391,7 @@ function MiniMonth({
   );
 }
 
-function YearView({ focusDate, events, focusedEventId, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
+function YearView({ focusDate, events, focusedDate, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
   const year = moment(focusDate).year();
   const months = useMemo(
     () => Array.from({ length: 12 }, (_, index) => moment({ year, month: index, day: 1 })),
@@ -393,7 +405,7 @@ function YearView({ focusDate, events, focusedEventId, onDateClick, onEventClick
           key={month.format("YYYY-MM")}
           month={month}
           events={events}
-          focusedEventId={focusedEventId}
+          focusedDate={focusedDate}
           onDateClick={onDateClick}
           onEventClick={onEventClick}
         />
@@ -406,7 +418,7 @@ export default function ActivityCalendar({
   view,
   focusDate,
   events,
-  focusedEventId,
+  focusedDate,
   onDateClick,
   onEventClick,
 }: ActivityCalendarProps) {
@@ -417,7 +429,7 @@ export default function ActivityCalendar({
           <MonthView
             focusDate={focusDate}
             events={events}
-            focusedEventId={focusedEventId}
+            focusedDate={focusedDate}
             onDateClick={onDateClick}
             onEventClick={onEventClick}
           />
@@ -426,7 +438,7 @@ export default function ActivityCalendar({
           <WeekView
             focusDate={focusDate}
             events={events}
-            focusedEventId={focusedEventId}
+            focusedDate={focusedDate}
             onDateClick={onDateClick}
             onEventClick={onEventClick}
           />
@@ -435,7 +447,7 @@ export default function ActivityCalendar({
           <DayView
             focusDate={focusDate}
             events={events}
-            focusedEventId={focusedEventId}
+            focusedDate={focusedDate}
             onDateClick={onDateClick}
             onEventClick={onEventClick}
           />
@@ -444,7 +456,7 @@ export default function ActivityCalendar({
           <YearView
             focusDate={focusDate}
             events={events}
-            focusedEventId={focusedEventId}
+            focusedDate={focusedDate}
             onDateClick={onDateClick}
             onEventClick={onEventClick}
           />

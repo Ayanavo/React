@@ -25,7 +25,7 @@ function ActivityPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [focusedEventId, setFocusedEventId] = useState<string | null>(null);
+  const [focusedDate, setFocusedDate] = useState<Date | null>(null);
 
   const {
     activities,
@@ -53,11 +53,16 @@ function ActivityPage() {
     const date = new Date(activity.start);
     setFocusDate(date);
     setSidebarDate(date);
-    setFocusedEventId(activity.id ?? null);
+    setFocusedDate(date);
+  }
+
+  function handleSidebarDateChange(date: Date) {
+    setSidebarDate(date);
+    setFocusedDate(null);
   }
 
   function openCreateDialog(date: Date) {
-    setFocusedEventId(null);
+    setFocusedDate(null);
     setSelectedActivity(null);
     setSelectedDate(date);
     setDialogOpen(true);
@@ -70,7 +75,7 @@ function ActivityPage() {
   }
 
   function openCalendarEvent(event: CalendarEvent, date: Date) {
-    setFocusedEventId(null);
+    setFocusedDate(null);
     const activity = findActivity(event.id) ?? null;
     if (activity) {
       openEditDialog(activity);
@@ -146,11 +151,12 @@ function ActivityPage() {
     const nextDate = next.toDate();
     setFocusDate(nextDate);
     setSidebarDate(nextDate);
+    setFocusedDate(null);
   }
 
   const sidebar = (
     <aside className="activity-page__sidebar">
-      <DatePickerComponent type="datetime" onSendData={setSidebarDate} date={sidebarDate} />
+      <DatePickerComponent type="datetime" onSendData={handleSidebarDateChange} date={sidebarDate} />
       <ActivityUpcomingList activities={activities} onSelect={focusCalendarOnActivity} />
     </aside>
   );
@@ -223,7 +229,7 @@ function ActivityPage() {
                 view={calendarView}
                 focusDate={focusDate}
                 events={calendarEvents}
-                focusedEventId={focusedEventId}
+                focusedDate={focusedDate}
                 onDateClick={openCreateDialog}
                 onEventClick={openCalendarEvent}
               />
