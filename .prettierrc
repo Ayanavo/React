@@ -1,11 +1,12 @@
 {
-  "trailingComma": "es5",
+  "printWidth": 120,
   "tabWidth": 2,
-  "experimentalTernaries": true,
+  "useTabs": false,
   "semi": true,
-  "printWidth": 240,
+  "trailingComma": "es5",
   "singleQuote": false,
   "bracketSpacing": true,
   "bracketSameLine": true,
+  "experimentalTernaries": true,
   "overrides": [{ "files": ["*.json", "*.rc"], "options": { "printWidth": 80 } }]
 }

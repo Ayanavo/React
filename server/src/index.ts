@@ -16,7 +16,7 @@ import cvBuilderRoutes from "./routes/cvBuilderRoutes.js";
 import noteRoutes from "./routes/noteRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import masterAccessRoutes from "./routes/masterAccessRoutes.js";
-import { corsAllowlist } from "./config/cors.js";
+import { corsAllowlist, isOriginAllowed } from "./config/cors.js";
 import { initializeSocket, shutdownSocket } from "./websockets/socket.js";
 import http from "http";
 
@@ -39,7 +39,7 @@ app.set("trust proxy", 1);
 /** --- CORS setup (must be BEFORE routes) --- */
 const corsOptions: CorsOptions = {
   origin(origin, cb) {
-    if (!origin || corsAllowlist.includes(origin)) return cb(null, true);
+    if (isOriginAllowed(origin)) return cb(null, true);
     return cb(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true, // set true only if you use cookies; fine here since cookie-parser is used
@@ -106,7 +106,7 @@ initializeSocket(httpServer);
 
 /** --- Start server (bind 0.0.0.0 on Render) --- */
 const server = httpServer.listen(PORT, "0.0.0.0", () => {
-  const url = IS_PROD ? PROD_URL || `http://0.0.0.0:${PORT}` : `http://localhost:${PORT}`;
+  const url = IS_PROD ? PROD_URL : `http://localhost:${PORT}`;
   console.log(`✅ Server running at ${url}`);
 });
 

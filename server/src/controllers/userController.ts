@@ -4,8 +4,20 @@ import { body, validationResult } from "express-validator";
 import jwt, { Secret, VerifyErrors } from "jsonwebtoken";
 import admin from "../firebase.js";
 import User from "../models/userModel.js";
-import { getUserDataByToken } from "../services/userAcess.js";
+import { getUserDataByRefreshToken, getUserDataByToken, getUserIdFromRefreshToken } from "../services/userAccess.js";
 import { emitUserLoginStatus } from "../websockets/socket.js";
+
+const refreshCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
+  path: "/",
+};
+
+const invalidateUserSession = async (userId: string): Promise<void> => {
+  await User.findByIdAndUpdate(userId, { isLoggedIn: false });
+  emitUserLoginStatus(userId, false);
+};
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -77,6 +89,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     user.isLoggedIn = true;
+    user.lastLoginAt = new Date();
     await user.save();
 
     emitUserLoginStatus(user._id.toString(), true);
@@ -84,15 +97,7 @@ export const login = async (req: Request, res: Response) => {
     const jwt = await user.generateJwt();
     const refreshToken = await user.generateRefreshToken();
 
-    // Set cookie options
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
-      path: "/",
-    };
-
-    res.cookie("refreshToken", refreshToken, cookieOptions);
+    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
 
     return res.status(200).json({
       token: jwt,
@@ -121,20 +126,22 @@ export const login = async (req: Request, res: Response) => {
 export const logout = async (req: Request, res: Response) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
+    let user = token ? await getUserDataByToken(token) : null;
 
-
-    if (!token) return res.status(401).json({ message: "Not authenticated" });
-    const decoded = await getUserDataByToken(token);
-    if (decoded === null) {
-      return res.status(401).json({ message: "Invalid token" });
+    if (!user) {
+      const refreshToken = req.cookies.refreshToken;
+      if (refreshToken) {
+        user = await getUserDataByRefreshToken(refreshToken);
+      }
     }
-    await User.findByIdAndUpdate(decoded._id, {
-      isLoggedIn: false,
-    });
 
-    emitUserLoginStatus(decoded._id.toString(), false);
+    if (!user) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
 
-    res.clearCookie("authToken");
+    await invalidateUserSession(user._id.toString());
+
+    res.clearCookie("refreshToken", refreshCookieOptions);
     res.json({ message: "Logged out successfully" });
   } catch (error) {
     res.status(500).json({ message: "Failed to logout" });
@@ -160,28 +167,44 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
 
 // Refresh Token
 export const refreshToken = async (req: Request, res: Response) => {
+  const cookieRefreshToken = req.cookies.refreshToken;
+
+  if (!cookieRefreshToken) {
+    return res.status(401).json({ message: "No refresh token provided" });
+  }
+
   try {
-    const refreshToken = req.cookies.refreshToken;
-
-    if (!refreshToken) {
-      return res.status(401).json({ message: "No refresh token provided" });
-    }
-
-    const user = await getUserDataByToken(refreshToken);
+    const user = await getUserDataByRefreshToken(cookieRefreshToken);
     if (!user) {
+      const userId = getUserIdFromRefreshToken(cookieRefreshToken);
+      if (userId) {
+        await invalidateUserSession(userId);
+      }
+      res.clearCookie("refreshToken", refreshCookieOptions);
       return res.status(401).json({ message: "Invalid refresh token" });
     }
 
-    // Generate new session token
-    const newToken = await user.generateJwt();
+    const userDoc = await User.findById(user._id);
+    if (!userDoc) {
+      await invalidateUserSession(user._id.toString());
+      res.clearCookie("refreshToken", refreshCookieOptions);
+      return res.status(401).json({ message: "Invalid refresh token" });
+    }
+
+    const newToken = userDoc.generateJwt();
 
     res.status(200).json({
       token: newToken,
       message: "Token refreshed successfully",
-      expiresIn: "4hrs",
+      expiresIn: 1 * 60 * 60,
     });
   } catch (error) {
     console.error("Refresh token error:", error);
+    const userId = getUserIdFromRefreshToken(cookieRefreshToken);
+    if (userId) {
+      await invalidateUserSession(userId);
+    }
+    res.clearCookie("refreshToken", refreshCookieOptions);
     res.status(401).json({ message: "Invalid refresh token" });
   }
 };
@@ -251,9 +274,14 @@ export const saveSettings = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Required fields are missing" });
     }
 
-    const user = await getUserDataByToken(token);
-    if (user === null) {
+    const decoded = await getUserDataByToken(token);
+    if (decoded === null) {
       return res.status(401).json({ message: "User not found" });
+    }
+
+    const user = await User.findById(decoded._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
     user.settings = {

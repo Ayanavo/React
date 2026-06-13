@@ -1,7 +1,6 @@
 import type { Server as HttpServer } from "http";
 import jwt, { Secret } from "jsonwebtoken";
 import { Server } from "socket.io";
-import { isOriginAllowed } from "../config/cors.js";
 
 export const USER_LOGIN_STATUS_EVENT = "user:login-status";
 
@@ -12,10 +11,7 @@ export const initializeSocket = (server: HttpServer): Server => {
 
   io = new Server(server, {
     cors: {
-      origin: (origin, cb) => {
-        if (isOriginAllowed(origin)) return cb(null, true);
-        cb(new Error(`Not allowed by CORS: ${origin}`));
-      },
+      origin: "*",
       credentials: true,
     },
     transports: ["websocket", "polling"],
@@ -28,14 +24,18 @@ export const initializeSocket = (server: HttpServer): Server => {
 
     if (!token) return next(new Error("Authentication required"));
 
-    jwt.verify(token, process.env.API_SECRET_KEY as Secret, (err) => {
+    jwt.verify(token, process.env.API_SECRET_KEY as Secret, (err, decoded) => {
       if (err) return next(new Error("Invalid or expired token"));
+      const payload = decoded as { id?: string };
+      if (payload?.id) {
+        socket.data.userId = payload.id;
+      }
       next();
     });
   });
 
   io.on("connection", (socket) => {
-    console.log(`Socket connected: ${socket.id}`);
+    console.log(`Socket connected: ${socket.id}${socket.data.userId ? ` (user: ${socket.data.userId})` : ""}`);
     socket.on("disconnect", () => console.log(`Socket disconnected: ${socket.id}`));
   });
 
