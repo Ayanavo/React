@@ -1,26 +1,25 @@
+import {
+    ActivityPayload,
+    ActivityRecord,
+    createActivity as createActivityApi,
+    deleteActivity as deleteActivityApi,
+    fetchActivities,
+    GoogleCalendarEvent,
+    updateActivity as updateActivityApi,
+    useHolidayEvents,
+} from "@/shared/services/activity";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
 import { useCallback, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ActivityPayload,
-  ActivityRecord,
-  createActivity as createActivityApi,
-  deleteActivity as deleteActivityApi,
-  fetchActivities,
-  GoogleCalendarEvent,
-  updateActivity as updateActivityApi,
-  useHolidayEvents,
-} from "@/shared/services/activity";
 import { CalendarEvent, CalendarView } from "./activity-calendar";
 import {
-  ActivityFormValues,
-  ActivityItem,
-  ActivityPriority,
-  ActivitySource,
-  ActivityStatus,
-  ActivityType,
-  DEFAULT_ACTIVITY_COLOR,
-  RecurrenceInterval,
+    ActivityFormValues,
+    ActivityItem,
+    ActivityPriority,
+    ActivitySource,
+    ActivityStatus,
+    ActivityType,
+    DEFAULT_ACTIVITY_COLOR
 } from "./activity.types";
 
 function formValuesToPayload(values: ActivityFormValues): ActivityPayload {
@@ -236,4 +235,4 @@ export function useActivityManager(focusDate: Date, calendarView: CalendarView) 
   };
 }
 
-export { activityToFormValues, activityToCalendarEvent };
+export { activityToCalendarEvent, activityToFormValues };

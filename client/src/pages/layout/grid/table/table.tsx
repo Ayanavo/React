@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import showToast from "@/hooks/toast";
 import { formatAppDate } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
-import { deleteActivity, fetchActivities } from "@/shared/services/activity";
+import { deleteActivity, fetchActivities, ActivityRecord } from "@/shared/services/activity";
 import { useSidebarLayout } from "@/shared/sidebarlayout";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
@@ -38,6 +38,16 @@ import PaginationComponent from "./pagination";
 import "./table.css";
 import { User } from "./user.model";
 
+function mapActivityToTableRow(activity: ActivityRecord): User {
+  return {
+    _id: activity._id,
+    name: activity.name ?? activity.title ?? "",
+    description: activity.description ?? "",
+    createdAt: activity.createdAt,
+    updatedAt: activity.updatedAt,
+  };
+}
+
 function table() {
   const {
     data: todos,
@@ -58,10 +68,9 @@ function table() {
 
   const id = useId();
   useEffect(() => {
-    // Fetch data from an API or other source here
-    if (isSuccess && todos) {
-      setData(todos.activities ?? []);
-    }
+    if (!isSuccess || !todos) return;
+
+    setData(todos.activities.map(mapActivityToTableRow));
   }, [todos, isSuccess]);
   const [layout, setLayout] = useState<string>("column");
   const columnConfig: { key: keyof User | "select" | "action"; label: string }[] = [
