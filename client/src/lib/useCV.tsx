@@ -56,6 +56,7 @@ export interface CVElement {
     iconFill?: "fill" | "unfill";
     tokenStyle?: {
       backgroundColor?: string;
+      borderColor?: string;
       radius?: number;
     };
     tokenInterlink?: {
