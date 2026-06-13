@@ -1,11 +1,20 @@
-import { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarTrigger } from "@/components/ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { logoutAPI } from "@/shared/services/auth";
-import { disconnectSocket } from "@/shared/services/socket";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import IconsComponent from "../../common/icons";
@@ -43,7 +52,6 @@ function menu({
               title: res.message,
               variant: "success",
             });
-            disconnectSocket();
             navigate("/login");
           })
           .catch((error) => {
@@ -71,18 +79,16 @@ function menu({
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {isLoadingPermissions
-              ? Array.from({ length: 7 }).map((_, index) => (
+            {isLoadingPermissions ?
+              Array.from({ length: 7 }).map((_, index) => (
                 <SidebarMenuItem key={index}>
                   <div className="flex items-center gap-2 px-2 py-2">
                     <Skeleton className="h-6 w-6 rounded-md" />
-                    {isExpanded && (
-                      <Skeleton className="h-4 flex-1 max-w-[120px]" />
-                    )}
+                    {isExpanded && <Skeleton className="h-4 flex-1 max-w-[120px]" />}
                   </div>
                 </SidebarMenuItem>
               ))
-              : NavList.map(({ label, icon, route }: NavItem) => {
+            : NavList.map(({ label, icon, route }: NavItem) => {
                 const isActive = isRouteActive(route);
 
                 return (
@@ -91,32 +97,23 @@ function menu({
                       <TooltipTrigger asChild>
                         <SidebarMenuItem>
                           <SidebarMenuButton
-                            className={cn(
-                              "text-secondary hover:text-primary",
-                              isActive && "text-primary"
-                            )}
+                            className={cn("text-secondary hover:text-primary", isActive && "text-primary")}
                             isActive={isActive}
-                            onClick={() => navigate(route)}
-                          >
-                            <IconsComponent
-                              customClass="h-6 w-6"
-                              icon={icon}
-                            />
+                            onClick={() => navigate(route)}>
+                            <IconsComponent customClass="h-6 w-6" icon={icon} />
                             <span>{label}</span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       </TooltipTrigger>
 
-                      <TooltipContent
-                        className={cn(!isExpanded && "sr-only")}
-                        side="right"
-                      >
+                      <TooltipContent className={cn(!isExpanded && "sr-only")} side="right">
                         {label}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 );
-              })}
+              })
+            }
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>

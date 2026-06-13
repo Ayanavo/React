@@ -29,6 +29,8 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [selectAll, setSelectAll] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [lastLoginAt, setLastLoginAt] = useState<string | null>(null);
   const selectedCount = NavList.filter((item) => checked[item.route]).length;
 
   useEffect(() => {
@@ -37,6 +39,8 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
       try {
         const res = await fetchPermissions(userId);
         const allowed: string[] = res?.permissions?.allowedRoutes || [];
+        setIsLoggedIn(res?.permissions?.isLoggedIn ?? null);
+        setLastLoginAt(res?.permissions?.lastLoginAt ?? null);
         const map: Record<string, boolean> = {};
         allowed.forEach((r: string) => (map[r] = true));
         const next = withLockedRoutes(map);
@@ -79,7 +83,7 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-xl gap-0 overflow-hidden p-0">
+      <DialogContent className="max-w-xl gap-0 p-0">
         <DialogHeader className="border-b border-border/70 bg-primary/5 px-5 py-4">
           <div className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/15 bg-background text-primary shadow-sm">
@@ -89,6 +93,12 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
               <DialogTitle className="text-base font-semibold">Permissions</DialogTitle>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {selectedCount} of {NavList.length} menus enabled
+                {isLoggedIn !== null ?
+                  <> · {isLoggedIn ? "Currently logged in" : "Not logged in"}</>
+                : null}
+                {lastLoginAt ?
+                  <> · Last login {new Date(lastLoginAt).toLocaleString()}</>
+                : null}
               </p>
             </div>
           </div>
@@ -102,43 +112,57 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
               </span>
               <span className="truncate text-sm font-semibold text-foreground">Select all menus</span>
             </div>
-            <Checkbox className="ml-3 border-primary/60 shadow-none" checked={selectAll} onCheckedChange={toggleAll} aria-label="Select all permissions" />
+            <Checkbox
+              className="ml-3 border-primary/60 shadow-none"
+              checked={selectAll}
+              onCheckedChange={toggleAll}
+              aria-label="Select all permissions"
+            />
           </label>
 
-          <div className="max-h-[360px] overflow-auto rounded-lg border border-border/70">
+          <div className="rounded-lg border border-border/70">
             <div className="grid divide-y divide-border/70">
-              {isLoading
-                ? Array.from({ length: 6 }).map((_, index) => (
-                    <div key={index} className="flex items-center justify-between bg-card px-3 py-2.5">
+              {isLoading ?
+                Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="flex items-center justify-between bg-card px-3 py-2.5">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Skeleton className="h-8 w-8 shrink-0 rounded-md" />
+                      <div className="min-w-0 space-y-2 py-1">
+                        <Skeleton className="h-3 w-32 rounded-md" />
+                        <Skeleton className="h-2 w-24 rounded-md" />
+                      </div>
+                    </div>
+                    <Skeleton className="h-4 w-6 rounded-full" />
+                  </div>
+                ))
+              : NavList.map((item) => {
+                  const isChecked = !!checked[item.route];
+                  const isLocked = lockedRoutes.has(item.route);
+
+                  return (
+                    <label
+                      key={item.route}
+                      className={`flex items-center justify-between bg-card px-3 py-2.5 transition-colors ${isLocked ? "cursor-not-allowed opacity-75" : "cursor-pointer hover:bg-muted/35"}`}>
                       <div className="flex min-w-0 items-center gap-3">
-                        <Skeleton className="h-8 w-8 shrink-0 rounded-md" />
-                        <div className="min-w-0 space-y-2 py-1">
-                          <Skeleton className="h-3 w-32 rounded-md" />
-                          <Skeleton className="h-2 w-24 rounded-md" />
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground">
+                          <IconsComponent icon={item.icon} customClass="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-medium text-foreground">{item.label}</div>
+                          <div className="truncate text-xs text-muted-foreground">{item.route}</div>
                         </div>
                       </div>
-                      <Skeleton className="h-4 w-6 rounded-full" />
-                    </div>
-                  ))
-                : NavList.map((item) => {
-                    const isChecked = !!checked[item.route];
-                    const isLocked = lockedRoutes.has(item.route);
-
-                    return (
-                      <label key={item.route} className={`flex items-center justify-between bg-card px-3 py-2.5 transition-colors ${isLocked ? "cursor-not-allowed opacity-75" : "cursor-pointer hover:bg-muted/35"}`}>
-                        <div className="flex min-w-0 items-center gap-3">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground">
-                            <IconsComponent icon={item.icon} customClass="h-4 w-4" />
-                          </span>
-                          <div className="min-w-0">
-                            <div className="truncate text-sm font-medium text-foreground">{item.label}</div>
-                            <div className="truncate text-xs text-muted-foreground">{item.route}</div>
-                          </div>
-                        </div>
-                        <Checkbox className="ml-3 border-primary/60 shadow-none" checked={isLocked || isChecked} disabled={isLocked} onCheckedChange={() => toggle(item.route)} aria-label={`Toggle ${item.label} permission`} />
-                      </label>
-                    );
-                  })}
+                      <Checkbox
+                        className="ml-3 border-primary/60 shadow-none"
+                        checked={isLocked || isChecked}
+                        disabled={isLocked}
+                        onCheckedChange={() => toggle(item.route)}
+                        aria-label={`Toggle ${item.label} permission`}
+                      />
+                    </label>
+                  );
+                })
+              }
             </div>
           </div>
         </div>

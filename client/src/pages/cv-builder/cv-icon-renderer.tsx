@@ -43,7 +43,11 @@ const CvIconRenderer = ({ element, readonly = false }: { element: CVElement; rea
           e.stopPropagation();
           if (!readonly) selectElement(element.id);
         }}>
-        <Icon icon={iconName} style={style} size={element.properties?.fontSize ? element.properties.fontSize : undefined} />
+        <Icon
+          icon={iconName}
+          style={style}
+          size={element.properties?.fontSize ? element.properties.fontSize : undefined}
+        />
       </div>
     </div>
   );

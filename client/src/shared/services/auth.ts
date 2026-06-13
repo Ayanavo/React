@@ -1,5 +1,5 @@
-// loginService.ts
 import { apiUrl, axiosInstance, createChatTransport } from "@/shared/interceptors/auth-interceptor";
+import { disconnectSocket } from "@/shared/services/socket";
 import { clearAuthToken, setAuthToken } from "@/shared/utils/auth-token";
 
 export type RegisterPayload = {
@@ -58,9 +58,13 @@ export const forgotPasswordAPI = async (email: string) => {
 };
 
 export const logoutAPI = async () => {
-  const response = await axiosInstance.post(apiUrl + "auth/logout");
-  clearAuthToken();
-  return response.data;
+  try {
+    const response = await axiosInstance.post(apiUrl + "auth/logout");
+    return response.data;
+  } finally {
+    clearAuthToken();
+    disconnectSocket();
+  }
 };
 
 export const getCurrentUserAPI = async () => {

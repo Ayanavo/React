@@ -23,13 +23,23 @@ type ResourceFormBuilderProps<T extends Record<string, unknown>> = {
   fetchResource?: (id: string) => Promise<T>;
 };
 
-function ResourceFormBuilder<T extends Record<string, unknown>>({ formJson, queryKey, listPath, resourceLabel, createResource, updateResource, fetchResource }: ResourceFormBuilderProps<T>) {
+function ResourceFormBuilder<T extends Record<string, unknown>>({
+  formJson,
+  queryKey,
+  listPath,
+  resourceLabel,
+  createResource,
+  updateResource,
+  fetchResource,
+}: ResourceFormBuilderProps<T>) {
   const { id } = useParams<{ id: string }>();
   const [defaultTab, setDefaultTab] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const flatFields = formJson.flatMap((tab) => tab.sections.flatMap((section) => section.blocks.flatMap((block) => block.fields)));
+  const flatFields = formJson.flatMap((tab) =>
+    tab.sections.flatMap((section) => section.blocks.flatMap((block) => block.fields))
+  );
 
   const form = generateControl(flatFields);
 
@@ -95,7 +105,9 @@ function ResourceFormBuilder<T extends Record<string, unknown>>({ formJson, quer
 
   const renderField = (field: FormTabSchema["sections"][number]["blocks"][number]["fields"][number]) => {
     const Component = componentMap[field.type as keyof typeof componentMap];
-    return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
+    return Component ?
+        <Component key={field.name} form={form} schema={field} />
+      : <div key={field.name}>Unidentified field type: {field.type}</div>;
   };
 
   if (!defaultTab) {
@@ -105,7 +117,14 @@ function ResourceFormBuilder<T extends Record<string, unknown>>({ formJson, quer
   return (
     <div className="m-3">
       <Tabs className="w-full mx-auto" defaultValue={defaultTab}>
-        <TabsList className={cn("grid w-full", formJson.length === 1 && "grid-cols-1", formJson.length === 2 && "grid-cols-2", formJson.length === 3 && "grid-cols-3", formJson.length >= 4 && "grid-cols-4")}>
+        <TabsList
+          className={cn(
+            "grid w-full",
+            formJson.length === 1 && "grid-cols-1",
+            formJson.length === 2 && "grid-cols-2",
+            formJson.length === 3 && "grid-cols-3",
+            formJson.length >= 4 && "grid-cols-4"
+          )}>
           {formJson.map((tab) => (
             <TabsTrigger key={tab.tabId} value={tab.tabId}>
               {tab.tabLabel}

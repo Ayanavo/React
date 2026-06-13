@@ -1,15 +1,24 @@
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import showToast from "@/hooks/toast";
 import { formatAppDate } from "@/lib/date-format";
 import ResourceGrid, { GridColumnConfig } from "@/pages/layout/grid/ResourceGrid";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { CVBuilderRecord, deleteCVBuilder, fetchCVBuilderById, fetchCVBuilderList } from "@/shared/services/cvbuilder";
 import { getTags } from "@/shared/services/tag";
-import { DownloadIcon, EllipsisIcon, EyeIcon, Trash2Icon } from "lucide-react";
-import React, { useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { DownloadIcon, EllipsisIcon, EyeIcon, ListFilterIcon, Trash2Icon } from "lucide-react";
+import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 type UserRef = string | { firstName?: string; lastName?: string; email?: string };
@@ -18,6 +27,7 @@ type CVAccessRecord = {
   _id: string;
   name: string;
   job: string;
+  tagId: string;
   tagName: string;
   tagColor?: string;
   createdBy: string;
@@ -45,6 +55,7 @@ const fetchCVAccessList = async (): Promise<CVAccessRecord[]> => {
       _id: cv._id,
       name: cv.name || "Untitled CV",
       job: cv.job || "-",
+      tagId: cv.tag || "",
       tagName: tagRecord?.name ?? cv.tag ?? "-",
       tagColor: tagRecord?.color,
       createdBy: formatUser(cv.createdBy as UserRef),
@@ -67,7 +78,8 @@ const columns: GridColumnConfig<CVAccessRecord>[] = [
     key: "tagName",
     label: "Tag",
     render: (value, row) => {
-      const tagStyle = row.tagColor ? { borderColor: `${row.tagColor}4f`, backgroundColor: `${row.tagColor}40` } : undefined;
+      const tagStyle =
+        row.tagColor ? { borderColor: `${row.tagColor}4f`, backgroundColor: `${row.tagColor}40` } : undefined;
 
       return (
         <Badge variant="secondary" className="cursor-default gap-2 rounded-lg" style={tagStyle}>
@@ -87,6 +99,17 @@ const columns: GridColumnConfig<CVAccessRecord>[] = [
 const CVAccessGrid = () => {
   const navigate = useNavigate();
   const { confirm } = useConfirmDialog();
+  const [selectedTagId, setSelectedTagId] = useState("all");
+
+  const { data: tags = [] } = useQuery({
+    queryKey: ["tags"],
+    queryFn: getTags,
+  });
+
+  const filterFn = useCallback(
+    (row: CVAccessRecord) => selectedTagId === "all" || row.tagId === selectedTagId,
+    [selectedTagId]
+  );
 
   const openBuilder = () => {
     sessionStorage.removeItem("cv-editor-session");
@@ -152,9 +175,56 @@ const CVAccessGrid = () => {
     </div>
   );
 
+  const hasActiveFilter = selectedTagId !== "all";
+
+  const filterControls = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon" className="relative h-9 w-9 shrink-0">
+          <ListFilterIcon className="h-4 w-4" />
+          <span className="sr-only">Filter</span>
+          {hasActiveFilter ?
+            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
+          : null}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-64" onCloseAutoFocus={(event) => event.preventDefault()}>
+        <DropdownMenuLabel>Filters</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <div className="space-y-2 px-2 py-2" onClick={(event) => event.stopPropagation()}>
+          <p className="text-xs font-medium text-muted-foreground">Tag</p>
+          <Select value={selectedTagId} onValueChange={setSelectedTagId}>
+            <SelectTrigger className="h-9 w-full">
+              <SelectValue placeholder="All tags" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All tags</SelectItem>
+              {tags.map((tag) => (
+                <SelectItem key={tag._id} value={tag._id}>
+                  <span className="flex items-center gap-2">
+                    {tag.color ?
+                      <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tag.color }} />
+                    : null}
+                    {tag.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        {hasActiveFilter ?
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={() => setSelectedTagId("all")}>Clear filters</DropdownMenuItem>
+          </>
+        : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
     <div className="flex flex-col">
-      <div className="flex items-center justify-between px-2 pt-3">
+      <div className="px-6 pt-4">
         <BreadcrumbInbuild />
       </div>
       <ResourceGrid<CVAccessRecord>
@@ -167,6 +237,8 @@ const CVAccessGrid = () => {
         deleteResource={deleteCVBuilder}
         actionRenderer={actionRenderer}
         onAddClick={openBuilder}
+        filterControls={filterControls}
+        filterFn={filterFn}
       />
     </div>
   );

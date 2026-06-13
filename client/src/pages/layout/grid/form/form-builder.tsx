@@ -25,7 +25,9 @@ function FormBuilder() {
   }, []);
   const navigate = useNavigate();
   const form = generateControl(
-    formJson.map((tab) => tab.sections.map((json) => json.blocks.map((block) => block.fields))).flat(Infinity) as Array<{
+    formJson
+      .map((tab) => tab.sections.map((json) => json.blocks.map((block) => block.fields)))
+      .flat(Infinity) as Array<{
       validation: any;
       name: string;
       label: string;
@@ -89,7 +91,9 @@ function FormBuilder() {
 
   const renderField = (field: any) => {
     const Component = componentMap[field.type as keyof typeof componentMap];
-    return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
+    return Component ?
+        <Component key={field.name} form={form} schema={field} />
+      : <div key={field.name}>Unidentified field type: {field.type}</div>;
   };
 
   if (!defaultTab) {
@@ -117,7 +121,9 @@ function FormBuilder() {
                       <CardDescription>Please fill in your details for this section.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className={`grid ${getColumn[section.colType as keyof typeof getColumn]} gap-4`}>{section.blocks?.map((block) => block.fields.map(renderField))}</div>
+                      <div className={`grid ${getColumn[section.colType as keyof typeof getColumn]} gap-4`}>
+                        {section.blocks?.map((block) => block.fields.map(renderField))}
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

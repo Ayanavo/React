@@ -18,7 +18,9 @@ function dropdown({ form, schema }: { form: FieldValue<any>; schema: DropdownSch
     e.preventDefault();
     if (e) {
       const value = e.target.value;
-      setOptionList(schema.options.filter((item) => (item.value?.toLowerCase() || "").includes(value.toLowerCase() || "")));
+      setOptionList(
+        schema.options.filter((item) => (item.value?.toLowerCase() || "").includes(value.toLowerCase() || ""))
+      );
     }
   };
 

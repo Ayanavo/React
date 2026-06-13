@@ -33,7 +33,9 @@ function color({ form, schema }: { form: FieldValue<any>; schema: ColorSchema })
           )}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+              <Button
+                variant={"outline"}
+                className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
                 {field.value ?
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-4 rounded-full border" style={{ backgroundColor: field.value }} />

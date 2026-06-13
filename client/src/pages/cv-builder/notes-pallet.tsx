@@ -106,7 +106,9 @@ const NotesPallet = () => {
 
           <p className="mt-1 text-xs text-muted-foreground">Create notes and quickly insert them into your CV.</p>
 
-          <button onClick={() => navigate("/notes")} className=" mt-4 inline-flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs font-medium transition-colors hover:bg-muted">
+          <button
+            onClick={() => navigate("/notes")}
+            className=" mt-4 inline-flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs font-medium transition-colors hover:bg-muted">
             <Plus className="h-4 w-4" />
             Add Note
           </button>
@@ -129,10 +131,14 @@ const NotesPallet = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex min-w-0 items-center gap-2">
-                    <p className="min-w-0 flex-1 truncate text-xs font-medium leading-5 text-foreground">{note.title || "Untitled"}</p>
+                    <p className="min-w-0 flex-1 truncate text-xs font-medium leading-5 text-foreground">
+                      {note.title || "Untitled"}
+                    </p>
                     <Plus className="h-3.5 w-3.5 shrink-0 text-muted-foreground transition-colors group-hover:text-primary" />
                   </div>
-                  <p className="mt-1 line-clamp-2 text-xs leading-4 text-muted-foreground">{note.body || "No description"}</p>
+                  <p className="mt-1 line-clamp-2 text-xs leading-4 text-muted-foreground">
+                    {note.body || "No description"}
+                  </p>
                 </div>
               </div>
             </button>

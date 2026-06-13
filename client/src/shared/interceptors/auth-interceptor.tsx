@@ -1,6 +1,7 @@
 import showToast from "@/hooks/toast";
 import { DefaultChatTransport } from "ai";
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { disconnectSocket } from "@/shared/services/socket";
 import { clearAuthToken, getAuthToken, setAuthToken } from "@/shared/utils/auth-token";
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
@@ -16,8 +17,16 @@ export const axiosInstance = axios.create({
   withCredentials: true,
 });
 
-const redirectToLogin = (message: string) => {
+const redirectToLogin = async (message: string) => {
   console.log(message);
+
+  disconnectSocket();
+
+  try {
+    await axios.post(`${apiUrl}auth/logout`, {}, { withCredentials: true });
+  } catch {
+    // Best-effort server logout when session expires
+  }
 
   clearAuthToken();
 

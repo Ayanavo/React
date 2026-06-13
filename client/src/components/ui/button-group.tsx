@@ -9,8 +9,10 @@ const buttonGroupVariants = cva(
   {
     variants: {
       orientation: {
-        horizontal: "[&>*:not(:first-child)]:rounded-l-none [&>*:not(:first-child)]:border-l-0 [&>*:not(:last-child)]:rounded-r-none",
-        vertical: "flex-col [&>*:not(:first-child)]:rounded-t-none [&>*:not(:first-child)]:border-t-0 [&>*:not(:last-child)]:rounded-b-none",
+        horizontal:
+          "[&>*:not(:first-child)]:rounded-l-none [&>*:not(:first-child)]:border-l-0 [&>*:not(:last-child)]:rounded-r-none",
+        vertical:
+          "flex-col [&>*:not(:first-child)]:rounded-t-none [&>*:not(:first-child)]:border-t-0 [&>*:not(:last-child)]:rounded-b-none",
       },
     },
     defaultVariants: {
@@ -19,8 +21,20 @@ const buttonGroupVariants = cva(
   }
 );
 
-function ButtonGroup({ className, orientation, ...props }: React.ComponentProps<"div"> & VariantProps<typeof buttonGroupVariants>) {
-  return <div role="group" data-slot="button-group" data-orientation={orientation} className={cn(buttonGroupVariants({ orientation }), className)} {...props} />;
+function ButtonGroup({
+  className,
+  orientation,
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof buttonGroupVariants>) {
+  return (
+    <div
+      role="group"
+      data-slot="button-group"
+      data-orientation={orientation}
+      className={cn(buttonGroupVariants({ orientation }), className)}
+      {...props}
+    />
+  );
 }
 
 function ButtonGroupText({
@@ -32,11 +46,30 @@ function ButtonGroupText({
 }) {
   const Comp = asChild ? Slot : "div";
 
-  return <Comp className={cn("bg-muted shadow-xs flex items-center gap-2 rounded-md border px-4 text-sm font-medium [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none", className)} {...props} />;
+  return (
+    <Comp
+      className={cn(
+        "bg-muted shadow-xs flex items-center gap-2 rounded-md border px-4 text-sm font-medium [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none",
+        className
+      )}
+      {...props}
+    />
+  );
 }
 
-function ButtonGroupSeparator({ className, orientation = "vertical", ...props }: React.ComponentProps<typeof Separator>) {
-  return <Separator data-slot="button-group-separator" orientation={orientation} className={cn("bg-input relative !m-0 self-stretch data-[orientation=vertical]:h-auto", className)} {...props} />;
+function ButtonGroupSeparator({
+  className,
+  orientation = "vertical",
+  ...props
+}: React.ComponentProps<typeof Separator>) {
+  return (
+    <Separator
+      data-slot="button-group-separator"
+      orientation={orientation}
+      className={cn("bg-input relative !m-0 self-stretch data-[orientation=vertical]:h-auto", className)}
+      {...props}
+    />
+  );
 }
 
 export { ButtonGroup, ButtonGroupSeparator, ButtonGroupText, buttonGroupVariants };

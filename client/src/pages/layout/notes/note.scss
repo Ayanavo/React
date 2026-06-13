@@ -1,9 +1,71 @@
 .note-box {
-  color: rgba(0, 0, 0, 0.7);
   letter-spacing: 0.0178571429em;
   font-family: "Google Sans", Roboto, Arial, sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   line-height: 1.25rem;
   padding: 0.5rem 1rem;
+
+  &--themed {
+    color: var(--note-text);
+    border-color: var(--note-border);
+  }
+
+  > button.absolute {
+    color: var(--note-muted, hsl(var(--muted-foreground)));
+
+    &:hover {
+      color: var(--note-text, hsl(var(--foreground)));
+      opacity: 1;
+    }
+  }
+
+  .note-muted {
+    color: var(--note-muted, hsl(var(--muted-foreground) / 0.7));
+  }
+
+  .note-field {
+    width: 100%;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: var(--note-text, hsl(var(--foreground)));
+    border: none;
+    border-bottom: 1px solid var(--note-border, hsl(var(--border)));
+
+    &::placeholder {
+      color: var(--note-placeholder, hsl(var(--muted-foreground)));
+    }
+
+    &:focus {
+      border-bottom-color: var(--note-text, hsl(var(--foreground) / 0.45));
+    }
+  }
+
+  .note-title {
+    padding-block: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.5rem;
+  }
+
+  .note-description {
+    min-height: 100px;
+    overflow: hidden;
+    padding-block: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.25rem;
+  }
+
+  .note-action-btn {
+    background: transparent;
+    border-color: var(--note-border, hsl(var(--border)));
+    color: var(--note-text, hsl(var(--foreground)));
+
+    &:hover {
+      background: color-mix(in srgb, var(--note-border, hsl(var(--border))) 35%, transparent);
+      color: var(--note-text, hsl(var(--foreground)));
+    }
+  }
 }

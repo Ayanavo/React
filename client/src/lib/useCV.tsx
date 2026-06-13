@@ -6,9 +6,22 @@ export type PaginationLocation = "top-left" | "top" | "top-right" | "bottom-left
 export type PageProperties = {
   backgroundColor?: string;
   color?: string;
+  dividerColor?: string;
+  dividerStyle?: "solid" | "dashed" | "dotted";
 };
 
-export type CVElementType = "page" | "section" | "block" | "text" | "list" | "date" | "token" | "image" | "icon" | "header" | "location";
+export type CVElementType =
+  | "page"
+  | "section"
+  | "block"
+  | "text"
+  | "list"
+  | "date"
+  | "token"
+  | "image"
+  | "icon"
+  | "header"
+  | "location";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 export type DateFormat = "DD_MM_YYYY" | "DD_MMM_YYYY" | "DD_MMMM_YYYY" | "MMM_YYYY" | "MMMM_YYYY" | "YYYY";
 
@@ -16,6 +29,7 @@ export interface CVElement {
   id: string;
   type: CVElementType;
   height?: number;
+  width?: number;
   content?: string | string[];
   properties?: {
     imageSrc?: string;
@@ -122,6 +136,10 @@ interface CVContextType {
   removePage: (pageId?: string) => void;
   showSideBar: boolean;
   toggleSideBar: () => void;
+  cvName: string;
+  setCvName: (name: string) => void;
+  onRequestSave: ((afterSave?: (savedName: string) => void) => void) | null;
+  setOnRequestSave: (cb: ((afterSave?: (savedName: string) => void) => void) | null) => void;
   MAX_PAGES: number;
   MAX_SECTIONS: number;
   MAX_BLOCKS_PER_SECTION: number;
@@ -176,7 +194,8 @@ const updateTree = (nodes: CVElement[], id: string, updater: (node: CVElement) =
     return { ...node, children: updateTree(node.children, id, updater) };
   });
 
-const removeFromTree = (nodes: CVElement[], id: string): CVElement[] => nodes.filter((n) => n.id !== id).map((n) => (n.children ? { ...n, children: removeFromTree(n.children, id) } : n));
+const removeFromTree = (nodes: CVElement[], id: string): CVElement[] =>
+  nodes.filter((n) => n.id !== id).map((n) => (n.children ? { ...n, children: removeFromTree(n.children, id) } : n));
 
 const findElementById = (nodes: CVElement[], id: string | null): CVElement | null => {
   if (!id) return null;
@@ -194,6 +213,13 @@ const findElementById = (nodes: CVElement[], id: string | null): CVElement | nul
 /* ---------------- PROVIDER ---------------- */
 
 export function CVProvider({ children }: { children: React.ReactNode }) {
+  const [cvName, setCvName] = useState("");
+  const [onRequestSave, setOnRequestSaveRaw] = useState<((afterSave?: (savedName: string) => void) => void) | null>(
+    null
+  );
+  const setOnRequestSave = useCallback((cb: ((afterSave?: (savedName: string) => void) => void) | null) => {
+    setOnRequestSaveRaw(() => cb);
+  }, []);
   const getInitialElements = (): CVElement[] => {
     const saved = sessionStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -560,8 +586,10 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const clearSelection = () => {
+    setSelectedPageId(null);
     setSelectedSectionId(null);
     setSelectedBlockId(null);
+    setSelectedHeaderId(null);
     setSelectedElementId(null);
   };
 
@@ -613,6 +641,10 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
         showSideBar,
         toggleSideBar,
+        cvName,
+        setCvName,
+        onRequestSave,
+        setOnRequestSave,
         MAX_PAGES,
         MAX_SECTIONS,
         MAX_BLOCKS_PER_SECTION,

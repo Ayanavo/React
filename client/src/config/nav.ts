@@ -9,7 +9,6 @@ export const NavList: Array<NavItem> = [
   { label: "Whiteboard", icon: "WorkflowIcon", route: "/whiteboard" },
   { label: "Profile", icon: "UserIcon", route: "/profile" },
   { label: "Settings", icon: "SettingsIcon", route: "/settings" },
- 
 ];
 
 export const NavExclusionList = ["/profile", "/settings", "/dashboard"];

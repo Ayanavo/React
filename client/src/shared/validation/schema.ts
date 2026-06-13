@@ -21,7 +21,13 @@ export const createAsyncValidator = (validator: (value: string) => Promise<any>)
 };
 
 // Schema builders
-export const createTextField = (options: { required?: boolean; minLength?: number; maxLength?: number; pattern?: RegExp; asyncValidator?: (value: string) => Promise<any> }) => {
+export const createTextField = (options: {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: RegExp;
+  asyncValidator?: (value: string) => Promise<any>;
+}) => {
   let base: z.ZodString = textField;
 
   if (options.required) {
@@ -93,12 +99,17 @@ export const createProfileBaseSchema = (mobileSingle: boolean) =>
   });
 
 // Schema with async validation (to be used when API is available)
-export const createProfileSchemaWithValidation = (mobileSingle: boolean, pincodeValidator?: (value: string, state?: string) => Promise<boolean>) => {
+export const createProfileSchemaWithValidation = (
+  mobileSingle: boolean,
+  pincodeValidator?: (value: string, state?: string) => Promise<boolean>
+) => {
   const baseSchema = createProfileBaseSchema(mobileSingle).omit({ pincode: true });
 
   if (pincodeValidator) {
     return baseSchema.extend({
-      pincode: createAsyncValidator(async (val: string) => pincodeValidator(val))(z.string().min(1, "Pincode is required")),
+      pincode: createAsyncValidator(async (val: string) => pincodeValidator(val))(
+        z.string().min(1, "Pincode is required")
+      ),
     });
   }
 
@@ -106,7 +117,9 @@ export const createProfileSchemaWithValidation = (mobileSingle: boolean, pincode
 };
 
 // Advanced schema with cross-field validation
-export const createProfileSchemaWithCrossFieldValidation = (validatePincodeAPI: (data: { pincode: string; state: string }) => Promise<any>) => {
+export const createProfileSchemaWithCrossFieldValidation = (
+  validatePincodeAPI: (data: { pincode: string; state: string }) => Promise<any>
+) => {
   return createProfileBaseSchema(false).refine(
     async (data) => {
       if (!data.pincode || !data.state) return true; // Let required validation handle empty values

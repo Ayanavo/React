@@ -19,5 +19,12 @@ export function ColorPickerPanel({ color, onChange, onChangeComplete }: ColorPic
     onChangeComplete?.(hex);
   };
 
-  return <SketchPicker color={color || DEFAULT_PICKER_COLOR} presetColors={PRESET_PICKER_COLORS} onChange={handleChange} onChangeComplete={onChangeComplete ? handleChangeComplete : undefined} />;
+  return (
+    <SketchPicker
+      color={color || DEFAULT_PICKER_COLOR}
+      presetColors={PRESET_PICKER_COLORS}
+      onChange={handleChange}
+      onChangeComplete={onChangeComplete ? handleChangeComplete : undefined}
+    />
+  );
 }

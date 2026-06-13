@@ -2,9 +2,30 @@ import { Bookmark, Star } from "lucide-react";
 import React from "react";
 
 const notes = [
-  { id: 1, title: "Design system notes", preview: "Ideas for colors, spacing, tokens...", tags: ["design", "ui"], time: "2h ago", fav: true },
-  { id: 2, title: "Weekly plan", preview: "Tasks to ship the editor MVP.", tags: ["planning"], time: "Yesterday", fav: false },
-  { id: 3, title: "AI prompt experiments", preview: "Testing summarization prompts...", tags: ["ai", "research"], time: "Mon", fav: false },
+  {
+    id: 1,
+    title: "Design system notes",
+    preview: "Ideas for colors, spacing, tokens...",
+    tags: ["design", "ui"],
+    time: "2h ago",
+    fav: true,
+  },
+  {
+    id: 2,
+    title: "Weekly plan",
+    preview: "Tasks to ship the editor MVP.",
+    tags: ["planning"],
+    time: "Yesterday",
+    fav: false,
+  },
+  {
+    id: 3,
+    title: "AI prompt experiments",
+    preview: "Testing summarization prompts...",
+    tags: ["ai", "research"],
+    time: "Mon",
+    fav: false,
+  },
 ];
 
 const RecentNotesList: React.FC = () => {

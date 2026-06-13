@@ -1,5 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import React, { useState } from "react";
 
 interface SheetProps {
@@ -53,6 +61,12 @@ export const useSidebarLayout = () => {
 
   return {
     openSidebar,
-    SidebarPanel: <SidebarLayout isOpen={isOpen} onConfirm={handleConfirm} onCancel={handleCancel} children={<h1>Hello</h1>}></SidebarLayout>,
+    SidebarPanel: (
+      <SidebarLayout
+        isOpen={isOpen}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+        children={<h1>Hello</h1>}></SidebarLayout>
+    ),
   };
 };

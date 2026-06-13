@@ -3,7 +3,19 @@ import NoteCard from "./note-card";
 import { NoteGridSkeleton } from "./note-skeleton";
 import { State } from "./state";
 
-function gridlayout({ setIsOpen, isOpen, noteListing, onSelect, isLoading }: { setIsOpen: (arg: boolean) => void; isOpen: boolean; noteListing: State[]; onSelect: (note: State) => void; isLoading?: boolean }) {
+function gridlayout({
+  setIsOpen,
+  isOpen,
+  noteListing,
+  onSelect,
+  isLoading,
+}: {
+  setIsOpen: (arg: boolean) => void;
+  isOpen: boolean;
+  noteListing: State[];
+  onSelect: (note: State) => void;
+  isLoading?: boolean;
+}) {
   useEffect(() => {
     return () => {
       isOpen && setIsOpen(false);
@@ -17,7 +29,12 @@ function gridlayout({ setIsOpen, isOpen, noteListing, onSelect, isLoading }: { s
   return (
     <div className="m-3 columns-1 gap-4 sm:columns-2 md:columns-3 xl:columns-4">
       {noteListing.map((item: State) => (
-        <NoteCard key={item?._id ?? `${item?.title}-${item?.description}`} item={item} onSelect={onSelect} className="mb-4 break-inside-avoid w-full" />
+        <NoteCard
+          key={item?._id ?? `${item?.title}-${item?.description}`}
+          item={item}
+          onSelect={onSelect}
+          className="mb-4 break-inside-avoid w-full"
+        />
       ))}
     </div>
   );

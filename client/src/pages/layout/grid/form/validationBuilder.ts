@@ -73,11 +73,17 @@ export async function buildValidationSchema(formSchema: Array<FormGeneral>) {
       }
 
       if (field.validation?.minLength) {
-        stringSchema = stringSchema.min(field.validation.minLength, `${label} must be at least ${field.validation.minLength} characters`);
+        stringSchema = stringSchema.min(
+          field.validation.minLength,
+          `${label} must be at least ${field.validation.minLength} characters`
+        );
       }
 
       if (field.validation?.maxLength) {
-        stringSchema = stringSchema.max(field.validation.maxLength, `${label} must be at most ${field.validation.maxLength} characters`);
+        stringSchema = stringSchema.max(
+          field.validation.maxLength,
+          `${label} must be at most ${field.validation.maxLength} characters`
+        );
       }
 
       if (field.validation?.pattern) {

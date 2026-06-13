@@ -2,13 +2,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useCV } from "@/lib/useCV";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
-import { Download, Eye, GripHorizontal, Trash } from "lucide-react";
-import React, { useRef, useState } from "react";
+import { Download, Eye, GripHorizontal, GripVertical, Hand, Minus, Plus, Maximize2, Trash, X } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import CVElementRenderer from "./cv-element-renderer";
-import CVPreview, { CVPreviewRef } from "./cv-preview";
+import { useParams } from "react-router-dom";
 
 const ZOOM = 1;
 const MIN_SECTION_HEIGHT = 80;
+const MIN_BLOCK_WIDTH = 60;
+const PREVIEW_MIN_SCALE = 0.3;
+const PREVIEW_MAX_SCALE = 3;
+const PREVIEW_ZOOM_STEP = 0.1;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
@@ -16,11 +20,24 @@ const getSectionHeights = (sections: Array<{ height?: number }>) => {
   if (sections.length === 0) return [];
 
   const fallback = 100 / sections.length;
-  const heights = sections.map((section) => (typeof section.height === "number" && section.height > 0 ? section.height : fallback));
+  const heights = sections.map((section) =>
+    typeof section.height === "number" && section.height > 0 ? section.height : fallback
+  );
   const total = heights.reduce((sum, height) => sum + height, 0);
 
   if (total <= 0) return sections.map(() => fallback);
   return heights.map((height) => (height / total) * 100);
+};
+
+const getBlockWidths = (blocks: Array<{ width?: number }>) => {
+  if (blocks.length === 0) return [];
+
+  const fallback = 100 / blocks.length;
+  const widths = blocks.map((block) => (typeof block.width === "number" && block.width > 0 ? block.width : fallback));
+  const total = widths.reduce((sum, w) => sum + w, 0);
+
+  if (total <= 0) return blocks.map(() => fallback);
+  return widths.map((w) => (w / total) * 100);
 };
 
 const Canvas = () => {
@@ -38,31 +55,200 @@ const Canvas = () => {
     removeSection,
     removePage,
     clearSelection,
+    commitEdits,
     pageProperties,
     showPagination,
     paginationLocation,
     updateElement,
+    showSectionDividers,
+    cvName,
+    onRequestSave,
   } = useCV();
+  const { id } = useParams();
   const [isDragging, setIsDragging] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [isBlockDragging, setIsBlockDragging] = useState(false);
+  const [blockDraggingSectionId, setBlockDraggingSectionId] = useState<string | null>(null);
+
+  // Preview state
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewScale, setPreviewScale] = useState(1);
+  const [previewDimensions, setPreviewDimensions] = useState({ width: A4_WIDTH, height: A4_HEIGHT });
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const panStart = useRef({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
+  const previewOverlayRef = useRef<HTMLDivElement>(null);
+  const previewScaleRef = useRef(previewScale);
+  const panOffsetRef = useRef(panOffset);
 
   const pageRef = useRef<HTMLDivElement>(null);
-  const previewRef = useRef<CVPreviewRef>(null);
 
-  const downloadPDF = async () => {
+  useEffect(() => {
+    previewScaleRef.current = previewScale;
+  }, [previewScale]);
+
+  useEffect(() => {
+    panOffsetRef.current = panOffset;
+  }, [panOffset]);
+
+  const prepareCanvasCapture = useCallback(async () => {
+    commitEdits();
+    clearSelection();
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+  }, [clearSelection, commitEdits]);
+
+  const getScaleToFit = useCallback(() => {
+    const maxW = window.innerWidth * 0.85;
+    const maxH = window.innerHeight * 0.85;
+    return Math.min(maxW / A4_WIDTH, maxH / A4_HEIGHT, 1);
+  }, [A4_WIDTH, A4_HEIGHT]);
+
+  const openPreview = useCallback(async () => {
+    await prepareCanvasCapture();
     if (!pageRef.current) return;
 
+    // Read the element's actual rendered dimensions to avoid squeeze
+    const rect = pageRef.current.getBoundingClientRect();
+    const captureWidth = rect.width;
+    const captureHeight = rect.height;
+
     const canvas = await html2canvas(pageRef.current, {
-      scale: 2,
+      scale: 3,
       useCORS: true,
+      width: captureWidth,
+      height: captureHeight,
     });
 
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "px", [A4_WIDTH, A4_HEIGHT]);
+    setPreviewDimensions({ width: captureWidth, height: captureHeight });
+    setPreviewImage(canvas.toDataURL("image/png"));
+    setPanOffset({ x: 0, y: 0 });
+    setPreviewScale(getScaleToFit());
+  }, [getScaleToFit, prepareCanvasCapture]);
 
-    pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
-    pdf.save(new Date() + ".pdf");
-  };
+  const closePreview = useCallback(() => {
+    setPreviewImage(null);
+    setPanOffset({ x: 0, y: 0 });
+  }, []);
+
+  const zoomIn = useCallback(
+    () => setPreviewScale((s) => Math.min(s + PREVIEW_ZOOM_STEP, PREVIEW_MAX_SCALE)),
+    []
+  );
+  const zoomOut = useCallback(
+    () => setPreviewScale((s) => Math.max(s - PREVIEW_ZOOM_STEP, PREVIEW_MIN_SCALE)),
+    []
+  );
+
+  const handlePreviewWheel = useCallback((e: WheelEvent) => {
+    const overlay = previewOverlayRef.current;
+    if (!overlay) return;
+
+    e.preventDefault();
+
+    const rect = overlay.getBoundingClientRect();
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const currentPan = panOffsetRef.current;
+    const pointerX = e.clientX - rect.left - centerX - currentPan.x;
+    const pointerY = e.clientY - rect.top - centerY - currentPan.y;
+
+    const currentScale = previewScaleRef.current;
+    const zoomFactor = Math.exp(-e.deltaY * 0.002);
+    const nextScale = clamp(currentScale * zoomFactor, PREVIEW_MIN_SCALE, PREVIEW_MAX_SCALE);
+    const scaleRatio = nextScale / currentScale;
+
+    if (scaleRatio === 1) return;
+
+    setPanOffset({
+      x: currentPan.x - pointerX * (scaleRatio - 1),
+      y: currentPan.y - pointerY * (scaleRatio - 1),
+    });
+    setPreviewScale(nextScale);
+  }, []);
+
+  useEffect(() => {
+    if (!previewImage) return;
+
+    const overlay = previewOverlayRef.current;
+    if (!overlay) return;
+
+    overlay.addEventListener("wheel", handlePreviewWheel, { passive: false });
+    return () => overlay.removeEventListener("wheel", handlePreviewWheel);
+  }, [handlePreviewWheel, previewImage]);
+  const resetZoom = useCallback(() => {
+    setPreviewScale(getScaleToFit());
+    setPanOffset({ x: 0, y: 0 });
+  }, [getScaleToFit]);
+
+  // Pan handlers
+  const handlePanStart = useCallback(
+    (e: React.MouseEvent) => {
+      // Only left-click
+      if (e.button !== 0) return;
+      e.preventDefault();
+      setIsPanning(true);
+      panStart.current = { x: e.clientX, y: e.clientY, offsetX: panOffset.x, offsetY: panOffset.y };
+    },
+    [panOffset]
+  );
+
+  const handlePanMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isPanning) return;
+      const dx = e.clientX - panStart.current.x;
+      const dy = e.clientY - panStart.current.y;
+      setPanOffset({ x: panStart.current.offsetX + dx, y: panStart.current.offsetY + dy });
+    },
+    [isPanning]
+  );
+
+  const handlePanEnd = useCallback(() => {
+    setIsPanning(false);
+  }, []);
+
+  const generatePDF = useCallback(
+    async (fileName: string) => {
+      await prepareCanvasCapture();
+      if (!pageRef.current) return;
+
+      const rect = pageRef.current.getBoundingClientRect();
+      const captureWidth = rect.width;
+      const captureHeight = rect.height;
+
+      const canvas = await html2canvas(pageRef.current, {
+        scale: 3,
+        useCORS: true,
+        width: captureWidth,
+        height: captureHeight,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "px", [captureWidth, captureHeight]);
+
+      pdf.addImage(imgData, "PNG", 0, 0, captureWidth, captureHeight);
+      pdf.save(`${fileName}.pdf`);
+    },
+    [prepareCanvasCapture]
+  );
+
+  const downloadPDF = useCallback(async () => {
+    // A new CV needs to be saved first so the dialog name can be used as the PDF filename.
+    if (!id) {
+      if (onRequestSave) {
+        onRequestSave((savedName) => {
+          const fileName = savedName || `CV_${new Date().toISOString().slice(0, 10)}`;
+          void generatePDF(fileName);
+        });
+      }
+      return;
+    }
+
+    // Use the CV name from context, fallback to date-based name
+    const fileName = cvName || `CV_${new Date().toISOString().slice(0, 10)}`;
+    await generatePDF(fileName);
+  }, [id, cvName, onRequestSave, generatePDF]);
 
   // Handle resizing
   // const handleMouseDown = (pageIndex: number, sectionIndex: number, e: React.MouseEvent) => {
@@ -103,7 +289,12 @@ const Canvas = () => {
   //   window.addEventListener("mouseleave", handleMouseLeave);
   // };
 
-  const handleSectionResizeStart = (pageIndex: number, sections: Array<{ id: string; height?: number }>, sectionIndex: number, e: React.MouseEvent) => {
+  const handleSectionResizeStart = (
+    pageIndex: number,
+    sections: Array<{ id: string; height?: number }>,
+    sectionIndex: number,
+    e: React.MouseEvent
+  ) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -138,6 +329,46 @@ const Canvas = () => {
     window.addEventListener("mouseup", handleMouseUp);
   };
 
+  const handleBlockResizeStart = (
+    sectionId: string,
+    blocks: Array<{ id: string; width?: number }>,
+    blockIndex: number,
+    e: React.MouseEvent
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startX = e.clientX;
+    const startWidths = getBlockWidths(blocks);
+    const pairTotal = startWidths[blockIndex] + startWidths[blockIndex + 1];
+    const minPercent = Math.min((MIN_BLOCK_WIDTH / A4_WIDTH) * 100, pairTotal / 2);
+
+    setIsBlockDragging(true);
+    setBlockDraggingSectionId(sectionId);
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaPercent = ((moveEvent.clientX - startX) / A4_WIDTH) * 100;
+      const nextLeftWidth = clamp(startWidths[blockIndex] + deltaPercent, minPercent, pairTotal - minPercent);
+      const nextWidths = [...startWidths];
+      nextWidths[blockIndex] = nextLeftWidth;
+      nextWidths[blockIndex + 1] = pairTotal - nextLeftWidth;
+
+      blocks.forEach((block, index) => {
+        updateElement(block.id, { width: Number(nextWidths[index].toFixed(4)) });
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsBlockDragging(false);
+      setBlockDraggingSectionId(null);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+  };
+
   return (
     <aside className="flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
       <div
@@ -161,11 +392,15 @@ const Canvas = () => {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button onClick={() => removePage(page.id)} className="bg-primary text-primary-foreground p-2 rounded shadow hover:opacity-80">
+                        <button
+                          onClick={() => removePage(page.id)}
+                          className="bg-primary text-primary-foreground p-2 rounded shadow hover:opacity-80">
                           <Trash className="h-4 w-4" />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent side="right">{elements.length === 1 ? "Reset Page" : "Delete Page"}</TooltipContent>
+                      <TooltipContent side="right">
+                        {elements.length === 1 ? "Reset Page" : "Delete Page"}
+                      </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
@@ -191,11 +426,17 @@ const Canvas = () => {
                       right: `calc(50% + ${A4_WIDTH / 2}px + 16px)`,
                       top: "16px",
                     }}>
-                    <button onClick={() => previewRef.current?.openPreview()} className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition" title="Preview CV">
+                    <button
+                      onClick={openPreview}
+                      className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition"
+                      title="Preview CV">
                       <Eye className="h-4 w-4" />
                     </button>
 
-                    <button onClick={downloadPDF} className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition" title="Download PDF">
+                    <button
+                      onClick={downloadPDF}
+                      className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition"
+                      title="Download PDF">
                       <Download className="h-4 w-4" />
                     </button>
                   </div>
@@ -239,7 +480,7 @@ const Canvas = () => {
                                       e.stopPropagation();
                                       removeSection(section.id);
                                     }}
-                                    className="absolute right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
+                                    className="absolute top-1 left-1 z-20 bg-secondary text-primary p-1 rounded shadow flex items-center gap-1">
                                     <Trash className="h-3 w-3" />
                                   </button>
                                 </TooltipTrigger>
@@ -258,30 +499,68 @@ const Canvas = () => {
                             </div>
                           )}
 
-                          {/* ✅ BLOCK ROW */}
-                          <div className="flex w-full flex-1">
-                            {blockChildren.map((block) => {
-                              const isBlockSelected = selectedBlockId === block.id;
+                          {(() => {
+                            const blockWidths = getBlockWidths(blockChildren);
+                            return (
+                              <div
+                                className="flex w-full flex-1"
+                                style={{
+                                  pointerEvents:
+                                    isBlockDragging && blockDraggingSectionId !== section.id ? "none" : "auto",
+                                }}>
+                                {blockChildren.map((block, blockIndex) => {
+                                  const isBlockSelected = selectedBlockId === block.id;
+                                  const isLastBlock = blockIndex === blockChildren.length - 1;
 
-                              return (
-                                <div
-                                  key={block.id}
-                                  className={`relative flex-1 hover:bg-zinc-200 ${isBlockSelected ? "ring-2 ring-ring" : ""}`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    selectPage(page.id);
-                                    selectSection(page.id, section.id);
-                                    selectBlock(page.id, section.id, block.id);
-                                  }}>
-                                  <CVElementRenderer element={block} blockCount={blockChildren.length} />
-                                </div>
-                              );
-                            })}
-                          </div>
+                                  return (
+                                    <React.Fragment key={block.id}>
+                                      <div
+                                        className={`relative ${isBlockSelected ? "bg-zinc-50" : ""}`}
+                                        style={{ width: `${blockWidths[blockIndex]}%` }}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          selectPage(page.id);
+                                          selectSection(page.id, section.id);
+                                          selectBlock(page.id, section.id, block.id);
+                                        }}>
+                                        <CVElementRenderer element={block} blockCount={blockChildren.length} />
+                                      </div>
+                                      {/* ✅ VERTICAL BLOCK JOCKEY */}
+                                      {!isLastBlock && isSectionSelected && (
+                                        <div
+                                          className="group relative z-20 w-3 cursor-ew-resize flex-shrink-0"
+                                          style={{ marginInline: "-6px" }}
+                                          onMouseDown={(e) =>
+                                            handleBlockResizeStart(section.id, blockChildren, blockIndex, e)
+                                          }>
+                                          <div className="absolute inset-y-4 left-1/2 -translate-x-1/2 w-px bg-zinc-300 group-hover:bg-zinc-400 transition-colors" />
+                                          <GripVertical className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 bg-muted shadow rounded-sm" />
+                                        </div>
+                                      )}
+                                    </React.Fragment>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
+
+                          {/* ✅ SECTION DIVIDER LINE */}
+                          {showSectionDividers && !isLastSection && (
+                            <div
+                              className="absolute bottom-0 left-0 right-0 pointer-events-none"
+                              style={{
+                                borderBottom: `2px ${pageProperties.dividerStyle ?? "solid"} ${pageProperties.dividerColor ?? "#e4e4e7"}`,
+                                transform: "translateY(1px)",
+                                zIndex: 10,
+                              }}
+                            />
+                          )}
 
                           {/* ✅ SECTION DIVIDER */}
                           {isSectionSelected && (
-                            <div className="group absolute bottom-0 left-4 right-4 z-20 h-3 translate-y-1/2 cursor-ns-resize" onMouseDown={(e) => handleSectionResizeStart(pageIndex, sections, sectionIndex, e)}>
+                            <div
+                              className="group absolute bottom-0 left-4 right-4 z-20 h-3 translate-y-1/2 cursor-ns-resize"
+                              onMouseDown={(e) => handleSectionResizeStart(pageIndex, sections, sectionIndex, e)}>
                               <GripHorizontal className="absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 bg-muted shadow" />
                             </div>
                           )}
@@ -296,8 +575,68 @@ const Canvas = () => {
         })}
       </div>
 
-      {/* Preview Block */}
-      <CVPreview ref={previewRef} />
+      {/* Preview Overlay – renders the captured canvas image */}
+      {previewImage && (
+        <div
+          ref={previewOverlayRef}
+          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-hidden"
+          style={{ cursor: isPanning ? "grabbing" : "grab" }}
+          onMouseDown={handlePanStart}
+          onMouseMove={handlePanMove}
+          onMouseUp={handlePanEnd}
+          onMouseLeave={handlePanEnd}>
+          {/* Zoom & pan toolbar */}
+          <div
+            className="absolute top-4 right-4 z-[60] flex items-center gap-1 rounded-lg bg-black/70 px-3 py-1.5 shadow-lg"
+            onMouseDown={(e) => e.stopPropagation()}>
+            <button onClick={zoomOut} className="text-white/80 hover:text-white p-1 transition" title="Zoom out">
+              <Minus className="h-4 w-4" />
+            </button>
+            <span className="text-white text-xs min-w-[3rem] text-center select-none">
+              {Math.round(previewScale * 100)}%
+            </span>
+            <button onClick={zoomIn} className="text-white/80 hover:text-white p-1 transition" title="Zoom in">
+              <Plus className="h-4 w-4" />
+            </button>
+            <div className="w-px h-4 bg-white/30 mx-1" />
+            <button onClick={resetZoom} className="text-white/80 hover:text-white p-1 transition" title="Fit to screen">
+              <Maximize2 className="h-4 w-4" />
+            </button>
+            <div className="w-px h-4 bg-white/30 mx-1" />
+            <button
+              onClick={closePreview}
+              className="text-white/80 hover:text-white p-1 transition"
+              title="Close (Esc)">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Hint */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1.5 bg-black/50 text-white/60 text-xs px-3 py-1.5 rounded-full select-none pointer-events-none">
+            <Hand className="h-3 w-3" /> Scroll to zoom · Drag to pan
+          </div>
+
+          {/* Preview image — pan/zoom via transform to avoid shrink-to-fit distortion */}
+          <div
+            className="absolute left-1/2 top-1/2"
+            style={{
+              transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px)) scale(${previewScale})`,
+              transformOrigin: "center center",
+              willChange: "transform",
+            }}>
+            <img
+              src={previewImage}
+              alt="CV Preview"
+              className="block max-w-none shadow-2xl rounded-sm"
+              style={{
+                width: previewDimensions.width,
+                height: previewDimensions.height,
+              }}
+              draggable={false}
+            />
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

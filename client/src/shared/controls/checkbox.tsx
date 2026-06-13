@@ -36,7 +36,9 @@ function checkbox({ form, schema }: { form: FieldValue<any>; schema: BooleanSche
                 />
               : <Checkbox checked={form.getValues(schema.name)?.value} onCheckedChange={field.onChange} />}
             </FormControl>
-            <FormLabel className="text-sm font-normal">{schema.options?.length ? "Select All" : schema.label} </FormLabel>
+            <FormLabel className="text-sm font-normal">
+              {schema.options?.length ? "Select All" : schema.label}{" "}
+            </FormLabel>
           </FormItem>
 
           {schema?.options?.length &&
@@ -51,7 +53,9 @@ function checkbox({ form, schema }: { form: FieldValue<any>; schema: BooleanSche
                       <Checkbox
                         checked={field.value?.includes(item.value)}
                         onCheckedChange={(checked) => {
-                          return checked ? field.onChange([...field.value, item.value]) : field.onChange(field.value?.filter((value: string) => value !== item.value));
+                          return checked ?
+                              field.onChange([...field.value, item.value])
+                            : field.onChange(field.value?.filter((value: string) => value !== item.value));
                         }}
                       />
                     </FormControl>

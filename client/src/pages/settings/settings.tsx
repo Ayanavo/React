@@ -143,7 +143,11 @@ function settings() {
     }
   }, [selectedFontStyle, setFont]);
 
-  const hasUpdates = selectedDateFormat !== savedSettings.date_format || selectedCurrencyCode !== savedSettings.currency_format || selectedFontStyle !== savedSettings.font_style || theme !== savedSettings.theme;
+  const hasUpdates =
+    selectedDateFormat !== savedSettings.date_format ||
+    selectedCurrencyCode !== savedSettings.currency_format ||
+    selectedFontStyle !== savedSettings.font_style ||
+    theme !== savedSettings.theme;
 
   const saveSettings = async () => {
     try {
@@ -251,11 +255,15 @@ function settings() {
                 ))}
 
                 {/* Custom Multi Color Picker */}
-                <button type="button" className="relative flex items-center justify-center w-10 h-10 rounded-xl border-2 border-border hover:scale-105 transition-all duration-200 hover:scale-105 overflow-hidden" title="Custom Color Picker">
+                <button
+                  type="button"
+                  className="relative flex items-center justify-center w-10 h-10 rounded-xl border-2 border-border hover:scale-105 transition-all duration-200 hover:scale-105 overflow-hidden"
+                  title="Custom Color Picker">
                   <div
                     className="absolute inset-0"
                     style={{
-                      background: "conic-gradient(from 180deg at 50% 50%, #ff4d4d, #ff9900, #ffd500, #00d084, #00c2ff, #3b82f6, #8b5cf6, #ff4d9d, #ff4d4d)",
+                      background:
+                        "conic-gradient(from 180deg at 50% 50%, #ff4d4d, #ff9900, #ffd500, #00d084, #00c2ff, #3b82f6, #8b5cf6, #ff4d9d, #ff4d4d)",
                     }}
                   />
                 </button>

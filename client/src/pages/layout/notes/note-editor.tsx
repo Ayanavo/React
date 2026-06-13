@@ -1,23 +1,43 @@
 import IconsComponent from "@/common/icons";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import imageFile from "@/hooks/image-file";
 import { formatAppDate } from "@/lib/date-format";
+import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import "./note.scss";
 import { State } from "./state";
 import { CustomPopover } from "@/hooks/popover-content";
-import { ColorPickerPanel, useColorPicker } from "@/shared/color-picker";
+import { ColorPickerPanel, getNoteThemeStyle, hasExplicitNoteBackground, useColorPicker } from "@/shared/color-picker";
 import showToast from "@/hooks/toast";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { createNote, deleteNote, updateNote } from "@/shared/services/note";
 import { note_actions } from "./note-action-config";
 import { mapStateToNotePayload } from "./note-mapper";
 
-function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOpen: (arg: boolean) => void; isOpen: boolean; formData?: State; onSave: () => void; onDelete: () => void }) {
+function noteeditor({
+  setIsOpen,
+  isOpen,
+  formData,
+  onSave,
+  onDelete,
+}: {
+  setIsOpen: (arg: boolean) => void;
+  isOpen: boolean;
+  formData?: State;
+  onSave: () => void;
+  onDelete: () => void;
+}) {
   const { image, renderInputField, activateInput, clearImage, setImage } = imageFile();
   const { confirm } = useConfirmDialog();
   const [isSaving, setIsSaving] = useState(false);
@@ -30,8 +50,11 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
   const recognitionRef = useRef<any>(null);
   const voiceHoverRef = useRef(false);
   const voiceRestartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const voiceStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [listening, setListening] = useState(false);
   const { color: noteColor, onHexChange: setNoteColor } = useColorPicker(formData?.backgroundColor);
+  const hasCustomBackground = hasExplicitNoteBackground(noteColor);
+  const noteThemeStyle = getNoteThemeStyle(noteColor);
   const modifiedDate = formatAppDate(formData?.updatedAt, true);
   const form = useForm<{
     title: string;
@@ -62,6 +85,12 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
     voiceRestartTimeoutRef.current = null;
   };
 
+  const clearVoiceStop = () => {
+    if (!voiceStopTimeoutRef.current) return;
+    clearTimeout(voiceStopTimeoutRef.current);
+    voiceStopTimeoutRef.current = null;
+  };
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -83,6 +112,7 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
 
     voiceHoverRef.current = false;
     clearVoiceRestart();
+    clearVoiceStop();
     recognitionRef.current?.stop();
     recognitionRef.current = null;
     setListening(false);
@@ -92,6 +122,7 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
     return () => {
       voiceHoverRef.current = false;
       clearVoiceRestart();
+      clearVoiceStop();
       recognitionRef.current?.stop();
     };
   }, []);
@@ -107,7 +138,10 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
     title: string;
     description: string;
   }> = async (data) => {
-    const payload = mapStateToNotePayload({ title: data.title, description: data.description, backgroundColor: noteColor }, image);
+    const payload = mapStateToNotePayload(
+      { title: data.title, description: data.description, backgroundColor: noteColor },
+      image
+    );
 
     try {
       setIsSaving(true);
@@ -172,7 +206,6 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
         activateInput();
         break;
       case "voice":
-        toggleVoice();
         break;
       case "delete":
         handleDelete();
@@ -182,13 +215,29 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
     }
   }
 
-  const toggleVoice = () => {
-    if (listening) {
-      stopVoice();
-      return;
-    }
+  const stopVoiceImmediate = () => {
+    clearVoiceRestart();
+    clearVoiceStop();
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    setListening(false);
+  };
 
+  const handleVoicePointerEnter = () => {
+    clearVoiceStop();
+    voiceHoverRef.current = true;
     startVoice();
+  };
+
+  const handleVoicePointerLeave = () => {
+    voiceHoverRef.current = false;
+    clearVoiceStop();
+    voiceStopTimeoutRef.current = setTimeout(() => {
+      voiceStopTimeoutRef.current = null;
+      if (!voiceHoverRef.current) {
+        stopVoiceImmediate();
+      }
+    }, 200);
   };
 
   const startVoice = () => {
@@ -198,7 +247,7 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
       return;
     }
 
-    if (recognitionRef.current) return;
+    if (recognitionRef.current || voiceRestartTimeoutRef.current) return;
 
     clearVoiceRestart();
 
@@ -206,6 +255,7 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
     const baseline = getValues(target)?.trim() ?? "";
     const recog = new SpeechRecognition();
     recog.lang = sessionStorage.getItem("language") ?? "en-US";
+    recog.continuous = true;
     recog.interimResults = true;
     recog.maxAlternatives = 1;
 
@@ -229,17 +279,31 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
 
     recog.onend = () => {
       recognitionRef.current = null;
-      setListening(false);
-      if (voiceHoverRef.current) {
-        voiceRestartTimeoutRef.current = setTimeout(() => {
-          voiceRestartTimeoutRef.current = null;
-          startVoice();
-        }, 150);
+      if (!voiceHoverRef.current) {
+        setListening(false);
+        return;
       }
+
+      voiceRestartTimeoutRef.current = setTimeout(() => {
+        voiceRestartTimeoutRef.current = null;
+        if (voiceHoverRef.current) {
+          startVoice();
+        } else {
+          setListening(false);
+        }
+      }, 100);
     };
 
     recog.onerror = (err: any) => {
       console.error("Speech recognition error", err);
+      if (err.error === "aborted") return;
+      if (voiceHoverRef.current) {
+        recognitionRef.current = null;
+        voiceRestartTimeoutRef.current = setTimeout(() => {
+          voiceRestartTimeoutRef.current = null;
+          if (voiceHoverRef.current) startVoice();
+        }, 250);
+      }
     };
 
     recognitionRef.current = recog;
@@ -247,34 +311,38 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
     setListening(true);
   };
 
-  const stopVoice = () => {
-    voiceHoverRef.current = false;
-    clearVoiceRestart();
-    recognitionRef.current?.stop();
-    recognitionRef.current = null;
-    setListening(false);
-  };
-
   return (
     <Dialog open={!!isOpen} onOpenChange={handleReset}>
       <DialogTrigger asChild>
         <Button className="hidden"></Button>
       </DialogTrigger>
-      <DialogContent className="note-box transition-colors flex flex-col gap-0" style={{ backgroundColor: noteColor }}>
+      <DialogContent
+        className={cn("note-box transition-colors flex flex-col gap-0 border", hasCustomBackground && "note-box--themed")}
+        style={noteThemeStyle}>
         {image && (
           <div className="mb-2 shrink-0">
             <div className="relative w-16 h-16">
               <img alt="Attachment" className="w-16 h-16 rounded object-cover border shadow-sm" src={image} />
-              <Button type="button" variant="secondary" size="icon" className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full shadow-sm" onClick={clearImage} aria-label="Remove image">
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full shadow-sm"
+                onClick={clearImage}
+                aria-label="Remove image">
                 <X className="h-3 w-3" />
               </Button>
             </div>
           </div>
         )}
-        {modifiedDate && <p className="mb-1 text-xs text-muted-foreground/70">Modified {modifiedDate}</p>}
+        {modifiedDate && (
+          <p className={cn("mb-1 text-xs", hasCustomBackground ? "note-muted" : "text-muted-foreground/70")}>
+            Modified {modifiedDate}
+          </p>
+        )}
         <form className="min-w-0 flex-1" onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="p-0 text-left">
               {(() => {
                 const titleReg = register("title");
                 return (
@@ -288,15 +356,14 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
                     onFocus={() => {
                       voiceTargetRef.current = "title";
                     }}
-                    className="w-full outline-none resize-none py-2 shad-background shad-color shad-border"
+                    className="note-field note-title"
                     placeholder="Title"
                   />
                 );
               })()}
             </DialogTitle>
           </DialogHeader>
-          <DialogDescription>
-            {/** capture register object so we can attach a ref and still update via form.setValue */}
+          <div className="mt-1">
             {(() => {
               const descriptionReg = register("description");
               return (
@@ -306,7 +373,7 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
                     descriptionReg.ref(e);
                     (textareaRef as any).current = e as HTMLTextAreaElement;
                   }}
-                  className="w-full min-h-[100px] overflow-hidden outline-none resize-none shad-background shad-color shad-border"
+                  className="note-field note-description"
                   onFocus={() => {
                     voiceTargetRef.current = "description";
                   }}
@@ -318,45 +385,59 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
                 />
               );
             })()}
-          </DialogDescription>
+          </div>
 
           <DialogFooter>
             <div className="flex items-center space-x-2">
               {note_actions
                 .filter((it) => it.name !== "delete" || !!formData)
-                .map(
-                  (item) =>
-                    item.active && (
-                      <Tooltip key={item.name}>
-                        <TooltipTrigger asChild>
-                          <Button
-                            ref={item.name === "color" ? colorButtonRef : undefined}
-                            variant="outline"
-                            size="icon"
-                            type="button"
-                            disabled={item.name === "delete" && isDeleting}
-                            onMouseEnter={
-                              item.name === "voice" ?
-                                () => {
-                                  voiceHoverRef.current = true;
-                                  startVoice();
-                                }
-                              : undefined
-                            }
-                            onMouseLeave={item.name === "voice" ? stopVoice : undefined}
-                            onClick={() => {
-                              if (item.name === "voice") return;
-                              activateAction(item.name);
-                            }}>
-                            <IconsComponent customClass="cursor-pointer" icon={item.icon} />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">{item.name === "voice" && listening ? "Stop Voice" : item.label}</TooltipContent>
-                      </Tooltip>
-                    )
-                )}
+                .map((item) => {
+                  if (!item.active) return null;
+
+                  if (item.name === "voice") {
+                    return (
+                      <div
+                        key={item.name}
+                        className="inline-flex"
+                        onPointerEnter={handleVoicePointerEnter}
+                        onPointerLeave={handleVoicePointerLeave}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              type="button"
+                              className={cn(hasCustomBackground && "note-action-btn", listening && "border-primary text-primary")}
+                              onClick={(event) => event.preventDefault()}>
+                              <IconsComponent customClass="cursor-pointer" icon={item.icon} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">{item.label}</TooltipContent>
+                        </Tooltip>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Tooltip key={item.name}>
+                      <TooltipTrigger asChild>
+                        <Button
+                          ref={item.name === "color" ? colorButtonRef : undefined}
+                          variant="outline"
+                          size="icon"
+                          type="button"
+                          className={hasCustomBackground ? "note-action-btn" : undefined}
+                          disabled={item.name === "delete" && isDeleting}
+                          onClick={() => activateAction(item.name)}>
+                          <IconsComponent customClass="cursor-pointer" icon={item.icon} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="bottom">{item.label}</TooltipContent>
+                    </Tooltip>
+                  );
+                })}
             </div>
-            <Button type="reset" variant="outline" onClick={handleReset}>
+            <Button type="reset" variant="outline" className={hasCustomBackground ? "note-action-btn" : undefined} onClick={handleReset}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSaving}>
@@ -365,7 +446,12 @@ function noteeditor({ setIsOpen, isOpen, formData, onSave, onDelete }: { setIsOp
           </DialogFooter>
         </form>
 
-        <CustomPopover controlRef={popoverRef} anchorRef={colorButtonRef} className="w-auto p-0 pointer-events-auto" content={<ColorPickerPanel color={noteColor} onChange={setNoteColor} />} />
+        <CustomPopover
+          controlRef={popoverRef}
+          anchorRef={colorButtonRef}
+          className="w-auto p-0 pointer-events-auto"
+          content={<ColorPickerPanel color={noteColor} onChange={setNoteColor} />}
+        />
       </DialogContent>
       {renderInputField()}
     </Dialog>

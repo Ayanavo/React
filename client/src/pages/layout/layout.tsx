@@ -26,10 +26,7 @@ export const Layout = () => {
       />
 
       <SidebarInset>
-        <HeaderComponent
-          NavList={filteredNavList}
-          exclutionList={exclutionList}
-        />
+        <HeaderComponent NavList={filteredNavList} exclutionList={exclutionList} />
         <main>
           <Outlet />
           <Toaster />

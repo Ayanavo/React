@@ -33,6 +33,7 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement; rea
     element.properties?.textAlign === "center" ? "center"
     : element.properties?.textAlign === "end" ? "flex-end"
     : "flex-start";
+  const textAlign = element.properties?.textAlign ?? "start";
   const showIcon = element.properties?.showIcon && element.properties?.icon;
   const iconStyle: CSSProperties = {
     color: element.properties?.color,
@@ -62,14 +63,23 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement; rea
           : undefined
         }
         className={`
-          flex items-center gap-2 rounded-sm px-1 transition
+          flex items-start gap-2 rounded-sm px-1 transition w-full min-w-0 items-center
           ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
         `}
         style={{ justifyContent }}>
-        {showIcon && <Icon icon={element.properties?.icon ?? "Star"} customClass="shrink-0" style={iconStyle} size={element.properties?.fontSize ?? 14} />}
+        {showIcon && (
+          <span className="shrink-0 flex items-center justify-center select-none" style={{ height: "1.5em" }}>
+            <Icon
+              icon={element.properties?.icon ?? "Star"}
+              customClass="shrink-0"
+              style={iconStyle}
+              size={element.properties?.fontSize ?? 14}
+            />
+          </span>
+        )}
         <p
           ref={ref}
-          style={{ ...style, textAlign: undefined }}
+          style={{ ...style, textAlign }}
           contentEditable={!readonly && element.editable !== false}
           suppressContentEditableWarning
           onClick={
@@ -98,7 +108,7 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement; rea
           }}
           data-placeholder="Type here..."
           className="
-            cursor-text outline-none min-w-[2px] whitespace-pre-wrap
+            cursor-text outline-none min-w-0 whitespace-pre-wrap break-words
             empty:before:content-[attr(data-placeholder)]
             empty:before:text-muted-foreground
           ">

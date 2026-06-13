@@ -1,7 +1,14 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { House } from "lucide-react";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 type BreadcrumbInbuildProps = {
   isEditMode?: boolean;

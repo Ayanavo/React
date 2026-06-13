@@ -1,4 +1,10 @@
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
@@ -47,7 +53,12 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                       align === "center" && "text-center",
                       align === "right" && "text-right"
                     )}>
-                    <div className={cn("flex h-full items-center", align === "center" && "justify-center", align === "right" && "justify-end")}>
+                    <div
+                      className={cn(
+                        "flex h-full items-center",
+                        align === "center" && "justify-center",
+                        align === "right" && "justify-end"
+                      )}>
                       {header.isPlaceholder ?
                         <Skeleton className="h-4 w-24 rounded-full" />
                       : header.column.getCanSort() ?
@@ -61,21 +72,32 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                                 align === "right" && "ml-auto justify-end text-right",
                                 align === "left" && "-ml-2 text-left"
                               )}>
-                              <span className="truncate">{flexRender(header.column.columnDef.header, header.getContext())}</span>
+                              <span className="truncate">
+                                {flexRender(header.column.columnDef.header, header.getContext())}
+                              </span>
                               <ListFilterIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="w-[160px]">
-                            <DropdownMenuItem role="button" className="flex cursor-pointer items-center" onClick={() => setSorting([{ id: header.column.id, desc: false }])}>
+                            <DropdownMenuItem
+                              role="button"
+                              className="flex cursor-pointer items-center"
+                              onClick={() => setSorting([{ id: header.column.id, desc: false }])}>
                               <ChevronUpIcon className="mr-2 h-4 w-4" />
                               <span>Ascending</span>
                             </DropdownMenuItem>
-                            <DropdownMenuItem role="button" className="flex cursor-pointer items-center" onClick={() => setSorting([{ id: header.column.id, desc: true }])}>
+                            <DropdownMenuItem
+                              role="button"
+                              className="flex cursor-pointer items-center"
+                              onClick={() => setSorting([{ id: header.column.id, desc: true }])}>
                               <ChevronDownIcon className="mr-2 h-4 w-4" />
                               <span>Descending</span>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem role="button" className="flex cursor-pointer items-center" onClick={header.column.getToggleVisibilityHandler()}>
+                            <DropdownMenuItem
+                              role="button"
+                              className="flex cursor-pointer items-center"
+                              onClick={header.column.getToggleVisibilityHandler()}>
                               <EyeOffIcon className="mr-2 h-4 w-4" />
                               <span>Hide Column</span>
                             </DropdownMenuItem>
@@ -107,8 +129,21 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                     : "left");
 
                   return (
-                    <TableCell key={column.id} className={cn("px-4 py-2 align-middle", isSelectColumn && "w-12 px-3", isActionColumn && "w-24 text-right", align === "center" && "text-center", align === "right" && "text-right")}>
-                      <div className={cn("flex min-h-8 w-full items-center", align === "center" && "justify-center", align === "right" && "justify-end")}>
+                    <TableCell
+                      key={column.id}
+                      className={cn(
+                        "px-4 py-2 align-middle",
+                        isSelectColumn && "w-12 px-3",
+                        isActionColumn && "w-24 text-right",
+                        align === "center" && "text-center",
+                        align === "right" && "text-right"
+                      )}>
+                      <div
+                        className={cn(
+                          "flex min-h-8 w-full items-center",
+                          align === "center" && "justify-center",
+                          align === "right" && "justify-end"
+                        )}>
                         <Skeleton
                           className={cn(
                             "h-4",
@@ -129,7 +164,10 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
               </TableRow>
             ))
           : tableBody.getRowModel().rows.map((row) => (
-              <TableRow key={row.id} className="group h-11 cursor-pointer border-border/60 hover:bg-muted/35 data-[state=selected]:bg-primary/5" data-state={row.getIsSelected() && "selected"}>
+              <TableRow
+                key={row.id}
+                className="group h-11 cursor-pointer border-border/60 hover:bg-muted/35 data-[state=selected]:bg-primary/5"
+                data-state={row.getIsSelected() && "selected"}>
                 {row.getVisibleCells().map((cell) => {
                   const isSelectColumn = cell.column.id === "select";
                   const isActionColumn = cell.column.id === "action";
@@ -151,9 +189,17 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                         align === "right" && "text-right",
                         align === "left" && !isSelectColumn && !isActionColumn && "truncate"
                       )}>
-                      <div className={cn("flex min-h-8 w-full items-center", align === "center" && "justify-center", align === "right" && "justify-end", align === "left" && "min-w-0")}>
+                      <div
+                        className={cn(
+                          "flex min-h-8 w-full items-center",
+                          align === "center" && "justify-center",
+                          align === "right" && "justify-end",
+                          align === "left" && "min-w-0"
+                        )}>
                         {/* <Skeleton className="w-[100px] h-[20px] rounded-full" /> */}
-                        <div className={cn("min-w-0", align === "left" && "truncate")}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</div>
+                        <div className={cn("min-w-0", align === "left" && "truncate")}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </div>
                       </div>
                     </TableCell>
                   );

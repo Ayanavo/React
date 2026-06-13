@@ -91,7 +91,11 @@ function ConfirmationDialog({
 
 export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [opts, setOpts] = useState<Required<Pick<ConfirmOptions, "message" | "type" | "title" | "confirmText" | "cancelText" | "showLoadingOnConfirmClick">>>({
+  const [opts, setOpts] = useState<
+    Required<
+      Pick<ConfirmOptions, "message" | "type" | "title" | "confirmText" | "cancelText" | "showLoadingOnConfirmClick">
+    >
+  >({
     title: "Confirm Action",
     type: "confirm",
     message: "",

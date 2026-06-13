@@ -8,7 +8,22 @@ import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { fontWeight, useCV } from "@/lib/useCV";
 import * as Iconlist from "lucide-react";
-import { AlignCenter, AlignLeft, AlignRight, ArrowRight, Columns2, Dot, Italic, Minus, PlusIcon, Rows2, Slash, Strikethrough, Underline, X } from "lucide-react";
+import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
+  ArrowRight,
+  Columns2,
+  Dot,
+  Italic,
+  Minus,
+  PlusIcon,
+  Rows2,
+  Slash,
+  Strikethrough,
+  Underline,
+  X,
+} from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { ListIcon } from "./list-icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -91,7 +106,9 @@ const IconPicker = ({ value, onSelect }: { value?: string; onSelect: (icon: stri
           </TooltipProvider>
         </div>
 
-        {filteredIcons.length === 0 && <div className="text-xs text-muted-foreground text-center py-2">No icons found</div>}
+        {filteredIcons.length === 0 && (
+          <div className="text-xs text-muted-foreground text-center py-2">No icons found</div>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -119,7 +136,7 @@ const ElementOptions = () => {
     <div className="mt-4 rounded-lg border p-3 space-y-1">
       {/* FONT SIZE */}
       <div className="space-y-2 flex items-center justify-between">
-        <Label className="text-xs font-medium text-muted-foreground text-nowrap">Size</Label>
+        <Label className="text-xs font-medium text-muted-foreground text-wrap">Size</Label>
         <Input
           type="number"
           value={props.fontSize ?? 14}
@@ -141,7 +158,7 @@ const ElementOptions = () => {
 
       {/* FONT WEIGHT */}
       <div className="space-y-2 flex items-center justify-between">
-        <Label className="text-xs font-medium text-muted-foreground text-nowrap">Weight</Label>
+        <Label className="text-xs font-medium text-muted-foreground text-wrap">Weight</Label>
 
         <Select
           value={props.fontWeight ?? "normal"}
@@ -169,13 +186,19 @@ const ElementOptions = () => {
       {/* FONT STYLE */}
       {selectedElement.type !== "icon" && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Style</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Style</Label>
 
           <ToggleGroup
             size="sm"
             type="multiple"
             variant="outline"
-            value={[props.fontStyle?.strikethrough && "strikethrough", props.fontStyle?.italic && "italic", props.fontStyle?.underline && "underline"].filter(Boolean) as string[]}
+            value={
+              [
+                props.fontStyle?.strikethrough && "strikethrough",
+                props.fontStyle?.italic && "italic",
+                props.fontStyle?.underline && "underline",
+              ].filter(Boolean) as string[]
+            }
             onValueChange={(value) => {
               if (!value) return;
               updateElement(selectedElement.id, {
@@ -207,7 +230,7 @@ const ElementOptions = () => {
 
       {/* ALIGNMENT */}
       <div className="space-y-2 flex items-center justify-between">
-        <Label className="text-xs font-medium text-muted-foreground text-nowrap">Align</Label>
+        <Label className="text-xs font-medium text-muted-foreground text-wrap">Align</Label>
 
         <ToggleGroup
           size="sm"
@@ -240,9 +263,12 @@ const ElementOptions = () => {
 
       {/* TEXT COLOR */}
       <div className="space-y-2 flex items-center justify-between">
-        <Label className="text-xs font-medium text-muted-foreground text-nowrap">Color</Label>
+        <Label className="text-xs font-medium text-muted-foreground text-wrap">Color</Label>
         <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
-          <span className="w-6 h-6 block rounded-md border cursor-pointer" style={{ background: props.color ?? "#000000" }} />
+          <span
+            className="w-4 h-4 block rounded-md border cursor-pointer"
+            style={{ background: props.color ?? "#000000" }}
+          />
           <input
             type="color"
             value={(props as any).color ?? "#000000"}
@@ -270,7 +296,7 @@ const ElementOptions = () => {
                 properties: {
                   ...props,
                   showIcon: checked,
-                  icon: checked ? props.icon ?? "Star" : props.icon,
+                  icon: checked ? (props.icon ?? "Star") : props.icon,
                 },
               })
             }
@@ -280,7 +306,7 @@ const ElementOptions = () => {
 
       {selectedElement.type === "text" && props.showIcon && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Icon</Label>
           <IconPicker
             value={props.icon ?? "Star"}
             onSelect={(icon) =>
@@ -298,7 +324,7 @@ const ElementOptions = () => {
 
       {selectedElement.type === "text" && props.showIcon && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon Style</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Icon Style</Label>
           <Select
             value={props.iconFill ?? "unfill"}
             onValueChange={(value) =>
@@ -323,7 +349,7 @@ const ElementOptions = () => {
       {/* BULLET ICONS */}
       {selectedElement.type === "list" && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Bullet Icon</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Bullet Icon</Label>
 
           <ToggleGroup
             size="sm"
@@ -354,7 +380,7 @@ const ElementOptions = () => {
 
       {selectedElement.type === "list" && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Direction</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Direction</Label>
 
           <ToggleGroup
             size="sm"
@@ -386,9 +412,9 @@ const ElementOptions = () => {
 
       {selectedElement.type === "list" && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Custom Icon</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Custom Icon</Label>
           <IconPicker
-            value={isPresetBulletIcon(props.listStyle?.icon) ? "Star" : props.listStyle?.icon ?? "Star"}
+            value={isPresetBulletIcon(props.listStyle?.icon) ? "Star" : (props.listStyle?.icon ?? "Star")}
             onSelect={(icon) =>
               updateElement(selectedElement.id, {
                 properties: {
@@ -406,7 +432,7 @@ const ElementOptions = () => {
 
       {selectedElement.type === "list" && !isPresetBulletIcon(props.listStyle?.icon) && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Icon Style</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Icon Style</Label>
           <Select
             value={props.listStyle?.iconFill ?? "unfill"}
             onValueChange={(value) =>
@@ -433,9 +459,9 @@ const ElementOptions = () => {
       {/* Bullet Color */}
       {selectedElement.type === "list" && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Bullet Color</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Bullet Color</Label>
           <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
-            <span className="w-5 h-5 rounded border" style={{ background: props.listStyle?.iconColor ?? "#000000" }} />
+            <span className="w-4 h-4 rounded border" style={{ background: props.listStyle?.iconColor ?? "#000000" }} />
             <input
               type="color"
               value={props.listStyle?.iconColor ?? "#000000"}
@@ -459,7 +485,7 @@ const ElementOptions = () => {
       {/* Date Formats */}
       {selectedElement.type === "date" && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap"> Date Format</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap"> Date Format</Label>
 
           <Select
             value={props.dateFormat ?? "DD_MM_YYYY"}
@@ -510,6 +536,7 @@ const ElementOptions = () => {
         <div className="space-y-2">
           <Label className="text-xs font-medium text-muted-foreground">Pick date</Label>
           <DatePickerComponent
+            type="date"
             date={selectedElement.content ? new Date(String(selectedElement.content)) : new Date()}
             onSendData={(d: Date) => {
               updateElement(selectedElement.id, {
@@ -548,9 +575,12 @@ const ElementOptions = () => {
 
       {selectedElement.type === "token" && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Token background</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Token background</Label>
           <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
-            <span className="w-6 h-6 block rounded-md border cursor-pointer" style={{ background: props.tokenStyle?.backgroundColor ?? "#f1f5f9" }} />
+            <span
+              className="w-4 h-4 block rounded-md border cursor-pointer"
+              style={{ background: props.tokenStyle?.backgroundColor ?? "#f1f5f9" }}
+            />
             <input
               type="color"
               value={props.tokenStyle?.backgroundColor ?? "#f1f5f9"}
@@ -574,9 +604,12 @@ const ElementOptions = () => {
 
       {selectedElement.type === "token" && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Border color</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Border color</Label>
           <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
-            <span className="w-6 h-6 block rounded-md border cursor-pointer" style={{ background: props.tokenStyle?.borderColor ?? "#cbd5e1" }} />
+            <span
+              className="w-4 h-4 block rounded border cursor-pointer"
+              style={{ background: props.tokenStyle?.borderColor ?? "#cbd5e1" }}
+            />
             <input
               type="color"
               value={props.tokenStyle?.borderColor ?? "#cbd5e1"}
@@ -600,7 +633,7 @@ const ElementOptions = () => {
 
       {selectedElement.type === "token" && (
         <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Border radius</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Border radius</Label>
           <Input
             type="number"
             step={1}
@@ -625,7 +658,7 @@ const ElementOptions = () => {
 
       {selectedElement.type === "token" && (
         <div className="space-y-6 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap">Border radius</Label>
+          <Label className="text-xs font-medium text-muted-foreground text-wrap">Border radius</Label>
           <Slider
             className="w-32"
             min={0}
@@ -712,7 +745,7 @@ const ElementOptions = () => {
         <>
           {/* IMAGE SIZE */}
           <div className="space-y-2 flex items-center justify-between">
-            <Label className="text-xs font-medium text-muted-foreground text-nowrap">Image size</Label>
+            <Label className="text-xs font-medium text-muted-foreground text-wrap">Image size</Label>
             <Slider
               className="w-32"
               min={0.2}
@@ -735,7 +768,7 @@ const ElementOptions = () => {
 
           {/* IMAGE RADIUS */}
           <div className="space-y-6 flex items-center justify-between">
-            <Label className="text-xs font-medium text-muted-foreground text-nowrap">Image radius</Label>
+            <Label className="text-xs font-medium text-muted-foreground text-wrap">Image radius</Label>
             <Slider
               className="w-32"
               min={0}
@@ -758,7 +791,7 @@ const ElementOptions = () => {
 
           {/* BORDER ENABLE */}
           <div className="space-y-2 flex items-center justify-between">
-            <Label className="text-xs font-medium text-muted-foreground">Border</Label>
+            <Label className="text-xs font-medium text-muted-foreground text-wrap">Border</Label>
             <Switch
               checked={props.imageBorder?.enabled ?? false}
               onCheckedChange={(checked) =>
@@ -779,9 +812,12 @@ const ElementOptions = () => {
           {props.imageBorder?.enabled && (
             <>
               <div className="space-y-2 flex items-center justify-between">
-                <Label className="text-xs font-medium text-muted-foreground text-nowrap">Border color</Label>
+                <Label className="text-xs font-medium text-muted-foreground text-wrap">Border color</Label>
                 <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
-                  <span className="w-5 h-5 rounded border" style={{ background: props.imageBorder?.borderColor ?? "#000000" }} />
+                  <span
+                    className="w-4 h-4 rounded border"
+                    style={{ background: props.imageBorder?.borderColor ?? "#000000" }}
+                  />
                   <input
                     type="color"
                     value={props.imageBorder?.borderColor ?? "#000000"}
@@ -804,7 +840,7 @@ const ElementOptions = () => {
 
               {/* BORDER WIDTH */}
               <div className="space-y-2 flex items-center justify-between">
-                <Label className="text-xs font-medium text-muted-foreground text-nowrap">Border width</Label>
+                <Label className="text-xs font-medium text-muted-foreground text-wrap">Border width</Label>
                 <Input
                   type="number"
                   min={0}
@@ -828,7 +864,7 @@ const ElementOptions = () => {
 
               {/* BORDER PADDING */}
               <div className="space-y-2 flex items-center justify-between">
-                <Label className="text-xs font-medium text-muted-foreground text-nowrap">Border padding</Label>
+                <Label className="text-xs font-medium text-muted-foreground text-wrap">Border padding</Label>
                 <Input
                   type="number"
                   min={0}
@@ -853,7 +889,6 @@ const ElementOptions = () => {
           )}
         </>
       )}
-
     </div>
   );
 };

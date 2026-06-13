@@ -9,7 +9,18 @@ import { Minus, Plus } from "lucide-react";
 import React, { useState } from "react";
 
 const PagePallet = () => {
-  const { addPage, removePage, showSideBar, selectedPageId, showPagination, togglePagination, paginationLocation, setPaginationLocation, MAX_PAGES, elements } = useCV();
+  const {
+    addPage,
+    removePage,
+    showSideBar,
+    selectedPageId,
+    showPagination,
+    togglePagination,
+    paginationLocation,
+    setPaginationLocation,
+    MAX_PAGES,
+    elements,
+  } = useCV();
   const [pageCount, setPageCount] = useState(elements.length);
   const { confirm } = useConfirmDialog();
 
@@ -50,13 +61,23 @@ const PagePallet = () => {
       <div className="flex items-center justify-between py-2 rounded-md">
         <Label className="text-xs font-medium text-muted-foreground text-nowrap"> Add Page</Label>
         <ButtonGroup>
-          <Button disabled={pageCount <= 1} className="p-1" variant="outline" size="sm" onClick={() => handlePageCountChange(false)}>
+          <Button
+            disabled={pageCount <= 1}
+            className="p-1"
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageCountChange(false)}>
             <Minus className="h-4 w-4" />
           </Button>
           <Button className="px-2 py-1" variant="outline" size="sm">
             {pageCount}
           </Button>
-          <Button disabled={pageCount >= MAX_PAGES} className="p-1" variant="outline" size="sm" onClick={() => handlePageCountChange(true)}>
+          <Button
+            disabled={pageCount >= MAX_PAGES}
+            className="p-1"
+            variant="outline"
+            size="sm"
+            onClick={() => handlePageCountChange(true)}>
             <Plus className="h-4 w-4" />
           </Button>
         </ButtonGroup>

@@ -52,7 +52,9 @@ function imageFile(): UseImageToBase64WithInputReturn {
     setError("");
   }, []);
 
-  const renderInputField = (props?: InputHTMLAttributes<HTMLInputElement>): JSX.Element => <input ref={inputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" {...props} />;
+  const renderInputField = (props?: InputHTMLAttributes<HTMLInputElement>): JSX.Element => (
+    <input ref={inputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" {...props} />
+  );
 
   return { image, error, renderInputField, activateInput, clearImage, setImage: setImageValue };
 }

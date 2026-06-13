@@ -140,7 +140,13 @@ function address({ form, schema }: { form: UseFormReturn<any>; schema: AddressSc
     <div className="space-y-4">
       <h2 className="font-medium">{schema.label}</h2>
       <Separator />
-      <Button type="button" variant="outline" size="sm" onClick={getCurrentLocation} disabled={isLoadingLocation} className="w-full sm:w-auto bg-transparent">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={getCurrentLocation}
+        disabled={isLoadingLocation}
+        className="w-full sm:w-auto bg-transparent">
         {isLoadingLocation ?
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />

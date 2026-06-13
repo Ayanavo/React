@@ -1,54 +1,29 @@
 import React from "react";
-
 import { Navigate, useRoutes } from "react-router-dom";
-
 import { usePermissions, useHasAuthToken } from "@/shared/context/PermissionsContext";
-
 import { isAuthenticated } from "@/shared/utils/auth-token";
-
 import { LoaderCircleIcon } from "lucide-react";
-
 import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
-
 import LoginComponent from "@/pages/auth/login/login";
-
 import RegistrationComponent from "@/pages/auth/registration/registration";
-
 import CVAccessGrid from "@/pages/cv-builder/cv-access-grid";
-
 import CVBuilder from "@/pages/cv-builder/cv-builder";
-
 import ActivityComponent from "@/pages/layout/activity/activity";
-
 import DashboardComponent from "@/pages/layout/dashboard/dashboard";
-
 import { Layout } from "@/pages/layout/layout";
-
 import NoteComponent from "@/pages/layout/notes/notes-layout";
-
 import TagsLayoutComponent from "@/pages/layout/tags/tags-layout";
-
 import TagsCreateComponent from "@/pages/layout/tags/tags-create";
-
 import TagsUpdateComponent from "@/pages/layout/tags/tags-update";
-
 import WhiteboardComponent from "@/pages/layout/whiteboard/whiteboard";
-
 import MasterAccessComponent from "@/pages/master-access/master-access";
-
 import NoPageComponent from "@/pages/nopage";
-
 import ProfileComponent from "@/pages/profile/profile";
-
 import SettingsComponent from "@/pages/settings/settings";
-
 export type RouteConfig = {
   path?: string;
-
   element?: React.ReactNode;
-
   children?: RouteConfig[];
-
   index?: boolean;
 };
 
@@ -60,15 +35,12 @@ const AppLoader = () => (
 
 const GuestOnly = ({ children }: { children: React.ReactNode }) => {
   const hasToken = useHasAuthToken();
-
   if (hasToken) return <Navigate to="/dashboard" replace />;
-
   return <>{children}</>;
 };
 
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const { isLoading, isInitialized } = usePermissions();
-
   if (!isAuthenticated()) {
     return <Navigate to="/login" replace />;
   }
@@ -105,7 +77,7 @@ const STATIC_ROUTES: RouteConfig[] = [
     path: "/forgot-password",
     element: (
       <GuestOnly>
-      <ForgotPasswordComponent />
+        <ForgotPasswordComponent />
       </GuestOnly>
     ),
   },
@@ -115,11 +87,8 @@ const STATIC_ROUTES: RouteConfig[] = [
 
 const PROTECTED_LAYOUT_ROUTES: RouteConfig[] = [
   { index: true, element: <Navigate to="/dashboard" replace /> },
-
   { path: "dashboard", element: <DashboardComponent /> },
-
   { path: "profile", element: <ProfileComponent /> },
-
   { path: "settings", element: <SettingsComponent /> },
 ];
 
@@ -127,23 +96,14 @@ const PROTECTED_LAYOUT_ROUTES: RouteConfig[] = [
 
 const DYNAMIC_ROUTES: RouteConfig[] = [
   { path: "master-access", element: <MasterAccessComponent /> },
-
   { path: "activities", element: <ActivityComponent /> },
-
   { path: "cv-builder", element: <CVAccessGrid /> },
-
   { path: "cv-builder/create", element: <CVBuilder /> },
-
   { path: "cv-builder/:id", element: <CVBuilder /> },
-
   { path: "whiteboard", element: <WhiteboardComponent /> },
-
   { path: "notes", element: <NoteComponent /> },
-
   { path: "tags", element: <TagsLayoutComponent /> },
-
   { path: "tags/create", element: <TagsCreateComponent /> },
-
   { path: "tags/update/:id", element: <TagsUpdateComponent /> },
 ];
 
@@ -172,17 +132,13 @@ const getRouteConfiguration = (permissions: string[]): RouteConfig[] => {
         </RequireAuth>
       ),
 
-      children: [...PROTECTED_LAYOUT_ROUTES, ...permittedDynamicRoutes],
+      children: [...PROTECTED_LAYOUT_ROUTES, ...permittedDynamicRoutes, { path: "*", element: <NoPageComponent /> }],
     },
-
-    { path: "*", element: <NoPageComponent /> },
   ];
 };
 
 export const Router = () => {
   const { permissions } = usePermissions();
-
   const routeConfiguration = getRouteConfiguration(permissions);
-
   return useRoutes(routeConfiguration as any);
 };

@@ -38,14 +38,24 @@ const TokenInput = ({
   return (
     <>
       {/* invisible measuring span */}
-      <span ref={spanRef} className="absolute invisible whitespace-pre text-sm leading-none px-0 py-0" style={inputStyle}>
+      <span
+        ref={spanRef}
+        className="absolute invisible whitespace-pre text-sm leading-none px-0 py-0"
+        style={inputStyle}>
         {value || "—"}
       </span>
       {readonly ?
         <span className="whitespace-pre" style={inputStyle}>
           {value || "—"}
         </span>
-      : <input ref={inputRef} value={value} onChange={(e) => onChange?.(e.target.value)} className=" bg-transparent outline-none text-sm leading-none px-0 py-0 box-content" style={inputStyle} />}
+      : <input
+          ref={inputRef}
+          value={value}
+          onChange={(e) => onChange?.(e.target.value)}
+          className=" bg-transparent outline-none text-sm leading-none px-0 py-0 box-content"
+          style={inputStyle}
+        />
+      }
     </>
   );
 };

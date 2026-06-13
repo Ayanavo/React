@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { fetchPermissionsByToken } from "@/shared/services/masterAccess";
+import { connectSocket, disconnectSocket } from "@/shared/services/socket";
 import { AUTH_CHANGED_EVENT, getAuthToken, isAuthenticated } from "@/shared/utils/auth-token";
 
 type PermissionsContextType = {
@@ -52,10 +53,16 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
     return () => window.removeEventListener(AUTH_CHANGED_EVENT, handleAuthChange);
   }, [refetchPermissions]);
 
+  useEffect(() => {
+    if (isAuthenticated() && permissions.includes("/master-access")) {
+      connectSocket();
+    } else {
+      disconnectSocket();
+    }
+  }, [permissions]);
+
   return (
-    <PermissionsContext.Provider
-      value={{ permissions, isLoading, isInitialized, error, refetchPermissions }}
-    >
+    <PermissionsContext.Provider value={{ permissions, isLoading, isInitialized, error, refetchPermissions }}>
       {children}
     </PermissionsContext.Provider>
   );

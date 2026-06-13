@@ -6,14 +6,17 @@ export function mapNoteRecordToState(note: NoteRecord): NonNullable<State> {
     _id: note._id,
     title: note.title,
     description: note.body,
-    backgroundColor: note.color,
+    backgroundColor: note.color || undefined,
     image: note.image ?? [],
     createdAt: note.createdAt,
     updatedAt: note.updatedAt,
   };
 }
 
-export function mapStateToNotePayload(note: { title: string; description: string; backgroundColor?: string }, image?: string | null): {
+export function mapStateToNotePayload(
+  note: { title: string; description: string; backgroundColor?: string },
+  image?: string | null
+): {
   title: string;
   body: string;
   color: string;

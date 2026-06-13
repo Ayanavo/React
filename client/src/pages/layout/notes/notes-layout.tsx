@@ -81,21 +81,38 @@ function note() {
 
   return (
     <>
-      <NoteEditorComponent setIsOpen={setIsOpen} isOpen={isOpen} formData={selectedNote} onSave={handleSave} onDelete={handleDelete} />
+      <NoteEditorComponent
+        setIsOpen={setIsOpen}
+        isOpen={isOpen}
+        formData={selectedNote}
+        onSave={handleSave}
+        onDelete={handleDelete}
+      />
       <div className="flex items-center justify-between px-2 pt-3">
         <BreadcrumbInbuild />
       </div>
       <div className="flex justify-end">
         <div className="m-3 flex items-center justify-center space-x-2">
           <TooltipProvider disableHoverableContent>
-            <ToggleGroup className="gap-0" type="single" variant="outline" value={layout} onValueChange={(value) => value && setLayout(value)}>
+            <ToggleGroup
+              className="gap-0"
+              type="single"
+              variant="outline"
+              value={layout}
+              onValueChange={(value) => value && setLayout(value)}>
               {NotesLayout.map((item, index) => {
                 const isFirst = index === 0;
                 const isLast = index === NotesLayout.length - 1;
                 return (
                   <Tooltip key={item.name}>
                     <TooltipTrigger asChild>
-                      <ToggleGroupItem className={cn(isFirst && "rounded-r-none", isLast && "rounded-l-none", !(isFirst || isLast) && "rounded-none border-x-0")} value={item.name}>
+                      <ToggleGroupItem
+                        className={cn(
+                          isFirst && "rounded-r-none",
+                          isLast && "rounded-l-none",
+                          !(isFirst || isLast) && "rounded-none border-x-0"
+                        )}
+                        value={item.name}>
                         <IconsComponent customClass="h-4 w-4" icon={item.icon} />
                       </ToggleGroupItem>
                     </TooltipTrigger>
@@ -131,7 +148,10 @@ function note() {
             {/* Content */}
             <div className="relative z-10 mt-5 space-y-2">
               <h3 className="text-base font-semibold tracking-tight">No notes created yet</h3>
-              <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">Start building your knowledge base by creating reusable notes for resumes, projects, experience, skills, and more.</p>
+              <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+                Start building your knowledge base by creating reusable notes for resumes, projects, experience, skills,
+                and more.
+              </p>
             </div>
 
             {/* Bottom decoration */}
@@ -139,8 +159,18 @@ function note() {
           </div>
         </div>
       )}
-      {layout === "list" && <ListingLayoutComponent noteListing={noteListing} onSelect={handleSelect} isLoading={isLoading} />}
-      {layout === "grid" && <GridLayoutComponent noteListing={noteListing} onSelect={handleSelect} setIsOpen={setIsOpen} isOpen={isOpen} isLoading={isLoading} />}
+      {layout === "list" && (
+        <ListingLayoutComponent noteListing={noteListing} onSelect={handleSelect} isLoading={isLoading} />
+      )}
+      {layout === "grid" && (
+        <GridLayoutComponent
+          noteListing={noteListing}
+          onSelect={handleSelect}
+          setIsOpen={setIsOpen}
+          isOpen={isOpen}
+          isLoading={isLoading}
+        />
+      )}
     </>
   );
 }

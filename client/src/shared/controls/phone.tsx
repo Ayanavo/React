@@ -29,7 +29,14 @@ function phone({ form, schema }: { form: FieldValue<any>; schema: PhoneSchema })
                 {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
               </FormLabel>
               <FormControl>
-                <Input value={field.value ?? ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} placeholder={schema.placeholder} />
+                <Input
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  name={field.name}
+                  ref={field.ref}
+                  placeholder={schema.placeholder}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -66,7 +73,14 @@ function phone({ form, schema }: { form: FieldValue<any>; schema: PhoneSchema })
                   {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
                 </FormLabel>
                 <FormControl>
-                  <Input value={field.value ?? ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} placeholder={schema.placeholder} />
+                  <Input
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                    placeholder={schema.placeholder}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -79,16 +93,30 @@ function phone({ form, schema }: { form: FieldValue<any>; schema: PhoneSchema })
               <FormItem className="absolute right-2 top-3/4 -translate-y-1/2">
                 <FormControl>
                   <div className="flex items-center space-x-2">
-                    <Switch checked={!!field.value} onCheckedChange={() => setPrimaryPhone(index)} aria-label="Primary phone" />
+                    <Switch
+                      checked={!!field.value}
+                      onCheckedChange={() => setPrimaryPhone(index)}
+                      aria-label="Primary phone"
+                    />
                   </div>
                 </FormControl>
               </FormItem>
             )}
           />
-          {!!index && <TrashIcon className="absolute -right-5 top-3/4 -translate-y-1/2 w-4 text-destructive hover:text-destructive/90 cursor-pointer" onClick={() => remove(index)} />}
+          {!!index && (
+            <TrashIcon
+              className="absolute -right-5 top-3/4 -translate-y-1/2 w-4 text-destructive hover:text-destructive/90 cursor-pointer"
+              onClick={() => remove(index)}
+            />
+          )}
         </div>
       ))}
-      <Button type="button" variant="outline" size="sm" onClick={() => append({ phone: "", isPrimary: false })} className="mt-2">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => append({ phone: "", isPrimary: false })}
+        className="mt-2">
         <SquarePlusIcon className="mr-2 h-4 w-4" />
         Add more
       </Button>

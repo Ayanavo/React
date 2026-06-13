@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { ColorResult } from "react-color";
-import { DEFAULT_PICKER_COLOR, colorResultToHex } from "./color-picker-utils";
+import { colorResultToHex } from "./color-picker-utils";
 
 export function useColorPicker(initialColor?: string) {
-  const [color, setColor] = useState(initialColor || DEFAULT_PICKER_COLOR);
+  const [color, setColor] = useState<string | undefined>(initialColor || undefined);
 
   useEffect(() => {
-    setColor(initialColor || DEFAULT_PICKER_COLOR);
+    setColor(initialColor || undefined);
   }, [initialColor]);
 
   const onColorResultChange = useCallback((result: ColorResult) => {
@@ -14,7 +14,7 @@ export function useColorPicker(initialColor?: string) {
   }, []);
 
   const onHexChange = useCallback((hex?: string) => {
-    setColor(hex || DEFAULT_PICKER_COLOR);
+    setColor(hex || undefined);
   }, []);
 
   return {

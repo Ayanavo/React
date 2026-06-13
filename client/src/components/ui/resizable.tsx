@@ -5,7 +5,10 @@ import { DragHandleDots2Icon } from "@radix-ui/react-icons";
 import React from "react";
 
 const ResizablePanelGroup = ({ className, ...props }: React.ComponentProps<typeof ResizablePrimitive.PanelGroup>) => (
-  <ResizablePrimitive.PanelGroup className={cn("flex h-full w-full data-[panel-group-direction=vertical]:flex-col", className)} {...props} />
+  <ResizablePrimitive.PanelGroup
+    className={cn("flex h-full w-full data-[panel-group-direction=vertical]:flex-col", className)}
+    {...props}
+  />
 );
 
 const ResizablePanel = ResizablePrimitive.Panel;

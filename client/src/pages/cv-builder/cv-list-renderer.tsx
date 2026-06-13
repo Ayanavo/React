@@ -15,6 +15,7 @@ const CvListRenderer = ({ element, readonly = false }: { element: CVElement; rea
     element.properties?.textAlign === "center" ? "center"
     : element.properties?.textAlign === "end" ? "flex-end"
     : "flex-start";
+  const textAlign = element.properties?.textAlign ?? "start";
 
   // ---------- Normalize content ----------
   const items: string[] = Array.isArray(element.content) ? (element.content as string[]) : [""];
@@ -196,10 +197,14 @@ const CvListRenderer = ({ element, readonly = false }: { element: CVElement; rea
         className={`flex ${direction === "row" ? "flex-row flex-wrap gap-x-4 gap-y-1" : "flex-col gap-1"}`}
         style={direction === "row" ? { justifyContent: alignment } : { alignItems: alignment }}>
         {items.map((item, index) => (
-          <div key={index} className="flex gap-2 items-center">
-            <ListIcon element={element} index={index} />
+          <div key={index} className="flex gap-2 items-start max-w-full min-w-0">
+            <span className="shrink-0 flex items-center justify-center select-none" style={{ height: "1.5em" }}>
+              <ListIcon element={element} index={index} />
+            </span>
             {readonly ?
-              <span className="whitespace-pre-wrap">{item}</span>
+              <span className="whitespace-pre-wrap break-words min-w-0 max-w-full" style={{ textAlign }}>
+                {item}
+              </span>
             : <span
                 ref={(el) => (itemRefs.current[index] = el)}
                 data-list-item
@@ -209,10 +214,11 @@ const CvListRenderer = ({ element, readonly = false }: { element: CVElement; rea
                 onKeyDown={(e) => handleKeyDown(e, index)}
                 onPaste={handlePaste}
                 className="
-                  cursor-text outline-none min-w-[2px]
+                  cursor-text outline-none min-w-0 max-w-full whitespace-pre-wrap break-words
                   empty:before:content-[attr(data-placeholder)]
                   empty:before:text-muted-foreground
-                ">
+                "
+                style={{ textAlign }}>
                 {item}
               </span>
             }

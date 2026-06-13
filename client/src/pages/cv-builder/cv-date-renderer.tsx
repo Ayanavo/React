@@ -5,7 +5,12 @@ import { Trash } from "lucide-react";
 import moment from "moment";
 import React, { CSSProperties } from "react";
 
-const formatDate = (iso: string | undefined, dateFormat?: string, includeTime?: boolean, timeFormat?: "24" | "12-lower" | "12-upper") => {
+const formatDate = (
+  iso: string | undefined,
+  dateFormat?: string,
+  includeTime?: boolean,
+  timeFormat?: "24" | "12-lower" | "12-upper"
+) => {
   const m = moment(iso, moment.ISO_8601, true);
   const safe = m.isValid() ? m : moment();
 
@@ -57,7 +62,12 @@ const CvDateRenderer = ({ element, readonly = false }: { element: CVElement; rea
     fontSize: element.properties?.fontSize ? `${element.properties.fontSize}px` : undefined,
     fontWeight: element.properties?.fontWeight ? fontWeightMap[element.properties.fontWeight] : undefined,
     fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
-    textDecoration: [element.properties?.fontStyle?.underline && "underline", element.properties?.fontStyle?.strikethrough && "line-through"].filter(Boolean).join(" "),
+    textDecoration: [
+      element.properties?.fontStyle?.underline && "underline",
+      element.properties?.fontStyle?.strikethrough && "line-through",
+    ]
+      .filter(Boolean)
+      .join(" "),
     textAlign: element.properties?.textAlign,
     color: element.properties?.color,
   };
@@ -98,8 +108,15 @@ const CvDateRenderer = ({ element, readonly = false }: { element: CVElement; rea
         />
       )}
 
-      <div className={`rounded-sm px-1 transition ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}`} style={style}>
-        {formatDate(value, element.properties?.dateFormat, element.properties?.includeTime, element.properties?.timeFormat)}
+      <div
+        className={`rounded-sm px-1 transition break-words whitespace-pre-wrap ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}`}
+        style={style}>
+        {formatDate(
+          value,
+          element.properties?.dateFormat,
+          element.properties?.includeTime,
+          element.properties?.timeFormat
+        )}
       </div>
     </div>
   );

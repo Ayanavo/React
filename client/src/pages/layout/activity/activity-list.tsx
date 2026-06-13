@@ -1,23 +1,16 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { formatAppDate } from "@/lib/date-format";
 import React from "react";
+import { CalendarEvent } from "./activity-calendar";
 
-function activitylist({
-  events,
-}: {
-  events: Array<{
-    allDay: boolean;
-    color: string;
-    end?: string | undefined;
-    title: string;
-    start: string;
-  }>;
-}) {
+function activitylist({ events }: { events: CalendarEvent[] }) {
   return (
     <div className="mt-6 mx-3">
       <Accordion type="single" collapsible defaultValue="item-1" className="w-full">
         <AccordionItem value="item-1">
-          <AccordionTrigger className="text-lg text-gray-600 font-semibold no-underline hover:no-underline hover:text-black">Holidays:</AccordionTrigger>
+          <AccordionTrigger className="text-lg text-gray-600 font-semibold no-underline hover:no-underline hover:text-black">
+            Holidays:
+          </AccordionTrigger>
           <AccordionContent>
             <ul className="list-disc space-y-2">
               {events.map((activity, i) => (

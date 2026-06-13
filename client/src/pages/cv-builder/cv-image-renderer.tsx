@@ -40,7 +40,8 @@ const CvImageRenderer = ({ element, readonly = false }: { element: CVElement; re
 
   // BORDER LAYER (outermost)
   const borderStyle: CSSProperties = {
-    border: imageBorder.enabled ? `${imageBorder.borderWidth ?? 1}px solid ${imageBorder.borderColor ?? "#000"}` : "none",
+    border:
+      imageBorder.enabled ? `${imageBorder.borderWidth ?? 1}px solid ${imageBorder.borderColor ?? "#000"}` : "none",
     borderRadius: imageStyle.radius ?? 0,
   };
 
@@ -109,12 +110,21 @@ const CvImageRenderer = ({ element, readonly = false }: { element: CVElement; re
             {/* IMAGE BOX (FIXED SIZE) */}
             <div style={imageBoxStyle} className="bg-muted flex items-center justify-center">
               {element.properties?.imageSrc ?
-                <img src={element.properties.imageSrc} className="w-full h-full object-cover select-none" draggable={false} />
+                <img
+                  src={element.properties.imageSrc}
+                  className="w-full h-full object-cover select-none"
+                  draggable={false}
+                />
               : !readonly && (
                   <label className="cursor-pointer flex flex-col items-center justify-center gap-1 text-muted-foreground text-xs w-full h-full">
                     <ImagePlus className="h-5 w-5" />
                     Upload Image
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files && handleUpload(e.target.files[0])} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files && handleUpload(e.target.files[0])}
+                    />
                   </label>
                 )
               }

@@ -22,7 +22,12 @@ function number({ form, schema }: { form: FieldValue<any>; schema: NumberSchema 
             {schema.validation.required && <span className="text-destructive">*</span>}
           </FormLabel>
           <FormControl>
-            <Input type="number" {...field} placeholder={schema.placeholder} onChange={(value) => field.onChange(value.target.valueAsNumber)} />
+            <Input
+              type="number"
+              {...field}
+              placeholder={schema.placeholder}
+              onChange={(value) => field.onChange(value.target.valueAsNumber)}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>

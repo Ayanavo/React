@@ -44,7 +44,11 @@ function rating({ form, schema }: { form: FieldValue<any>; schema: RatingSchema 
                       variant="ghost"
                       type="button"
                       size="sm"
-                      className={cn("p-0 hover:bg-transparent transition-all duration-300", hoveredRating === starValue && "scale-110", isAnimating && field.value >= starValue && "scale-125")}
+                      className={cn(
+                        "p-0 hover:bg-transparent transition-all duration-300",
+                        hoveredRating === starValue && "scale-110",
+                        isAnimating && field.value >= starValue && "scale-125"
+                      )}
                       onMouseEnter={() => setHoveredRating(starValue)}
                       onMouseLeave={() => setHoveredRating(0)}
                       onClick={() => handleRatingChange(starValue)}
@@ -52,7 +56,12 @@ function rating({ form, schema }: { form: FieldValue<any>; schema: RatingSchema 
                       role="radio">
                       <IconComponent
                         icon={schema.iconType || "StarFilledIcon"}
-                        customClass={cn("h-6 w-6 transition-colors duration-300", hoveredRating >= starValue || field.value >= starValue ? "text-primary fill-primary" : "text-gray-300 fill-gray-300")}
+                        customClass={cn(
+                          "h-6 w-6 transition-colors duration-300",
+                          hoveredRating >= starValue || field.value >= starValue ?
+                            "text-primary fill-primary"
+                          : "text-gray-300 fill-gray-300"
+                        )}
                       />
                       <span className="sr-only">{`Rate ${starValue} out of ${schema.maxRating} stars`}</span>
                     </Button>

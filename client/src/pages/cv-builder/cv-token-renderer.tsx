@@ -89,13 +89,19 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
         {tokens.map((value, index) => (
           <React.Fragment key={index}>
             {/* TOKEN CHIP */}
-            <div className="relative flex items-center gap-1 px-[4px] py-[2px] border" style={chipStyle}>
+            <div className="relative flex items-center gap-1 px-[4px] py-[2px] border max-w-full" style={chipStyle}>
               {readonly ?
                 <span
-                  className="whitespace-pre-wrap"
+                  className="whitespace-pre-wrap break-words min-w-0"
                   style={{
                     fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
-                    textDecoration: [element.properties?.fontStyle?.underline ? "underline" : "", element.properties?.fontStyle?.strikethrough ? "line-through" : ""].filter(Boolean).join(" ") || "none",
+                    textDecoration:
+                      [
+                        element.properties?.fontStyle?.underline ? "underline" : "",
+                        element.properties?.fontStyle?.strikethrough ? "line-through" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ") || "none",
                   }}>
                   {value || "—"}
                 </span>
@@ -115,13 +121,18 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
               )}
             </div>
             {/* INTERLINK BETWEEN CHIPS */}
-            {interlinkEnabled && index < tokens.length - 1 && <span className="mx-1 text-muted-foreground select-none flex items-center">{InterlinkIcon}</span>}
+            {interlinkEnabled && index < tokens.length - 1 && (
+              <span className="mx-1 text-muted-foreground select-none flex items-center">{InterlinkIcon}</span>
+            )}
           </React.Fragment>
         ))}
 
         {/* ADD TOKEN */}
         {!readonly && isSelected && (
-          <button onClick={addToken} className="w-6 h-6 flex items-center justify-center border rounded text-muted-foreground hover:bg-muted" title="Add token">
+          <button
+            onClick={addToken}
+            className="w-6 h-6 flex items-center justify-center border rounded text-muted-foreground hover:bg-muted"
+            title="Add token">
             <Plus className="h-3 w-3" />
           </button>
         )}

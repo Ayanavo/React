@@ -2,7 +2,13 @@ import IconsComponent from "@/common/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -12,7 +18,17 @@ import { cn } from "@/lib/utils";
 import { deleteActivity, fetchActivities } from "@/shared/services/activity";
 import { useSidebarLayout } from "@/shared/sidebarlayout";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createColumnHelper, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, Table as TableModel, useReactTable } from "@tanstack/react-table";
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  PaginationState,
+  SortingState,
+  Table as TableModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import { CheckIcon, EllipsisIcon, EyeIcon, PencilIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
 import React, { useEffect, useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -147,10 +163,21 @@ function table() {
           id: "select",
           header: ({ table }) => (
             <div key={index} className="p-2">
-              <Checkbox aria-label="Select all" checked={table.getIsAllPageRowsSelected()} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} />
+              <Checkbox
+                aria-label="Select all"
+                checked={table.getIsAllPageRowsSelected()}
+                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+              />
             </div>
           ),
-          cell: ({ row }) => <Checkbox key={column.key} checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />,
+          cell: ({ row }) => (
+            <Checkbox
+              key={column.key}
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+            />
+          ),
         });
       }
 
@@ -172,11 +199,17 @@ function table() {
             return (
               <div key={index} className="flex justify-right h-full">
                 {value ?
-                  <Badge variant="outline" key={column.key} className="flex justify-evenly cursor-default text-green-400  border-green-400 hover:bg-inherit/50 space-x-1">
+                  <Badge
+                    variant="outline"
+                    key={column.key}
+                    className="flex justify-evenly cursor-default text-green-400  border-green-400 hover:bg-inherit/50 space-x-1">
                     <CheckIcon key={column.key} className="h-4 w-4 " />
                     <div>Completed</div>
                   </Badge>
-                : <Badge variant="outline" key={column.key} className="flex justify-evenly cursor-default text-red-400  border-red-400 hover:bg-inherit/50 space-x-1">
+                : <Badge
+                    variant="outline"
+                    key={column.key}
+                    className="flex justify-evenly cursor-default text-red-400  border-red-400 hover:bg-inherit/50 space-x-1">
                     <XIcon key={column.key} className="h-4 w-4 " />
                     <div>Not Completed</div>
                   </Badge>
@@ -255,22 +288,42 @@ function table() {
       <div className="flex flex-col h-[90vh] overflow-hidden">
         <div className="flex-none p-3 flex justify-between items-center space-x-2">
           <div className=" relative">
-            <Input id={id} className="pe-11" placeholder="Search..." type="search" defaultValue={globalFilter} onKeyDown={handleSearchKey} />
+            <Input
+              id={id}
+              className="pe-11"
+              placeholder="Search..."
+              type="search"
+              defaultValue={globalFilter}
+              onKeyDown={handleSearchKey}
+            />
             <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground">
-              <kbd className="inline-flex h-5 max-h-full items-center rounded border border-border px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">Enter</kbd>
+              <kbd className="inline-flex h-5 max-h-full items-center rounded border border-border px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
+                Enter
+              </kbd>
             </div>
           </div>
 
           <div className="flex-none p-3 flex justify-end items-center space-x-2">
             <TooltipProvider disableHoverableContent>
-              <ToggleGroup className="gap-0" type="single" variant="outline" value={layout} onValueChange={(value) => value && setLayout(value)}>
+              <ToggleGroup
+                className="gap-0"
+                type="single"
+                variant="outline"
+                value={layout}
+                onValueChange={(value) => value && setLayout(value)}>
                 {TableLayout.map((item, index) => {
                   const isFirst = index === 0;
                   const isLast = index === TableLayout.length - 1;
                   return (
                     <Tooltip key={item.name}>
                       <TooltipTrigger asChild>
-                        <ToggleGroupItem className={cn(isFirst && "rounded-r-none", isLast && "rounded-l-none", !(isFirst || isLast) && "rounded-none border-x-0")} value={item.name}>
+                        <ToggleGroupItem
+                          className={cn(
+                            isFirst && "rounded-r-none",
+                            isLast && "rounded-l-none",
+                            !(isFirst || isLast) && "rounded-none border-x-0"
+                          )}
+                          value={item.name}>
                           <IconsComponent customClass="h-4 w-4" icon={item.icon} />
                         </ToggleGroupItem>
                       </TooltipTrigger>

@@ -35,14 +35,16 @@ export function getChartThemeColors(): ChartThemeColors {
 
 export function useChartThemeColors(): ChartThemeColors {
   const [colors, setColors] = useState<ChartThemeColors>(() =>
-    typeof window !== "undefined" ? getChartThemeColors() : {
-      primary: "",
-      primaryShades: [],
-      series: [],
-      seriesSoft: [],
-      mutedForeground: "",
-      border: "",
-    }
+    typeof window !== "undefined" ? getChartThemeColors() : (
+      {
+        primary: "",
+        primaryShades: [],
+        series: [],
+        seriesSoft: [],
+        mutedForeground: "",
+        border: "",
+      }
+    )
   );
 
   useEffect(() => {

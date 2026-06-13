@@ -1,7 +1,13 @@
 import IconsComponent from "@/common/icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -10,9 +16,18 @@ import { formatAppDate } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useConfirmDialog } from "@/shared/confirmation";
-import { createColumnHelper, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, PaginationState, SortingState, useReactTable } from "@tanstack/react-table";
+import {
+  createColumnHelper,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  PaginationState,
+  SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
 import { EllipsisIcon, PencilIcon, PlusIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
-import React, { useEffect, useId, useState } from "react";
+import React, { useEffect, useId, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ColumnComponent from "./table/column";
 import KanbanComponent from "./table/kanban";
@@ -54,9 +69,25 @@ type ResourceGridProps<T extends { _id: string }> = {
       showLoadingOnConfirmClick?: boolean;
     };
   };
+  filterControls?: React.ReactNode;
+  filterFn?: (row: T) => boolean;
 };
 
-function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, basePath, addLabel, columns: columnConfig, fetchList, deleteResource, actionRenderer, showAddButton = true, onAddClick, actionConfig }: ResourceGridProps<T>) {
+function ResourceGrid<T extends { _id: string }>({
+  queryKey,
+  resourceLabel,
+  basePath,
+  addLabel,
+  columns: columnConfig,
+  fetchList,
+  deleteResource,
+  actionRenderer,
+  showAddButton = true,
+  onAddClick,
+  actionConfig,
+  filterControls,
+  filterFn,
+}: ResourceGridProps<T>) {
   const columnHelper = createColumnHelper<T>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -80,11 +111,17 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
   const [layout, setLayout] = useState<string>("column");
 
+  const filteredList = useMemo(() => {
+    if (!filterFn) return list;
+    return list.filter(filterFn);
+  }, [list, filterFn]);
+
   useEffect(() => {
     if (isSuccess) {
-      setData(list);
+      setData(filteredList);
+      setPagination((prev) => ({ ...prev, pageIndex: 0 }));
     }
-  }, [list, isSuccess]);
+  }, [filteredList, isSuccess]);
 
   const deleteMutation = useMutation({
     mutationFn: deleteResource,
@@ -118,11 +155,22 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
           meta: { align: column.align ?? "right" },
           cell: ({ row }) => {
             if (actionRenderer) {
-              return <div className="flex justify-end">{actionRenderer(row.original, (resourceId) => deleteMutation.mutate(resourceId))}</div>;
+              return (
+                <div className="flex justify-end">
+                  {actionRenderer(row.original, (resourceId) => deleteMutation.mutate(resourceId))}
+                </div>
+              );
             }
 
             // default action menu is configurable via actionConfig prop
-            const { showEdit = true, showPermissions = false, onOpenPermissions, showDelete = true, confirmOnDelete = true, deleteConfirmOptions } = actionConfig || {};
+            const {
+              showEdit = true,
+              showPermissions = false,
+              onOpenPermissions,
+              showDelete = true,
+              confirmOnDelete = true,
+              deleteConfirmOptions,
+            } = actionConfig || {};
 
             const handleDeleteSelect = async () => {
               if (confirmOnDelete) {
@@ -180,8 +228,22 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
         return columnHelper.display({
           id: "select",
           meta: { align: column.align ?? "center" },
-          header: ({ table }) => <Checkbox className="border-primary/60 shadow-none" aria-label="Select all" checked={table.getIsAllPageRowsSelected()} onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)} />,
-          cell: ({ row }) => <Checkbox className="border-primary/60 shadow-none" checked={row.getIsSelected()} onCheckedChange={(value) => row.toggleSelected(!!value)} aria-label="Select row" />,
+          header: ({ table }) => (
+            <Checkbox
+              className="border-primary/60 shadow-none"
+              aria-label="Select all"
+              checked={table.getIsAllPageRowsSelected()}
+              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            />
+          ),
+          cell: ({ row }) => (
+            <Checkbox
+              className="border-primary/60 shadow-none"
+              checked={row.getIsSelected()}
+              onCheckedChange={(value) => row.toggleSelected(!!value)}
+              aria-label="Select row"
+            />
+          ),
         });
       }
 
@@ -247,23 +309,47 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
   return (
     <div className="flex h-[90vh] flex-col overflow-hidden bg-background">
       <div className="flex flex-none items-center justify-between gap-3 px-0.5 py-3">
-        <div className="relative w-full max-w-xs">
-          <Input id={id} className="h-9 rounded-lg border-border/70 bg-card pe-16 shadow-sm" placeholder="Search..." type="search" defaultValue={globalFilter} onKeyDown={handleSearchKey} />
-          <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground">
-            <kbd className="inline-flex h-5 max-h-full items-center rounded-md border border-border/70 bg-muted/40 px-1 text-[0.625rem] font-medium text-muted-foreground/70">Enter</kbd>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <div className="relative w-full max-w-xs">
+            <Input
+              id={id}
+              className="h-9 rounded-lg border-border/70 bg-card pe-16 shadow-sm"
+              placeholder="Search..."
+              type="search"
+              defaultValue={globalFilter}
+              onKeyDown={handleSearchKey}
+            />
+            <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground">
+              <kbd className="inline-flex h-5 max-h-full items-center rounded-md border border-border/70 bg-muted/40 px-1 text-[0.625rem] font-medium text-muted-foreground/70">
+                Enter
+              </kbd>
+            </div>
           </div>
+          {filterControls}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
           <TooltipProvider disableHoverableContent>
-            <ToggleGroup className="gap-0" type="single" variant="outline" value={layout} onValueChange={(value) => value && setLayout(value)}>
+            <ToggleGroup
+              className="gap-0"
+              type="single"
+              variant="outline"
+              value={layout}
+              onValueChange={(value) => value && setLayout(value)}>
               {TableLayout.map((item, index) => {
                 const isFirst = index === 0;
                 const isLast = index === TableLayout.length - 1;
                 return (
                   <Tooltip key={item.name}>
                     <TooltipTrigger asChild>
-                      <ToggleGroupItem className={cn("h-9 bg-card shadow-sm", isFirst && "rounded-r-none", isLast && "rounded-l-none", !(isFirst || isLast) && "rounded-none border-x-0")} value={item.name}>
+                      <ToggleGroupItem
+                        className={cn(
+                          "h-9 bg-card shadow-sm",
+                          isFirst && "rounded-r-none",
+                          isLast && "rounded-l-none",
+                          !(isFirst || isLast) && "rounded-none border-x-0"
+                        )}
+                        value={item.name}>
                         <IconsComponent customClass="h-4 w-4" icon={item.icon} />
                       </ToggleGroupItem>
                     </TooltipTrigger>
@@ -274,7 +360,9 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
             </ToggleGroup>
           </TooltipProvider>
           {showAddButton ?
-            <Button onClick={onAddClick ?? (() => navigate(`${basePath}/create`))} className="flex h-9 items-center gap-2 rounded-lg shadow-sm">
+            <Button
+              onClick={onAddClick ?? (() => navigate(`${basePath}/create`))}
+              className="flex h-9 items-center gap-2 rounded-lg shadow-sm">
               <PlusIcon className="h-4 w-4" />
               <span>{addLabel ?? `Add ${resourceLabel}`}</span>
             </Button>
@@ -282,7 +370,14 @@ function ResourceGrid<T extends { _id: string }>({ queryKey, resourceLabel, base
         </div>
       </div>
 
-      {layout === "column" && <ColumnComponent tableBody={tableBody as never} setSorting={setSorting} isLoading={isLoading || (isFetching && data.length === 0)} pageSize={pagination.pageSize} />}
+      {layout === "column" && (
+        <ColumnComponent
+          tableBody={tableBody as never}
+          setSorting={setSorting}
+          isLoading={isLoading || (isFetching && data.length === 0)}
+          pageSize={pagination.pageSize}
+        />
+      )}
       {layout === "kanban" && <KanbanComponent tableBody={tableBody as never} />}
       <PaginationComponent tableBody={tableBody as never} pagination={pagination} setPagination={setPagination} />
     </div>

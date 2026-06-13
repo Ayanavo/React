@@ -28,7 +28,16 @@ type SelectWithSearchProps = {
  * - Built-in search field with a lucide Search icon.
  * - Supports controlled (value/onChange) and uncontrolled usage.
  */
-const search = ({ options, value: controlledValue, onChange, placeholder = "Select an option", searchPlaceholder = "Search...", emptyMessage = "No results found.", className, disabled }: SelectWithSearchProps) => {
+const search = ({
+  options,
+  value: controlledValue,
+  onChange,
+  placeholder = "Select an option",
+  searchPlaceholder = "Search...",
+  emptyMessage = "No results found.",
+  className,
+  disabled,
+}: SelectWithSearchProps) => {
   const [open, setOpen] = React.useState(false);
   const isControlled = controlledValue !== undefined;
   const [uncontrolledValue, setUncontrolledValue] = React.useState<string | null>(null);
@@ -49,7 +58,15 @@ const search = ({ options, value: controlledValue, onChange, placeholder = "Sele
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button type="button" variant="outline" role="combobox" aria-expanded={open} aria-controls="select-with-search-listbox" aria-haspopup="listbox" className={cn("w-full justify-between", className)} disabled={disabled}>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          aria-controls="select-with-search-listbox"
+          aria-haspopup="listbox"
+          className={cn("w-full justify-between", className)}
+          disabled={disabled}>
           <span className="truncate">{selected ? selected.label : placeholder}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>

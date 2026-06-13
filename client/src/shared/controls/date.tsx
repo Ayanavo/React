@@ -42,7 +42,9 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
           <Popover>
             <PopoverTrigger asChild>
               <FormControl>
-                <Button variant={"outline"} className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                <Button
+                  variant={"outline"}
+                  className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
                   {field.value ? formatAppDate(field.value) : <span>Pick a date</span>}
                   <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                 </Button>
@@ -50,16 +52,32 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
               <DatePicker
-                renderCustomHeader={({ date, decreaseMonth, increaseMonth, prevMonthButtonDisabled, nextMonthButtonDisabled }) => (
+                renderCustomHeader={({
+                  date,
+                  decreaseMonth,
+                  increaseMonth,
+                  prevMonthButtonDisabled,
+                  nextMonthButtonDisabled,
+                }) => (
                   <div className="flex justify-evenly pt-1 relative items-center">
                     <div className="space-x-7 flex items-center">
-                      <Button variant="outline" size="icon" className="size-7 opacity-50 hover:opacity-100" onClick={decreaseMonth} disabled={prevMonthButtonDisabled}>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="size-7 opacity-50 hover:opacity-100"
+                        onClick={decreaseMonth}
+                        disabled={prevMonthButtonDisabled}>
                         <ChevronLeftIcon />
                       </Button>
                       <div className="text-sm font-medium" aria-live="polite">
                         {formatAppMonthYear(date)}
                       </div>
-                      <Button variant="outline" size="icon" className="size-7 opacity-50 hover:opacity-100" onClick={increaseMonth} disabled={nextMonthButtonDisabled}>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="size-7 opacity-50 hover:opacity-100"
+                        onClick={increaseMonth}
+                        disabled={nextMonthButtonDisabled}>
                         <ChevronRightIcon />
                       </Button>
                     </div>
@@ -72,11 +90,18 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
                 selected={field.value}
                 onChange={handleDateChange}
                 calendarClassName="bg-white font-sans"
-                timeClassName={(time) => (time.getTime() === field.value.getTime() ? "bg-black text-white hover:!bg-black" : "text-black hover:bg-gray-200 active:bg-gray-200")}
+                timeClassName={(time) =>
+                  time.getTime() === field.value.getTime() ?
+                    "bg-black text-white hover:!bg-black"
+                  : "text-black hover:bg-gray-200 active:bg-gray-200"
+                }
               />
 
               <div className="p-3 border-t border-border">
-                <Button variant="default" className="w-full bg-black hover:bg-gray-800 text-white" onClick={handleTodayClick}>
+                <Button
+                  variant="default"
+                  className="w-full bg-black hover:bg-gray-800 text-white"
+                  onClick={handleTodayClick}>
                   Today
                 </Button>
               </div>

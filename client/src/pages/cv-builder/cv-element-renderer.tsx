@@ -10,8 +10,30 @@ import CvIconRenderer from "./cv-icon-renderer";
 import CvLocationRenderer from "./cv-location-renderer";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-const CVElementRenderer = ({ element, sectionCount, blockCount, readonly = false }: { element: CVElement; sectionCount?: number; blockCount?: number; readonly?: boolean }) => {
-  const { updateElement, selectElement, selectedElementId, selectedHeaderId, selectedSectionId, selectedBlockId, removeSection, removeBlock, removeHeader } = useCV();
+const CVElementRenderer = ({
+  element,
+  sectionCount,
+  blockCount,
+  readonly = false,
+}: {
+  element: CVElement;
+  sectionCount?: number;
+  blockCount?: number;
+  readonly?: boolean;
+}) => {
+  const {
+    updateElement,
+    selectElement,
+    selectedElementId,
+    selectedHeaderId,
+    selectedSectionId,
+    selectedBlockId,
+    removeSection,
+    removeBlock,
+    removeHeader,
+    showSectionDividers,
+    pageProperties,
+  } = useCV();
   const headerRef = useRef<HTMLDivElement>(null);
   const isSelected = selectedElementId === element.id || selectedHeaderId === element.id;
 
@@ -20,11 +42,21 @@ const CVElementRenderer = ({ element, sectionCount, blockCount, readonly = false
     const headerChild = element.children?.find((c) => c.type === "header");
     const blockChildren = element.children?.filter((c) => c.type === "block") ?? [];
 
+    const borderStyle =
+      showSectionDividers ?
+        {
+          borderBottom: `2px ${pageProperties.dividerStyle ?? "solid"} ${pageProperties.dividerColor ?? "#e4e4e7"}`,
+        }
+      : {
+          borderBottom: "none",
+        };
+
     return (
       <div
-        className={`relative flex flex-col w-full border-b last:border-b-0 ${selectedSectionId === element.id ? "ring-2 ring-primary" : ""}`}
+        className={`relative flex flex-col w-full last:!border-b-0 ${selectedSectionId === element.id ? "ring-2 ring-primary" : ""}`}
         style={{
           height: sectionCount ? `${100 / sectionCount}%` : "auto",
+          ...borderStyle,
         }}>
         {!readonly && selectedSectionId === element.id && (sectionCount ?? 0) > 1 && (
           <TooltipProvider>
@@ -35,7 +67,7 @@ const CVElementRenderer = ({ element, sectionCount, blockCount, readonly = false
                     e.stopPropagation();
                     removeSection(element.id);
                   }}
-                  className="absolute top-2 right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
+                  className="absolute top-1 left-1 z-20 bg-secondary text-primary p-1 rounded shadow flex items-center gap-1">
                   <Trash className="h-3 w-3" />
                 </button>
               </TooltipTrigger>
@@ -45,9 +77,26 @@ const CVElementRenderer = ({ element, sectionCount, blockCount, readonly = false
         )}
         {headerChild && <CVElementRenderer key={headerChild.id} element={headerChild} readonly={readonly} />}
         <div className="flex w-full h-full">
-          {blockChildren.map((child) => (
-            <CVElementRenderer key={child.id} element={child} sectionCount={sectionCount} blockCount={blockChildren.length} readonly={readonly} />
-          ))}
+          {blockChildren.map((child, idx) => {
+            const fallback = 100 / blockChildren.length;
+            const widths = blockChildren.map((b) => (typeof b.width === "number" && b.width > 0 ? b.width : fallback));
+            const total = widths.reduce((s, w) => s + w, 0);
+            const pct = total > 0 ? (widths[idx] / total) * 100 : fallback;
+
+            return (
+              <div
+                key={child.id}
+                className={selectedSectionId === element.id && idx > 0 ? "border-l border-zinc-200" : ""}
+                style={{ width: `${pct}%` }}>
+                <CVElementRenderer
+                  element={child}
+                  sectionCount={sectionCount}
+                  blockCount={blockChildren.length}
+                  readonly={readonly}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
     );
@@ -150,7 +199,7 @@ const CVElementRenderer = ({ element, sectionCount, blockCount, readonly = false
   // ---------- BLOCK ----------
   if (element.type === "block") {
     return (
-      <div className={`relative flex-1 h-full p-4 ${selectedBlockId === element.id ? "ring-2 ring-primary" : ""}`}>
+      <div className={`relative h-full p-4 ${selectedBlockId === element.id ? "bg-zinc-50" : ""}`}>
         {!readonly && selectedBlockId === element.id && (blockCount ?? 0) > 1 && (
           <TooltipProvider>
             <Tooltip>
@@ -160,7 +209,7 @@ const CVElementRenderer = ({ element, sectionCount, blockCount, readonly = false
                     e.stopPropagation();
                     removeBlock(element.id);
                   }}
-                  className="absolute top-2 right-2 z-20 bg-secondary text-primary p-1 rounded shadow hover:opacity-90">
+                  className="absolute top-1 right-1 z-20 bg-secondary text-primary p-1 rounded shadow flex items-center gap-1">
                   <Trash className="h-3 w-3" />
                 </button>
               </TooltipTrigger>

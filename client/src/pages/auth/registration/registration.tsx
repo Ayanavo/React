@@ -69,9 +69,21 @@ function registration() {
   const navigate = useNavigate();
   const form = generateControl(formSchemaObj);
 
-  function renderField(field: { type: string | number | boolean | React.ReactElement<any, string | React.JSXElementConstructor<any>> | Iterable<React.ReactNode> | null | undefined; name: React.Key | null | undefined }) {
+  function renderField(field: {
+    type:
+      | string
+      | number
+      | boolean
+      | React.ReactElement<any, string | React.JSXElementConstructor<any>>
+      | Iterable<React.ReactNode>
+      | null
+      | undefined;
+    name: React.Key | null | undefined;
+  }) {
     const Component = componentMap[field.type as keyof typeof componentMap];
-    return Component ? <Component key={field.name} form={form} schema={field} /> : <div key={field.name}>Unidentified field type: {field.type}</div>;
+    return Component ?
+        <Component key={field.name} form={form} schema={field} />
+      : <div key={field.name}>Unidentified field type: {field.type}</div>;
   }
   const onSubmit = (data: any) => {
     registerAPI(data as RegisterPayload)

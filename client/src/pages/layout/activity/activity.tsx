@@ -1,208 +1,238 @@
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { formatAppDate, formatAppMonthYear } from "@/lib/date-format";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import interactionGridPlugin, { DateClickArg } from "@fullcalendar/interaction";
-import FullCalendar from "@fullcalendar/react";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import { ChevronLeft, ChevronRight, Settings2Icon } from "lucide-react";
-import moment from "moment";
-import React, { useEffect, useRef, useState } from "react";
-import { HolidayEvent } from "../../../shared/services/activity";
-import ActivityComponent from "./activity-list";
-import DatePickerComponent from "./datepicker";
-import EventComponent from "./event";
-import "./fullcalendar.scss";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import showToast from "@/hooks/toast";
+import { formatAppMonthYear } from "@/lib/date-format";
+import { useConfirmDialog } from "@/shared/confirmation";
+import { ChevronLeft, ChevronRight, PanelLeft } from "lucide-react";
+import moment from "moment";
+import React, { useEffect, useMemo, useState } from "react";
+import ActivityCalendar, { CalendarEvent, CalendarView } from "./activity-calendar";
+import { ActivityItem } from "./activity.types";
+import DatePickerComponent from "./datepicker";
+import ActivityFormDialog from "./event";
+import ActivityUpcomingList from "./activity-upcoming";
+import "./activity.scss";
+import { useActivityManager } from "./use-activity-manager";
 
-function activity() {
-  const [showEventPopover, setShowEventPopover] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<moment.Moment>(moment());
-  const calendarRef = useRef<FullCalendar | null>(null);
-  const [activeMonth, setActiveMonth] = useState("");
-  const [activeMonthDate, setActiveMonthDate] = useState<moment.Moment>(moment());
-  const [date, setDate] = useState<Date>(new Date());
-  const [grid, setGrid] = useState<string>("dayGridMonth");
-  const [isOpen, setIsOpen] = useState<boolean>(false);
-  const { isPending, data } = HolidayEvent();
+function ActivityPage() {
+  const { confirm } = useConfirmDialog();
+  const [focusDate, setFocusDate] = useState<Date>(new Date());
+  const [sidebarDate, setSidebarDate] = useState<Date>(new Date());
+  const [calendarView, setCalendarView] = useState<CalendarView>("dayGridMonth");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [focusedEventId, setFocusedEventId] = useState<string | null>(null);
 
-  const HolidayList =
-    data?.data.items.map(({ summary, start, end }: { summary: string; start: { date: string }; end?: { date: string } }) => {
-      return {
-        title: summary,
-        start: start.date,
-        ...(end && { end: end?.date }),
-        allDay: true,
-        color: "#0284c7",
-      };
-    }) ?? [];
+  const {
+    activities,
+    calendarEvents,
+    isLoading,
+    createActivity,
+    updateActivity,
+    deleteActivity,
+    findActivity,
+  } = useActivityManager(focusDate, calendarView);
+
+  const activeLabel = useMemo(() => {
+    if (calendarView === "dayGridYear") {
+      return moment(focusDate).format("YYYY");
+    }
+
+    return formatAppMonthYear(focusDate);
+  }, [calendarView, focusDate]);
 
   useEffect(() => {
-    if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
-      const currentMonthDate = moment(calendarApi.getDate());
-      setActiveMonthDate(currentMonthDate);
-      setActiveMonth(formatAppMonthYear(currentMonthDate));
-      calendarApi.gotoDate(date);
+    setFocusDate(sidebarDate);
+  }, [sidebarDate]);
+
+  function focusCalendarOnActivity(activity: ActivityItem) {
+    const date = new Date(activity.start);
+    setFocusDate(date);
+    setSidebarDate(date);
+    setFocusedEventId(activity.id ?? null);
+  }
+
+  function openCreateDialog(date: Date) {
+    setFocusedEventId(null);
+    setSelectedActivity(null);
+    setSelectedDate(date);
+    setDialogOpen(true);
+  }
+
+  function openEditDialog(activity: ActivityItem) {
+    setSelectedActivity(activity);
+    setSelectedDate(new Date(activity.start));
+    setDialogOpen(true);
+  }
+
+  function openCalendarEvent(event: CalendarEvent, date: Date) {
+    setFocusedEventId(null);
+    const activity = findActivity(event.id) ?? null;
+    if (activity) {
+      openEditDialog(activity);
+      return;
     }
-  }, [date]);
 
-  function handleDateClick(arg: DateClickArg) {
-    setSelectedDate(moment(arg.date));
-    setIsOpen(true);
+    openCreateDialog(date);
   }
 
-  function handleView(view: string) {
-    const calendarApi = calendarRef.current?.getApi();
-    calendarApi && calendarApi.changeView(view);
-    setGrid(view);
+  async function handleSubmit(values: Parameters<typeof createActivity>[0], activityId?: string) {
+    try {
+      if (activityId) {
+        await updateActivity(activityId, values);
+        showToast({ title: "Activity updated", variant: "success" });
+        return;
+      }
+
+      const created = await createActivity(values);
+      showToast({
+        title: created.length > 1 ? `${created.length} activities created` : "Activity created",
+        variant: "success",
+      });
+    } catch {
+      showToast({ title: "Failed to save activity", variant: "error" });
+    }
   }
 
-  function handleAlignment(event: string) {
-    const calendarApi = calendarRef.current?.getApi();
-    switch (event) {
+  async function handleDelete(activityId: string) {
+    const accepted = await confirm({
+      title: "Delete activity",
+      message: "Are you sure you want to delete this activity? This action cannot be undone.",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+    });
+
+    if (!accepted) return;
+
+    try {
+      const deleted = await deleteActivity(activityId);
+      if (!deleted) {
+        showToast({ title: "Unable to delete activity", variant: "error" });
+        return;
+      }
+
+      setDialogOpen(false);
+      showToast({ title: "Activity deleted", variant: "success" });
+    } catch {
+      showToast({ title: "Failed to delete activity", variant: "error" });
+    }
+  }
+
+  function handleNavigate(action: "today" | "prev" | "next") {
+    const unit =
+      calendarView === "dayGridDay" ? "day"
+      : calendarView === "dayGridWeek" ? "week"
+      : calendarView === "dayGridYear" ? "year"
+      : "month";
+
+    let next = moment(focusDate);
+
+    switch (action) {
       case "today":
-        calendarApi && calendarApi.today();
+        next = moment();
         break;
       case "prev":
-        calendarApi && calendarApi.prev();
+        next = next.subtract(1, unit);
         break;
       case "next":
-        calendarApi && calendarApi.next();
+        next = next.add(1, unit);
         break;
     }
+
+    const nextDate = next.toDate();
+    setFocusDate(nextDate);
+    setSidebarDate(nextDate);
   }
 
-  function handleDatesSet() {
-    console.log("multiple call on view change");
-
-    if (calendarRef.current) {
-      const calendarApi = calendarRef.current.getApi();
-      const currentDate = calendarApi.getDate();
-      const currentMonthDate = moment(currentDate);
-      setActiveMonthDate(currentMonthDate);
-      setActiveMonth(formatAppMonthYear(currentMonthDate));
-    }
-  }
+  const sidebar = (
+    <aside className="activity-page__sidebar">
+      <DatePickerComponent type="datetime" onSendData={setSidebarDate} date={sidebarDate} />
+      <ActivityUpcomingList activities={activities} onSelect={focusCalendarOnActivity} />
+    </aside>
+  );
 
   return (
-    <div className="flex flex-col h-[90vh]">
-      <EventComponent setIsOpen={setIsOpen} isOpen={isOpen} momentValue={selectedDate} />
-      <div className="flex items-center justify-between px-2 pt-3">
+    <div className="activity-page flex min-h-[90vh] flex-col">
+      <ActivityFormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        activity={selectedActivity}
+        defaultDate={selectedDate}
+        onSubmit={handleSubmit}
+        onDelete={handleDelete}
+      />
+
+      <div className="px-6 pt-4">
         <BreadcrumbInbuild />
       </div>
-      {/* <div className="px-6 py-2 my-2 border rounded-md mx-5"></div> */}
-      <div className="flex overflow-auto">
-        <div className="ml-2 px-2 mt-3">
-          <DatePickerComponent onSendData={setDate} date={date} />
 
-          <ActivityComponent events={HolidayList.filter((events) => moment(events.start).month() === activeMonthDate.month() && moment(events.start).year() === activeMonthDate.year())} />
-        </div>
-
-        {/* <ResizableHandle withHandle /> */}
-
-        <div className="w-full p-4">
-          <div className="mb-4 flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <h1 className="text-3xl font-bold text-primary">{activeMonth}</h1>
-              <Button variant="outline" value="today" onClick={() => handleAlignment("today")}>
-                Today
-              </Button>
-              <Button variant="outline" size="icon" value="prev" onClick={() => handleAlignment("prev")}>
-                <ChevronLeft className="h-4 w-4" />
-                <span className="sr-only">Prev Event</span>
-              </Button>
-              <Button variant="outline" size="icon" value="next" onClick={() => handleAlignment("next")}>
-                <ChevronRight className="h-4 w-4" />
-                <span className="sr-only">Next Event</span>
-              </Button>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Settings2Icon className="cursor-pointer h-4 w-4" />
-                </PopoverTrigger>
-                <PopoverContent className="w-60" align="end">
-                  <div className="grid gap-4">
-                    <div className="space-y-2">
-                      <h4 className="font-medium leading-none">Settings</h4>
-                      <p className="text-sm text-muted-foreground">Set apis.</p>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <ToggleGroup className="gap-0" type="single" value={grid} variant="outline" onValueChange={handleView}>
-                <ToggleGroupItem className="rounded-r-none" value="dayGridDay">
-                  Day
-                </ToggleGroupItem>
-                <ToggleGroupItem className="rounded-none border-x-0" value="dayGridWeek">
-                  Week
-                </ToggleGroupItem>
-                <ToggleGroupItem className="rounded-l-none" value="dayGridMonth">
-                  Month
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
+      <div className="activity-page__content flex flex-1 flex-col gap-4 overflow-hidden p-4">
+        <section className="activity-page__toolbar flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="mr-2 text-lg font-semibold text-foreground">{activeLabel}</h2>
+            <Button variant="outline" size="sm" onClick={() => handleNavigate("today")}>
+              Today
+            </Button>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleNavigate("prev")} aria-label="Previous period">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleNavigate("next")} aria-label="Next period">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
-          {!isPending && (
-            <div className="calendar-wrapper">
-              <FullCalendar
-                ref={calendarRef}
-                plugins={[dayGridPlugin, timeGridPlugin, interactionGridPlugin]}
-                dayHeaderContent={(args) => {
-                  switch (args.view.type) {
-                    case "dayGridDay":
-                      return `${formatAppDate(args.date)} ${moment(args.date).format("dddd")}`;
-                    case "dayGridWeek":
-                      return `${formatAppDate(args.date)} ${moment(args.date).format("ddd")}`;
-                    case "dayGridMonth":
-                      return moment(args.date).format("ddd");
-                  }
-                }}
-                eventDisplay="block"
-                initialView="dayGridMonth"
-                events={HolidayList}
-                eventTimeFormat={{ hour: "2-digit", minute: "2-digit", meridiem: true }}
-                dateClick={handleDateClick}
-                datesSet={handleDatesSet}
-                headerToolbar={false}
-                editable={true}
-                selectable={true}
-                height="90vh"
-              />
-            </div>
-          )}
-        </div>
-        <Dialog open={showEventPopover} onOpenChange={setShowEventPopover}>
-          <DialogTrigger asChild>
-            <Button className="hidden">Add Schedule</Button>
-          </DialogTrigger>
-          <DialogContent className="w-80" onInteractOutside={(e) => e.preventDefault()}>
-            <div className="space-y-4">
-              <h3 className="font-semibold">Add Schedule</h3>
-              <Input type="text" placeholder="Event title" />
-              <div className="flex space-x-2">
-                <Input type="date" value={selectedDate ? selectedDate.toISOString().split("T")[0] : ""} readOnly />
-                <Input type="time" />
-                <Input type="time" />
-              </div>
-              <Input type="text" placeholder="Add guest" />
-              <Input type="url" placeholder="https://meet.google.com/..." />
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setShowEventPopover(false)}>
-                  Cancel
+
+          <div className="flex flex-wrap items-center gap-2">
+            <ToggleGroup type="single" value={calendarView} variant="outline" onValueChange={(value) => value && setCalendarView(value as CalendarView)}>
+              <ToggleGroupItem value="dayGridDay">Day</ToggleGroupItem>
+              <ToggleGroupItem value="dayGridWeek">Week</ToggleGroupItem>
+              <ToggleGroupItem value="dayGridMonth">Month</ToggleGroupItem>
+              <ToggleGroupItem value="dayGridYear">Year</ToggleGroupItem>
+            </ToggleGroup>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="lg:hidden">
+                  <PanelLeft className="mr-2 h-4 w-4" />
+                  Panel
                 </Button>
-                <Button onClick={() => setShowEventPopover(false)}>Save</Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[min(100vw-2rem,22rem)] overflow-y-auto">
+                <SheetHeader>
+                  <SheetTitle>Activity panel</SheetTitle>
+                </SheetHeader>
+                <div className="mt-4">{sidebar}</div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </section>
+
+        <div className="activity-page__workspace grid min-h-0 flex-1 gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
+          <div className="activity-page__sidebar-column">{sidebar}</div>
+
+          <main className="activity-page__main">
+            {isLoading ?
+              <div className="space-y-3 rounded-xl border bg-card p-4 shadow-sm">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-[24rem] w-full" />
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+            : <ActivityCalendar
+                view={calendarView}
+                focusDate={focusDate}
+                events={calendarEvents}
+                focusedEventId={focusedEventId}
+                onDateClick={openCreateDialog}
+                onEventClick={openCalendarEvent}
+              />
+            }
+          </main>
+        </div>
       </div>
     </div>
   );
 }
 
-export default activity;
+export default ActivityPage;

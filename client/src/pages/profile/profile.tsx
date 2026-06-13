@@ -134,7 +134,12 @@ function profile() {
 
   const onSubmit = async (values: any) => {
     try {
-      const mobile = typeof values.mobile === "string" ? values.mobile : values.mobile?.find((item: { phone: string; isPrimary: boolean }) => item.isPrimary)?.phone || values.mobile?.[0]?.phone || "";
+      const mobile =
+        typeof values.mobile === "string" ?
+          values.mobile
+        : values.mobile?.find((item: { phone: string; isPrimary: boolean }) => item.isPrimary)?.phone ||
+          values.mobile?.[0]?.phone ||
+          "";
 
       const response = await updateProfileAPI({
         photoURL: values.profile_image,
@@ -232,7 +237,10 @@ function profile() {
               }}></AddressComponent>
 
             <div className="mt-8 space-y-2">
-              <Button type="submit" className="w-full" disabled={!form.formState.isDirty || form.formState.isSubmitting || !form.formState.isValid}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={!form.formState.isDirty || form.formState.isSubmitting || !form.formState.isValid}>
                 {form.formState.isSubmitting ? "Updating..." : "Update profile"}
               </Button>
             </div>

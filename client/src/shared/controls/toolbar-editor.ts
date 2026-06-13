@@ -4,7 +4,11 @@ import { Quill, ReactQuillProps } from "react-quill";
 function undoChange(this: { reactQuillRef: any; undo: () => void; redo: () => void }) {
   this.reactQuillRef.getEditor().history.undo();
 }
-function redoChange(this: { quill: any; undo: (this: { reactQuillRef: any; undo: () => void; redo: () => void }) => void; redo: () => void }) {
+function redoChange(this: {
+  quill: any;
+  undo: (this: { reactQuillRef: any; undo: () => void; redo: () => void }) => void;
+  redo: () => void;
+}) {
   this.quill.history.redo();
 }
 
@@ -20,7 +24,26 @@ Quill.register(Font, true);
 
 // Modules object for setting up the Quill editor
 export const editorConfig: ReactQuillProps = {
-  formats: ["header", "font", "size", "bold", "italic", "underline", "align", "strike", "script", "blockquote", "background", "list", "bullet", "indent", "link", "image", "color", "code-block"],
+  formats: [
+    "header",
+    "font",
+    "size",
+    "bold",
+    "italic",
+    "underline",
+    "align",
+    "strike",
+    "script",
+    "blockquote",
+    "background",
+    "list",
+    "bullet",
+    "indent",
+    "link",
+    "image",
+    "color",
+    "code-block",
+  ],
   modules: {
     toolbar: {
       container: "#toolbar",

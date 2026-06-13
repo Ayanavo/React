@@ -1,4 +1,12 @@
-import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+} from "@/components/ui/command";
 import React from "react";
 
 function globalsearch({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: any }) {

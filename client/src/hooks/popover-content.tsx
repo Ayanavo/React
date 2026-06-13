@@ -1,6 +1,18 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { autoUpdate, flip, FloatingFocusManager, FloatingPortal, offset, shift, useClick, useDismiss, useFloating, useInteractions, useRole } from "@floating-ui/react";
+import {
+  autoUpdate,
+  flip,
+  FloatingFocusManager,
+  FloatingPortal,
+  offset,
+  shift,
+  useClick,
+  useDismiss,
+  useFloating,
+  useInteractions,
+  useRole,
+} from "@floating-ui/react";
 import * as React from "react";
 import { ReactNode, RefObject, useImperativeHandle, useState } from "react";
 
@@ -46,13 +58,22 @@ export function CustomPopover({ content, className, controlRef, anchorRef }: Cus
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <div ref={anchorRef ? undefined : refs.setReference} {...getReferenceProps()} className={anchorRef ? "hidden" : undefined}></div>
+        <div
+          ref={anchorRef ? undefined : refs.setReference}
+          {...getReferenceProps()}
+          className={anchorRef ? "hidden" : undefined}></div>
       </PopoverTrigger>
       {isOpen && (
         <FloatingPortal>
           {isOpen && (
             <FloatingFocusManager context={context} modal={false}>
-              <PopoverContent onInteractOutside={(e) => e.stopPropagation()} ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()} className={cn(className)} onClick={(e) => e.stopPropagation()}>
+              <PopoverContent
+                onInteractOutside={(e) => e.stopPropagation()}
+                ref={refs.setFloating}
+                style={floatingStyles}
+                {...getFloatingProps()}
+                className={cn(className)}
+                onClick={(e) => e.stopPropagation()}>
                 {content}
               </PopoverContent>
             </FloatingFocusManager>

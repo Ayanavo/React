@@ -66,12 +66,32 @@ const ImageCropper = ({ open, image, aspect = 1, onClose, onCropped }: ImageCrop
         </DialogHeader>
 
         <div className="relative w-full h-[50vh] bg-background/50 rounded-md overflow-hidden">
-          {image && <Cropper image={image} crop={crop} zoom={zoom} aspect={aspect} onCropChange={setCrop} onZoomChange={setZoom} onCropComplete={onCropComplete} showGrid restrictPosition={false} objectFit="contain" />}
+          {image && (
+            <Cropper
+              image={image}
+              crop={crop}
+              zoom={zoom}
+              aspect={aspect}
+              onCropChange={setCrop}
+              onZoomChange={setZoom}
+              onCropComplete={onCropComplete}
+              showGrid
+              restrictPosition={false}
+              objectFit="contain"
+            />
+          )}
         </div>
 
         <div className="flex items-center gap-4 pt-4">
           <Label className="min-w-12">Zoom</Label>
-          <Slider value={[zoom]} onValueChange={(v) => setZoom(v[0] ?? 1)} min={0.5} max={3} step={0.05} className="w-full" />
+          <Slider
+            value={[zoom]}
+            onValueChange={(v) => setZoom(v[0] ?? 1)}
+            min={0.5}
+            max={3}
+            step={0.05}
+            className="w-full"
+          />
         </div>
 
         <DialogFooter className="gap-2">

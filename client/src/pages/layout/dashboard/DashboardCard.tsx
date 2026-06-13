@@ -11,7 +11,14 @@ type DashboardCardProps = {
   headerAction?: ReactNode;
 };
 
-export function DashboardCard({ title, description, children, className, contentClassName, headerAction }: DashboardCardProps) {
+export function DashboardCard({
+  title,
+  description,
+  children,
+  className,
+  contentClassName,
+  headerAction,
+}: DashboardCardProps) {
   return (
     <Card className={cn("shadow-sm", className)}>
       {(title || description || headerAction) && (
@@ -23,7 +30,9 @@ export function DashboardCard({ title, description, children, className, content
           {headerAction}
         </CardHeader>
       )}
-      <CardContent className={cn(!title && !description && !headerAction && "pt-6", contentClassName)}>{children}</CardContent>
+      <CardContent className={cn(!title && !description && !headerAction && "pt-6", contentClassName)}>
+        {children}
+      </CardContent>
     </Card>
   );
 }

@@ -36,7 +36,9 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 export function ThemeProvider({ children, storageKey = "vite-ui-theme", ...props }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(storageKey) as Theme) || defaultTheme);
   const [color, setColor] = useState<string>(() => localStorage.getItem(`${storageKey}-color`) || defaultColor);
-  const [font, setFont] = useState<FontTheme>(() => (localStorage.getItem(`${storageKey}-font`) as FontTheme) || defaultFont);
+  const [font, setFont] = useState<FontTheme>(
+    () => (localStorage.getItem(`${storageKey}-font`) as FontTheme) || defaultFont
+  );
 
   useEffect(() => {
     const root = document.documentElement;

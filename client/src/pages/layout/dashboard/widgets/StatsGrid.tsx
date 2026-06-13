@@ -27,11 +27,20 @@ const StatsGrid: React.FC = () => {
                 <div className={cn("rounded-xl p-2", item.featured ? "bg-primary-foreground/15" : "bg-muted")}>
                   <Icon className={cn("h-5 w-5", item.featured ? "text-primary-foreground" : "text-primary")} />
                 </div>
-                <ArrowUpRight className={cn("h-4 w-4 shrink-0", item.featured ? "text-primary-foreground/80" : "text-muted-foreground")} />
+                <ArrowUpRight
+                  className={cn(
+                    "h-4 w-4 shrink-0",
+                    item.featured ? "text-primary-foreground/80" : "text-muted-foreground"
+                  )}
+                />
               </div>
-              <p className={cn("mt-4 text-sm", item.featured ? "text-primary-foreground/80" : "text-muted-foreground")}>{item.label}</p>
+              <p className={cn("mt-4 text-sm", item.featured ? "text-primary-foreground/80" : "text-muted-foreground")}>
+                {item.label}
+              </p>
               <p className="mt-1 text-3xl font-semibold tracking-tight">{item.value}</p>
-              <p className={cn("mt-2 text-xs", item.featured ? "text-primary-foreground/70" : "text-muted-foreground")}>{item.hint}</p>
+              <p className={cn("mt-2 text-xs", item.featured ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                {item.hint}
+              </p>
             </CardContent>
           </Card>
         );

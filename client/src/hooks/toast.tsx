@@ -1,6 +1,16 @@
 import { toast } from "sonner";
 
-function showToast({ title, description, variant, undo = false }: { title: string; description?: string; variant: "success" | "error" | "warning"; undo?: boolean }): void {
+function showToast({
+  title,
+  description,
+  variant,
+  undo = false,
+}: {
+  title: string;
+  description?: string;
+  variant: "success" | "error" | "warning";
+  undo?: boolean;
+}): void {
   toast[variant](title, {
     description,
     ...(undo && {

@@ -103,9 +103,12 @@ function forgotPassword() {
 function Slot(props: SlotProps) {
   return (
     <div
-      className={cn("border-input bg-background text-foreground flex size-9 items-center justify-center rounded-md border font-medium shadow-xs transition-[color,box-shadow]", {
-        "border border-input outline-none ring-1 ring-ring": props.isActive,
-      })}>
+      className={cn(
+        "border-input bg-background text-foreground flex size-9 items-center justify-center rounded-md border font-medium shadow-xs transition-[color,box-shadow]",
+        {
+          "border border-input outline-none ring-1 ring-ring": props.isActive,
+        }
+      )}>
       {props.char !== null && <div>{props.char}</div>}
     </div>
   );
