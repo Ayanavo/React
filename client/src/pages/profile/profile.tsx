@@ -167,7 +167,8 @@ function profile() {
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="h-full min-h-0 overflow-y-auto scrollbar-none bg-background">
+      <div className="flex flex-col">
       <div className="flex items-center justify-between px-6 pt-3">
         <BreadcrumbInbuild />
       </div>
@@ -246,6 +247,7 @@ function profile() {
             </div>
           </form>
         </FormProvider>
+      </div>
       </div>
     </div>
   );

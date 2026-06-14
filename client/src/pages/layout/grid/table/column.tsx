@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { flexRender, SortingState, Table as TableModel } from "@tanstack/react-table";
-import { ArrowDownIcon, ArrowUpIcon, ChevronDownIcon, ChevronUpIcon, EyeOffIcon, ListFilterIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, ChevronDownIcon, ChevronUpIcon, EyeOffIcon } from "lucide-react";
 import React from "react";
 import "./table.css";
 
@@ -55,7 +55,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                     className={cn(
                       "grid-table-head whitespace-nowrap",
                       isSelectColumn && "grid-table-head--select px-3 text-center",
-                      isActionColumn && "grid-table-head--action text-right",
+                      isActionColumn && "grid-table-head--action grid-table-head--sticky-action text-right",
                       align === "center" && "text-center",
                       align === "right" && "text-right"
                     )}>
@@ -73,8 +73,8 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                             <button
                               type="button"
                               className={cn(
-                                "grid-table-head-btn",
-                                isSorted && "grid-table-head-btn--active",
+                                "grid-table-head-sort",
+                                isSorted && "grid-table-head-sort--active",
                                 align === "center" && "justify-center text-center",
                                 align === "right" && "ml-auto justify-end text-right",
                                 align === "left" && "text-left"
@@ -84,9 +84,9 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                               </span>
                               {isSorted ?
                                 sortDirection ?
-                                  <ArrowDownIcon className="grid-table-head-btn__icon" aria-hidden="true" />
-                                : <ArrowUpIcon className="grid-table-head-btn__icon" aria-hidden="true" />
-                              : <ListFilterIcon className="grid-table-head-btn__icon opacity-70" aria-hidden="true" />}
+                                  <ArrowDownIcon className="grid-table-head-sort__icon" aria-hidden="true" />
+                                : <ArrowUpIcon className="grid-table-head-sort__icon" aria-hidden="true" />
+                              : null}
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="w-[160px]">
@@ -114,6 +114,10 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+                      : isActionColumn ?
+                        <span className="sr-only">
+                          {flexRender(header.column.columnDef.header, header.getContext())}
+                        </span>
                       : renderHeaderLabel(flexRender(header.column.columnDef.header, header.getContext()))}
                     </div>
                   </TableHead>
@@ -143,7 +147,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                       className={cn(
                         "px-4 py-2 align-middle",
                         isSelectColumn && "w-12 px-3",
-                        isActionColumn && "w-24 text-right",
+                        isActionColumn && "grid-table-cell--action text-right",
                         align === "center" && "text-center",
                         align === "right" && "text-right"
                       )}>
@@ -193,7 +197,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                       className={cn(
                         "px-4 py-2 align-middle text-sm font-medium text-foreground",
                         isSelectColumn && "w-12 px-3",
-                        isActionColumn && "w-24 text-right",
+                        isActionColumn && "grid-table-cell--action text-right",
                         align === "center" && "text-center",
                         align === "right" && "text-right",
                         align === "left" && !isSelectColumn && !isActionColumn && "truncate"

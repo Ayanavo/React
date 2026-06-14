@@ -326,7 +326,7 @@ function ResourceGrid<T extends { _id: string }>({
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
-      <div className="grid-toolbar mb-3 flex flex-none flex-wrap items-center justify-between gap-3">
+      <div className="grid-toolbar mb-3 flex-none">
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <div className="relative w-full max-w-xs">
             <Input
