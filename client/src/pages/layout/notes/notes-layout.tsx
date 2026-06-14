@@ -126,145 +126,152 @@ function note() {
         onSave={handleSave}
         onDelete={handleDelete}
       />
-      <div className="flex items-center justify-between px-2 pt-3">
-        <BreadcrumbInbuild />
-      </div>
-      <div className="flex flex-wrap items-center justify-end gap-2 px-3 pb-1">
-        <div className="m-1 flex flex-wrap items-center justify-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="relative h-9 w-9 shrink-0">
-                <ListFilterIcon className="h-4 w-4" />
-                <span className="sr-only">Filter notes</span>
-                {hasActiveFilter ?
-                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
-                : null}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64" onCloseAutoFocus={(event) => event.preventDefault()}>
-              <DropdownMenuLabel>Filter by tag</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <div className="space-y-2 px-2 py-2" onClick={(event) => event.stopPropagation()}>
-                <Select value={selectedTagId} onValueChange={setSelectedTagId}>
-                  <SelectTrigger className="h-9 w-full">
-                    <SelectValue placeholder="All tags" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All tags</SelectItem>
-                    <SelectItem value="none">Untagged</SelectItem>
-                    {tags.map((tag) => (
-                      <SelectItem key={tag._id} value={tag._id}>
-                        <span className="flex items-center gap-2">
-                          {tag.color ?
-                            <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tag.color }} />
-                          : null}
-                          {tag.name}
-                        </span>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {hasActiveFilter ?
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onSelect={() => setSelectedTagId("all")}>Clear filters</DropdownMenuItem>
-                </>
-              : null}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
-                <ArrowDownUpIcon className="h-4 w-4" />
-                <span className="sr-only">Sort notes</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Sort by</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {sortOptions.map((option) => (
-                <DropdownMenuItem key={option.value} onSelect={() => setSortBy(option.value)}>
-                  <span className={cn(sortBy === option.value && "font-medium text-primary")}>{option.label}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <TooltipProvider disableHoverableContent>
-            <ToggleGroup
-              className="gap-0"
-              type="single"
-              variant="outline"
-              value={layout}
-              onValueChange={(value) => value && setLayout(value)}>
-              {NotesLayout.map((item, index) => {
-                const isFirst = index === 0;
-                const isLast = index === NotesLayout.length - 1;
-                return (
-                  <Tooltip key={item.name}>
-                    <TooltipTrigger asChild>
-                      <ToggleGroupItem
-                        className={cn(
-                          isFirst && "rounded-r-none",
-                          isLast && "rounded-l-none",
-                          !(isFirst || isLast) && "rounded-none border-x-0"
-                        )}
-                        value={item.name}>
-                        <IconsComponent customClass="h-4 w-4" icon={item.icon} />
-                      </ToggleGroupItem>
-                    </TooltipTrigger>
-                    <TooltipContent>{item.label}</TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </ToggleGroup>
-          </TooltipProvider>
-
-          <AddActionButton label="Add Note" onClick={handleCreate} />
-        </div>
-      </div>
-      {isLoadingNote && <p className="px-3 text-sm text-muted-foreground">Loading note...</p>}
-      {!noteListing.length && !isLoading && (
-        <div className="m-3 overflow-hidden rounded-xl border bg-gradient-to-br from-background via-muted/30 to-muted/60 shadow-sm">
-          <div className="relative flex flex-col items-center px-6 py-10 text-center">
-            <div className="absolute -top-10 h-fit w-fit rounded-full bg-primary/10 blur-3xl" />
-
-            <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl border bg-background shadow-sm">
-              <FileText className="h-7 w-7 text-primary" />
-            </div>
-
-            <div className="relative z-10 mt-5 space-y-2">
-              <h3 className="text-base font-semibold tracking-tight">No notes created yet</h3>
-              <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-                Start building your knowledge base by creating reusable notes for resumes, projects, experience, skills,
-                and more.
-              </p>
-            </div>
-
-            <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      <div className="flex h-full min-h-0 flex-col overflow-hidden">
+        <div className="flex-none">
+          <div className="flex items-center justify-between px-2 pt-3">
+            <BreadcrumbInbuild />
           </div>
+          <div className="flex flex-wrap items-center justify-end gap-2 px-3 pb-1">
+            <div className="m-1 flex flex-wrap items-center justify-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="relative h-9 w-9 shrink-0">
+                    <ListFilterIcon className="h-4 w-4" />
+                    <span className="sr-only">Filter notes</span>
+                    {hasActiveFilter ?
+                      <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
+                    : null}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-64" onCloseAutoFocus={(event) => event.preventDefault()}>
+                  <DropdownMenuLabel>Filter by tag</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <div className="space-y-2 px-2 py-2" onClick={(event) => event.stopPropagation()}>
+                    <Select value={selectedTagId} onValueChange={setSelectedTagId}>
+                      <SelectTrigger className="h-9 w-full">
+                        <SelectValue placeholder="All tags" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All tags</SelectItem>
+                        <SelectItem value="none">Untagged</SelectItem>
+                        {tags.map((tag) => (
+                          <SelectItem key={tag._id} value={tag._id}>
+                            <span className="flex items-center gap-2">
+                              {tag.color ?
+                                <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tag.color }} />
+                              : null}
+                              {tag.name}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {hasActiveFilter ?
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onSelect={() => setSelectedTagId("all")}>Clear filters</DropdownMenuItem>
+                    </>
+                  : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
+                    <ArrowDownUpIcon className="h-4 w-4" />
+                    <span className="sr-only">Sort notes</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {sortOptions.map((option) => (
+                    <DropdownMenuItem key={option.value} onSelect={() => setSortBy(option.value)}>
+                      <span className={cn(sortBy === option.value && "font-medium text-primary")}>{option.label}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <TooltipProvider disableHoverableContent>
+                <ToggleGroup
+                  className="gap-0"
+                  type="single"
+                  variant="outline"
+                  value={layout}
+                  onValueChange={(value) => value && setLayout(value)}>
+                  {NotesLayout.map((item, index) => {
+                    const isFirst = index === 0;
+                    const isLast = index === NotesLayout.length - 1;
+                    return (
+                      <Tooltip key={item.name}>
+                        <TooltipTrigger asChild>
+                          <ToggleGroupItem
+                            className={cn(
+                              isFirst && "rounded-r-none",
+                              isLast && "rounded-l-none",
+                              !(isFirst || isLast) && "rounded-none border-x-0"
+                            )}
+                            value={item.name}>
+                            <IconsComponent customClass="h-4 w-4" icon={item.icon} />
+                          </ToggleGroupItem>
+                        </TooltipTrigger>
+                        <TooltipContent>{item.label}</TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </ToggleGroup>
+              </TooltipProvider>
+
+              <AddActionButton label="Add Note" onClick={handleCreate} />
+            </div>
+          </div>
+          {isLoadingNote && <p className="px-3 text-sm text-muted-foreground">Loading note...</p>}
         </div>
-      )}
-      {noteListing.length > 0 && !filteredNoteListing.length && !isLoading && (
-        <div className="m-3 rounded-xl border bg-muted/20 px-6 py-10 text-center">
-          <h3 className="text-base font-semibold tracking-tight">No notes match this filter</h3>
-          <p className="mt-2 text-sm text-muted-foreground">Try a different tag filter or clear the current filter.</p>
+
+        <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none">
+          {!noteListing.length && !isLoading && (
+            <div className="m-3 overflow-hidden rounded-xl border bg-gradient-to-br from-background via-muted/30 to-muted/60 shadow-sm">
+              <div className="relative flex flex-col items-center px-6 py-10 text-center">
+                <div className="absolute -top-10 h-fit w-fit rounded-full bg-primary/10 blur-3xl" />
+
+                <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl border bg-background shadow-sm">
+                  <FileText className="h-7 w-7 text-primary" />
+                </div>
+
+                <div className="relative z-10 mt-5 space-y-2">
+                  <h3 className="text-base font-semibold tracking-tight">No notes created yet</h3>
+                  <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+                    Start building your knowledge base by creating reusable notes for resumes, projects, experience, skills,
+                    and more.
+                  </p>
+                </div>
+
+                <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+              </div>
+            </div>
+          )}
+          {noteListing.length > 0 && !filteredNoteListing.length && !isLoading && (
+            <div className="m-3 rounded-xl border bg-muted/20 px-6 py-10 text-center">
+              <h3 className="text-base font-semibold tracking-tight">No notes match this filter</h3>
+              <p className="mt-2 text-sm text-muted-foreground">Try a different tag filter or clear the current filter.</p>
+            </div>
+          )}
+          {layout === "list" && (
+            <ListingLayoutComponent noteListing={filteredNoteListing} onSelect={handleSelect} isLoading={isLoading} />
+          )}
+          {layout === "grid" && (
+            <GridLayoutComponent
+              noteListing={filteredNoteListing}
+              onSelect={handleSelect}
+              setIsOpen={setIsOpen}
+              isOpen={isOpen}
+              isLoading={isLoading}
+            />
+          )}
         </div>
-      )}
-      {layout === "list" && (
-        <ListingLayoutComponent noteListing={filteredNoteListing} onSelect={handleSelect} isLoading={isLoading} />
-      )}
-      {layout === "grid" && (
-        <GridLayoutComponent
-          noteListing={filteredNoteListing}
-          onSelect={handleSelect}
-          setIsOpen={setIsOpen}
-          isOpen={isOpen}
-          isLoading={isLoading}
-        />
-      )}
+      </div>
     </>
   );
 }
