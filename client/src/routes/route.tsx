@@ -29,7 +29,7 @@ export type RouteConfig = {
 };
 
 const AppLoader = () => (
-  <div className="flex min-h-screen items-center justify-center bg-background">
+  <div className="flex min-h-screen items-center justify-center bg-transparent">
     <LoaderCircleIcon className="h-8 w-8 animate-spin text-muted-foreground" aria-label="Loading" />
   </div>
 );

@@ -167,7 +167,7 @@ function profile() {
   };
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto scrollbar-none bg-background">
+    <div className="h-full min-h-0 overflow-y-auto scrollbar-none">
       <div className="flex flex-col">
       <div className="flex items-center justify-between px-6 pt-3">
         <BreadcrumbInbuild />

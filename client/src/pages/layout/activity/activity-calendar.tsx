@@ -73,7 +73,7 @@ function CalendarTooltip({ content, children }: { content: React.ReactNode; chil
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent className="border-0 bg-primary px-3 py-2 text-primary-foreground shadow-md">
+      <TooltipContent className="border-border bg-popover px-3 py-2 text-popover-foreground shadow-md">
         {content}
       </TooltipContent>
     </Tooltip>
@@ -96,13 +96,13 @@ function EventTooltipContent({ event }: { event: CalendarEvent }) {
 
   return (
     <div className="activity-calendar__tooltip flex max-w-56 flex-col gap-1">
-      <span className="font-semibold text-white">{event.title}</span>
-      <span className="text-xs text-white">{timeLabel}</span>
+      <span className="font-semibold">{event.title}</span>
+      <span className="text-xs text-muted-foreground">{timeLabel}</span>
       {event.tagName ?
-        <span className="text-xs text-white/95">Tag: {event.tagName}</span>
+        <span className="text-xs text-muted-foreground">Tag: {event.tagName}</span>
       : null}
       {event.location ?
-        <span className="text-xs text-white/95">Location: {event.location}</span>
+        <span className="text-xs text-muted-foreground">Location: {event.location}</span>
       : null}
     </div>
   );

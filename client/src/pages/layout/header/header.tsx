@@ -46,7 +46,7 @@ function header({ NavList, exclutionList = [] }: { NavList: Array<NavItem>; excl
   return (
     <>
       <GlobarSearchComponent isOpen={isOpen} setIsOpen={setIsOpen} />
-      <header className="sticky top-0 z-10 border-b bg-background">
+      <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-sm">
         <div className="flex h-14 items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-5">
           <SidebarTrigger className="shrink-0 md:hidden" />
 
