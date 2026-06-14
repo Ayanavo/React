@@ -10,7 +10,8 @@ declare global {
   }
 }
 
-// Extend the Request type to include the user property
+declare module "word-extractor";
+
 declare module "express" {
   interface Request {
     user?: {

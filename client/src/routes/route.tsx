@@ -16,6 +16,7 @@ import TagsLayoutComponent from "@/pages/layout/tags/tags-layout";
 import TagsCreateComponent from "@/pages/layout/tags/tags-create";
 import TagsUpdateComponent from "@/pages/layout/tags/tags-update";
 import WhiteboardComponent from "@/pages/layout/whiteboard/whiteboard";
+import SummarizeComponent from "@/pages/layout/summarize/summarize";
 import MasterAccessComponent from "@/pages/master-access/master-access";
 import NoPageComponent from "@/pages/nopage";
 import ProfileComponent from "@/pages/profile/profile";
@@ -105,6 +106,7 @@ const DYNAMIC_ROUTES: RouteConfig[] = [
   { path: "tags", element: <TagsLayoutComponent /> },
   { path: "tags/create", element: <TagsCreateComponent /> },
   { path: "tags/update/:id", element: <TagsUpdateComponent /> },
+  { path: "summarize", element: <SummarizeComponent /> },
 ];
 
 const filterRoutesByPermissions = (permissions: string[]): RouteConfig[] => {

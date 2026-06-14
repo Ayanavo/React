@@ -7,6 +7,7 @@ export const NavList: Array<NavItem> = [
   { label: "Tags", icon: "TagsIcon", route: "/tags" },
   { label: "CV Builder", icon: "FileTextIcon", route: "/cv-builder" },
   { label: "Whiteboard", icon: "WorkflowIcon", route: "/whiteboard" },
+  { label: "Summarize", icon: "SparklesIcon", route: "/summarize" },
   { label: "Profile", icon: "UserIcon", route: "/profile" },
   { label: "Settings", icon: "SettingsIcon", route: "/settings" },
 ];

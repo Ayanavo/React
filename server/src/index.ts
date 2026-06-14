@@ -16,6 +16,7 @@ import cvBuilderRoutes from "./routes/cvBuilderRoutes.js";
 import noteRoutes from "./routes/noteRoutes.js";
 import tagRoutes from "./routes/tagRoutes.js";
 import masterAccessRoutes from "./routes/masterAccessRoutes.js";
+import summarizeRoutes from "./routes/summarizeRoutes.js";
 import { isOriginAllowed } from "./config/cors.js";
 import { initializeSocket, shutdownSocket } from "./websockets/socket.js";
 import http from "http";
@@ -100,6 +101,7 @@ app.use("/api/ai", aiRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/master-access", masterAccessRoutes);
+app.use("/api/summarize", summarizeRoutes);
 
 /** --- Web Socket Server Connection */
 const httpServer = http.createServer(app);
