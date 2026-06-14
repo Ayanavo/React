@@ -1,20 +1,40 @@
 import IconsComponent from "@/common/icons";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import AddActionButton from "@/components/inbuild/add-action-button";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
 import { cn } from "@/lib/utils";
 import { getNoteById, getNotes } from "@/shared/services/note";
+import { getTags } from "@/shared/services/tag";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText } from "lucide-react";
-import React, { useState } from "react";
+import { ArrowDownUpIcon, FileText, ListFilterIcon } from "lucide-react";
+import React, { useMemo, useState } from "react";
 import GridLayoutComponent from "./grid-layout";
 import ListingLayoutComponent from "./listing-layout";
 import NoteEditorComponent from "./note-editor";
-import { mapNoteRecordToState } from "./note-mapper";
+import { filterNotesByTag, mapNoteRecordToState, sortNotes } from "./note-mapper";
 import "./note.scss";
-import { State } from "./state";
-import AddActionButton from "@/components/inbuild/add-action-button";
+import { NoteSortOption, State } from "./state";
+
+const sortOptions: { value: NoteSortOption; label: string }[] = [
+  { value: "updated-desc", label: "Recently updated" },
+  { value: "updated-asc", label: "Oldest updated" },
+  { value: "title-asc", label: "Title (A-Z)" },
+  { value: "title-desc", label: "Title (Z-A)" },
+  { value: "tag-asc", label: "Tag (A-Z)" },
+  { value: "tag-desc", label: "Tag (Z-A)" },
+];
 
 function note() {
   const NotesLayout = [
@@ -31,13 +51,30 @@ function note() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedNote, setSelectedNote] = useState<State | undefined>(undefined);
   const [isLoadingNote, setIsLoadingNote] = useState(false);
+  const [selectedTagId, setSelectedTagId] = useState("all");
+  const [sortBy, setSortBy] = useState<NoteSortOption>("updated-desc");
 
   const { data: notes = [], isLoading } = useQuery({
     queryKey: ["notes"],
     queryFn: getNotes,
   });
 
-  const noteListing: State[] = notes.map(mapNoteRecordToState);
+  const { data: tags = [] } = useQuery({
+    queryKey: ["tags"],
+    queryFn: getTags,
+  });
+
+  const noteListing = useMemo(
+    () => notes.map((note) => mapNoteRecordToState(note, tags)),
+    [notes, tags]
+  );
+
+  const filteredNoteListing = useMemo(
+    () => sortNotes(filterNotesByTag(noteListing, selectedTagId), sortBy),
+    [noteListing, selectedTagId, sortBy]
+  );
+
+  const hasActiveFilter = selectedTagId !== "all";
 
   const handleCreate = () => {
     setSelectedNote(undefined);
@@ -66,7 +103,7 @@ function note() {
     try {
       setIsLoadingNote(true);
       const noteDetail = await getNoteById(note._id);
-      setSelectedNote(mapNoteRecordToState(noteDetail));
+      setSelectedNote(mapNoteRecordToState(noteDetail, tags));
       setIsOpen(true);
     } catch (error) {
       showToast({
@@ -92,8 +129,69 @@ function note() {
       <div className="flex items-center justify-between px-2 pt-3">
         <BreadcrumbInbuild />
       </div>
-      <div className="flex justify-end">
-        <div className="m-3 flex items-center justify-center space-x-2">
+      <div className="flex flex-wrap items-center justify-end gap-2 px-3 pb-1">
+        <div className="m-1 flex flex-wrap items-center justify-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="relative h-9 w-9 shrink-0">
+                <ListFilterIcon className="h-4 w-4" />
+                <span className="sr-only">Filter notes</span>
+                {hasActiveFilter ?
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
+                : null}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64" onCloseAutoFocus={(event) => event.preventDefault()}>
+              <DropdownMenuLabel>Filter by tag</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <div className="space-y-2 px-2 py-2" onClick={(event) => event.stopPropagation()}>
+                <Select value={selectedTagId} onValueChange={setSelectedTagId}>
+                  <SelectTrigger className="h-9 w-full">
+                    <SelectValue placeholder="All tags" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All tags</SelectItem>
+                    <SelectItem value="none">Untagged</SelectItem>
+                    {tags.map((tag) => (
+                      <SelectItem key={tag._id} value={tag._id}>
+                        <span className="flex items-center gap-2">
+                          {tag.color ?
+                            <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tag.color }} />
+                          : null}
+                          {tag.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {hasActiveFilter ?
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => setSelectedTagId("all")}>Clear filters</DropdownMenuItem>
+                </>
+              : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="h-9 w-9 shrink-0">
+                <ArrowDownUpIcon className="h-4 w-4" />
+                <span className="sr-only">Sort notes</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {sortOptions.map((option) => (
+                <DropdownMenuItem key={option.value} onSelect={() => setSortBy(option.value)}>
+                  <span className={cn(sortBy === option.value && "font-medium text-primary")}>{option.label}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <TooltipProvider disableHoverableContent>
             <ToggleGroup
               className="gap-0"
@@ -131,19 +229,12 @@ function note() {
       {!noteListing.length && !isLoading && (
         <div className="m-3 overflow-hidden rounded-xl border bg-gradient-to-br from-background via-muted/30 to-muted/60 shadow-sm">
           <div className="relative flex flex-col items-center px-6 py-10 text-center">
-            {/* Decorative glow */}
             <div className="absolute -top-10 h-fit w-fit rounded-full bg-primary/10 blur-3xl" />
 
-            {/* Icon */}
-            <div
-              className="
-          relative z-10 flex h-16 w-16 items-center justify-center
-          rounded-2xl border bg-background shadow-sm
-        ">
+            <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-2xl border bg-background shadow-sm">
               <FileText className="h-7 w-7 text-primary" />
             </div>
 
-            {/* Content */}
             <div className="relative z-10 mt-5 space-y-2">
               <h3 className="text-base font-semibold tracking-tight">No notes created yet</h3>
               <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
@@ -152,17 +243,22 @@ function note() {
               </p>
             </div>
 
-            {/* Bottom decoration */}
             <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
           </div>
         </div>
       )}
+      {noteListing.length > 0 && !filteredNoteListing.length && !isLoading && (
+        <div className="m-3 rounded-xl border bg-muted/20 px-6 py-10 text-center">
+          <h3 className="text-base font-semibold tracking-tight">No notes match this filter</h3>
+          <p className="mt-2 text-sm text-muted-foreground">Try a different tag filter or clear the current filter.</p>
+        </div>
+      )}
       {layout === "list" && (
-        <ListingLayoutComponent noteListing={noteListing} onSelect={handleSelect} isLoading={isLoading} />
+        <ListingLayoutComponent noteListing={filteredNoteListing} onSelect={handleSelect} isLoading={isLoading} />
       )}
       {layout === "grid" && (
         <GridLayoutComponent
-          noteListing={noteListing}
+          noteListing={filteredNoteListing}
           onSelect={handleSelect}
           setIsOpen={setIsOpen}
           isOpen={isOpen}

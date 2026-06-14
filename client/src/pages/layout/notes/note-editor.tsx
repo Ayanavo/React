@@ -8,11 +8,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import imageFile from "@/hooks/image-file";
 import { formatAppDate } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
+import { Maximize2, Minimize2, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import "./note.scss";
@@ -22,6 +23,8 @@ import { ColorPickerPanel, getNoteThemeStyle, hasExplicitNoteBackground, useColo
 import showToast from "@/hooks/toast";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { createNote, deleteNote, updateNote } from "@/shared/services/note";
+import { getTags } from "@/shared/services/tag";
+import { useQuery } from "@tanstack/react-query";
 import { note_actions } from "./note-action-config";
 import { mapStateToNotePayload } from "./note-mapper";
 
@@ -48,12 +51,15 @@ function noteeditor({
   const titleInputRef = useRef<HTMLInputElement>(null);
   const voiceTargetRef = useRef<"title" | "description">("description");
   const popoverRef = useRef<{ open: () => void; close: () => void }>(null);
+  const tagPopoverRef = useRef<{ open: () => void; close: () => void }>(null);
   const colorButtonRef = useRef<HTMLButtonElement>(null);
+  const tagButtonRef = useRef<HTMLButtonElement>(null);
   const recognitionRef = useRef<any>(null);
   const voiceHoverRef = useRef(false);
   const voiceRestartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const voiceStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [listening, setListening] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   const { color: noteColor, onHexChange: setNoteColor } = useColorPicker(formData?.backgroundColor);
   const hasCustomBackground = hasExplicitNoteBackground(noteColor);
   const noteThemeStyle = getNoteThemeStyle(noteColor);
@@ -61,14 +67,22 @@ function noteeditor({
   const form = useForm<{
     title: string;
     description: string;
+    tag: string;
   }>({
     defaultValues: {
       title: formData?.title ?? "",
       description: formData?.description ?? "",
+      tag: formData?.tag ?? "",
     },
   });
 
-  const { reset, register, handleSubmit, setValue, getValues } = form;
+  const { reset, register, handleSubmit, setValue, getValues, watch } = form;
+  const selectedTag = watch("tag");
+
+  const { data: tags = [], isFetching: isTagsFetching } = useQuery({
+    queryKey: ["tags"],
+    queryFn: getTags,
+  });
 
   const applyVoiceText = (target: "title" | "description", text: string) => {
     setValue(target, text);
@@ -99,6 +113,7 @@ function noteeditor({
     reset({
       title: formData?.title ?? "",
       description: formData?.description ?? "",
+      tag: formData?.tag ?? "",
     });
     setNoteColor(formData?.backgroundColor);
 
@@ -112,6 +127,7 @@ function noteeditor({
   useEffect(() => {
     if (isOpen) return;
 
+    setIsMaximized(false);
     voiceHoverRef.current = false;
     clearVoiceRestart();
     clearVoiceStop();
@@ -139,13 +155,14 @@ function noteeditor({
   const onSubmit: SubmitHandler<{
     title: string;
     description: string;
+    tag: string;
   }> = async (data) => {
     const isNewNote = !formData?._id;
     const trimmedTitle = data.title.trim();
     const title = trimmedTitle || (isNewNote ? `Note #${existingNoteCount + 1}` : "");
 
     const payload = mapStateToNotePayload(
-      { title, description: data.description, backgroundColor: noteColor },
+      { title, description: data.description, backgroundColor: noteColor, tag: data.tag },
       image
     );
 
@@ -207,6 +224,9 @@ function noteeditor({
     switch (action) {
       case "color":
         popoverRef.current?.open();
+        break;
+      case "tag":
+        tagPopoverRef.current?.open();
         break;
       case "image":
         activateInput();
@@ -323,8 +343,31 @@ function noteeditor({
         <Button className="hidden"></Button>
       </DialogTrigger>
       <DialogContent
-        className={cn("note-box transition-colors flex flex-col gap-0 border", hasCustomBackground && "note-box--themed")}
+        className={cn(
+          "note-box note-editor-dialog transition-colors flex flex-col gap-0 border",
+          isMaximized && "note-editor-dialog--maximized max-w-none",
+          hasCustomBackground && "note-box--themed"
+        )}
         style={noteThemeStyle}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className={cn(
+                "absolute right-12 top-4 z-10 h-8 w-8",
+                hasCustomBackground && "note-action-btn"
+              )}
+              onClick={() => setIsMaximized((value) => !value)}
+              aria-label={isMaximized ? "Minimize note" : "Maximize note"}>
+              {isMaximized ?
+                <Minimize2 className="h-4 w-4" />
+              : <Maximize2 className="h-4 w-4" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">{isMaximized ? "Minimize" : "Maximize"}</TooltipContent>
+        </Tooltip>
         {image && (
           <div className="mb-2 shrink-0">
             <div className="relative w-16 h-16">
@@ -346,7 +389,7 @@ function noteeditor({
             Modified {modifiedDate}
           </p>
         )}
-        <form className="min-w-0 flex-1" onSubmit={handleSubmit(onSubmit)}>
+        <form className={cn("min-w-0 flex flex-1 flex-col", isMaximized && "min-h-0")} onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle className="p-0 text-left">
               {(() => {
@@ -369,7 +412,7 @@ function noteeditor({
               })()}
             </DialogTitle>
           </DialogHeader>
-          <div className="mt-1">
+          <div className={cn("mt-1", isMaximized && "flex min-h-0 flex-1 flex-col")}>
             {(() => {
               const descriptionReg = register("description");
               return (
@@ -379,7 +422,7 @@ function noteeditor({
                     descriptionReg.ref(e);
                     (textareaRef as any).current = e as HTMLTextAreaElement;
                   }}
-                  className="note-field note-description"
+                  className={cn("note-field note-description", isMaximized && "note-description--expanded flex-1 min-h-0")}
                   onFocus={() => {
                     voiceTargetRef.current = "description";
                   }}
@@ -393,7 +436,7 @@ function noteeditor({
             })()}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="shrink-0">
             <div className="flex items-center space-x-2">
               {note_actions
                 .filter((it) => it.name !== "delete" || !!formData)
@@ -428,11 +471,18 @@ function noteeditor({
                     <Tooltip key={item.name}>
                       <TooltipTrigger asChild>
                         <Button
-                          ref={item.name === "color" ? colorButtonRef : undefined}
+                          ref={
+                            item.name === "color" ? colorButtonRef
+                            : item.name === "tag" ? tagButtonRef
+                            : undefined
+                          }
                           variant="outline"
                           size="icon"
                           type="button"
-                          className={hasCustomBackground ? "note-action-btn" : undefined}
+                          className={cn(
+                            hasCustomBackground && "note-action-btn",
+                            item.name === "tag" && selectedTag && "border-primary text-primary"
+                          )}
                           disabled={item.name === "delete" && isDeleting}
                           onClick={() => activateAction(item.name)}>
                           <IconsComponent customClass="cursor-pointer" icon={item.icon} />
@@ -458,9 +508,53 @@ function noteeditor({
           className="w-auto p-0 pointer-events-auto"
           content={<ColorPickerPanel color={noteColor} onChange={setNoteColor} />}
         />
+        <CustomPopover
+          controlRef={tagPopoverRef}
+          anchorRef={tagButtonRef}
+          className="w-56 p-3 pointer-events-auto"
+          content={
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Tag</p>
+              <Select
+                value={selectedTag || "none"}
+                onValueChange={(value) => setValue("tag", value === "none" ? "" : value, { shouldDirty: true })}
+                disabled={isTagsFetching || tags.length === 0}>
+                <SelectTrigger className="h-9 w-full [&>span]:flex [&>span]:items-center">
+                  <SelectValue placeholder={isTagsFetching ? "Loading tags..." : "Select tag"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No tag</SelectItem>
+                  {tags.map((tagItem) => (
+                    <SelectItem key={tagItem._id} value={tagItem._id}>
+                      <ColoredSelectLabel color={tagItem.color} label={tagItem.name} />
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!isTagsFetching && tags.length === 0 ?
+                <p className="text-xs text-muted-foreground">Create tags from the Tags page first.</p>
+              : null}
+            </div>
+          }
+        />
       </DialogContent>
       {renderInputField()}
     </Dialog>
+  );
+}
+
+function ColoredSelectLabel({ color, label }: { color?: string; label: string }) {
+  return (
+    <span className="flex items-center gap-2">
+      {color ?
+        <span
+          className="inline-flex size-2.5 shrink-0 rounded-full border border-border"
+          style={{ backgroundColor: color }}
+          aria-hidden="true"
+        />
+      : null}
+      <span>{label}</span>
+    </span>
   );
 }
 

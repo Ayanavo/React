@@ -5,6 +5,7 @@ export interface INote extends Document {
   body: string;
   color: string;
   image: string[];
+  tag?: mongoose.Types.ObjectId;
   createdBy?: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
@@ -16,6 +17,7 @@ const noteSchema: Schema<INote> = new Schema(
     body: { type: String, default: "" },
     color: { type: String, default: "" },
     image: { type: [String], default: [] },
+    tag: { type: Schema.Types.ObjectId, ref: "Tag" },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }

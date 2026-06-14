@@ -5,10 +5,12 @@ export type NotePayload = {
   body: string;
   color: string;
   image: string[];
+  tag?: string;
 };
 
 export type NoteRecord = NotePayload & {
   _id: string;
+  tag?: string | null;
   createdAt: string;
   updatedAt: string;
 };
