@@ -9,8 +9,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { flexRender, SortingState, Table as TableModel } from "@tanstack/react-table";
-import { ChevronDownIcon, ChevronUpIcon, EyeOffIcon, ListFilterIcon } from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, ChevronDownIcon, ChevronUpIcon, EyeOffIcon, ListFilterIcon } from "lucide-react";
 import React from "react";
+import "./table.css";
 
 type ColumnProps<TData> = {
   tableBody: TableModel<TData>;
@@ -22,17 +23,20 @@ type ColumnProps<TData> = {
 function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10 }: ColumnProps<TData>) {
   const visibleColumns = tableBody.getVisibleLeafColumns();
   const skeletonRows = Array.from({ length: Math.min(Math.max(pageSize, 1), 12) });
+  const activeSort = tableBody.getState().sorting[0];
+
+  const renderHeaderLabel = (label: React.ReactNode) => (
+    <span className="grid-table-head-label truncate">{label}</span>
+  );
 
   return (
-    <div className="relative min-h-0 flex-1 overflow-auto scrollbar-none rounded-lg border border-border/70 bg-card shadow-sm">
-      <Table className="min-w-[760px] table-fixed">
-        <TableCaption className="py-5 text-xs">A list of all available data.</TableCaption>
+    <div className="grid-table-shell scrollbar-none relative min-h-0 flex-1">
+      <Table className="relative z-[1] min-w-[760px] table-fixed">
+        <TableCaption className="grid-table-caption">Browse, sort, and manage your records below.</TableCaption>
 
-        <TableHeader className="sticky top-0 z-10 bg-primary/5 backdrop-blur supports-[backdrop-filter]:bg-primary/10">
+        <TableHeader className="grid-table-header">
           {tableBody.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id} className="border-b border-primary/10 hover:bg-transparent">
-              {/* <DndContext> */}
-              {/* <SortableContext items={column.headers} strategy={horizontalListSortingStrategy}> */}
+            <TableRow key={headerGroup.id} className="grid-table-header-row hover:bg-transparent">
               {headerGroup.headers.map((header) => {
                 const isSelectColumn = header.column.id === "select";
                 const isActionColumn = header.column.id === "action";
@@ -42,14 +46,16 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                   (isSelectColumn ? "center"
                   : isActionColumn ? "right"
                   : "left");
+                const isSorted = activeSort?.id === header.column.id;
+                const sortDirection = isSorted ? activeSort.desc : undefined;
 
                 return (
                   <TableHead
                     key={header.id}
                     className={cn(
-                      "h-11 whitespace-nowrap px-4 text-xs font-semibold uppercase text-foreground/70",
-                      isSelectColumn && "w-12 px-3 text-center",
-                      isActionColumn && "w-24 text-right",
+                      "grid-table-head whitespace-nowrap",
+                      isSelectColumn && "grid-table-head--select px-3 text-center",
+                      isActionColumn && "grid-table-head--action text-right",
                       align === "center" && "text-center",
                       align === "right" && "text-right"
                     )}>
@@ -67,15 +73,20 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                             <button
                               type="button"
                               className={cn(
-                                "inline-flex h-8 max-w-full items-center gap-1.5 rounded-md px-2 transition-colors hover:bg-background/75 hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                                "grid-table-head-btn",
+                                isSorted && "grid-table-head-btn--active",
                                 align === "center" && "justify-center text-center",
                                 align === "right" && "ml-auto justify-end text-right",
-                                align === "left" && "-ml-2 text-left"
+                                align === "left" && "text-left"
                               )}>
                               <span className="truncate">
                                 {flexRender(header.column.columnDef.header, header.getContext())}
                               </span>
-                              <ListFilterIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                              {isSorted ?
+                                sortDirection ?
+                                  <ArrowDownIcon className="grid-table-head-btn__icon" aria-hidden="true" />
+                                : <ArrowUpIcon className="grid-table-head-btn__icon" aria-hidden="true" />
+                              : <ListFilterIcon className="grid-table-head-btn__icon opacity-70" aria-hidden="true" />}
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="w-[160px]">
@@ -103,13 +114,11 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      : flexRender(header.column.columnDef.header, header.getContext())}
+                      : renderHeaderLabel(flexRender(header.column.columnDef.header, header.getContext()))}
                     </div>
                   </TableHead>
                 );
               })}
-              {/* </SortableContext> */}
-              {/* </DndContext> */}
             </TableRow>
           ))}
         </TableHeader>
@@ -117,7 +126,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
         <TableBody>
           {isLoading ?
             skeletonRows.map((_, rowIndex) => (
-              <TableRow key={`skeleton-${rowIndex}`} className="h-11 border-border/60">
+              <TableRow key={`skeleton-${rowIndex}`} className="grid-table-row h-11">
                 {visibleColumns.map((column, columnIndex) => {
                   const isSelectColumn = column.id === "select";
                   const isActionColumn = column.id === "action";
@@ -166,7 +175,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
           : tableBody.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
-                className="group h-11 cursor-pointer border-border/60 hover:bg-muted/35 data-[state=selected]:bg-primary/5"
+                className="grid-table-row group h-11 cursor-pointer data-[state=selected]:bg-primary/5"
                 data-state={row.getIsSelected() && "selected"}>
                 {row.getVisibleCells().map((cell) => {
                   const isSelectColumn = cell.column.id === "select";
@@ -196,7 +205,6 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                           align === "right" && "justify-end",
                           align === "left" && "min-w-0"
                         )}>
-                        {/* <Skeleton className="w-[100px] h-[20px] rounded-full" /> */}
                         <div className={cn("min-w-0", align === "left" && "truncate")}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </div>

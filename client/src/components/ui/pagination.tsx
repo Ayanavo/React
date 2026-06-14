@@ -19,7 +19,7 @@ const PaginationContent = React.forwardRef<HTMLUListElement, React.ComponentProp
     <ul
       ref={ref}
       className={cn(
-        "flex w-full min-w-0 flex-row flex-wrap items-center justify-center gap-1 sm:gap-1.5",
+        "flex w-full min-w-0 flex-row flex-nowrap items-center gap-1 overflow-x-auto sm:flex-wrap sm:justify-center sm:gap-1.5 sm:overflow-visible",
         className
       )}
       {...props}
@@ -32,10 +32,7 @@ const PaginationSummary = React.forwardRef<HTMLDivElement, React.ComponentProps<
   ({ className, ...props }, ref) => (
     <div
       ref={ref}
-      className={cn(
-        "w-full basis-full px-1 text-center text-sm text-muted-foreground sm:w-auto sm:basis-auto sm:px-0 sm:text-left",
-        className
-      )}
+      className={cn("shrink-0 whitespace-nowrap text-xs text-muted-foreground sm:text-sm", className)}
       {...props}
     />
   )

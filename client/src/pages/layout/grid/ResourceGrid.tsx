@@ -27,7 +27,8 @@ import {
   SortingState,
   useReactTable,
 } from "@tanstack/react-table";
-import { EllipsisIcon, PencilIcon, PlusIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
+import { EllipsisIcon, PencilIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
+import AddActionButton from "@/components/inbuild/add-action-button";
 import React, { useEffect, useId, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ColumnComponent from "./table/column";
@@ -325,12 +326,12 @@ function ResourceGrid<T extends { _id: string }>({
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
-      <div className="flex flex-none items-center justify-between gap-3 px-0.5 py-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div className="grid-toolbar mb-3 flex flex-none flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <div className="relative w-full max-w-xs">
             <Input
               id={id}
-              className="h-9 rounded-lg border-border/70 bg-card pe-16 shadow-sm"
+              className="h-9 rounded-lg border-border/70 bg-background/80 pe-16 shadow-sm backdrop-blur-sm"
               placeholder="Search..."
               type="search"
               defaultValue={globalFilter}
@@ -394,12 +395,10 @@ function ResourceGrid<T extends { _id: string }>({
             </ToggleGroup>
           </TooltipProvider>
           {showAddButton ?
-            <Button
+            <AddActionButton
+              label={addLabel ?? `Add ${resourceLabel}`}
               onClick={onAddClick ?? (() => navigate(`${basePath}/create`))}
-              className="flex h-9 items-center gap-2 rounded-lg shadow-sm">
-              <PlusIcon className="h-4 w-4" />
-              <span>{addLabel ?? `Add ${resourceLabel}`}</span>
-            </Button>
+            />
           : null}
         </div>
       </div>

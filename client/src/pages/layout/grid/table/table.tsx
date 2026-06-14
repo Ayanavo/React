@@ -1,3 +1,4 @@
+import AddActionButton from "@/components/inbuild/add-action-button";
 import IconsComponent from "@/common/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,7 @@ import {
   Table as TableModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { CheckIcon, EllipsisIcon, EyeIcon, PencilIcon, PlusIcon, Trash2Icon, XIcon } from "lucide-react";
+import { CheckIcon, EllipsisIcon, EyeIcon, PencilIcon, Trash2Icon, XIcon } from "lucide-react";
 import React, { useEffect, useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ColumnComponent from "./column";
@@ -342,10 +343,7 @@ function table() {
                 })}
               </ToggleGroup>
             </TooltipProvider>
-            <Button onClick={openAddPanel} className="flex items-center space-x-2">
-              <PlusIcon className="h-4 w-4" />
-              <span>Add Activity</span>
-            </Button>
+            <AddActionButton label="Add Activity" onClick={openAddPanel} />
           </div>
         </div>
         {layout === "column" && <ColumnComponent tableBody={tableBody} setSorting={setSorting} />}

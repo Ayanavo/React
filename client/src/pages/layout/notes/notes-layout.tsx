@@ -1,13 +1,12 @@
 import IconsComponent from "@/common/icons";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
-import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
 import { cn } from "@/lib/utils";
 import { getNoteById, getNotes } from "@/shared/services/note";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { FileText, PlusIcon } from "lucide-react";
+import { FileText } from "lucide-react";
 import React, { useState } from "react";
 import GridLayoutComponent from "./grid-layout";
 import ListingLayoutComponent from "./listing-layout";
@@ -123,10 +122,7 @@ function note() {
             </ToggleGroup>
           </TooltipProvider>
 
-          <Button type="button" onClick={handleCreate}>
-            <PlusIcon className="h-4 w-4" />
-            <span>Add Note</span>
-          </Button>
+          <AddActionButton label="Add Note" onClick={handleCreate} />
         </div>
       </div>
       {isLoadingNote && <p className="px-3 text-sm text-muted-foreground">Loading note...</p>}

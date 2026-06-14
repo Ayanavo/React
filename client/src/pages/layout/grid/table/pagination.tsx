@@ -15,12 +15,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Table } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 import { User } from "./user.model";
 
-function getVisiblePages(pageIndex: number, pageCount: number): Array<number | "ellipsis"> {
+function getVisiblePages(
+  pageIndex: number,
+  pageCount: number,
+  isMobile: boolean
+): Array<number | "ellipsis"> {
+  if (pageCount <= 0) return [];
+  if (pageCount === 1) return [0];
+
+  if (isMobile) {
+    return [pageIndex];
+  }
+
   if (pageCount <= 5) {
     return Array.from({ length: pageCount }, (_, index) => index);
   }
@@ -53,24 +65,31 @@ function pagination({
   pagination: { pageIndex: number; pageSize: number };
   setPagination: React.Dispatch<React.SetStateAction<{ pageIndex: number; pageSize: number }>>;
 }) {
+  const isMobile = useIsMobile();
   const pageCount = tableBody.getPageCount();
-  const visiblePages = useMemo(() => getVisiblePages(pagination.pageIndex, pageCount), [pagination.pageIndex, pageCount]);
+  const visiblePages = useMemo(
+    () => getVisiblePages(pagination.pageIndex, pageCount, isMobile),
+    [pagination.pageIndex, pageCount, isMobile]
+  );
 
   const rangeStart = pageCount === 0 ? 0 : pagination.pageIndex * pagination.pageSize + 1;
   const rangeEnd = Math.min((pagination.pageIndex + 1) * pagination.pageSize, tableBody.getRowCount());
+  const totalRows = tableBody.getRowCount();
 
   return (
-    <div className="w-full min-w-0 px-1 py-3 sm:px-0 sm:py-4">
+    <div className="w-full min-w-0 py-3 sm:py-4">
       <Pagination>
         <PaginationContent>
-          <PaginationItem className="w-full basis-full sm:w-auto sm:basis-auto">
+          <PaginationItem>
             <PaginationSummary>
               <span className="font-semibold text-foreground">{rangeStart}</span>
-              {" - "}
+              <span className="hidden sm:inline">{" - "}</span>
+              <span className="sm:hidden">-</span>
               <span className="font-semibold text-foreground">{rangeEnd}</span>
-              {" of "}
-              <span className="font-semibold text-foreground">{tableBody.getRowCount()}</span>
-              {" items"}
+              <span className="hidden sm:inline">{" of "}</span>
+              <span className="sm:hidden">/</span>
+              <span className="font-semibold text-foreground">{totalRows}</span>
+              <span className="hidden sm:inline"> items</span>
             </PaginationSummary>
           </PaginationItem>
 
@@ -85,24 +104,30 @@ function pagination({
             />
           </PaginationItem>
 
-          {visiblePages.map((page, index) =>
-            page === "ellipsis" ?
-              <PaginationItem key={`ellipsis-${index}`}>
-                <PaginationEllipsis />
-              </PaginationItem>
-            : <PaginationItem key={page}>
-                <PaginationLink
-                  href="#"
-                  className="cursor-pointer"
-                  isActive={page === pagination.pageIndex}
-                  onClick={(event) => {
-                    event.preventDefault();
-                    setPagination((old) => ({ ...old, pageIndex: page }));
-                  }}>
-                  {page + 1}
-                </PaginationLink>
-              </PaginationItem>
-          )}
+          {isMobile && pageCount > 1 ?
+            <PaginationItem>
+              <span className="flex h-9 shrink-0 items-center whitespace-nowrap px-1 text-xs text-muted-foreground">
+                {pagination.pageIndex + 1}/{pageCount}
+              </span>
+            </PaginationItem>
+          : visiblePages.map((page, index) =>
+              page === "ellipsis" ?
+                <PaginationItem key={`ellipsis-${index}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              : <PaginationItem key={page}>
+                  <PaginationLink
+                    href="#"
+                    className="cursor-pointer"
+                    isActive={page === pagination.pageIndex}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setPagination((old) => ({ ...old, pageIndex: page }));
+                    }}>
+                    {page + 1}
+                  </PaginationLink>
+                </PaginationItem>
+            )}
 
           <PaginationItem>
             <PaginationNext
@@ -118,7 +143,7 @@ function pagination({
           <PaginationItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9 min-w-9 px-2">
+                <Button variant="outline" size="sm" className="h-9 min-w-9 shrink-0 px-2">
                   {tableBody.getState().pagination.pageSize}
                 </Button>
               </DropdownMenuTrigger>
