@@ -3,13 +3,14 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,16 @@ function menu({
   const { pathname } = useLocation();
   const { state } = usePersistedState<"left" | "right">("vite-ui-sidebar", "left");
   const { confirm } = useConfirmDialog();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const closeMobileMenu = () => {
+    if (isMobile) setOpenMobile(false);
+  };
+
+  const handleNavigate = (route: string) => {
+    navigate(route);
+    closeMobileMenu();
+  };
 
   const isRouteActive = (route: string) => {
     return pathname === route || pathname.startsWith(`${route}/`);
@@ -52,6 +63,7 @@ function menu({
               title: res.message,
               variant: "success",
             });
+            closeMobileMenu();
             navigate("/login");
           })
           .catch((error) => {
@@ -65,13 +77,19 @@ function menu({
   };
 
   return (
-    <Sidebar collapsible="icon" variant="floating" side={state}>
+    <Sidebar collapsible={isMobile ? "offcanvas" : "icon"} variant="floating" side={state}>
       <SidebarHeader>
-        <SidebarMenu className="items-end">
+        <SidebarMenu className={cn(!isMobile && "items-end")}>
           <SidebarMenuItem>
-            <div className="text-secondary hover:text-secondary peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-none ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-[[data-sidebar=menu-action]]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0">
-              <SidebarTrigger className="hover:text-primary" />
-            </div>
+            {isMobile ?
+              <div className="flex w-full items-center justify-between gap-2 px-1 py-1">
+                <SidebarGroupLabel className="px-0 text-sm font-semibold">Menu</SidebarGroupLabel>
+                <SidebarTrigger className="hover:text-primary" />
+              </div>
+            : <div className="flex w-full justify-end p-2">
+                <SidebarTrigger className="hover:text-primary" />
+              </div>
+            }
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -84,7 +102,7 @@ function menu({
                 <SidebarMenuItem key={index}>
                   <div className="flex items-center gap-2 px-2 py-2">
                     <Skeleton className="h-6 w-6 rounded-md" />
-                    {isExpanded && <Skeleton className="h-4 flex-1 max-w-[120px]" />}
+                    {(!isExpanded && !isMobile) ? null : <Skeleton className="h-4 flex-1 max-w-[120px]" />}
                   </div>
                 </SidebarMenuItem>
               ))
@@ -92,25 +110,16 @@ function menu({
                 const isActive = isRouteActive(route);
 
                 return (
-                  <TooltipProvider disableHoverableContent key={route}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <SidebarMenuItem>
-                          <SidebarMenuButton
-                            className={cn("text-secondary hover:text-primary", isActive && "text-primary")}
-                            isActive={isActive}
-                            onClick={() => navigate(route)}>
-                            <IconsComponent customClass="h-6 w-6" icon={icon} />
-                            <span>{label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      </TooltipTrigger>
-
-                      <TooltipContent className={cn(!isExpanded && "sr-only")} side="right">
-                        {label}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <SidebarMenuItem key={route}>
+                    <SidebarMenuButton
+                      className={cn("text-secondary hover:text-primary", isActive && "text-primary")}
+                      isActive={isActive}
+                      tooltip={isMobile ? undefined : label}
+                      onClick={() => handleNavigate(route)}>
+                      <IconsComponent customClass="h-6 w-6" icon={icon} />
+                      <span>{label}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 );
               })
             }
@@ -119,21 +128,12 @@ function menu({
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
-          <TooltipProvider disableHoverableContent>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <SidebarMenuItem>
-                  <SidebarMenuButton className="text-secondary hover:text-primary" onClick={handleConfirmation}>
-                    <IconsComponent customClass="h-6 w-6" icon="LogOutIcon" />
-                    <span>Sign Out</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </TooltipTrigger>
-              <TooltipContent className={cn(!isExpanded && "sr-only")} side="right">
-                Logout
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <SidebarMenuItem>
+            <SidebarMenuButton className="text-secondary hover:text-primary" onClick={handleConfirmation}>
+              <IconsComponent customClass="h-6 w-6" icon="LogOutIcon" />
+              <span>Sign Out</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

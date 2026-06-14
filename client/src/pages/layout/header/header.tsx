@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EllipsisVerticalIcon, InfoIcon, LoaderCircleIcon, SearchIcon } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -45,15 +46,17 @@ function header({ NavList, exclutionList = [] }: { NavList: Array<NavItem>; excl
   return (
     <>
       <GlobarSearchComponent isOpen={isOpen} setIsOpen={setIsOpen} />
-      <header className="sticky top-0 z-10 bg-background border-b">
-        <div className="flex items-center justify-between h-16 px-5">
-          <div className="flex items-center space-x-2 overflow-hidden">
-            <h1 className="text-2xl font-bold">{NavObj?.label}</h1>
+      <header className="sticky top-0 z-10 border-b bg-background">
+        <div className="flex h-14 items-center gap-2 px-3 sm:h-16 sm:gap-3 sm:px-5">
+          <SidebarTrigger className="shrink-0 md:hidden" />
+
+          <div className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+            <h1 className="truncate text-lg font-bold sm:text-2xl">{NavObj?.label ?? "Dashboard"}</h1>
             {NavObj && !exclutionList.includes(NavObj?.route) && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <InfoIcon className="h-4 w-4 text-muted-foreground" />
+                    <InfoIcon className="hidden h-4 w-4 shrink-0 text-muted-foreground sm:block" />
                   </TooltipTrigger>
                   <TooltipContent side="right">
                     <p>Every {NavObj?.label} record in your workspace in one place.</p>
@@ -63,21 +66,21 @@ function header({ NavList, exclutionList = [] }: { NavList: Array<NavItem>; excl
             )}
           </div>
 
-          <div className="flex items-center justify-center flex-auto">
+          <div className="hidden min-w-0 flex-auto items-center justify-center md:flex">
             <div className="relative w-full max-w-md">
               <div className="pointer-events-none absolute inset-y-0 start-0 flex items-center justify-center ps-3 text-muted-foreground/80 peer-disabled:opacity-50">
                 {isLoading ?
                   <LoaderCircleIcon
-                    className="animate-spin  h-4 w-4  text-muted-foreground"
+                    className="h-4 w-4 animate-spin text-muted-foreground"
                     role="status"
                     aria-label="Loading..."
                   />
-                : <SearchIcon className=" h-4 w-4  text-muted-foreground" aria-hidden="true" />}
+                : <SearchIcon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />}
               </div>
               <Input
                 type="search"
                 placeholder="Search Application..."
-                className="pl-8 w-full pe-11"
+                className="w-full pe-11 pl-8"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
               />
@@ -90,10 +93,20 @@ function header({ NavList, exclutionList = [] }: { NavList: Array<NavItem>; excl
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              aria-label="Search"
+              onClick={() => setIsOpen(true)}>
+              <SearchIcon className="h-5 w-5" />
+            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" aria-label="More options">
                   <EllipsisVerticalIcon className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
