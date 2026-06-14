@@ -31,12 +31,14 @@ function noteeditor({
   formData,
   onSave,
   onDelete,
+  existingNoteCount = 0,
 }: {
   setIsOpen: (arg: boolean) => void;
   isOpen: boolean;
   formData?: State;
   onSave: () => void;
   onDelete: () => void;
+  existingNoteCount?: number;
 }) {
   const { image, renderInputField, activateInput, clearImage, setImage } = imageFile();
   const { confirm } = useConfirmDialog();
@@ -138,8 +140,12 @@ function noteeditor({
     title: string;
     description: string;
   }> = async (data) => {
+    const isNewNote = !formData?._id;
+    const trimmedTitle = data.title.trim();
+    const title = trimmedTitle || (isNewNote ? `Note #${existingNoteCount + 1}` : "");
+
     const payload = mapStateToNotePayload(
-      { title: data.title, description: data.description, backgroundColor: noteColor },
+      { title, description: data.description, backgroundColor: noteColor },
       image
     );
 

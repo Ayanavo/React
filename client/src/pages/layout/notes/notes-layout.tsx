@@ -85,6 +85,7 @@ function note() {
         setIsOpen={setIsOpen}
         isOpen={isOpen}
         formData={selectedNote}
+        existingNoteCount={notes.length}
         onSave={handleSave}
         onDelete={handleDelete}
       />
