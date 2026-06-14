@@ -14,6 +14,7 @@ import NoteEditorComponent from "./note-editor";
 import { mapNoteRecordToState } from "./note-mapper";
 import "./note.scss";
 import { State } from "./state";
+import AddActionButton from "@/components/inbuild/add-action-button";
 
 function note() {
   const NotesLayout = [
