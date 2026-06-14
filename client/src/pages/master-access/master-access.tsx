@@ -162,12 +162,13 @@ const MasterAccess = () => {
   );
 
   return (
-    <div className="flex flex-col">
-      <div className="px-6 pt-4">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="flex-none px-6 pt-4">
         <BreadcrumbInbuild />
       </div>
 
-      <ResourceGrid
+      <div className="min-h-0 flex-1">
+        <ResourceGrid
         queryKey="master-access-users"
         resourceLabel="User"
         basePath="/master-access"
@@ -178,7 +179,8 @@ const MasterAccess = () => {
         showAddButton={false}
         filterControls={filterControls}
         filterFn={filterFn}
-      />
+        />
+      </div>
 
       {openPermissionsFor && selectedUserId && (
         <PermissionsDialog

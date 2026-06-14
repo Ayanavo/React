@@ -1,6 +1,7 @@
 import { formatAppDate } from "@/lib/date-format";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { Clock } from "lucide-react";
 import moment from "moment";
 import React, { useMemo } from "react";
 import "./activity-calendar.scss";
@@ -14,6 +15,8 @@ export type CalendarEvent = {
   end?: string;
   allDay?: boolean;
   color?: string;
+  location?: string;
+  tagName?: string;
 };
 
 type ActivityCalendarProps = {
@@ -70,13 +73,54 @@ function CalendarTooltip({ content, children }: { content: React.ReactNode; chil
   return (
     <Tooltip>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent>{content}</TooltipContent>
+      <TooltipContent className="border-0 bg-primary px-3 py-2 text-primary-foreground shadow-md">
+        {content}
+      </TooltipContent>
     </Tooltip>
   );
 }
 
 function isSameDay(a: moment.Moment, b: Date | null | undefined) {
   return Boolean(b && a.isSame(moment(b), "day"));
+}
+
+function getEventTimeLabel(event: CalendarEvent) {
+  if (event.allDay) return "All day";
+
+  const parsed = moment(event.start);
+  return parsed.isValid() ? parsed.format("h:mm A") : "";
+}
+
+function EventTooltipContent({ event }: { event: CalendarEvent }) {
+  const timeLabel = getEventTimeLabel(event);
+
+  return (
+    <div className="activity-calendar__tooltip flex max-w-56 flex-col gap-1">
+      <span className="font-semibold text-white">{event.title}</span>
+      <span className="text-xs text-white">{timeLabel}</span>
+      {event.tagName ?
+        <span className="text-xs text-white/95">Tag: {event.tagName}</span>
+      : null}
+      {event.location ?
+        <span className="text-xs text-white/95">Location: {event.location}</span>
+      : null}
+    </div>
+  );
+}
+
+function getEventTooltipContent(event: CalendarEvent) {
+  return <EventTooltipContent event={event} />;
+}
+
+function EventTimeRow({ event, className }: { event: CalendarEvent; className?: string }) {
+  const timeLabel = getEventTimeLabel(event);
+
+  return (
+    <span className={cn("activity-calendar__event-time", className)}>
+      <Clock className="activity-calendar__event-time-icon" aria-hidden="true" />
+      <span className="activity-calendar__event-time-label">{timeLabel}</span>
+    </span>
+  );
 }
 
 function EventChip({
@@ -87,13 +131,14 @@ function EventChip({
   onClick: (event: React.MouseEvent) => void;
 }) {
   return (
-    <CalendarTooltip content={event.title}>
+    <CalendarTooltip content={getEventTooltipContent(event)}>
       <button
         type="button"
         onClick={onClick}
         className="activity-calendar__event"
         style={{ backgroundColor: event.color ?? "hsl(var(--primary))" }}>
         <span className="activity-calendar__event-label">{event.title}</span>
+        <EventTimeRow event={event} />
       </button>
     </CalendarTooltip>
   );
@@ -113,7 +158,8 @@ function MonthView({ focusDate, events, focusedDate, onDateClick, onEventClick }
         ))}
       </div>
 
-      <div className="activity-calendar__grid">
+      <div className="activity-calendar__body scrollbar-none">
+        <div className="activity-calendar__grid">
         {days.map((day) => {
           const dayEvents = getEventsForDay(events, day);
           const isToday = day.isSame(moment(), "day");
@@ -153,9 +199,9 @@ function MonthView({ focusDate, events, focusedDate, onDateClick, onEventClick }
                 {hiddenCount > 0 && (
                   <CalendarTooltip
                     content={
-                      <div className="flex max-w-56 flex-col gap-1">
+                      <div className="activity-calendar__tooltip flex max-w-56 flex-col gap-1.5">
                         {dayEvents.slice(3).map((event) => (
-                          <span key={event.id ?? `${event.title}-${event.start}`}>{event.title}</span>
+                          <EventTooltipContent key={event.id ?? `${event.title}-${event.start}`} event={event} />
                         ))}
                       </div>
                     }>
@@ -166,6 +212,7 @@ function MonthView({ focusDate, events, focusedDate, onDateClick, onEventClick }
             </button>
           );
         })}
+        </div>
       </div>
     </div>
   );
@@ -204,7 +251,8 @@ function WeekView({ focusDate, events, focusedDate, onDateClick, onEventClick }:
         })}
       </div>
 
-      <div className="activity-calendar__week-body">
+      <div className="activity-calendar__body scrollbar-none">
+        <div className="activity-calendar__week-body">
         {days.map((day) => {
           const dayEvents = getEventsForDay(events, day);
           const isToday = day.isSame(moment(), "day");
@@ -238,6 +286,7 @@ function WeekView({ focusDate, events, focusedDate, onDateClick, onEventClick }:
             </button>
           );
         })}
+        </div>
       </div>
     </div>
   );
@@ -268,9 +317,10 @@ function DayView({ focusDate, events, focusedDate, onDateClick, onEventClick }: 
         </span>
       </button>
 
-      <div
-        className={cn("activity-calendar__day-events", isFocused && "activity-calendar__day-events--focused")}
-        onClick={() => onDateClick(day.toDate())}>
+      <div className="activity-calendar__body scrollbar-none">
+        <div
+          className={cn("activity-calendar__day-events", isFocused && "activity-calendar__day-events--focused")}
+          onClick={() => onDateClick(day.toDate())}>
         {dayEvents.length === 0 ?
           <span className="activity-calendar__empty-day">No events scheduled. Click to add one.</span>
         : dayEvents.map((event) => (
@@ -289,13 +339,12 @@ function DayView({ focusDate, events, focusedDate, onDateClick, onEventClick }: 
               />
               <span className="activity-calendar__day-event-content">
                 <span className="activity-calendar__day-event-title">{event.title}</span>
-                <span className="activity-calendar__day-event-meta">
-                  {event.allDay ? "All day" : formatAppDate(event.start, true)}
-                </span>
+                <EventTimeRow event={event} className="activity-calendar__day-event-meta" />
               </span>
             </button>
           ))
         }
+        </div>
       </div>
     </div>
   );
@@ -376,9 +425,9 @@ function MiniMonth({
             <CalendarTooltip
               key={day.format("YYYY-MM-DD")}
               content={
-                <div className="flex max-w-56 flex-col gap-1">
+                <div className="activity-calendar__tooltip flex max-w-56 flex-col gap-1.5">
                   {dayEvents.map((event) => (
-                    <span key={event.id ?? `${event.title}-${event.start}`}>{event.title}</span>
+                    <EventTooltipContent key={event.id ?? `${event.title}-${event.start}`} event={event} />
                   ))}
                 </div>
               }>
@@ -399,17 +448,21 @@ function YearView({ focusDate, events, focusedDate, onDateClick, onEventClick }:
   );
 
   return (
-    <div className="activity-calendar__year">
-      {months.map((month) => (
-        <MiniMonth
-          key={month.format("YYYY-MM")}
-          month={month}
-          events={events}
-          focusedDate={focusedDate}
-          onDateClick={onDateClick}
-          onEventClick={onEventClick}
-        />
-      ))}
+    <div className="activity-calendar__year-view">
+      <div className="activity-calendar__body scrollbar-none">
+        <div className="activity-calendar__year">
+          {months.map((month) => (
+            <MiniMonth
+              key={month.format("YYYY-MM")}
+              month={month}
+              events={events}
+              focusedDate={focusedDate}
+              onDateClick={onDateClick}
+              onEventClick={onEventClick}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

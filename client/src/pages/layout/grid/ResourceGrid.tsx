@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
@@ -41,6 +42,9 @@ export type GridColumnConfig<T> = {
   label: string;
   type?: GridColumnType;
   align?: "left" | "center" | "right";
+  listable?: boolean;
+  kanbanIdKey?: keyof T & string;
+  kanbanColorKey?: keyof T & string;
   render?: (value: any, row: T) => React.ReactNode;
 };
 
@@ -110,6 +114,7 @@ function ResourceGrid<T extends { _id: string }>({
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
   const [layout, setLayout] = useState<string>("column");
+  const [kanbanGroupByKey, setKanbanGroupByKey] = useState<string>("");
 
   const filteredList = useMemo(() => {
     if (!filterFn) return list;
@@ -145,6 +150,18 @@ function ResourceGrid<T extends { _id: string }>({
     { name: "column", label: "Column View", icon: "SquareMenuIcon" },
     { name: "kanban", label: "Kanban View", icon: "SquareKanbanIcon" },
   ];
+
+  const listableColumns = useMemo(
+    () => columnConfig.filter((column) => column.listable && column.key !== "select" && column.key !== "action"),
+    [columnConfig]
+  );
+
+  const resolvedKanbanGroupByKey = useMemo(() => {
+    if (listableColumns.some((column) => column.key === kanbanGroupByKey)) {
+      return kanbanGroupByKey;
+    }
+    return listableColumns[0]?.key ?? "";
+  }, [kanbanGroupByKey, listableColumns]);
 
   const createColumns = () => {
     return columnConfig.map((column) => {
@@ -307,7 +324,7 @@ function ResourceGrid<T extends { _id: string }>({
   };
 
   return (
-    <div className="flex h-[90vh] flex-col overflow-hidden bg-background">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
       <div className="flex flex-none items-center justify-between gap-3 px-0.5 py-3">
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <div className="relative w-full max-w-xs">
@@ -326,6 +343,23 @@ function ResourceGrid<T extends { _id: string }>({
             </div>
           </div>
           {filterControls}
+          {layout === "kanban" && listableColumns.length > 0 ?
+            <div className="flex items-center gap-1.5">
+             
+              <Select value={resolvedKanbanGroupByKey} onValueChange={setKanbanGroupByKey}>
+                <SelectTrigger className="h-9 w-[11.5rem] rounded-lg border-border/70 bg-card shadow-sm">
+                  <SelectValue placeholder="Select column" />
+                </SelectTrigger>
+                <SelectContent align="start">
+                  {listableColumns.map((column) => (
+                    <SelectItem key={column.key} value={column.key}>
+                      {column.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -378,8 +412,19 @@ function ResourceGrid<T extends { _id: string }>({
           pageSize={pagination.pageSize}
         />
       )}
-      {layout === "kanban" && <KanbanComponent tableBody={tableBody as never} />}
-      <PaginationComponent tableBody={tableBody as never} pagination={pagination} setPagination={setPagination} />
+      {layout === "kanban" && (
+        <KanbanComponent
+          tableBody={tableBody as never}
+          columns={columnConfig}
+          listableColumns={listableColumns}
+          groupByKey={resolvedKanbanGroupByKey}
+          isLoading={isLoading || (isFetching && data.length === 0)}
+          pageSize={pagination.pageSize}
+        />
+      )}
+      {layout === "column" && (
+        <PaginationComponent tableBody={tableBody as never} pagination={pagination} setPagination={setPagination} />
+      )}
     </div>
   );
 }

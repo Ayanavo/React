@@ -24,7 +24,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
   const skeletonRows = Array.from({ length: Math.min(Math.max(pageSize, 1), 12) });
 
   return (
-    <div className="relative min-h-0 flex-1 overflow-auto rounded-lg border border-border/70 bg-card shadow-sm">
+    <div className="relative min-h-0 flex-1 overflow-auto scrollbar-none rounded-lg border border-border/70 bg-card shadow-sm">
       <Table className="min-w-[760px] table-fixed">
         <TableCaption className="py-5 text-xs">A list of all available data.</TableCaption>
 

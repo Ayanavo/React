@@ -77,6 +77,9 @@ const columns: GridColumnConfig<CVAccessRecord>[] = [
   {
     key: "tagName",
     label: "Tag",
+    listable: true,
+    kanbanIdKey: "tagId",
+    kanbanColorKey: "tagColor",
     render: (value, row) => {
       const tagStyle =
         row.tagColor ? { borderColor: `${row.tagColor}4f`, backgroundColor: `${row.tagColor}40` } : undefined;
@@ -223,11 +226,12 @@ const CVAccessGrid = () => {
   );
 
   return (
-    <div className="flex flex-col">
-      <div className="px-6 pt-4">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="flex-none px-6 pt-4">
         <BreadcrumbInbuild />
       </div>
-      <ResourceGrid<CVAccessRecord>
+      <div className="min-h-0 flex-1">
+        <ResourceGrid<CVAccessRecord>
         queryKey="cv-builder-list"
         resourceLabel="CV"
         basePath="/cv-builder"
@@ -239,7 +243,8 @@ const CVAccessGrid = () => {
         onAddClick={openBuilder}
         filterControls={filterControls}
         filterFn={filterFn}
-      />
+        />
+      </div>
     </div>
   );
 };

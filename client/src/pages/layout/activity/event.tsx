@@ -126,28 +126,14 @@ export default function ActivityFormDialog({
         <Button className="hidden">Open activity dialog</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
-        <div className="flex items-start justify-between gap-3">
-          <DialogHeader className="flex-1 space-y-1.5 text-left">
-            <DialogTitle>{isReadOnly ? "Holiday details" : isEditing ? "Edit activity" : "Create activity"}</DialogTitle>
-            <DialogDescription>
-              {isReadOnly ?
-                "Public holidays are read-only and synced from the holiday calendar."
-              : "Plan tasks, events, and meetings with scheduling and tags."}
-            </DialogDescription>
-          </DialogHeader>
-
-          {isEditing && !isReadOnly && onDelete && activity ?
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="mr-6 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={() => onDelete(activity.id)}
-              aria-label="Delete activity">
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          : null}
-        </div>
+        <DialogHeader className="space-y-1.5 text-left">
+          <DialogTitle>{isReadOnly ? "Holiday details" : isEditing ? "Edit activity" : "Create activity"}</DialogTitle>
+          <DialogDescription>
+            {isReadOnly ?
+              "Public holidays are read-only and synced from the holiday calendar."
+            : "Plan tasks, events, and meetings with scheduling and tags."}
+          </DialogDescription>
+        </DialogHeader>
 
         <FormProvider {...form}>
           <form className="space-y-5" onSubmit={form.handleSubmit(handleSubmit)}>
@@ -292,6 +278,15 @@ export default function ActivityFormDialog({
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
+              {isEditing && !isReadOnly && onDelete && activity ?
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => onDelete(activity.id)}>
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </Button>
+              : null}
               <Button type="submit">
                 {!isReadOnly ?
                   <>

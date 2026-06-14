@@ -17,7 +17,7 @@ export const Layout = () => {
   }, [permissions]);
 
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider defaultOpen={false} className="h-svh overflow-hidden">
       <MenuComponent
         NavList={filteredNavList}
         isExpanded={isExpanded}
@@ -25,9 +25,9 @@ export const Layout = () => {
         isLoadingPermissions={isLoading}
       />
 
-      <SidebarInset>
+      <SidebarInset className="h-svh max-h-svh overflow-hidden">
         <HeaderComponent NavList={filteredNavList} exclutionList={exclutionList} />
-        <main>
+        <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <Outlet />
           <Toaster />
         </main>

@@ -162,7 +162,7 @@ function ActivityPage() {
   );
 
   return (
-    <div className="activity-page flex min-h-[90vh] flex-col">
+    <div className="activity-page flex h-full min-h-0 flex-col overflow-hidden">
       <ActivityFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}

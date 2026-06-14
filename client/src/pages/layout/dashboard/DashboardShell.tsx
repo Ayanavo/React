@@ -60,7 +60,7 @@ const DashboardShell: React.FC = () => {
   const GreetingIcon = isDaytime ? Sun : Moon;
 
   return (
-    <div className="min-h-full bg-background text-foreground">
+    <div className="h-full min-h-0 overflow-y-auto scrollbar-none bg-background text-foreground">
       <main className="space-y-6 p-6">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="space-y-1">

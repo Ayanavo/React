@@ -8,6 +8,7 @@ import {
     updateActivity as updateActivityApi,
     useHolidayEvents,
 } from "@/shared/services/activity";
+import { getTags } from "@/shared/services/tag";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
 import { useCallback, useMemo } from "react";
@@ -97,7 +98,12 @@ function activityToFormValues(activity: ActivityItem | null, fallbackDate: Date)
   };
 }
 
-function activityToCalendarEvent(activity: ActivityItem): CalendarEvent {
+function activityToCalendarEvent(
+  activity: ActivityItem,
+  tagNameById: Map<string, string> = new Map()
+): CalendarEvent {
+  const tagId = activity.tag?.trim();
+
   return {
     id: activity.id,
     title: activity.title,
@@ -105,6 +111,8 @@ function activityToCalendarEvent(activity: ActivityItem): CalendarEvent {
     end: activity.end,
     allDay: activity.allDay,
     color: activity.color,
+    location: activity.location?.trim() || undefined,
+    tagName: tagId ? tagNameById.get(tagId) ?? tagId : undefined,
   };
 }
 
@@ -134,6 +142,10 @@ export function useActivityManager(focusDate: Date, calendarView: CalendarView) 
   const queryClient = useQueryClient();
 
   const holidaysQuery = useHolidayEvents(focusDate, calendarView);
+  const tagsQuery = useQuery({
+    queryKey: ["tags"],
+    queryFn: getTags,
+  });
   const apiQuery = useQuery({
     queryKey: ["activities"],
     queryFn: () => fetchActivities(1, 100),
@@ -148,7 +160,15 @@ export function useActivityManager(focusDate: Date, calendarView: CalendarView) 
 
   const activities = useMemo(() => [...apiActivities, ...holidayActivities], [apiActivities, holidayActivities]);
 
-  const calendarEvents = useMemo(() => activities.map(activityToCalendarEvent), [activities]);
+  const tagNameById = useMemo(
+    () => new Map((tagsQuery.data ?? []).map((tag) => [tag._id, tag.name])),
+    [tagsQuery.data]
+  );
+
+  const calendarEvents = useMemo(
+    () => activities.map((activity) => activityToCalendarEvent(activity, tagNameById)),
+    [activities, tagNameById]
+  );
 
   const stats = useMemo(() => {
     const trackable = activities.filter((item) => item.source !== "holiday");

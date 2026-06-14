@@ -349,8 +349,10 @@ function table() {
           </div>
         </div>
         {layout === "column" && <ColumnComponent tableBody={tableBody} setSorting={setSorting} />}
-        {layout === "kanban" && <KanbanComponent tableBody={tableBody} />}
-        <PaginationComponent tableBody={tableBody} pagination={pagination} setPagination={setPagination} />
+        {layout === "kanban" && <KanbanComponent tableBody={tableBody} columns={[]} listableColumns={[]} groupByKey="" />}
+        {layout === "column" && (
+          <PaginationComponent tableBody={tableBody} pagination={pagination} setPagination={setPagination} />
+        )}
       </div>
     </>
   );
