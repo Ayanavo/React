@@ -14,6 +14,9 @@ export interface IUser extends Document {
   updatedAt: Date;
   isLoggedIn: boolean;
   lastLoginAt?: Date | null;
+  lastLogoutAt?: Date | null;
+  totalTimeSpentMs: number;
+  currentSessionStartedAt?: Date | null;
   address: {
     addressLine1: string;
     addressLine2: string;
@@ -44,6 +47,9 @@ const userSchema: Schema = new Schema(
     title: { type: String },
     isLoggedIn: { type: Boolean, default: false },
     lastLoginAt: { type: Date, default: null },
+    lastLogoutAt: { type: Date, default: null },
+    totalTimeSpentMs: { type: Number, default: 0 },
+    currentSessionStartedAt: { type: Date, default: null },
     address: {
       addressLine1: { type: String, default: "" },
       addressLine2: { type: String, default: "" },

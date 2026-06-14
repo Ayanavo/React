@@ -6,6 +6,15 @@ const socketUrl = (apiUrl || "http://localhost:5000/api/").replace(/\/api\/?$/, 
 
 export const USER_LOGIN_STATUS_EVENT = "user:login-status";
 
+export type UserLoginStatusPayload = {
+  userId: string;
+  isLoggedIn: boolean;
+  lastLoginAt?: string | null;
+  lastLogoutAt?: string | null;
+  totalTimeSpentMs?: number;
+  currentSessionStartedAt?: string | null;
+};
+
 let socket: ReturnType<typeof io> | null = null;
 let authListenerRegistered = false;
 

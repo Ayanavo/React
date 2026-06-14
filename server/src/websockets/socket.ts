@@ -46,8 +46,21 @@ export const initializeSocket = (server: HttpServer): Server => {
   return io;
 };
 
-export const emitUserLoginStatus = (userId: string, isLoggedIn: boolean): void => {
-  io?.emit(USER_LOGIN_STATUS_EVENT, { userId, isLoggedIn });
+export type UserLoginStatusPayload = {
+  userId: string;
+  isLoggedIn: boolean;
+  lastLoginAt?: string | null;
+  lastLogoutAt?: string | null;
+  totalTimeSpentMs?: number;
+  currentSessionStartedAt?: string | null;
+};
+
+export const emitUserLoginStatus = (
+  userId: string,
+  isLoggedIn: boolean,
+  stats: Omit<UserLoginStatusPayload, "userId" | "isLoggedIn"> = {}
+): void => {
+  io?.emit(USER_LOGIN_STATUS_EVENT, { userId, isLoggedIn, ...stats });
 };
 
 export const shutdownSocket = async (): Promise<void> => {

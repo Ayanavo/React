@@ -38,15 +38,17 @@ export const getPermissions = async (req: Request, res: Response) => {
     if (!Types.ObjectId.isValid(userId)) return res.status(400).json({ message: "Invalid userId" });
     const [record, user] = await Promise.all([
       MasterAccess.findOne({ userId }).select("userId allowedRoutes").lean(),
-      User.findById(userId).select("isLoggedIn lastLoginAt").lean(),
+      User.findById(userId).select("isLoggedIn lastLoginAt lastLogoutAt totalTimeSpentMs currentSessionStartedAt").lean(),
     ]);
     res.status(200).json({
       permissions: {
         userId,
         allowedRoutes: mergeRequiredRoutes(record?.allowedRoutes),
         isLoggedIn: user?.isLoggedIn ?? false,
-
         lastLoginAt: user?.lastLoginAt ?? null,
+        lastLogoutAt: user?.lastLogoutAt ?? null,
+        totalTimeSpentMs: user?.totalTimeSpentMs ?? 0,
+        currentSessionStartedAt: user?.currentSessionStartedAt ?? null,
       },
     });
   } catch (error) {

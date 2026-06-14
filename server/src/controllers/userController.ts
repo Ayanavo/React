@@ -15,8 +15,27 @@ const refreshCookieOptions = {
 };
 
 const invalidateUserSession = async (userId: string): Promise<void> => {
-  await User.findByIdAndUpdate(userId, { isLoggedIn: false });
-  emitUserLoginStatus(userId, false);
+  const user = await User.findById(userId);
+  if (!user) return;
+
+  const now = new Date();
+  let totalTimeSpentMs = user.totalTimeSpentMs ?? 0;
+
+  if (user.isLoggedIn && user.currentSessionStartedAt) {
+    totalTimeSpentMs += now.getTime() - user.currentSessionStartedAt.getTime();
+  }
+
+  user.isLoggedIn = false;
+  user.lastLogoutAt = now;
+  user.totalTimeSpentMs = totalTimeSpentMs;
+  user.currentSessionStartedAt = null;
+  await user.save();
+
+  emitUserLoginStatus(userId, false, {
+    lastLogoutAt: now.toISOString(),
+    totalTimeSpentMs,
+    currentSessionStartedAt: null,
+  });
 };
 
 //Sign Up
@@ -88,11 +107,16 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
+    const loginTime = new Date();
     user.isLoggedIn = true;
-    user.lastLoginAt = new Date();
+    user.lastLoginAt = loginTime;
+    user.currentSessionStartedAt = loginTime;
     await user.save();
 
-    emitUserLoginStatus(user._id.toString(), true);
+    emitUserLoginStatus(user._id.toString(), true, {
+      lastLoginAt: loginTime.toISOString(),
+      currentSessionStartedAt: loginTime.toISOString(),
+    });
 
     const jwt = await user.generateJwt();
     const refreshToken = await user.generateRefreshToken();

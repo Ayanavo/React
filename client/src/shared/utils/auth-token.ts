@@ -23,3 +23,15 @@ export const clearAuthToken = (): void => {
 };
 
 export const isAuthenticated = (): boolean => Boolean(getAuthToken());
+
+export const getUserIdFromToken = (): string | null => {
+  const token = getAuthToken();
+  if (!token) return null;
+
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1] ?? "")) as { id?: string };
+    return payload.id ?? null;
+  } catch {
+    return null;
+  }
+};

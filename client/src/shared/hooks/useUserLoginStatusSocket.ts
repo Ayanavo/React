@@ -1,18 +1,22 @@
-import { connectSocket, USER_LOGIN_STATUS_EVENT } from "@/shared/services/socket";
+import { connectSocket, USER_LOGIN_STATUS_EVENT, type UserLoginStatusPayload } from "@/shared/services/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-
-type UserLoginStatusPayload = {
-  userId: string;
-  isLoggedIn: boolean;
-};
 
 type UseUserLoginStatusSocketOptions = {
   queryKey: string;
   enabled?: boolean;
 };
 
-export const useUserLoginStatusSocket = <T extends { _id: string; isLoggedIn?: boolean; lastLoginAt?: string | null }>({
+export type UserLoginTrackable = {
+  _id: string;
+  isLoggedIn?: boolean;
+  lastLoginAt?: string | null;
+  lastLogoutAt?: string | null;
+  totalTimeSpentMs?: number;
+  currentSessionStartedAt?: string | null;
+};
+
+export const useUserLoginStatusSocket = <T extends UserLoginTrackable>({
   queryKey,
   enabled = true,
 }: UseUserLoginStatusSocketOptions): void => {
@@ -23,12 +27,21 @@ export const useUserLoginStatusSocket = <T extends { _id: string; isLoggedIn?: b
 
     const socket = connectSocket();
 
-    const onLoginStatus = ({ userId, isLoggedIn }: UserLoginStatusPayload) => {
+    const onLoginStatus = (payload: UserLoginStatusPayload) => {
+      const { userId, isLoggedIn, lastLoginAt, lastLogoutAt, totalTimeSpentMs, currentSessionStartedAt } = payload;
+
       queryClient.setQueryData<T[]>([queryKey], (users) =>
         users?.map((user) =>
-          user._id === userId ?
-            { ...user, isLoggedIn, ...(isLoggedIn ? { lastLoginAt: new Date().toISOString() } : {}) }
-          : user
+          user._id === userId
+            ? {
+                ...user,
+                isLoggedIn,
+                ...(lastLoginAt !== undefined ? { lastLoginAt } : isLoggedIn ? { lastLoginAt: new Date().toISOString() } : {}),
+                ...(lastLogoutAt !== undefined ? { lastLogoutAt } : {}),
+                ...(totalTimeSpentMs !== undefined ? { totalTimeSpentMs } : {}),
+                ...(currentSessionStartedAt !== undefined ? { currentSessionStartedAt } : {}),
+              }
+            : user
         )
       );
     };
