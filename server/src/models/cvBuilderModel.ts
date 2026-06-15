@@ -6,6 +6,16 @@ export interface ICvBuilder extends Document {
   tag?: string;
   elements: unknown[];
   pageProperties?: Record<string, unknown>;
+  atsScore?: number;
+  atsAnalysis?: {
+    score: number;
+    ranking: string;
+    summary: string;
+    strengths: string[];
+    gaps: string[];
+    recommendations: string[];
+    model?: string;
+  };
   createdBy?: mongoose.Types.ObjectId;
   modifiedBy?: mongoose.Types.ObjectId;
   createdAt: Date;
@@ -19,6 +29,19 @@ const cvBuilderSchema: Schema<ICvBuilder> = new Schema(
     tag: { type: String, default: "" },
     elements: { type: [Schema.Types.Mixed], required: true, default: [] },
     pageProperties: { type: Schema.Types.Mixed, default: {} },
+    atsScore: { type: Number, default: null },
+    atsAnalysis: {
+      type: {
+        score: Number,
+        ranking: String,
+        summary: String,
+        strengths: [String],
+        gaps: [String],
+        recommendations: [String],
+        model: String,
+      },
+      default: null,
+    },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
     modifiedBy: { type: Schema.Types.ObjectId, ref: "User" },
   },

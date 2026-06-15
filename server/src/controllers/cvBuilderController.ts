@@ -43,7 +43,7 @@ export const getAddressSuggestions = async (req: Request, res: Response) => {
 export const saveCvbuilder = async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    const { name, job, tag, elements, pageProperties } = req.body;
+    const { name, job, tag, elements, pageProperties, atsScore, atsAnalysis } = req.body;
 
     if (!Array.isArray(elements)) {
       return res.status(400).json({ message: "CV elements are required" });
@@ -55,6 +55,8 @@ export const saveCvbuilder = async (req: Request, res: Response) => {
       tag,
       elements,
       pageProperties,
+      atsScore: typeof atsScore === "number" ? atsScore : null,
+      atsAnalysis: atsAnalysis && typeof atsAnalysis === "object" ? atsAnalysis : null,
       createdBy: userId,
       modifiedBy: userId,
     });
@@ -96,7 +98,7 @@ export const updateCvbuilder = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const userId = req.user?.id;
-    const { name, job, tag, elements, pageProperties } = req.body;
+    const { name, job, tag, elements, pageProperties, atsScore, atsAnalysis } = req.body;
 
     if (!Array.isArray(elements)) {
       return res.status(400).json({ message: "CV elements are required" });
@@ -111,6 +113,8 @@ export const updateCvbuilder = async (req: Request, res: Response) => {
         tag,
         elements,
         pageProperties,
+        atsScore: typeof atsScore === "number" ? atsScore : null,
+        atsAnalysis: atsAnalysis && typeof atsAnalysis === "object" ? atsAnalysis : null,
         modifiedBy: userId,
       },
       { new: true }

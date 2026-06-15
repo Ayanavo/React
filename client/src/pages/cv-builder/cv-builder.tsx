@@ -1,4 +1,5 @@
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,13 +15,24 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import showToast from "@/hooks/toast";
 import { CVElement, CVProvider, useCV } from "@/lib/useCV";
-import { fetchCVBuilderById, submitCV, updateCV, type CVSubmitPayload } from "@/shared/services/cvbuilder";
+import {
+  checkAtsScore,
+  fetchCVBuilderById,
+  submitCV,
+  updateCV,
+  type AtsCheckResponse,
+  type CVSubmitPayload,
+} from "@/shared/services/cvbuilder";
 import { getTags, type TagRecord } from "@/shared/services/tag";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { FilePlus, Loader2, Save, ScanSearch } from "lucide-react";
 import React, { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import Canvas from "../cv-builder/canvas";
 import Pallet from "../cv-builder/pallet";
+import AtsDialog from "./ats-dialog";
+import { atsBadgeClassName, atsRecordToResponse, formatAtsBadgeLabel, toAtsAnalysisRecord } from "./ats-utils";
+import { extractCVContent } from "./cv-extractor";
 
 type CVTag = string;
 
@@ -48,9 +60,13 @@ const CVBuilderContent = () => {
   const isEditMode = Boolean(id);
   const { elements, pageProperties, commitEdits, loadCVState, setCvName, setOnRequestSave } = useCV();
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [isAtsDialogOpen, setIsAtsDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [job, setJob] = useState("");
   const [tag, setTag] = useState<CVTag>("");
+  const [atsResult, setAtsResult] = useState<AtsCheckResponse | null>(null);
+  const [isAtsChecking, setIsAtsChecking] = useState(false);
+  const autoAtsAttemptedRef = useRef<string | null>(null);
 
   const { data: cvBuilder, isFetching } = useQuery({
     queryKey: ["cv-builder", id],
@@ -75,8 +91,65 @@ const CVBuilderContent = () => {
       const selectedTag =
         tags.find((tagItem) => tagItem._id === requestedTag) ?? tags.find((tagItem) => tagItem.name === requestedTag);
       setTag((selectedTag?._id ?? requestedTag) as CVTag);
+
+      if (cvBuilder.atsAnalysis) {
+        setAtsResult(atsRecordToResponse(cvBuilder.atsAnalysis));
+      } else if (typeof cvBuilder.atsScore === "number") {
+        setAtsResult({
+          score: cvBuilder.atsScore,
+          ranking: "Saved",
+          summary: "",
+          strengths: [],
+          gaps: [],
+          recommendations: [],
+          model: "gemini-2.5-flash",
+        });
+      } else {
+        setAtsResult(null);
+      }
     }
   }, [cvBuilder, loadCVState, setCvName, tags]);
+
+  useEffect(() => {
+    if (!id || !cvBuilder || isFetching) return;
+    if (autoAtsAttemptedRef.current === id) return;
+
+    if (cvBuilder.atsAnalysis || typeof cvBuilder.atsScore === "number") {
+      autoAtsAttemptedRef.current = id;
+      return;
+    }
+
+    const jobDescription = cvBuilder.job?.trim();
+    if (!jobDescription) {
+      autoAtsAttemptedRef.current = id;
+      return;
+    }
+
+    const extracted = extractCVContent(cvBuilder.elements, cvBuilder.pageProperties ?? {});
+    if (!extracted.text.trim()) {
+      autoAtsAttemptedRef.current = id;
+      return;
+    }
+
+    autoAtsAttemptedRef.current = id;
+    setIsAtsChecking(true);
+
+    checkAtsScore({
+      cvText: extracted.text,
+      jobDescription,
+      colors: extracted.colors,
+      pageProperties: extracted.pageProperties,
+    })
+      .then((result) => {
+        setAtsResult(result);
+      })
+      .catch(() => {
+        // Background ATS check is best-effort on load.
+      })
+      .finally(() => {
+        setIsAtsChecking(false);
+      });
+  }, [id, cvBuilder, isFetching]);
 
   // Keep a ref to the pending download callback so we can invoke it after mutation succeeds.
   const pendingSaveCallbackRef = useRef<((savedName: string) => void) | null>(null);
@@ -138,6 +211,8 @@ const CVBuilderContent = () => {
       tag,
       elements,
       pageProperties,
+      atsScore: atsResult?.score ?? null,
+      atsAnalysis: atsResult ? toAtsAnalysisRecord(atsResult) : null,
     });
   };
 
@@ -146,21 +221,56 @@ const CVBuilderContent = () => {
       <div className="flex items-center justify-between px-6 py-3">
         <BreadcrumbInbuild isEditMode={isEditMode} />
 
-        <Button type="button" onClick={() => openSubmitDialog()} disabled={mutation.isPending || isFetching}>
-          {mutation.isPending ?
-            isEditMode ?
-              "Updating..."
-              : "Submitting..."
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsAtsDialogOpen(true)}
+            disabled={isFetching || isAtsChecking}
+            className="gap-2">
+            {isAtsChecking ?
+              <Loader2 className="h-4 w-4 animate-spin" />
+            : <ScanSearch className="h-4 w-4" />}
+            Check ATS
+            {atsResult && !isAtsChecking ?
+              <Badge className={atsBadgeClassName(atsResult.score)}>{formatAtsBadgeLabel(atsResult.score)}</Badge>
+            : null}
+          </Button>
+          <Button type="button" onClick={() => openSubmitDialog()} disabled={mutation.isPending || isFetching}>
+            {mutation.isPending ?
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                {isEditMode ? "Updating..." : "Submitting..."}
+              </>
             : isEditMode ?
-              "Update CV"
-              : "Submit CV"}
-        </Button>
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Update CV
+              </>
+            : <>
+                <FilePlus className="mr-2 h-4 w-4" />
+                Submit CV
+              </>
+            }
+          </Button>
+        </div>
       </div>
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
         <Pallet />
         <Canvas />
       </div>
+
+      <AtsDialog
+        open={isAtsDialogOpen}
+        onOpenChange={setIsAtsDialogOpen}
+        elements={elements}
+        pageProperties={pageProperties}
+        defaultJobDescription={job}
+        initialResult={atsResult}
+        onBeforeAnalyze={commitEdits}
+        onResultChange={setAtsResult}
+      />
 
       <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
         <DialogContent>
@@ -218,12 +328,20 @@ const CVBuilderContent = () => {
               </Button>
               <Button type="submit" disabled={mutation.isPending || !name.trim()}>
                 {mutation.isPending ?
-                  isEditMode ?
-                    "Updating..."
-                    : "Submitting..."
-                  : isEditMode ?
-                    "Update"
-                    : "Submit"}
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {isEditMode ? "Updating..." : "Submitting..."}
+                  </>
+                : isEditMode ?
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Update
+                  </>
+                : <>
+                    <FilePlus className="mr-2 h-4 w-4" />
+                    Submit
+                  </>
+                }
               </Button>
             </DialogFooter>
           </form>
