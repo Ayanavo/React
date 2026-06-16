@@ -4,19 +4,41 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NavList } from "@/config/nav";
+import { getSortableMenuOrder, normalizeMenuOrder, SETTINGS_ROUTE } from "@/config/nav-order";
+import { cn } from "@/lib/utils";
 import { fetchPermissions } from "@/shared/services/masterAccess";
-import { ShieldCheckIcon } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { getUserIdFromToken } from "@/shared/utils/auth-token";
+import {
+  DndContext,
+  DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, ShieldCheckIcon } from "lucide-react";
+import React, { useEffect, useMemo, useState } from "react";
 
 type Props = {
   userId: string;
   onClose: () => void;
-  onSave: (userId: string, routes: string[]) => void;
+  onSave: (userId: string, routes: string[], menuOrder: string[]) => void;
 };
 
-const lockedRoutes = new Set(["/profile", "/settings"]);
+type NavListItem = (typeof NavList)[number];
 
-const withLockedRoutes = (routes: Record<string, boolean>) => {
+const baseLockedRoutes = new Set(["/profile", "/settings"]);
+
+const withLockedRoutes = (routes: Record<string, boolean>, lockedRoutes: Set<string>) => {
   const next = { ...routes };
   lockedRoutes.forEach((route) => {
     next[route] = true;
@@ -24,14 +46,82 @@ const withLockedRoutes = (routes: Record<string, boolean>) => {
   return next;
 };
 
+type SortableMenuRowProps = {
+  item: NavListItem;
+  isChecked: boolean;
+  isLocked: boolean;
+  onToggle: (route: string) => void;
+};
+
+const SortableMenuRow = ({ item, isChecked, isLocked, onToggle }: SortableMenuRowProps) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.route });
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+      className={cn(
+        "flex items-center justify-between bg-card px-3 py-2.5 transition-colors",
+        isDragging && "z-10 rounded-lg border border-primary/30 bg-muted/50 shadow-sm",
+        isLocked ? "opacity-75" : "hover:bg-muted/35"
+      )}>
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        <button
+          type="button"
+          className="flex h-8 w-8 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-muted active:cursor-grabbing"
+          aria-label={`Drag to reorder ${item.label}`}
+          {...attributes}
+          {...listeners}>
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground">
+          <IconsComponent icon={item.icon} customClass="h-4 w-4" />
+        </span>
+        <div className="min-w-0">
+          <div className="truncate text-sm font-medium text-foreground">{item.label}</div>
+          <div className="truncate text-xs text-muted-foreground">{item.route}</div>
+        </div>
+      </div>
+      <Checkbox
+        className="ml-3 border-primary/60 shadow-none"
+        checked={isLocked || isChecked}
+        disabled={isLocked}
+        onCheckedChange={() => onToggle(item.route)}
+        aria-label={`Toggle ${item.label} permission`}
+      />
+    </div>
+  );
+};
+
 const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
+  const currentUserId = useMemo(() => getUserIdFromToken(), []);
+  const lockedRoutes = useMemo(() => {
+    const routes = new Set(baseLockedRoutes);
+    if (userId === currentUserId) {
+      routes.add("/master-access");
+    }
+    return routes;
+  }, [userId, currentUserId]);
+
   const [open, setOpen] = useState(true);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [orderedRoutes, setOrderedRoutes] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [lastLoginAt, setLastLoginAt] = useState<string | null>(null);
+
+  const navByRoute = useMemo(() => new Map(NavList.map((item) => [item.route, item])), []);
+  const settingsItem = navByRoute.get(SETTINGS_ROUTE);
   const selectedCount = NavList.filter((item) => checked[item.route]).length;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   useEffect(() => {
     const loadPermissions = async () => {
@@ -39,27 +129,31 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
       try {
         const res = await fetchPermissions(userId);
         const allowed: string[] = res?.permissions?.allowedRoutes || [];
+        const menuOrder = res?.permissions?.menuOrder || [];
         setIsLoggedIn(res?.permissions?.isLoggedIn ?? null);
         setLastLoginAt(res?.permissions?.lastLoginAt ?? null);
         const map: Record<string, boolean> = {};
-        allowed.forEach((r: string) => (map[r] = true));
-        const next = withLockedRoutes(map);
+        allowed.forEach((route: string) => {
+          map[route] = true;
+        });
+        const next = withLockedRoutes(map, lockedRoutes);
         setChecked(next);
-        setSelectAll(NavList.every((n) => next[n.route]));
+        setOrderedRoutes(getSortableMenuOrder(menuOrder));
+        setSelectAll(NavList.every((item) => next[item.route]));
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadPermissions();
-  }, [userId]);
+    void loadPermissions();
+  }, [userId, lockedRoutes]);
 
   const toggle = (route: string) => {
     if (lockedRoutes.has(route)) return;
 
-    setChecked((s) => {
-      const next = withLockedRoutes({ ...s, [route]: !s[route] });
-      setSelectAll(NavList.every((n) => next[n.route]));
+    setChecked((current) => {
+      const next = withLockedRoutes({ ...current, [route]: !current[route] }, lockedRoutes);
+      setSelectAll(NavList.every((item) => next[item.route]));
       return next;
     });
   };
@@ -68,21 +162,36 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
     const nextSelect = !selectAll;
     setSelectAll(nextSelect);
     const next: Record<string, boolean> = {};
-    NavList.forEach((n) => (next[n.route] = nextSelect));
-    setChecked(withLockedRoutes(next));
+    NavList.forEach((item) => {
+      next[item.route] = nextSelect;
+    });
+    setChecked(withLockedRoutes(next, lockedRoutes));
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setOrderedRoutes((current) => {
+      const oldIndex = current.indexOf(String(active.id));
+      const newIndex = current.indexOf(String(over.id));
+      if (oldIndex < 0 || newIndex < 0) return current;
+      return arrayMove(current, oldIndex, newIndex);
+    });
   };
 
   const handleSave = () => {
-    const routes = Object.entries(withLockedRoutes(checked))
-      .filter(([, v]) => v)
-      .map(([k]) => k);
-    onSave(userId, routes);
+    const routes = Object.entries(withLockedRoutes(checked, lockedRoutes))
+      .filter(([, value]) => value)
+      .map(([route]) => route);
+    const menuOrder = normalizeMenuOrder([...orderedRoutes, SETTINGS_ROUTE]);
+    onSave(userId, routes, menuOrder);
     setOpen(false);
     onClose();
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+    <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
       <DialogContent className="max-w-xl gap-0 p-0">
         <DialogHeader className="border-b border-border/70 bg-primary/5 px-5 py-4">
           <div className="flex items-center gap-3">
@@ -135,33 +244,49 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
                     <Skeleton className="h-4 w-6 rounded-full" />
                   </div>
                 ))
-              : NavList.map((item) => {
-                  const isChecked = !!checked[item.route];
-                  const isLocked = lockedRoutes.has(item.route);
+              : <>
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={orderedRoutes} strategy={verticalListSortingStrategy}>
+                      {orderedRoutes.map((route) => {
+                        const item = navByRoute.get(route);
+                        if (!item) return null;
 
-                  return (
-                    <label
-                      key={item.route}
-                      className={`flex items-center justify-between bg-card px-3 py-2.5 transition-colors ${isLocked ? "cursor-not-allowed opacity-75" : "cursor-pointer hover:bg-muted/35"}`}>
-                      <div className="flex min-w-0 items-center gap-3">
+                        return (
+                          <SortableMenuRow
+                            key={route}
+                            item={item}
+                            isChecked={!!checked[route]}
+                            isLocked={lockedRoutes.has(route)}
+                            onToggle={toggle}
+                          />
+                        );
+                      })}
+                    </SortableContext>
+                  </DndContext>
+
+                  {settingsItem ?
+                    <div className="flex items-center justify-between bg-card px-3 py-2.5 opacity-75">
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/40">
+                          <GripVertical className="h-4 w-4" />
+                        </span>
                         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground">
-                          <IconsComponent icon={item.icon} customClass="h-4 w-4" />
+                          <IconsComponent icon={settingsItem.icon} customClass="h-4 w-4" />
                         </span>
                         <div className="min-w-0">
-                          <div className="truncate text-sm font-medium text-foreground">{item.label}</div>
-                          <div className="truncate text-xs text-muted-foreground">{item.route}</div>
+                          <div className="truncate text-sm font-medium text-foreground">{settingsItem.label}</div>
+                          <div className="truncate text-xs text-muted-foreground">{settingsItem.route}</div>
                         </div>
                       </div>
                       <Checkbox
                         className="ml-3 border-primary/60 shadow-none"
-                        checked={isLocked || isChecked}
-                        disabled={isLocked}
-                        onCheckedChange={() => toggle(item.route)}
-                        aria-label={`Toggle ${item.label} permission`}
+                        checked
+                        disabled
+                        aria-label={`${settingsItem.label} permission`}
                       />
-                    </label>
-                  );
-                })
+                    </div>
+                  : null}
+                </>
               }
             </div>
           </div>

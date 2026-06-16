@@ -1,10 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { fetchPermissionsByToken } from "@/shared/services/masterAccess";
+import { defaultMenuOrder } from "@/config/nav-order";
 import { connectSocket, disconnectSocket } from "@/shared/services/socket";
 import { AUTH_CHANGED_EVENT, getAuthToken, isAuthenticated } from "@/shared/utils/auth-token";
 
 type PermissionsContextType = {
   permissions: string[];
+  menuOrder: string[];
   isLoading: boolean;
   isInitialized: boolean;
   error: Error | null;
@@ -15,6 +17,7 @@ const PermissionsContext = createContext<PermissionsContextType | undefined>(und
 
 export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [permissions, setPermissions] = useState<string[]>([]);
+  const [menuOrder, setMenuOrder] = useState<string[]>(defaultMenuOrder);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -23,6 +26,7 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
   const refetchPermissions = useCallback(async () => {
     if (!isAuthenticated()) {
       setPermissions([]);
+      setMenuOrder(defaultMenuOrder);
       setError(null);
       setIsLoading(false);
       setIsInitialized(true);
@@ -33,10 +37,12 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
       setIsLoading(true);
       setError(null);
       const result = await fetchPermissionsByToken();
-      setPermissions(result || []);
+      setPermissions(result.allowedRoutes || []);
+      setMenuOrder(result.menuOrder?.length ? result.menuOrder : defaultMenuOrder);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to fetch permissions"));
       setPermissions([]);
+      setMenuOrder(defaultMenuOrder);
     } finally {
       setIsLoading(false);
       setIsInitialized(true);
@@ -63,7 +69,7 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
   }, [permissions]);
 
   return (
-    <PermissionsContext.Provider value={{ permissions, isLoading, isInitialized, error, refetchPermissions }}>
+    <PermissionsContext.Provider value={{ permissions, menuOrder, isLoading, isInitialized, error, refetchPermissions }}>
       {children}
     </PermissionsContext.Provider>
   );

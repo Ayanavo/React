@@ -6,8 +6,29 @@ import { getUserDataByToken } from "../services/userAccess.js";
 
 const requiredRoutes = ["/profile", "/settings"];
 
+const defaultMenuOrder = [
+  "/master-access",
+  "/activities",
+  "/notes",
+  "/tags",
+  "/cv-builder",
+  "/whiteboard",
+  "/summarize",
+  "/profile",
+  "/settings",
+];
+
 const mergeRequiredRoutes = (routes: string[] | undefined | null): string[] =>
   Array.from(new Set([...(routes ?? []), ...requiredRoutes]));
+
+const normalizeMenuOrder = (menuOrder: string[] | undefined | null): string[] => {
+  const validRoutes = new Set(defaultMenuOrder);
+  const settingsRoute = "/settings";
+  const ordered = (menuOrder ?? []).filter((route) => validRoutes.has(route) && route !== settingsRoute);
+  const remaining = defaultMenuOrder.filter((route) => route !== settingsRoute && !ordered.includes(route));
+
+  return [...ordered, ...remaining, settingsRoute];
+};
 
 
 export const getUsers = async (_req: Request, res: Response) => {
@@ -37,13 +58,14 @@ export const getPermissions = async (req: Request, res: Response) => {
     const userId = req.params.userId;
     if (!Types.ObjectId.isValid(userId)) return res.status(400).json({ message: "Invalid userId" });
     const [record, user] = await Promise.all([
-      MasterAccess.findOne({ userId }).select("userId allowedRoutes").lean(),
+      MasterAccess.findOne({ userId }).select("userId allowedRoutes menuOrder").lean(),
       User.findById(userId).select("isLoggedIn lastLoginAt lastLogoutAt totalTimeSpentMs currentSessionStartedAt").lean(),
     ]);
     res.status(200).json({
       permissions: {
         userId,
         allowedRoutes: mergeRequiredRoutes(record?.allowedRoutes),
+        menuOrder: normalizeMenuOrder(record?.menuOrder),
         isLoggedIn: user?.isLoggedIn ?? false,
         lastLoginAt: user?.lastLoginAt ?? null,
         lastLogoutAt: user?.lastLogoutAt ?? null,
@@ -59,15 +81,20 @@ export const getPermissions = async (req: Request, res: Response) => {
 
 export const savePermissions = async (req: Request, res: Response) => {
   try {
-    const { userId, routes } = req.body;
+    const { userId, routes, menuOrder } = req.body;
     if (!userId) return res.status(400).json({ message: "userId required" });
     if (!Types.ObjectId.isValid(userId)) return res.status(400).json({ message: "Invalid userId" });
     const updated = await MasterAccess.findOneAndUpdate(
       { userId },
-      { $set: { allowedRoutes: mergeRequiredRoutes(routes) } },
+      {
+        $set: {
+          allowedRoutes: mergeRequiredRoutes(routes),
+          menuOrder: normalizeMenuOrder(menuOrder),
+        },
+      },
       { upsert: true, new: true }
     )
-      .select("userId allowedRoutes")
+      .select("userId allowedRoutes menuOrder")
       .lean();
     res.status(200).json({ message: "Permissions saved", permissions: updated });
   } catch (error) {
@@ -85,8 +112,11 @@ export const getPermissionsByToken = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Invalid token" });
     }
     const userId = decoded._id;
-    const record = await MasterAccess.findOne({ userId }).select("allowedRoutes").lean();
-    res.status(200).json(mergeRequiredRoutes(record?.allowedRoutes));
+    const record = await MasterAccess.findOne({ userId }).select("allowedRoutes menuOrder").lean();
+    res.status(200).json({
+      allowedRoutes: mergeRequiredRoutes(record?.allowedRoutes),
+      menuOrder: normalizeMenuOrder(record?.menuOrder),
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to fetch permissions" });

@@ -10,11 +10,17 @@ import HeaderComponent from "./header/header";
 export const Layout = () => {
   const exclutionList = NavExclusionList;
   const [isExpanded, setIsExpanded] = useState(false);
-  const { permissions, isLoading } = usePermissions();
+  const { permissions, menuOrder, isLoading } = usePermissions();
 
   const filteredNavList = useMemo(() => {
-    return NavList.filter((item) => (permissions ?? []).includes(item.route));
-  }, [permissions]);
+    const allowed = NavList.filter((item) => (permissions ?? []).includes(item.route));
+    const orderMap = new Map(menuOrder.map((route, index) => [route, index]));
+
+    return [...allowed].sort(
+      (a, b) =>
+        (orderMap.get(a.route) ?? Number.MAX_SAFE_INTEGER) - (orderMap.get(b.route) ?? Number.MAX_SAFE_INTEGER)
+    );
+  }, [permissions, menuOrder]);
 
   return (
     <SidebarProvider
