@@ -20,6 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 import { DownloadIcon, EllipsisIcon, EyeIcon, ListFilterIcon, Trash2Icon } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { atsBadgeClassName, formatAtsBadgeLabel } from "./ats-utils";
 
 type UserRef = string | { firstName?: string; lastName?: string; email?: string };
 
@@ -30,6 +31,7 @@ type CVAccessRecord = {
   tagId: string;
   tagName: string;
   tagColor?: string;
+  atsScore: number | null;
   createdBy: string;
   createdAt: string;
   modifiedBy: string;
@@ -58,6 +60,7 @@ const fetchCVAccessList = async (): Promise<CVAccessRecord[]> => {
       tagId: cv.tag || "",
       tagName: tagRecord?.name ?? cv.tag ?? "-",
       tagColor: tagRecord?.color,
+      atsScore: typeof cv.atsScore === "number" ? cv.atsScore : (cv.atsAnalysis?.score ?? null),
       createdBy: formatUser(cv.createdBy as UserRef),
       createdAt: formatAppDate(cv.createdAt, "-"),
       modifiedBy: formatUser(cv.modifiedBy as UserRef),
@@ -74,6 +77,14 @@ const columns: GridColumnConfig<CVAccessRecord>[] = [
     render: (value) => <span className="font-semibold text-foreground">{value}</span>,
   },
   { key: "job", label: "Job" },
+  {
+    key: "atsScore",
+    label: "ATS Score",
+    render: (value: number | null) =>
+      typeof value === "number" ?
+        <Badge className={atsBadgeClassName(value)}>{formatAtsBadgeLabel(value)}</Badge>
+      : <span className="text-muted-foreground">—</span>,
+  },
   {
     key: "tagName",
     label: "Tag",

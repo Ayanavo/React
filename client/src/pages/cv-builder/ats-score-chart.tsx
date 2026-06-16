@@ -37,7 +37,7 @@ const AtsScoreChart = ({ score, className }: AtsScoreChartProps) => {
   const options = {
     rotation: -90,
     circumference: 360,
-    cutout: "72%",
+    cutout: "82%",
     plugins: {
       legend: { display: false },
       tooltip: { enabled: false },
@@ -45,7 +45,7 @@ const AtsScoreChart = ({ score, className }: AtsScoreChartProps) => {
     maintainAspectRatio: false,
     animation: {
       animateRotate: true,
-      duration: 700,
+      duration: 200,
     },
   };
 

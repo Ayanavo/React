@@ -105,20 +105,24 @@ export const updateCvbuilder = async (req: Request, res: Response) => {
     }
 
     const query = userId ? { _id: id, createdBy: userId } : { _id: id };
-    const cvBuilder = await CvBuilder.findOneAndUpdate(
-      query,
-      {
-        name,
-        job,
-        tag,
-        elements,
-        pageProperties,
-        atsScore: typeof atsScore === "number" ? atsScore : null,
-        atsAnalysis: atsAnalysis && typeof atsAnalysis === "object" ? atsAnalysis : null,
-        modifiedBy: userId,
-      },
-      { new: true }
-    );
+    const updatePayload: Record<string, unknown> = {
+      name,
+      job,
+      tag,
+      elements,
+      pageProperties,
+      modifiedBy: userId,
+    };
+
+    if (atsScore !== undefined) {
+      updatePayload.atsScore = typeof atsScore === "number" ? atsScore : null;
+    }
+
+    if (atsAnalysis !== undefined) {
+      updatePayload.atsAnalysis = atsAnalysis && typeof atsAnalysis === "object" ? atsAnalysis : null;
+    }
+
+    const cvBuilder = await CvBuilder.findOneAndUpdate(query, updatePayload, { new: true });
 
     if (!cvBuilder) {
       return res.status(404).json({ message: "CV builder not found" });

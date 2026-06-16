@@ -26,7 +26,7 @@ import {
 } from "@/shared/services/cvbuilder";
 import { getTags, type TagRecord } from "@/shared/services/tag";
 import { useConfirmDialog } from "@/shared/confirmation";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FilePlus, LayoutTemplate, Loader2, Save, ScanSearch } from "lucide-react";
 import React, { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -63,6 +63,7 @@ const findCVName = (elements: CVElement[]) => {
 const CVBuilderContent = () => {
   const { id } = useParams();
   const isEditMode = Boolean(id);
+  const queryClient = useQueryClient();
   const { confirm } = useConfirmDialog();
   const { elements, pageProperties, commitEdits, loadCVState, setCvName, setOnRequestSave } = useCV();
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
@@ -117,6 +118,35 @@ const CVBuilderContent = () => {
     }
   }, [cvBuilder, loadCVState, setCvName, tags]);
 
+  const buildSubmitPayload = useCallback(
+    (ats: AtsCheckResponse | null): CVSubmitPayload => ({
+      name: name.trim() || cvBuilder?.name || findCVName(elements),
+      job: job.trim() || cvBuilder?.job || "",
+      tag: tag || cvBuilder?.tag || "",
+      elements,
+      pageProperties,
+      atsScore: ats?.score ?? null,
+      atsAnalysis: ats ? toAtsAnalysisRecord(ats) : null,
+    }),
+    [name, job, tag, elements, pageProperties, cvBuilder]
+  );
+
+  const persistAtsScore = useCallback(
+    async (result: AtsCheckResponse, payloadOverride?: CVSubmitPayload) => {
+      if (!id) return;
+
+      try {
+        const payload = payloadOverride ?? buildSubmitPayload(result);
+        await updateCV(id, payload);
+        await queryClient.invalidateQueries({ queryKey: ["cv-builder", id] });
+        await queryClient.invalidateQueries({ queryKey: ["cv-builder-list"] });
+      } catch {
+        // ATS persistence is best-effort; the score remains visible in the editor.
+      }
+    },
+    [id, buildSubmitPayload, queryClient]
+  );
+
   useEffect(() => {
     if (!id || !cvBuilder || isFetching) return;
     if (autoAtsAttemptedRef.current === id) return;
@@ -149,6 +179,15 @@ const CVBuilderContent = () => {
     })
       .then((result) => {
         setAtsResult(result);
+        void persistAtsScore(result, {
+          name: cvBuilder.name || "",
+          job: cvBuilder.job || "",
+          tag: cvBuilder.tag || "",
+          elements: cvBuilder.elements,
+          pageProperties: cvBuilder.pageProperties ?? {},
+          atsScore: result.score,
+          atsAnalysis: toAtsAnalysisRecord(result),
+        });
       })
       .catch(() => {
         // Background ATS check is best-effort on load.
@@ -156,7 +195,7 @@ const CVBuilderContent = () => {
       .finally(() => {
         setIsAtsChecking(false);
       });
-  }, [id, cvBuilder, isFetching]);
+  }, [id, cvBuilder, isFetching, persistAtsScore]);
 
   // Keep a ref to the pending download callback so we can invoke it after mutation succeeds.
   const pendingSaveCallbackRef = useRef<((savedName: string) => void) | null>(null);
@@ -171,6 +210,10 @@ const CVBuilderContent = () => {
         variant: "success",
       });
       setIsSubmitDialogOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ["cv-builder-list"] });
+      if (id) {
+        void queryClient.invalidateQueries({ queryKey: ["cv-builder", id] });
+      }
 
       // If there's a pending download callback, invoke it now that the save is complete
       if (pendingSaveCallbackRef.current) {
@@ -212,15 +255,7 @@ const CVBuilderContent = () => {
     event.preventDefault();
     // Sync the name to the context so Canvas can use it for PDF filename
     setCvName(name.trim());
-    mutation.mutate({
-      name: name.trim(),
-      job: job.trim(),
-      tag,
-      elements,
-      pageProperties,
-      atsScore: atsResult?.score ?? null,
-      atsAnalysis: atsResult ? toAtsAnalysisRecord(atsResult) : null,
-    });
+    mutation.mutate(buildSubmitPayload(atsResult));
   };
 
   const handleTemplateSelect = async (template: CVTemplateRecord) => {
@@ -320,6 +355,7 @@ const CVBuilderContent = () => {
         initialResult={atsResult}
         onBeforeAnalyze={commitEdits}
         onResultChange={setAtsResult}
+        onAnalysisComplete={persistAtsScore}
       />
 
       <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
