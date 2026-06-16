@@ -4,25 +4,27 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NavList } from "@/config/nav";
-import { getSortableMenuOrder, normalizeMenuOrder, SETTINGS_ROUTE } from "@/config/nav-order";
+import { SETTINGS_ROUTE, getSortableMenuOrder, normalizeMenuOrder } from "@/config/nav-order";
 import { cn } from "@/lib/utils";
 import { fetchPermissions } from "@/shared/services/masterAccess";
 import { getUserIdFromToken } from "@/shared/utils/auth-token";
 import {
-  DndContext,
-  DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
+    DndContext,
+    DragEndEvent,
+    DragOverlay,
+    DragStartEvent,
+    KeyboardSensor,
+    PointerSensor,
+    closestCenter,
+    useSensor,
+    useSensors,
 } from "@dnd-kit/core";
 import {
-  SortableContext,
-  arrayMove,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
+    SortableContext,
+    arrayMove,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, ShieldCheckIcon } from "lucide-react";
@@ -53,6 +55,59 @@ type SortableMenuRowProps = {
   onToggle: (route: string) => void;
 };
 
+type MenuRowContentProps = {
+  item: NavListItem;
+  isChecked: boolean;
+  isLocked: boolean;
+  onToggle?: (route: string) => void;
+  isOverlay?: boolean;
+  dragHandleProps?: React.HTMLAttributes<HTMLButtonElement>;
+};
+
+const MenuRowContent = ({
+  item,
+  isChecked,
+  isLocked,
+  onToggle,
+  isOverlay = false,
+  dragHandleProps,
+}: MenuRowContentProps) => (
+  <div
+    className={cn(
+      "flex items-center justify-between bg-card px-3 py-2.5",
+      isOverlay && "rounded-lg border border-primary/30 shadow-md",
+      isLocked && !isOverlay && "opacity-75",
+      !isLocked && !isOverlay && "hover:bg-muted/35"
+    )}>
+    <div className="flex min-w-0 flex-1 items-center gap-2">
+      <button
+        type="button"
+        className={cn(
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground",
+          dragHandleProps ? "cursor-grab hover:bg-muted active:cursor-grabbing" : "cursor-default"
+        )}
+        aria-label={dragHandleProps ? `Drag to reorder ${item.label}` : undefined}
+        {...dragHandleProps}>
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground">
+        <IconsComponent icon={item.icon} customClass="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <div className="truncate text-sm font-medium text-foreground">{item.label}</div>
+        <div className="truncate text-xs text-muted-foreground">{item.route}</div>
+      </div>
+    </div>
+    <Checkbox
+      className="ml-3 border-primary/60 shadow-none"
+      checked={isLocked || isChecked}
+      disabled={isLocked || isOverlay}
+      onCheckedChange={() => onToggle?.(item.route)}
+      aria-label={`Toggle ${item.label} permission`}
+    />
+  </div>
+);
+
 const SortableMenuRow = ({ item, isChecked, isLocked, onToggle }: SortableMenuRowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.route });
 
@@ -62,35 +117,15 @@ const SortableMenuRow = ({ item, isChecked, isLocked, onToggle }: SortableMenuRo
       style={{
         transform: CSS.Transform.toString(transform),
         transition,
+        opacity: isDragging ? 0 : undefined,
       }}
-      className={cn(
-        "flex items-center justify-between bg-card px-3 py-2.5 transition-colors",
-        isDragging && "z-10 rounded-lg border border-primary/30 bg-muted/50 shadow-sm",
-        isLocked ? "opacity-75" : "hover:bg-muted/35"
-      )}>
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <button
-          type="button"
-          className="flex h-8 w-8 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground hover:bg-muted active:cursor-grabbing"
-          aria-label={`Drag to reorder ${item.label}`}
-          {...attributes}
-          {...listeners}>
-          <GripVertical className="h-4 w-4" />
-        </button>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground">
-          <IconsComponent icon={item.icon} customClass="h-4 w-4" />
-        </span>
-        <div className="min-w-0">
-          <div className="truncate text-sm font-medium text-foreground">{item.label}</div>
-          <div className="truncate text-xs text-muted-foreground">{item.route}</div>
-        </div>
-      </div>
-      <Checkbox
-        className="ml-3 border-primary/60 shadow-none"
-        checked={isLocked || isChecked}
-        disabled={isLocked}
-        onCheckedChange={() => onToggle(item.route)}
-        aria-label={`Toggle ${item.label} permission`}
+      className="bg-card">
+      <MenuRowContent
+        item={item}
+        isChecked={isChecked}
+        isLocked={isLocked}
+        onToggle={onToggle}
+        dragHandleProps={{ ...attributes, ...listeners }}
       />
     </div>
   );
@@ -109,6 +144,7 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
   const [open, setOpen] = useState(true);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [orderedRoutes, setOrderedRoutes] = useState<string[]>([]);
+  const [activeRoute, setActiveRoute] = useState<string | null>(null);
   const [selectAll, setSelectAll] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
@@ -168,8 +204,14 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
     setChecked(withLockedRoutes(next, lockedRoutes));
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveRoute(String(event.active.id));
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveRoute(null);
+
     if (!over || active.id === over.id) return;
 
     setOrderedRoutes((current) => {
@@ -179,6 +221,8 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
       return arrayMove(current, oldIndex, newIndex);
     });
   };
+
+  const activeItem = activeRoute ? navByRoute.get(activeRoute) : undefined;
 
   const handleSave = () => {
     const routes = Object.entries(withLockedRoutes(checked, lockedRoutes))
@@ -245,7 +289,12 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
                   </div>
                 ))
               : <>
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDragCancel={() => setActiveRoute(null)}>
                     <SortableContext items={orderedRoutes} strategy={verticalListSortingStrategy}>
                       {orderedRoutes.map((route) => {
                         const item = navByRoute.get(route);
@@ -262,6 +311,17 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
                         );
                       })}
                     </SortableContext>
+
+                    <DragOverlay className="opacity-100" dropAnimation={null}>
+                      {activeItem && activeRoute ?
+                        <MenuRowContent
+                          item={activeItem}
+                          isChecked={!!checked[activeRoute]}
+                          isLocked={lockedRoutes.has(activeRoute)}
+                          isOverlay
+                        />
+                      : null}
+                    </DragOverlay>
                   </DndContext>
 
                   {settingsItem ?
