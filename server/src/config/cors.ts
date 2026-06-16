@@ -5,6 +5,8 @@ const DEFAULT_PROD_FRONTEND = "https://ayanavo.github.io";
 
 const normalizeOrigin = (value: string): string => value.trim().replace(/\/+$/, "");
 
+const LOCAL_ORIGIN_REGEX = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+
 const parseOrigins = (value?: string): string[] =>
   (value ?? "")
     .split(",")
@@ -20,5 +22,11 @@ export const corsAllowlist: string[] = [
 
 export const isOriginAllowed = (origin?: string): boolean => {
   if (!origin) return !IS_PROD;
-  return IS_PROD ? corsAllowlist.includes(normalizeOrigin(origin)) : true;
+
+  const normalized = normalizeOrigin(origin);
+
+  // Always allow local browser/dev-server origins for local testing.
+  if (LOCAL_ORIGIN_REGEX.test(normalized)) return true;
+
+  return IS_PROD ? corsAllowlist.includes(normalized) : true;
 };

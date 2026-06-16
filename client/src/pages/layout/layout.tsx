@@ -17,7 +17,9 @@ export const Layout = () => {
   }, [permissions]);
 
   return (
-    <SidebarProvider defaultOpen={false} className="h-svh overflow-hidden">
+    <SidebarProvider
+      defaultOpen={false}
+      className="app-layout-shell h-svh overflow-hidden [&_.app-sidebar-panel]:overflow-visible">
       <MenuComponent
         NavList={filteredNavList}
         isExpanded={isExpanded}
@@ -25,7 +27,7 @@ export const Layout = () => {
         isLoadingPermissions={isLoading}
       />
 
-      <SidebarInset className="h-svh max-h-svh overflow-hidden">
+      <SidebarInset className="app-layout-shell__main min-h-0 flex-1 overflow-hidden">
         <HeaderComponent NavList={filteredNavList} exclutionList={exclutionList} />
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <Outlet />

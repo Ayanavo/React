@@ -25,8 +25,8 @@
   --chart-4: 45 80% 58%;
   --chart-5: 340 65% 55%;
 
-  --sidebar-background: 30 8% 12%;
-  --sidebar-foreground: 40 20% 92%;
+  --sidebar-background: 30 8% 18%;
+  --sidebar-foreground: 40 33% 98%;
 }
 
 @mixin dark-zinc {
@@ -55,6 +55,6 @@
   --chart-4: 45 75% 62%;
   --chart-5: 340 60% 58%;
 
-  --sidebar-background: 30 7% 7%;
-  --sidebar-foreground: 40 15% 90%;
+  --sidebar-background: 40 20% 92%;
+  --sidebar-foreground: 30 8% 12%;
 }

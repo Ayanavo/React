@@ -20,7 +20,10 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
   const interlinkEnabled = interlink?.enabled;
   const interlinkIconKey = interlink?.icon ?? "dot";
   const InterlinkIcon = INTERLINK_ICON_MAP[interlinkIconKey];
-  const tokens: string[] = Array.isArray(element.content) ? element.content : [""];
+  const tokens: string[] =
+    Array.isArray(element.content) ? element.content
+    : typeof element.content === "string" && element.content.trim() ? [element.content]
+    : [""];
 
   const tokenStyle = element.properties?.tokenStyle ?? {};
 
@@ -29,8 +32,11 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
   };
 
   const chipStyle: CSSProperties = {
-    backgroundColor: tokenStyle.backgroundColor ?? "transparent",
+    backgroundColor: tokenStyle.backgroundColor ?? "#f1f5f9",
     borderRadius: tokenStyle.radius ?? 6,
+    borderColor: tokenStyle.borderColor ?? "#cbd5e1",
+    borderWidth: 1,
+    borderStyle: "solid",
   };
 
   const flexStyle: CSSProperties = {
@@ -88,7 +94,7 @@ const CvTokenRenderer = ({ element, readonly = false }: { element: CVElement; re
         {tokens.map((value, index) => (
           <React.Fragment key={index}>
             {/* TOKEN CHIP */}
-            <div className="relative flex items-center gap-1 px-[4px] py-[2px] border max-w-full" style={chipStyle}>
+            <div className="relative flex items-center gap-1 px-2 py-0.5 max-w-full" style={chipStyle}>
               {readonly ?
                 <span
                   className="whitespace-pre-wrap break-words min-w-0"

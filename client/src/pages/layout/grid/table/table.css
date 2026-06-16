@@ -12,6 +12,10 @@
   background: hsl(var(--card));
 }
 
+.grid-layout {
+  padding-inline-end: 0.75rem;
+}
+
 .grid-table-shell table {
   border-collapse: separate;
   border-spacing: 0;

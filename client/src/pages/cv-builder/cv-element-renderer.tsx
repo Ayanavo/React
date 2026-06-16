@@ -23,7 +23,7 @@ const CVElementRenderer = ({
 }) => {
   const {
     updateElement,
-    selectElement,
+    selectHeaderByElementId,
     selectedElementId,
     selectedHeaderId,
     selectedSectionId,
@@ -33,6 +33,7 @@ const CVElementRenderer = ({
     removeHeader,
     showSectionDividers,
     pageProperties,
+    locationDropdownElementId,
   } = useCV();
   const headerRef = useRef<HTMLDivElement>(null);
   const isSelected = selectedElementId === element.id || selectedHeaderId === element.id;
@@ -105,6 +106,7 @@ const CVElementRenderer = ({
   // ---------- HEADER ----------
   if (element.type === "header") {
     const headerStyle = element.properties?.headerStyle;
+    const isHeaderSelected = selectedHeaderId === element.id;
 
     return (
       <div
@@ -117,7 +119,7 @@ const CVElementRenderer = ({
             textAlign: headerStyle?.textAlign ?? "start",
           }}
           className="relative">
-          {!readonly && isSelected && (
+          {!readonly && isHeaderSelected && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -138,9 +140,10 @@ const CVElementRenderer = ({
               contentEditable={!readonly}
               suppressContentEditableWarning
               data-placeholder="Section Header"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 if (!readonly) {
-                  selectElement(element.id);
+                  selectHeaderByElementId(element.id);
                 }
               }}
               onBlur={() => {
@@ -168,7 +171,7 @@ const CVElementRenderer = ({
               className={`
             cursor-text outline-none whitespace-pre-wrap px-1 transition rounded-sm
             empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground
-            ${isSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
+            ${isHeaderSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
           `}
               style={{
                 color: headerStyle?.color ?? "inherit",
@@ -198,8 +201,13 @@ const CVElementRenderer = ({
 
   // ---------- BLOCK ----------
   if (element.type === "block") {
+    const containsOpenLocationDropdown =
+      Boolean(locationDropdownElementId) &&
+      (element.children?.some((child) => child.id === locationDropdownElementId) ?? false);
+
     return (
-      <div className={`relative h-full p-4 ${selectedBlockId === element.id ? "bg-zinc-50" : ""}`}>
+      <div
+        className={`relative h-full min-h-0 p-4 ${containsOpenLocationDropdown ? "overflow-visible" : "overflow-y-auto"} ${selectedBlockId === element.id ? "bg-zinc-50" : ""}`}>
         {!readonly && selectedBlockId === element.id && (blockCount ?? 0) > 1 && (
           <TooltipProvider>
             <Tooltip>

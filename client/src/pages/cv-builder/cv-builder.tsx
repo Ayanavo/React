@@ -22,17 +22,22 @@ import {
   updateCV,
   type AtsCheckResponse,
   type CVSubmitPayload,
+  type CVTemplateRecord,
 } from "@/shared/services/cvbuilder";
 import { getTags, type TagRecord } from "@/shared/services/tag";
+import { useConfirmDialog } from "@/shared/confirmation";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { FilePlus, Loader2, Save, ScanSearch } from "lucide-react";
+import { FilePlus, LayoutTemplate, Loader2, Save, ScanSearch } from "lucide-react";
 import React, { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import Canvas from "../cv-builder/canvas";
+import { CvCanvasOverlayProvider } from "./cv-canvas-overlay";
 import Pallet from "../cv-builder/pallet";
 import AtsDialog from "./ats-dialog";
+import CvTemplateDialog from "./cv-template-dialog";
 import { atsBadgeClassName, atsRecordToResponse, formatAtsBadgeLabel, toAtsAnalysisRecord } from "./ats-utils";
 import { extractCVContent } from "./cv-extractor";
+import { hasMeaningfulCvContent, regenerateElementIds } from "./cv-template-utils";
 
 type CVTag = string;
 
@@ -58,9 +63,11 @@ const findCVName = (elements: CVElement[]) => {
 const CVBuilderContent = () => {
   const { id } = useParams();
   const isEditMode = Boolean(id);
+  const { confirm } = useConfirmDialog();
   const { elements, pageProperties, commitEdits, loadCVState, setCvName, setOnRequestSave } = useCV();
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isAtsDialogOpen, setIsAtsDialogOpen] = useState(false);
+  const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [job, setJob] = useState("");
   const [tag, setTag] = useState<CVTag>("");
@@ -195,9 +202,9 @@ const CVBuilderContent = () => {
     [commitEdits, elements, tags]
   );
 
-  // Register the openSubmitDialog as the onRequestSave callback so Canvas can trigger it
+  // Register openSubmitDialog so Canvas can trigger save-before-download.
   useEffect(() => {
-    setOnRequestSave(() => openSubmitDialog);
+    setOnRequestSave(openSubmitDialog);
     return () => setOnRequestSave(null);
   }, [openSubmitDialog, setOnRequestSave]);
 
@@ -216,12 +223,49 @@ const CVBuilderContent = () => {
     });
   };
 
+  const handleTemplateSelect = async (template: CVTemplateRecord) => {
+    commitEdits();
+
+    if (hasMeaningfulCvContent(elements)) {
+      const accepted = await confirm({
+        title: "Replace CV content?",
+        message: "Applying a template will replace your current canvas content. This cannot be undone unless you save first.",
+        confirmText: "Apply template",
+        cancelText: "Cancel",
+      });
+
+      if (!accepted) return;
+    }
+
+    const nextName = `${template.name} CV`;
+    loadCVState(regenerateElementIds(template.elements), template.pageProperties);
+    setName(nextName);
+    setCvName(nextName);
+    setAtsResult(null);
+    setIsTemplateDialogOpen(false);
+
+    showToast({
+      title: "Template applied",
+      description: `${template.name} layout loaded onto the canvas.`,
+      variant: "success",
+    });
+  };
+
   return (
     <div className="flex h-[90vh] flex-col overflow-hidden bg-background">
       <div className="flex items-center justify-between px-6 py-3">
         <BreadcrumbInbuild isEditMode={isEditMode} />
 
         <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setIsTemplateDialogOpen(true)}
+            disabled={isFetching}
+            className="gap-2">
+            <LayoutTemplate className="h-4 w-4" />
+            Templates
+          </Button>
           <Button
             type="button"
             variant="outline"
@@ -260,6 +304,12 @@ const CVBuilderContent = () => {
         <Pallet />
         <Canvas />
       </div>
+
+      <CvTemplateDialog
+        open={isTemplateDialogOpen}
+        onOpenChange={setIsTemplateDialogOpen}
+        onSelect={handleTemplateSelect}
+      />
 
       <AtsDialog
         open={isAtsDialogOpen}
@@ -354,7 +404,9 @@ const CVBuilderContent = () => {
 const CVBuilder = () => {
   return (
     <CVProvider>
-      <CVBuilderContent />
+      <CvCanvasOverlayProvider>
+        <CVBuilderContent />
+      </CvCanvasOverlayProvider>
     </CVProvider>
   );
 };

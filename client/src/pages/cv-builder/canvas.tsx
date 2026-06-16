@@ -1,4 +1,5 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import showToast from "@/hooks/toast";
 import { useCV } from "@/lib/useCV";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
@@ -15,6 +16,11 @@ const PREVIEW_MAX_SCALE = 3;
 const PREVIEW_ZOOM_STEP = 0.1;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
+
+const containsElementId = (node: { id: string; children?: Array<{ id: string; children?: unknown[] }> }, targetId: string): boolean => {
+  if (node.id === targetId) return true;
+  return node.children?.some((child) => containsElementId(child as typeof node, targetId)) ?? false;
+};
 
 const getSectionHeights = (sections: Array<{ height?: number }>) => {
   if (sections.length === 0) return [];
@@ -48,10 +54,10 @@ const Canvas = () => {
     A4_WIDTH,
     A4_HEIGHT,
     selectedBlockId,
+    locationDropdownElementId,
     selectPage,
     selectSection,
     selectBlock,
-    selectHeader,
     removeSection,
     removePage,
     clearSelection,
@@ -81,7 +87,15 @@ const Canvas = () => {
   const previewScaleRef = useRef(previewScale);
   const panOffsetRef = useRef(panOffset);
 
-  const pageRef = useRef<HTMLDivElement>(null);
+  const pageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const setPageRef = useCallback((pageId: string, node: HTMLDivElement | null) => {
+    if (node) {
+      pageRefs.current.set(pageId, node);
+    } else {
+      pageRefs.current.delete(pageId);
+    }
+  }, []);
 
   useEffect(() => {
     previewScaleRef.current = previewScale;
@@ -105,27 +119,83 @@ const Canvas = () => {
     return Math.min(maxW / A4_WIDTH, maxH / A4_HEIGHT, 1);
   }, [A4_WIDTH, A4_HEIGHT]);
 
-  const openPreview = useCallback(async () => {
+  const captureAllPages = useCallback(async () => {
     await prepareCanvasCapture();
-    if (!pageRef.current) return;
 
-    // Read the element's actual rendered dimensions to avoid squeeze
-    const rect = pageRef.current.getBoundingClientRect();
-    const captureWidth = rect.width;
-    const captureHeight = rect.height;
+    const captures: Array<{ canvas: HTMLCanvasElement; width: number; height: number }> = [];
 
-    const canvas = await html2canvas(pageRef.current, {
-      scale: 3,
-      useCORS: true,
-      width: captureWidth,
-      height: captureHeight,
-    });
+    for (const page of elements) {
+      const pageEl = pageRefs.current.get(page.id);
+      if (!pageEl) continue;
 
-    setPreviewDimensions({ width: captureWidth, height: captureHeight });
-    setPreviewImage(canvas.toDataURL("image/png"));
-    setPanOffset({ x: 0, y: 0 });
-    setPreviewScale(getScaleToFit());
-  }, [getScaleToFit, prepareCanvasCapture]);
+      const rect = pageEl.getBoundingClientRect();
+      const captureWidth = rect.width;
+      const captureHeight = rect.height;
+
+      if (captureWidth <= 0 || captureHeight <= 0) continue;
+
+      const canvas = await html2canvas(pageEl, {
+        scale: 2,
+        useCORS: true,
+        width: captureWidth,
+        height: captureHeight,
+        onclone: (clonedDoc) => {
+          clonedDoc.querySelectorAll("[data-cv-capture-ignore]").forEach((node) => node.remove());
+        },
+      });
+
+      captures.push({ canvas, width: captureWidth, height: captureHeight });
+    }
+
+    return captures;
+  }, [elements, prepareCanvasCapture]);
+
+  const openPreview = useCallback(async () => {
+    try {
+      const captures = await captureAllPages();
+      if (captures.length === 0) {
+        showToast({ title: "Preview failed", description: "No CV pages were found to capture.", variant: "error" });
+        return;
+      }
+
+      const maxWidth = Math.max(...captures.map((capture) => capture.canvas.width));
+      const totalHeight = captures.reduce((sum, capture) => sum + capture.canvas.height, 0);
+      const combined = document.createElement("canvas");
+      combined.width = maxWidth;
+      combined.height = totalHeight;
+
+      const ctx = combined.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not create preview canvas");
+      }
+
+      let offsetY = 0;
+      for (const capture of captures) {
+        ctx.drawImage(capture.canvas, 0, offsetY);
+        offsetY += capture.canvas.height;
+      }
+
+      const displayWidth = maxWidth / 2;
+      const displayHeight = totalHeight / 2;
+      const fitScale = Math.min(
+        (window.innerWidth * 0.85) / displayWidth,
+        (window.innerHeight * 0.85) / displayHeight,
+        1,
+      );
+
+      setPreviewDimensions({ width: displayWidth, height: displayHeight });
+      setPreviewImage(combined.toDataURL("image/png"));
+      setPanOffset({ x: 0, y: 0 });
+      setPreviewScale(fitScale);
+    } catch (error) {
+      console.error("CV preview failed:", error);
+      showToast({
+        title: "Preview failed",
+        description: error instanceof Error ? error.message : "Unable to generate preview",
+        variant: "error",
+      });
+    }
+  }, [captureAllPages]);
 
   const closePreview = useCallback(() => {
     setPreviewImage(null);
@@ -210,42 +280,57 @@ const Canvas = () => {
 
   const generatePDF = useCallback(
     async (fileName: string) => {
-      await prepareCanvasCapture();
-      if (!pageRef.current) return;
+      try {
+        const captures = await captureAllPages();
+        if (captures.length === 0) {
+          showToast({ title: "Download failed", description: "No CV pages were found to export.", variant: "error" });
+          return;
+        }
 
-      const rect = pageRef.current.getBoundingClientRect();
-      const captureWidth = rect.width;
-      const captureHeight = rect.height;
+        let pdf: jsPDF | null = null;
 
-      const canvas = await html2canvas(pageRef.current, {
-        scale: 3,
-        useCORS: true,
-        width: captureWidth,
-        height: captureHeight,
-      });
+        for (const capture of captures) {
+          const imgData = capture.canvas.toDataURL("image/png");
 
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "px", [captureWidth, captureHeight]);
+          if (!pdf) {
+            pdf = new jsPDF("p", "px", [capture.width, capture.height]);
+          } else {
+            pdf.addPage([capture.width, capture.height]);
+          }
 
-      pdf.addImage(imgData, "PNG", 0, 0, captureWidth, captureHeight);
-      pdf.save(`${fileName}.pdf`);
+          pdf.addImage(imgData, "PNG", 0, 0, capture.width, capture.height);
+        }
+
+        pdf?.save(`${fileName}.pdf`);
+      } catch (error) {
+        console.error("CV download failed:", error);
+        showToast({
+          title: "Download failed",
+          description: error instanceof Error ? error.message : "Unable to generate PDF",
+          variant: "error",
+        });
+      }
     },
-    [prepareCanvasCapture]
+    [captureAllPages],
   );
 
   const downloadPDF = useCallback(async () => {
-    // A new CV needs to be saved first so the dialog name can be used as the PDF filename.
     if (!id) {
       if (onRequestSave) {
         onRequestSave((savedName) => {
           const fileName = savedName || `CV_${new Date().toISOString().slice(0, 10)}`;
           void generatePDF(fileName);
         });
+      } else {
+        showToast({
+          title: "Save required",
+          description: "Save the CV first so it can be downloaded as a PDF.",
+          variant: "warning",
+        });
       }
       return;
     }
 
-    // Use the CV name from context, fallback to date-based name
     const fileName = cvName || `CV_${new Date().toISOString().slice(0, 10)}`;
     await generatePDF(fileName);
   }, [id, cvName, onRequestSave, generatePDF]);
@@ -370,7 +455,25 @@ const Canvas = () => {
   };
 
   return (
-    <aside className="flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
+    <aside className="relative flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
+      <div className="absolute top-4 right-4 z-30 flex flex-col gap-2" data-cv-capture-ignore>
+        <button
+          type="button"
+          onClick={() => void openPreview()}
+          className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition"
+          title="Preview CV">
+          <Eye className="h-4 w-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => void downloadPDF()}
+          className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition"
+          title="Download PDF">
+          <Download className="h-4 w-4" />
+        </button>
+      </div>
+
       <div
         className="flex flex-col items-center justify-center gap-10 p-4 w-full relative"
         style={{ pointerEvents: isDragging ? "none" : "auto", marginBlock: `${elements.length * 580}px` }} // Disable pointer events when dragging
@@ -385,6 +488,7 @@ const Canvas = () => {
               key={page.id}
               className="relative"
               style={{
+                zIndex: selectedPageId === page.id ? 40 : 1,
                 pointerEvents: isDragging && draggingIndex !== pageIndex ? "none" : "auto", // Disable pointer events for other pages when dragging
               }}>
               {selectedPageId === page.id && (
@@ -407,7 +511,8 @@ const Canvas = () => {
               )}
               <div className="flex w-full h-full">
                 <div
-                  ref={pageRef}
+                  ref={(node) => setPageRef(page.id, node)}
+                  data-cv-page={page.id}
                   onClick={(e) => e.stopPropagation()}
                   className="bg-background relative"
                   style={{
@@ -419,28 +524,6 @@ const Canvas = () => {
                     color: pageProperties.color ?? "#000000",
                     boxShadow: "rgba(0, 0, 0, 0.15) 0px 15px 25px, rgba(0, 0, 0, 0.05) 0px 5px 10px",
                   }}>
-                  {/* Floating actions (top-left of sheet) */}
-                  <div
-                    className="fixed flex flex-col gap-2 z-20"
-                    style={{
-                      right: `calc(50% + ${A4_WIDTH / 2}px + 16px)`,
-                      top: "16px",
-                    }}>
-                    <button
-                      onClick={openPreview}
-                      className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition"
-                      title="Preview CV">
-                      <Eye className="h-4 w-4" />
-                    </button>
-
-                    <button
-                      onClick={downloadPDF}
-                      className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition"
-                      title="Download PDF">
-                      <Download className="h-4 w-4" />
-                    </button>
-                  </div>
-
                   <div className="relative flex flex-col w-full h-full">
                     {showPagination && (
                       <div
@@ -461,11 +544,14 @@ const Canvas = () => {
 
                       const isSectionSelected = selectedSectionId === section.id;
                       const isLastSection = sectionIndex === sections.length - 1;
+                      const hasOpenLocationDropdown =
+                        Boolean(locationDropdownElementId) && containsElementId(section, locationDropdownElementId!);
+                      const allowSectionOverflow = (isSectionSelected && !isLastSection) || hasOpenLocationDropdown;
 
                       return (
                         <div
                           key={section.id}
-                          className={`relative flex flex-col w-full overflow-visible  ${isSectionSelected ? "ring-2 ring-ring" : ""} ${sectionIndex > 0 ? "my-[1px]" : "mb-[1px]"} ${!isLastSection ? "mb-1" : ""}`}
+                          className={`relative flex flex-col w-full min-h-0 flex-shrink-0 ${allowSectionOverflow ? "overflow-visible" : "overflow-hidden"} ${isSectionSelected ? "ring-2 ring-ring" : ""} ${sectionIndex > 0 ? "my-[1px]" : "mb-[1px]"} ${!isLastSection ? "mb-1" : ""}`}
                           style={{ height: `${sectionHeights[sectionIndex]}%` }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -490,11 +576,7 @@ const Canvas = () => {
                           )}
                           {/* ✅ HEADER (FULL WIDTH) */}
                           {headerChild && (
-                            <div
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                selectHeader(page.id, section.id, headerChild.id);
-                              }}>
+                            <div onClick={(e) => e.stopPropagation()}>
                               <CVElementRenderer element={headerChild} />
                             </div>
                           )}
@@ -503,7 +585,7 @@ const Canvas = () => {
                             const blockWidths = getBlockWidths(blockChildren);
                             return (
                               <div
-                                className="flex w-full flex-1"
+                                className={`flex w-full min-h-0 flex-1 items-stretch ${hasOpenLocationDropdown ? "overflow-visible" : "overflow-hidden"}`}
                                 style={{
                                   pointerEvents:
                                     isBlockDragging && blockDraggingSectionId !== section.id ? "none" : "auto",
@@ -515,7 +597,7 @@ const Canvas = () => {
                                   return (
                                     <React.Fragment key={block.id}>
                                       <div
-                                        className={`relative ${isBlockSelected ? "bg-zinc-50" : ""}`}
+                                        className={`relative ${isBlockSelected ? "bg-muted/40" : ""}`}
                                         style={{ width: `${blockWidths[blockIndex]}%` }}
                                         onClick={(e) => {
                                           e.stopPropagation();
@@ -528,13 +610,15 @@ const Canvas = () => {
                                       {/* ✅ VERTICAL BLOCK JOCKEY */}
                                       {!isLastBlock && isSectionSelected && (
                                         <div
-                                          className="group relative z-20 w-3 cursor-ew-resize flex-shrink-0"
+                                          className="group relative z-20 w-3 flex-shrink-0 cursor-ew-resize self-stretch"
                                           style={{ marginInline: "-6px" }}
                                           onMouseDown={(e) =>
                                             handleBlockResizeStart(section.id, blockChildren, blockIndex, e)
                                           }>
-                                          <div className="absolute inset-y-4 left-1/2 -translate-x-1/2 w-px bg-zinc-300 group-hover:bg-zinc-400 transition-colors" />
-                                          <GripVertical className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4 w-4 bg-muted shadow rounded-sm" />
+                                          <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-border transition-colors group-hover:bg-muted-foreground/60" />
+                                          <div className="absolute left-1/2 top-1/2 flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2px] border border-border bg-card text-muted-foreground shadow-sm transition-colors group-hover:border-primary/30 group-hover:bg-muted group-hover:text-foreground">
+                                            <GripVertical className="h-3 w-3" />
+                                          </div>
                                         </div>
                                       )}
                                     </React.Fragment>
@@ -556,12 +640,15 @@ const Canvas = () => {
                             />
                           )}
 
-                          {/* ✅ SECTION DIVIDER */}
-                          {isSectionSelected && (
+                          {/* ✅ SECTION RESIZE JOCKEY */}
+                          {isSectionSelected && !isLastSection && (
                             <div
-                              className="group absolute bottom-0 left-4 right-4 z-20 h-3 translate-y-1/2 cursor-ns-resize"
+                              className="group absolute inset-x-0 bottom-0 z-30 h-3 translate-y-1/2 cursor-ns-resize"
                               onMouseDown={(e) => handleSectionResizeStart(pageIndex, sections, sectionIndex, e)}>
-                              <GripHorizontal className="absolute right-0 top-1/2 h-4 w-4 -translate-y-1/2 bg-muted shadow" />
+                              <div className="pointer-events-none absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-border transition-colors group-hover:bg-muted-foreground/60" />
+                              <div className="absolute right-4 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-[2px] border border-border bg-card text-muted-foreground shadow-sm transition-colors group-hover:border-primary/30 group-hover:bg-muted group-hover:text-foreground">
+                                <GripHorizontal className="h-3 w-3" />
+                              </div>
                             </div>
                           )}
                         </div>

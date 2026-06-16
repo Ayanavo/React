@@ -1,16 +1,5 @@
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar";
+import { AppLogo } from "@/components/app-logo";
+import { Sidebar, useSidebar } from "@/components/ui/sidebar";
 import showToast from "@/hooks/toast";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
@@ -19,12 +8,14 @@ import { logoutAPI } from "@/shared/services/auth";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import IconsComponent from "../../common/icons";
-import { Skeleton } from "@/components/ui/skeleton";
+import "./menu.scss";
 
 type NavItem = { label: string; icon: string; route: string };
+
+const BOTTOM_ROUTES = new Set(["/profile"]);
+
 function menu({
   NavList,
-  isExpanded,
   isLoadingPermissions = false,
 }: {
   NavList: Array<NavItem>;
@@ -34,9 +25,13 @@ function menu({
 }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const { state } = usePersistedState<"left" | "right">("vite-ui-sidebar", "left");
+  const { state: sidebarSide } = usePersistedState<"left" | "right">("vite-ui-sidebar", "left");
   const { confirm } = useConfirmDialog();
-  const { isMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile, state: sidebarState, toggleSidebar } = useSidebar();
+  const showLabels = isMobile || sidebarState === "expanded";
+
+  const mainNav = NavList.filter((item) => !BOTTOM_ROUTES.has(item.route));
+  const bottomNav = NavList.filter((item) => BOTTOM_ROUTES.has(item.route));
 
   const closeMobileMenu = () => {
     if (isMobile) setOpenMobile(false);
@@ -76,66 +71,91 @@ function menu({
     });
   };
 
+  const renderNavItem = ({ label, icon, route }: NavItem) => {
+    const isActive = isRouteActive(route);
+
+    return (
+      <li key={route} className={cn("app-sidebar__item", isActive && "app-sidebar__item--active")}>
+        <button
+          type="button"
+          className="app-sidebar__link"
+          title={showLabels ? undefined : label}
+          aria-current={isActive ? "page" : undefined}
+          onClick={() => handleNavigate(route)}>
+          <IconsComponent customClass="app-sidebar__icon" icon={icon} />
+          {showLabels && <span>{label}</span>}
+        </button>
+      </li>
+    );
+  };
+
+  const sidebarBody = (
+    <div className={cn("app-sidebar", sidebarState === "collapsed" && !isMobile && "app-sidebar--collapsed")}>
+      <button
+        type="button"
+        className="app-sidebar__brand"
+        aria-label={sidebarState === "expanded" ? "Collapse sidebar" : "Expand sidebar"}
+        onClick={toggleSidebar}>
+        <span className="app-sidebar__brand-mark">
+          <AppLogo />
+        </span>
+        {showLabels && <span className="app-sidebar__brand-text">Epsilon</span>}
+      </button>
+
+      <ul className="app-sidebar__nav">
+        {isLoadingPermissions ?
+          Array.from({ length: 7 }).map((_, index) => (
+            <li key={index} className="app-sidebar__skeleton">
+              <div className="app-sidebar__skeleton-icon" />
+              {showLabels && <div className="app-sidebar__skeleton-bar" />}
+            </li>
+          ))
+        : <>
+            {mainNav.map(renderNavItem)}
+            {!isLoadingPermissions &&
+              bottomNav.map((item, index) => (
+                <li
+                  key={item.route}
+                  className={cn(
+                    "app-sidebar__item",
+                    isRouteActive(item.route) && "app-sidebar__item--active",
+                    index === 0 && "app-sidebar__item--push-bottom",
+                  )}>
+                  <button
+                    type="button"
+                    className="app-sidebar__link"
+                    title={showLabels ? undefined : item.label}
+                    aria-current={isRouteActive(item.route) ? "page" : undefined}
+                    onClick={() => handleNavigate(item.route)}>
+                    <IconsComponent customClass="app-sidebar__icon" icon={item.icon} />
+                    {showLabels && <span>{item.label}</span>}
+                  </button>
+                </li>
+              ))}
+            {!isLoadingPermissions && (
+              <li className="app-sidebar__item">
+                <button
+                  type="button"
+                  className="app-sidebar__link app-sidebar__link--danger"
+                  onClick={handleConfirmation}>
+                  <IconsComponent customClass="app-sidebar__icon" icon="LogOutIcon" />
+                  {showLabels && <span>Sign Out</span>}
+                </button>
+              </li>
+            )}
+          </>
+        }
+      </ul>
+    </div>
+  );
+
   return (
-    <Sidebar collapsible={isMobile ? "offcanvas" : "icon"} variant="floating" side={state}>
-      <SidebarHeader>
-        <SidebarMenu className={cn(!isMobile && "items-end")}>
-          <SidebarMenuItem>
-            {isMobile ?
-              <div className="flex w-full items-center justify-between gap-2 px-1 py-1">
-                <SidebarGroupLabel className="px-0 text-sm font-semibold">Menu</SidebarGroupLabel>
-                <SidebarTrigger className="hover:text-primary" />
-              </div>
-            : <div className="flex w-full justify-end p-2">
-                <SidebarTrigger className="hover:text-primary" />
-              </div>
-            }
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarMenu>
-            {isLoadingPermissions ?
-              Array.from({ length: 7 }).map((_, index) => (
-                <SidebarMenuItem key={index}>
-                  <div className="flex items-center gap-2 px-2 py-2">
-                    <Skeleton className="h-6 w-6 rounded-md" />
-                    {(!isExpanded && !isMobile) ? null : <Skeleton className="h-4 flex-1 max-w-[120px]" />}
-                  </div>
-                </SidebarMenuItem>
-              ))
-            : NavList.map(({ label, icon, route }: NavItem) => {
-                const isActive = isRouteActive(route);
-
-                return (
-                  <SidebarMenuItem key={route}>
-                    <SidebarMenuButton
-                      className={cn("text-secondary hover:text-primary", isActive && "text-primary")}
-                      isActive={isActive}
-                      tooltip={isMobile ? undefined : label}
-                      onClick={() => handleNavigate(route)}>
-                      <IconsComponent customClass="h-6 w-6" icon={icon} />
-                      <span>{label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })
-            }
-          </SidebarMenu>
-        </SidebarGroup>
-      </SidebarContent>
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton className="text-secondary hover:text-primary" onClick={handleConfirmation}>
-              <IconsComponent customClass="h-6 w-6" icon="LogOutIcon" />
-              <span>Sign Out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+    <Sidebar
+      collapsible={isMobile ? "offcanvas" : "icon"}
+      variant="sidebar"
+      side={sidebarSide}
+      className="app-sidebar-panel z-40">
+      {sidebarBody}
     </Sidebar>
   );
 }

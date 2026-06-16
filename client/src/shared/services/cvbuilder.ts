@@ -31,6 +31,15 @@ export type CVBuilderRecord = CVSubmitPayload & {
   updatedAt: string;
 };
 
+export type CVTemplateRecord = {
+  id: string;
+  name: string;
+  description: string;
+  category?: string;
+  elements: CVElement[];
+  pageProperties: PageProperties;
+};
+
 export type AddressSuggestion = {
   formatted?: string;
   address_line1?: string;
@@ -74,6 +83,16 @@ export const fetchAddressSuggestions = async (text: string) => {
     params: { text },
   });
   return response.data;
+};
+
+export const fetchCVTemplates = async (): Promise<CVTemplateRecord[]> => {
+  const response = await axiosInstance.get<{ templates: CVTemplateRecord[] }>(`${apiUrl}cv-builder/templates`);
+  return response.data.templates;
+};
+
+export const fetchCVTemplateById = async (templateId: string): Promise<CVTemplateRecord> => {
+  const response = await axiosInstance.get<{ template: CVTemplateRecord }>(`${apiUrl}cv-builder/templates/${templateId}`);
+  return response.data.template;
 };
 
 export type AtsCheckPayload = {

@@ -111,6 +111,7 @@ interface CVContextType {
   selectBlock: (pageId: string, sectionId: string, blockId: string) => void;
   selectElement: (elementId: string) => void;
   selectHeader: (pageId: string, sectionId: string, headerId: string) => void;
+  selectHeaderByElementId: (headerId: string) => void;
   addSection: (pageId: string) => void;
   removeSection: (sectionId?: string) => void;
   addBlock: (pageId: string, sectionId: string) => void;
@@ -145,6 +146,8 @@ interface CVContextType {
   MAX_BLOCKS_PER_SECTION: number;
   A4_WIDTH: number;
   A4_HEIGHT: number;
+  locationDropdownElementId: string | null;
+  setLocationDropdownElementId: (id: string | null) => void;
 }
 
 const CVContext = createContext<CVContextType | undefined>(undefined);
@@ -235,6 +238,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null);
   const [selectedHeaderId, setSelectedHeaderId] = useState<string | null>(null);
   const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [locationDropdownElementId, setLocationDropdownElementId] = useState<string | null>(null);
   const [showSectionDividers, setShowSectionDividers] = useState(false);
   const [showPagination, setShowPagination] = useState(false);
   const [paginationLocation, setPaginationLocation] = useState<PaginationLocation>("bottom-right");
@@ -275,6 +279,9 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   };
 
   const selectSection = (pageId: string, sectionId: string) => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setSelectedPageId(pageId);
     setSelectedSectionId(sectionId);
     setSelectedHeaderId(null);
@@ -283,6 +290,9 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   };
 
   const selectBlock = (pageId: string, sectionId: string, blockId: string) => {
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
     setSelectedPageId(pageId);
     setSelectedSectionId(sectionId);
     setSelectedBlockId(blockId);
@@ -292,6 +302,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
   const selectElement = (elementId: string) => {
     setSelectedElementId(elementId);
+    setSelectedHeaderId(null);
   };
 
   const selectHeader = (pageId: string, sectionId: string, headerId: string) => {
@@ -300,6 +311,22 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     setSelectedHeaderId(headerId);
     setSelectedBlockId(null);
     setSelectedElementId(null);
+  };
+
+  const selectHeaderByElementId = (headerId: string) => {
+    for (const page of elements) {
+      if (page.type !== "page") continue;
+
+      for (const section of page.children ?? []) {
+        if (section.type !== "section") continue;
+
+        const header = section.children?.find((child) => child.id === headerId && child.type === "header");
+        if (header) {
+          selectHeader(page.id, section.id, headerId);
+          return;
+        }
+      }
+    }
   };
 
   /* -------- DERIVED -------- */
@@ -583,6 +610,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     setSelectedBlockId(null);
     setSelectedHeaderId(null);
     setSelectedElementId(null);
+    setLocationDropdownElementId(null);
   }, []);
 
   const clearSelection = () => {
@@ -591,6 +619,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     setSelectedBlockId(null);
     setSelectedHeaderId(null);
     setSelectedElementId(null);
+    setLocationDropdownElementId(null);
   };
 
   return (
@@ -610,6 +639,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         selectBlock,
         selectElement,
         selectHeader,
+        selectHeaderByElementId,
 
         addSection,
         removeSection,
@@ -650,6 +680,8 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
         MAX_BLOCKS_PER_SECTION,
         A4_WIDTH,
         A4_HEIGHT,
+        locationDropdownElementId,
+        setLocationDropdownElementId,
       }}>
       {children}
     </CVContext.Provider>

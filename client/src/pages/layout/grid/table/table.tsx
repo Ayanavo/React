@@ -295,7 +295,7 @@ function table() {
   return (
     <>
       {SidebarPanel}
-      <div className="flex flex-col h-[90vh] overflow-hidden">
+      <div className="grid-layout flex flex-col h-[90vh] overflow-hidden">
         <div className="flex-none p-3 flex justify-between items-center space-x-2">
           <div className=" relative">
             <Input
