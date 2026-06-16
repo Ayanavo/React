@@ -1,14 +1,14 @@
-import { type CVElement, useCV } from "@/lib/useCV";
-import React, { useRef } from "react";
-import { Trash } from "lucide-react";
-import CvListRenderer from "./cv-list-renderer";
-import CvTextRenderer from "./cv-text-renderer";
-import CvDateRenderer from "./cv-date-renderer";
-import CvTokenRenderer from "./cv-token-renderer";
-import CvImageRenderer from "./cv-image-renderer";
-import CvIconRenderer from "./cv-icon-renderer";
-import CvLocationRenderer from "./cv-location-renderer";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { type CVElement, useCV } from "@/lib/useCV";
+import { Trash } from "lucide-react";
+import React, { useRef } from "react";
+import CvDateRenderer from "./cv-date-renderer";
+import CvIconRenderer from "./cv-icon-renderer";
+import CvImageRenderer from "./cv-image-renderer";
+import CvListRenderer from "./cv-list-renderer";
+import CvLocationRenderer from "./cv-location-renderer";
+import CvTextRenderer from "./cv-text-renderer";
+import CvTokenRenderer from "./cv-token-renderer";
 
 const CVElementRenderer = ({
   element,
@@ -24,7 +24,6 @@ const CVElementRenderer = ({
   const {
     updateElement,
     selectHeaderByElementId,
-    selectedElementId,
     selectedHeaderId,
     selectedSectionId,
     selectedBlockId,
@@ -36,7 +35,7 @@ const CVElementRenderer = ({
     locationDropdownElementId,
   } = useCV();
   const headerRef = useRef<HTMLDivElement>(null);
-  const isSelected = selectedElementId === element.id || selectedHeaderId === element.id;
+  // const isSelected = selectedElementId === element.id || selectedHeaderId === element.id;
 
   // ---------- SECTION ----------
   if (element.type === "section") {
