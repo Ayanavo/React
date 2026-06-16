@@ -1,6 +1,7 @@
 import { DoughnutChart } from "@/components/ui/chart";
 import { FULL_DOUGHNUT_RADIUS, useChartThemeColors } from "@/pages/layout/dashboard/chart-theme";
 import { cn } from "@/lib/utils";
+import React from "react";
 
 type AtsScoreChartProps = {
   score: number;
