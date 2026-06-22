@@ -1,11 +1,16 @@
 ﻿import { hash } from "bcrypt";
+import crypto from "crypto";
 import { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import jwt, { Secret, VerifyErrors } from "jsonwebtoken";
 import admin from "../firebase.js";
-import User from "../models/userModel.js";
+import type { DecodedIdToken } from "firebase-admin/auth";
+import User, { IUser } from "../models/userModel.js";
 import { getUserDataByRefreshToken, getUserDataByToken, getUserIdFromRefreshToken } from "../services/userAccess.js";
 import { emitUserLoginStatus } from "../websockets/socket.js";
+import { assertEmailVerifiedForRegistration, clearVerificationRecord } from "./emailVerificationController.js";
+import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_PATTERN_MESSAGE } from "../utils/passwordValidation.js";
+import { grantDefaultUserAccess } from "../services/userPermissions.js";
 
 const refreshCookieOptions = {
   httpOnly: true,
@@ -38,11 +43,39 @@ const invalidateUserSession = async (userId: string): Promise<void> => {
   });
 };
 
+const issueAuthSession = async (user: IUser, res: Response) => {
+  const loginTime = new Date();
+  user.isLoggedIn = true;
+  user.lastLoginAt = loginTime;
+  user.currentSessionStartedAt = loginTime;
+  await user.save();
+
+  emitUserLoginStatus(String(user._id), true, {
+    lastLoginAt: loginTime.toISOString(),
+    currentSessionStartedAt: loginTime.toISOString(),
+  });
+
+  const accessToken = user.generateJwt();
+  const refreshTokenValue = user.generateRefreshToken();
+
+  res.cookie("refreshToken", refreshTokenValue, refreshCookieOptions);
+
+  return {
+    token: accessToken,
+    message: "Successfully logged in",
+    expiresIn: 1 * 60 * 60,
+  };
+};
+
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
   // Validate input
   await body("email").isEmail().run(req);
-  await body("password").isLength({ min: 6 }).run(req);
+  await body("password")
+    .isLength({ min: PASSWORD_MIN_LENGTH })
+    .matches(PASSWORD_PATTERN)
+    .withMessage(PASSWORD_PATTERN_MESSAGE)
+    .run(req);
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -51,19 +84,47 @@ export const signUp = async (req: Request, res: Response) => {
 
   try {
     const { photoURL, firstName, lastName, title, email, password } = req.body;
+    const normalizedEmail = email.trim().toLowerCase();
 
-    if (!firstName || !lastName || !title || !email || !password) {
+    if (!firstName || !lastName || !normalizedEmail || !password) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const verificationCheck = await assertEmailVerifiedForRegistration(normalizedEmail);
+    if (!verificationCheck.ok) {
+      return res.status(400).json({ message: verificationCheck.message });
+    }
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return res.status(409).json({ message: "Email is already registered" });
     }
 
     const saltRounds = 10;
     const hashedPassword = await hash(password, saltRounds);
 
-    const newUser = new User({ photoURL, firstName, lastName, title, email, ...{ password: hashedPassword } });
+    const newUser = new User({
+      photoURL,
+      firstName,
+      lastName,
+      title: title ?? "",
+      email: normalizedEmail,
+      password: hashedPassword,
+    });
     await newUser.save();
-    res.status(201).json({ message: "User created successfully", user: newUser });
-  } catch (error) {
+    await grantDefaultUserAccess(String(newUser._id));
+    await clearVerificationRecord(normalizedEmail);
+
+    const authResponse = await issueAuthSession(newUser, res);
+    res.status(201).json({
+      ...authResponse,
+      message: "User created successfully",
+    });
+  } catch (error: any) {
     console.error("Error creating user:", error);
+    if (error?.code === 11000) {
+      return res.status(409).json({ message: "Email is already registered" });
+    }
     res.status(500).json({ message: "Failed to create user" });
   }
 };
@@ -107,27 +168,9 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    const loginTime = new Date();
-    user.isLoggedIn = true;
-    user.lastLoginAt = loginTime;
-    user.currentSessionStartedAt = loginTime;
-    await user.save();
+    const authResponse = await issueAuthSession(user, res);
 
-    emitUserLoginStatus(user._id.toString(), true, {
-      lastLoginAt: loginTime.toISOString(),
-      currentSessionStartedAt: loginTime.toISOString(),
-    });
-
-    const jwt = await user.generateJwt();
-    const refreshToken = await user.generateRefreshToken();
-
-    res.cookie("refreshToken", refreshToken, refreshCookieOptions);
-
-    return res.status(200).json({
-      token: jwt,
-      message: "Successfully logged in",
-      expiresIn: 1 * 60 * 60,
-    });
+    return res.status(200).json(authResponse);
   } catch (error) {
     console.error("Login error:", error);
 
@@ -323,18 +366,127 @@ export const saveSettings = async (req: Request, res: Response) => {
   }
 };
 
-export const verifyToken = async (req: Request, res: Response) => {
-  try {
-    const accessToken = req.query.access as string;
-    if (!accessToken) {
-      return res.status(400).json({ message: "No access token provided" });
-    }
-    const decoded = await admin.auth().verifyIdToken(accessToken);
-    req.user = { id: decoded.uid, email: decoded.email };
+type SocialAuthProvider = "google.com" | "github.com";
 
-    res.status(200).json({ token: decoded, message: "Successfully logged in", expiresIn: 1 * 60 * 60 });
+const parseDisplayName = (displayName: string | undefined, email: string): { firstName: string; lastName: string } => {
+  const trimmed = displayName?.trim();
+  if (trimmed) {
+    const parts = trimmed.split(/\s+/);
+    if (parts.length === 1) {
+      return { firstName: parts[0], lastName: parts[0] };
+    }
+    return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+  }
+
+  const localPart = email.split("@")[0] ?? "User";
+  return { firstName: localPart, lastName: "User" };
+};
+
+const resolveSocialAuthProvider = (provider: string | undefined): SocialAuthProvider | null => {
+  if (provider === "google.com" || provider === "github.com") {
+    return provider;
+  }
+  return null;
+};
+
+const findOrCreateSocialUser = async (decoded: DecodedIdToken): Promise<{ user: IUser; isNewUser: boolean }> => {
+  const email = decoded.email?.trim().toLowerCase();
+  if (!email) {
+    throw new Error("SOCIAL_EMAIL_REQUIRED");
+  }
+
+  const firebaseUid = decoded.uid;
+  const authProvider = resolveSocialAuthProvider(decoded.firebase?.sign_in_provider);
+  if (!authProvider) {
+    throw new Error("SOCIAL_PROVIDER_UNSUPPORTED");
+  }
+
+  const photoURL = decoded.picture ?? "";
+  const { firstName, lastName } = parseDisplayName(decoded.name, email);
+
+  let user = await User.findOne({ $or: [{ firebaseUid }, { email }] });
+
+  if (!user) {
+    const randomPassword = crypto.randomBytes(32).toString("hex");
+    const hashedPassword = await hash(randomPassword, 10);
+
+    user = new User({
+      photoURL,
+      firstName,
+      lastName,
+      email,
+      password: hashedPassword,
+      firebaseUid,
+      authProvider,
+    });
+    await user.save();
+    await grantDefaultUserAccess(String(user._id));
+    return { user, isNewUser: true };
+  }
+
+  if (user.firebaseUid && user.firebaseUid !== firebaseUid) {
+    throw new Error("SOCIAL_ACCOUNT_CONFLICT");
+  }
+
+  if (!user.firebaseUid) {
+    user.firebaseUid = firebaseUid;
+  }
+
+  user.authProvider = authProvider;
+
+  if (photoURL && !user.photoURL) {
+    user.photoURL = photoURL;
+  }
+
+  if (!user.firstName?.trim()) {
+    user.firstName = firstName;
+  }
+
+  if (!user.lastName?.trim()) {
+    user.lastName = lastName;
+  }
+
+  await user.save();
+  return { user, isNewUser: false };
+};
+
+export const socialLogin = async (req: Request, res: Response) => {
+  try {
+    const idToken = (req.body?.idToken ?? req.query.access) as string | undefined;
+    if (!idToken) {
+      return res.status(400).json({ message: "No ID token provided" });
+    }
+
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    const { user, isNewUser } = await findOrCreateSocialUser(decoded);
+    const authResponse = await issueAuthSession(user, res);
+
+    return res.status(200).json({
+      ...authResponse,
+      isNewUser,
+    });
   } catch (error) {
-    console.error("Error verifying token:", error);
-    res.status(500).json({ message: "Failed to verify token" });
+    if (error instanceof Error) {
+      if (error.message === "SOCIAL_EMAIL_REQUIRED") {
+        return res.status(400).json({
+          message: "Your social account did not share an email address. Please use a provider that exposes your email or register with email instead.",
+        });
+      }
+
+      if (error.message === "SOCIAL_PROVIDER_UNSUPPORTED") {
+        return res.status(400).json({ message: "Unsupported social sign-in provider." });
+      }
+
+      if (error.message === "SOCIAL_ACCOUNT_CONFLICT") {
+        return res.status(409).json({
+          message: "This email is already linked to a different social account.",
+        });
+      }
+    }
+
+    console.error("Social login error:", error);
+    return res.status(401).json({ message: "Social authentication failed. Please try again." });
   }
 };
+
+export const verifyToken = socialLogin;

@@ -7,11 +7,14 @@
   "license": "ISC",
   "scripts": {
     "start": "node dist/index.js",
-    "build": "npm install && tsc",
+    "build": "npm install && tsc && node -e \"require('fs').cpSync('src/assets','dist/assets',{recursive:true})\"",
     "dev": "tsx watch src/index.ts"
   },
   "engines": {
     "node": "22.x"
+  },
+  "overrides": {
+    "jwa": "^2.0.1"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.75",
@@ -52,6 +55,7 @@
     "passport-github2": "^0.1.12",
     "passport-google-oauth20": "^2.0.0",
     "pdf-parse": "^2.4.5",
+    "resend": "^6.14.0",
     "serverless-http": "^3.2.0",
     "socket.io": "^4.8.3",
     "word-extractor": "^1.0.4",

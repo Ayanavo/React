@@ -15,12 +15,13 @@ type ActivityBody = {
   tag?: string;
   recurrence?: {
     enabled?: boolean;
-    interval?: "day" | "month" | "year";
+    interval?: "day" | "week" | "month" | "year";
+    count?: number;
     endDate?: string;
   };
 };
 
-type RecurrenceInterval = "day" | "month" | "year";
+type RecurrenceInterval = "day" | "week" | "month" | "year";
 
 const MAX_RECURRENCE_OCCURRENCES = 366;
 
@@ -53,20 +54,25 @@ async function resolveTagId(tagId: string | undefined, userId?: string) {
   return tag._id;
 }
 
-function addInterval(date: Date, interval: RecurrenceInterval) {
+function addInterval(date: Date, interval: RecurrenceInterval, count = 1) {
   const next = new Date(date);
 
   if (interval === "day") {
-    next.setDate(next.getDate() + 1);
+    next.setDate(next.getDate() + count);
+    return next;
+  }
+
+  if (interval === "week") {
+    next.setDate(next.getDate() + 7 * count);
     return next;
   }
 
   if (interval === "month") {
-    next.setMonth(next.getMonth() + 1);
+    next.setMonth(next.getMonth() + count);
     return next;
   }
 
-  next.setFullYear(next.getFullYear() + 1);
+  next.setFullYear(next.getFullYear() + count);
   return next;
 }
 
@@ -74,7 +80,8 @@ function generateRecurrenceOccurrences(
   start: Date,
   end: Date | undefined,
   recurrenceEnd: Date,
-  interval: RecurrenceInterval
+  interval: RecurrenceInterval,
+  count = 1
 ) {
   const occurrences: Array<{ start: Date; end?: Date }> = [];
   const durationMs = end ? end.getTime() - start.getTime() : 60 * 60 * 1000;
@@ -86,7 +93,7 @@ function generateRecurrenceOccurrences(
     const occurrenceEnd = end ? new Date(occurrenceStart.getTime() + durationMs) : undefined;
     occurrences.push({ start: occurrenceStart, end: occurrenceEnd });
 
-    const nextStart = addInterval(currentStart, interval);
+    const nextStart = addInterval(currentStart, interval, count);
     if (nextStart.getTime() <= currentStart.getTime()) {
       break;
     }
@@ -169,8 +176,9 @@ export const createActivity = async (req: Request, res: Response) => {
     if (isRecurring) {
       const interval = recurrence?.interval;
       const recurrenceEnd = recurrence?.endDate ? new Date(recurrence.endDate) : undefined;
+      const count = Math.min(99, Math.max(1, recurrence?.count ?? 1));
 
-      if (!interval || !["day", "month", "year"].includes(interval)) {
+      if (!interval || !["day", "week", "month", "year"].includes(interval)) {
         return res.status(400).json({ message: "A valid recurrence interval is required" });
       }
 
@@ -182,7 +190,7 @@ export const createActivity = async (req: Request, res: Response) => {
         return res.status(400).json({ message: "Recurrence end date must be after the start date" });
       }
 
-      const occurrences = generateRecurrenceOccurrences(parsed.start, parsed.end, recurrenceEnd, interval);
+      const occurrences = generateRecurrenceOccurrences(parsed.start, parsed.end, recurrenceEnd, interval, count);
 
       if (!occurrences.length) {
         return res.status(400).json({ message: "No recurring events could be generated for the selected range" });
@@ -196,8 +204,6 @@ export const createActivity = async (req: Request, res: Response) => {
 
       return res.status(201).json({
         message: `${activities.length} recurring ${activities.length === 1 ? "activity" : "activities"} created successfully`,
-        activity: activities[0],
-        activities,
       });
     }
 
@@ -250,7 +256,7 @@ export const updateActivity = async (req: Request, res: Response) => {
       return res.status(404).json({ message: "Activity not found" });
     }
 
-    res.status(200).json({ message: "Activity updated successfully", activity: updatedActivity });
+    res.status(200).json({ message: "Activity updated successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error updating activity", error });
   }

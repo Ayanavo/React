@@ -9,6 +9,8 @@ export interface IUser extends Document {
   lastName: string;
   email: string;
   password: string;
+  firebaseUid?: string;
+  authProvider?: "local" | "google.com" | "github.com";
   title: string;
   createdAt: Date;
   updatedAt: Date;
@@ -44,6 +46,12 @@ const userSchema: Schema = new Schema(
     mobile: { type: String, default: "", unique: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    firebaseUid: { type: String, unique: true, sparse: true },
+    authProvider: {
+      type: String,
+      enum: ["local", "google.com", "github.com"],
+      default: "local",
+    },
     title: { type: String },
     isLoggedIn: { type: Boolean, default: false },
     lastLoginAt: { type: Date, default: null },

@@ -3,8 +3,11 @@ import { Types } from "mongoose";
 import MasterAccess from "../models/masterAccessModel.js";
 import User from "../models/userModel.js";
 import { getUserDataByToken } from "../services/userAccess.js";
-
-const requiredRoutes = ["/profile", "/settings"];
+import {
+  mergeRequiredRoutes,
+  resolveAllowedRoutes,
+  resolveMenuOrder,
+} from "../services/userPermissions.js";
 
 const defaultMenuOrder = [
   "/master-access",
@@ -17,9 +20,6 @@ const defaultMenuOrder = [
   "/profile",
   "/settings",
 ];
-
-const mergeRequiredRoutes = (routes: string[] | undefined | null): string[] =>
-  Array.from(new Set([...(routes ?? []), ...requiredRoutes]));
 
 const normalizeMenuOrder = (menuOrder: string[] | undefined | null): string[] => {
   const validRoutes = new Set(defaultMenuOrder);
@@ -64,8 +64,8 @@ export const getPermissions = async (req: Request, res: Response) => {
     res.status(200).json({
       permissions: {
         userId,
-        allowedRoutes: mergeRequiredRoutes(record?.allowedRoutes),
-        menuOrder: normalizeMenuOrder(record?.menuOrder),
+        allowedRoutes: resolveAllowedRoutes(record?.allowedRoutes),
+        menuOrder: record?.menuOrder?.length ? normalizeMenuOrder(record.menuOrder) : resolveMenuOrder(record?.menuOrder),
         isLoggedIn: user?.isLoggedIn ?? false,
         lastLoginAt: user?.lastLoginAt ?? null,
         lastLogoutAt: user?.lastLogoutAt ?? null,
@@ -114,8 +114,8 @@ export const getPermissionsByToken = async (req: Request, res: Response) => {
     const userId = decoded._id;
     const record = await MasterAccess.findOne({ userId }).select("allowedRoutes menuOrder").lean();
     res.status(200).json({
-      allowedRoutes: mergeRequiredRoutes(record?.allowedRoutes),
-      menuOrder: normalizeMenuOrder(record?.menuOrder),
+      allowedRoutes: resolveAllowedRoutes(record?.allowedRoutes),
+      menuOrder: record?.menuOrder?.length ? normalizeMenuOrder(record.menuOrder) : resolveMenuOrder(record?.menuOrder),
     });
   } catch (error) {
     console.error(error);
