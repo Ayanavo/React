@@ -8,7 +8,21 @@ export type RegisterPayload = {
   password: string;
   firstName: string;
   lastName: string;
-  title: string;
+  title?: string;
+};
+
+export type VerificationEmailResponse = {
+  message: string;
+  resendAvailableIn?: number;
+  retryAfterSeconds?: number;
+  alreadyVerified?: boolean;
+  registrationExpiresAt?: string;
+};
+
+export type VerificationStatusResponse = {
+  isVerified: boolean;
+  registrationExpiresAt: string | null;
+  canRegister: boolean;
 };
 
 export type LoginPayload = {
@@ -47,8 +61,28 @@ export const loginAPI = async (payload: LoginPayload) => {
   return response.data;
 };
 
+export const sendVerificationEmailAPI = async (email: string) => {
+  const response = await axiosInstance.post<VerificationEmailResponse>(apiUrl + "auth/send-verification-email", { email });
+  return response.data;
+};
+
+export const resendVerificationEmailAPI = async (email: string) => {
+  const response = await axiosInstance.post<VerificationEmailResponse>(apiUrl + "auth/resend-verification-email", { email });
+  return response.data;
+};
+
+export const getVerificationStatusAPI = async (email: string) => {
+  const response = await axiosInstance.get<VerificationStatusResponse>(apiUrl + "auth/verification-status", {
+    params: { email },
+  });
+  return response.data;
+};
+
 export const registerAPI = async (payload: RegisterPayload) => {
   const response = await axiosInstance.post(apiUrl + "auth/register", payload);
+  if (response.data.token) {
+    setAuthToken(response.data.token);
+  }
   return response.data;
 };
 
@@ -72,12 +106,22 @@ export const getCurrentUserAPI = async () => {
   return response.data;
 };
 
-export const verifyAuthAPI = async (token: string) => {
-  const response = await axiosInstance.get(apiUrl + "auth/verifyToken", {
-    params: { access: token },
-  });
+export type SocialLoginResponse = {
+  token: string;
+  message: string;
+  expiresIn: number;
+  isNewUser?: boolean;
+};
+
+export const socialLoginAPI = async (idToken: string) => {
+  const response = await axiosInstance.post<SocialLoginResponse>(apiUrl + "auth/social-login", { idToken });
+  if (response.data.token) {
+    setAuthToken(response.data.token);
+  }
   return response.data;
 };
+
+export const verifyAuthAPI = socialLoginAPI;
 
 export const saveSettingsAPI = async (payload: SaveSettingsPayload) => {
   const response = await axiosInstance.post(apiUrl + "auth/saveSettings", payload);

@@ -17,9 +17,11 @@ import showToast from "@/hooks/toast";
 import { formatAppDate } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { deleteActivity, fetchActivities, ActivityRecord } from "@/shared/services/activity";
+import { ApiMessageResponse } from "@/shared/types/api";
 import { useSidebarLayout } from "@/shared/sidebarlayout";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
+  ColumnSizingState,
   createColumnHelper,
   getCoreRowModel,
   getFilteredRowModel,
@@ -28,6 +30,7 @@ import {
   PaginationState,
   SortingState,
   Table as TableModel,
+  Updater,
   useReactTable,
 } from "@tanstack/react-table";
 import { CheckIcon, EllipsisIcon, EyeIcon, PencilIcon, Trash2Icon, XIcon } from "lucide-react";
@@ -36,6 +39,8 @@ import { useNavigate } from "react-router-dom";
 import ColumnComponent from "./column";
 import KanbanComponent from "./kanban";
 import PaginationComponent from "./pagination";
+import { GridColumnConfig } from "../ResourceGrid";
+import { resolveGridColumnSizing, normalizeColumnSizingFromConfig } from "../grid-column-sizing";
 import "./table.css";
 import { User } from "./user.model";
 
@@ -64,6 +69,7 @@ function table() {
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const navigate = useNavigate();
   const { SidebarPanel } = useSidebarLayout();
 
@@ -74,19 +80,13 @@ function table() {
     setData(todos.activities.map(mapActivityToTableRow));
   }, [todos, isSuccess]);
   const [layout, setLayout] = useState<string>("column");
-  const columnConfig: { key: keyof User | "select" | "action"; label: string }[] = [
+  const columnConfig: GridColumnConfig<User>[] = [
     { key: "select", label: "Select" },
-    { key: "_id", label: "ID" },
-    { key: "name", label: "Name" },
-    { key: "description", label: "Description" },
-    {
-      key: "createdAt",
-      label: "Created At",
-    },
-    {
-      key: "updatedAt",
-      label: "Updated At",
-    },
+    { key: "_id", label: "ID", width: 120, minWidth: 100 },
+    { key: "name", label: "Name", width: 160, minWidth: 120 },
+    { key: "description", label: "Description", width: 240, minWidth: 160 },
+    { key: "createdAt", label: "Created At", type: "date", width: 160, minWidth: 130 },
+    { key: "updatedAt", label: "Updated At", type: "date", width: 160, minWidth: 130 },
     { key: "action", label: "Action" },
   ];
 
@@ -108,13 +108,10 @@ function table() {
     // });
   };
 
-  const mutation = useMutation<unknown, Error, string>({
+  const mutation = useMutation<ApiMessageResponse, Error, string>({
     mutationFn: deleteActivity,
-    onSuccess: () => {
-      showToast({
-        title: "Activity deleted successfully",
-        variant: "success",
-      });
+    onSuccess: (data) => {
+      showToast({ title: data?.message || "Activity deleted successfully", variant: "success" });
     },
     onError: (error: Error) => {
       showToast({
@@ -130,14 +127,17 @@ function table() {
     refetch();
   };
 
-  const createColumns = (config: typeof columnConfig) => {
+  const createColumns = (config: GridColumnConfig<User>[]) => {
     return config.map((column, index) => {
+      const sizing = resolveGridColumnSizing(column);
+
       if (column.key === "action") {
         return columnHelper.display({
           id: "action",
+          ...sizing,
           header: column.label,
           cell: ({ row }) => (
-            <div key={index} className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="flex w-full justify-center opacity-0 transition-opacity group-hover:opacity-100">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -171,14 +171,13 @@ function table() {
       if (column.key === "select") {
         return columnHelper.display({
           id: "select",
+          ...sizing,
           header: ({ table }) => (
-            <div key={index} className="p-2">
-              <Checkbox
-                aria-label="Select all"
-                checked={table.getIsAllPageRowsSelected()}
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-              />
-            </div>
+            <Checkbox
+              aria-label="Select all"
+              checked={table.getIsAllPageRowsSelected()}
+              onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            />
           ),
           cell: ({ row }) => (
             <Checkbox
@@ -191,16 +190,18 @@ function table() {
         });
       }
 
-      if (["createdAt", "updatedAt"].includes(column.key)) {
-        return columnHelper.accessor(column.key, {
+      if (column.type === "date" || ["createdAt", "updatedAt"].includes(column.key)) {
+        return columnHelper.accessor(column.key as keyof User, {
+          ...sizing,
           header: () => column.label,
           cell: (info) => {
             const value = info.getValue();
-            return formatAppDate(value, "-");
+            return formatAppDate(value as string, "-");
           },
         });
       }
-      return columnHelper.accessor(column.key, {
+      return columnHelper.accessor(column.key as keyof User, {
+        ...sizing,
         header: () => column.label,
         cell: (info) => {
           const value = info.getValue();
@@ -272,19 +273,41 @@ function table() {
 
   const columns = createColumns(columnConfig);
 
+  const handleColumnSizingChange = (updater: Updater<ColumnSizingState>) => {
+    setColumnSizing((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      return normalizeColumnSizingFromConfig(next, columnConfig);
+    });
+  };
+
   const tableBody: TableModel<User> = useReactTable({
     data: data,
     columns,
-    state: { sorting: sorting, pagination: pagination, rowSelection: rowSelection, globalFilter: globalFilter },
+    state: {
+      sorting: sorting,
+      pagination: pagination,
+      rowSelection: rowSelection,
+      globalFilter: globalFilter,
+      columnSizing,
+    },
+    initialState: {
+      columnPinning: {
+        left: ["select"],
+        right: ["action"],
+      },
+    },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onRowSelectionChange: setRowSelection,
+    onColumnSizingChange: handleColumnSizingChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     enableRowSelection: true,
-    debugTable: true,
+    enableColumnResizing: true,
+    enableColumnPinning: true,
+    columnResizeMode: "onEnd",
   });
   function handleSearchKey(event: any): void {
     if (event.key === "Enter") {
@@ -295,7 +318,7 @@ function table() {
   return (
     <>
       {SidebarPanel}
-      <div className="grid-layout flex flex-col h-[90vh] overflow-hidden">
+      <div className="grid-layout flex h-[90vh] min-h-0 flex-col overflow-hidden">
         <div className="flex-none p-3 flex justify-between items-center space-x-2">
           <div className=" relative">
             <Input
@@ -346,7 +369,11 @@ function table() {
             <AddActionButton label="Add Activity" onClick={openAddPanel} />
           </div>
         </div>
-        {layout === "column" && <ColumnComponent tableBody={tableBody} setSorting={setSorting} />}
+        {layout === "column" && (
+          <div className="grid-table-viewport flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl">
+            <ColumnComponent tableBody={tableBody} setSorting={setSorting} />
+          </div>
+        )}
         {layout === "kanban" && <KanbanComponent tableBody={tableBody} columns={[]} listableColumns={[]} groupByKey="" />}
         {layout === "column" && (
           <PaginationComponent tableBody={tableBody} pagination={pagination} setPagination={setPagination} />

@@ -88,8 +88,7 @@ function noteeditor({
     setValue(target, text);
     if (target === "description" && textareaRef.current) {
       textareaRef.current.value = text;
-      textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+      resizeDescriptionField();
     } else if (target === "title" && titleInputRef.current) {
       titleInputRef.current.value = text;
     }
@@ -122,7 +121,26 @@ function noteeditor({
     } else {
       clearImage();
     }
+
+    requestAnimationFrame(() => {
+      resizeDescriptionField();
+    });
   }, [formData, isOpen, reset, setNoteColor, setImage, clearImage]);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    if (isMaximized) {
+      textarea.style.height = "";
+      textarea.style.overflowY = "";
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      resizeDescriptionField();
+    });
+  }, [isMaximized]);
 
   useEffect(() => {
     if (isOpen) return;
@@ -145,11 +163,17 @@ function noteeditor({
     };
   }, []);
 
+  const resizeDescriptionField = () => {
+    const textarea = textareaRef.current;
+    if (!textarea || isMaximized) return;
+
+    textarea.style.height = "auto";
+    textarea.style.overflowY = "hidden";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+
   const handleInput = () => {
-    if ((textareaRef as any).current) {
-      (textareaRef as any).current.style.height = "auto";
-      (textareaRef as any).current.style.height = `${(textareaRef as any).current.scrollHeight}px`;
-    }
+    resizeDescriptionField();
   };
 
   const onSubmit: SubmitHandler<{
@@ -168,10 +192,11 @@ function noteeditor({
 
     try {
       setIsSaving(true);
-      formData?._id ? await updateNote(formData._id, payload) : await createNote(payload);
+      const response =
+        formData?._id ? await updateNote(formData._id, payload) : await createNote(payload);
       onSave();
       showToast({
-        title: formData?._id ? "Note updated successfully" : "Note created successfully",
+        title: response?.message || (formData?._id ? "Note updated successfully" : "Note created successfully"),
         variant: "success",
       });
     } catch (error) {
@@ -203,11 +228,8 @@ function noteeditor({
 
     try {
       setIsDeleting(true);
-      await deleteNote(formData._id);
-      showToast({
-        title: "Note deleted successfully",
-        variant: "success",
-      });
+      const response = await deleteNote(formData._id);
+      showToast({ title: response?.message || "Note deleted successfully", variant: "success" });
       onDelete();
     } catch (error) {
       showToast({
@@ -345,6 +367,7 @@ function noteeditor({
       <DialogContent
         className={cn(
           "note-box note-editor-dialog transition-colors flex flex-col gap-0 border",
+          !isMaximized && "note-editor-dialog--minimized",
           isMaximized && "note-editor-dialog--maximized max-w-none",
           hasCustomBackground && "note-box--themed"
         )}
@@ -389,7 +412,7 @@ function noteeditor({
             Modified {modifiedDate}
           </p>
         )}
-        <form className={cn("min-w-0 flex flex-1 flex-col", isMaximized && "min-h-0")} onSubmit={handleSubmit(onSubmit)}>
+        <form className={cn("min-w-0 flex flex-col", isMaximized && "min-h-0 flex-1")} onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle className="p-0 text-left">
               {(() => {

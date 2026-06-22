@@ -1,70 +1,47 @@
-.loader-screen {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+:root {
+  --loader-bg: #faf8f5;
+  --loader-sphere-light: #f5f0e8;
+  --loader-sphere-dark: #2f2a26;
 }
-.loader {
-  width: 48px;
-  height: 48px;
-  margin: auto;
-  position: relative;
-}
-.loader:before {
-  content: "";
-  width: 48px;
-  height: 5px;
-  background: #000;
-  opacity: 0.25;
-  position: absolute;
-  top: 60px;
-  left: 0;
-  border-radius: 50%;
-  animation: shadow 0.5s linear infinite;
-}
-.loader:after {
-  content: "";
-  width: 100%;
-  height: 100%;
-  background: #008080;
-  animation: bxSpin 0.5s linear infinite;
-  position: absolute;
-  top: 0;
-  left: 0;
-  border-radius: 4px;
-}
-@keyframes bxSpin {
-  17% {
-    border-bottom-right-radius: 3px;
-  }
-  25% {
-    transform: translateY(9px) rotate(22.5deg);
-  }
-  50% {
-    transform: translateY(18px) scale(1, 0.9) rotate(45deg);
-    border-bottom-right-radius: 40px;
-  }
-  75% {
-    transform: translateY(9px) rotate(67.5deg);
-  }
-  100% {
-    transform: translateY(0) rotate(90deg);
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --loader-bg: #161412;
+    --loader-sphere-light: #ebe4da;
+    --loader-sphere-dark: #3d3834;
   }
 }
 
-@keyframes shadow {
-  0%,
-  100% {
-    transform: scale(1, 1);
+.loader-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--loader-bg);
+  perspective: 600px;
+}
+
+.loader-sphere {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, var(--loader-sphere-light) 0%, var(--loader-sphere-dark) 100%);
+  box-shadow:
+    inset -0.5rem -0.6rem 0.9rem rgba(0, 0, 0, 0.2),
+    inset 0.35rem 0.35rem 0.6rem rgba(255, 255, 255, 0.12);
+  animation: loader-rotate 1.4s linear infinite;
+}
+
+@keyframes loader-rotate {
+  to {
+    transform: rotateY(360deg);
   }
-  50% {
-    transform: scale(1.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-sphere {
+    animation: none;
   }
 }

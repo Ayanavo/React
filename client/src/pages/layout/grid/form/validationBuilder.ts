@@ -8,6 +8,7 @@ type FormGeneral = {
     minLength?: number;
     maxLength?: number;
     pattern?: RegExp;
+    patternMessage?: string;
     asyncValidator?: (value: string, label?: string) => Promise<boolean | string>;
   };
   name: string;
@@ -87,7 +88,10 @@ export async function buildValidationSchema(formSchema: Array<FormGeneral>) {
       }
 
       if (field.validation?.pattern) {
-        stringSchema = stringSchema.regex(field.validation.pattern, `${label} has invalid format`);
+        stringSchema = stringSchema.regex(
+          field.validation.pattern,
+          field.validation.patternMessage ?? `${label} has invalid format`
+        );
       }
 
       schema = stringSchema;

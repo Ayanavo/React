@@ -1,21 +1,22 @@
 import imgUrl from "@/assets/Notebook.jpeg";
 import GoogleIcon from "@/assets/google.svg";
+import { AppLogo } from "@/components/app-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { auth } from "@/firebase.setup";
 import showToast from "@/hooks/toast";
 import { componentMap } from "@/pages/layout/grid/form/field-map";
 import generateControl from "@/pages/layout/grid/form/validation";
-import { loginAPI, verifyAuthAPI } from "@/shared/services/auth.ts";
-import { setAuthToken } from "@/shared/utils/auth-token";
+import { loginAPI } from "@/shared/services/auth.ts";
+import { showCacheUseWarning } from "@/shared/utils/cache-warning";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { FirebaseError } from "firebase/app";
-import { GithubAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { LoaderCircleIcon } from "lucide-react";
 import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import { useSocialAuth } from "@/pages/auth/use-social-auth";
+import InfinityBackground from "./infinity-background";
+import "./login.scss";
 
 const formSchemaObj = [
   {
@@ -35,11 +36,11 @@ const formSchemaObj = [
 ];
 
 function login() {
-  //form builder function
   const navigate = useNavigate();
   const [loader, setLoader] = useState(false);
+  const { signInWithProvider, isSocialLoading, loadingProvider } = useSocialAuth();
   const form = generateControl(formSchemaObj);
-  console.log("Form errors:", form.formState.errors);
+
   function renderField(field: {
     type:
       | string
@@ -66,10 +67,8 @@ function login() {
         rememberMe,
       });
 
-      showToast({
-        title: userCredential.message,
-        variant: "success",
-      });
+      showToast({ title: userCredential.message || "Successfully logged in", variant: "success" });
+      showCacheUseWarning();
 
       navigate("/dashboard");
     } catch (error: any) {
@@ -81,117 +80,112 @@ function login() {
       setLoader(false);
     }
   }
-  function handleSigninProvider(typeofProvider: string): void {
-    let loginProvider;
-
-    switch (typeofProvider) {
-      case "google":
-        loginProvider = new GoogleAuthProvider();
-        break;
-      case "github":
-        loginProvider = new GithubAuthProvider();
-        break;
-      default:
-        console.error(`Invalid sign-in provider: ${typeofProvider}`);
-        return;
-    }
-    signInWithPopup(auth, loginProvider)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        user.getIdToken().then((token) => {
-          verifyAuthAPI(token)
-            .then((res) => {
-              setAuthToken(res.token);
-              showToast({
-                title: "Successfully logged in",
-                variant: "success",
-              });
-
-              navigate("/dashboard");
-            })
-            .catch((error) => {
-              showToast({
-                title: error.message || "Authentication failed",
-                variant: "error",
-              });
-            });
-        });
-      })
-      .catch((error: FirebaseError) => {
-        showToast({
-          title: error.message,
-          variant: "error",
-        });
-      });
-  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted p-4 md:p-8">
-      <Card className="w-[700px] max-w-4xl overflow-hidden">
-        <div className="flex flex-col md:flex-row">
-          <div className="md:w-1/2 p-6 md:p-8">
-            <CardHeader className="p-0 mb-6">
-              <CardTitle>Login</CardTitle>
-              <CardDescription>Enter your credentials to access your account.</CardDescription>
-            </CardHeader>
-            <FormProvider {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)}>
-                <CardContent className="p-0">
-                  <div className="grid w-full items-center gap-4">{formSchemaObj.map(renderField)}</div>
-                </CardContent>
-                <CardFooter className="flex flex-col items-center gap-2 p-0 mt-6">
-                  <Button className="w-full" type="submit" disabled={loader}>
-                    {loader && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
-                    Submit
-                  </Button>
-                  <div className="relative w-full my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-muted-foreground"></div>
-                    </div>
-                    <div className="relative flex justify-center">
-                      <span className="bg-card px-2 text-xs uppercase text-muted-foreground">Or continue with</span>
-                    </div>
+    <div className="relative flex h-[100dvh] min-h-0 w-full items-center justify-center overflow-hidden p-4 md:p-6">
+      <InfinityBackground />
+
+      <div className="relative z-10 w-full max-w-[720px]">
+        <Card className="login-card overflow-hidden border shadow-lg">
+          <div className="grid min-h-0 items-stretch lg:grid-cols-2">
+            <div className="login-form-column flex flex-col">
+              <CardHeader className="space-y-4 border-b px-5 pb-4 pt-5 md:px-6 md:pt-6">
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[calc(var(--radius)*2)] bg-primary text-primary-foreground shadow-sm">
+                    <AppLogo className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold tracking-tight text-foreground">Epsilon</p>
+                    <p className="text-xs text-muted-foreground">Your note workspace</p>
                   </div>
-                  <div className="grid w-full grid-cols-2 gap-4">
-                    <Button type="button" variant="outline" onClick={() => handleSigninProvider("google")}>
-                      <GoogleIcon />
-                      Google
+                </div>
+
+                <div className="space-y-1">
+                  <CardTitle className="text-xl font-semibold tracking-tight md:text-2xl">Welcome back</CardTitle>
+                  <CardDescription>Sign in to pick up where you left off.</CardDescription>
+                </div>
+              </CardHeader>
+
+              <FormProvider {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-1 flex-col">
+                  <CardContent className="space-y-3 px-5 py-4 md:px-6">
+                    <div className="grid gap-3">{formSchemaObj.map(renderField)}</div>
+
+                    <div className="flex justify-end">
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
+                        Forgot password?
+                      </Link>
+                    </div>
+                  </CardContent>
+
+                  <CardFooter className="mt-auto flex-col gap-3 border-t px-5 py-4 md:px-6">
+                    <Button className="w-full" type="submit" disabled={loader}>
+                      {loader && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
+                      Sign in
                     </Button>
-                    <Button type="button" variant="outline" onClick={() => handleSigninProvider("github")}>
-                      <GitHubLogoIcon />
-                      Github
-                    </Button>
-                  </div>
-                  <p className="mt-4 text-sm text-muted-foreground">
-                    Don&apos;t have an account?{" "}
-                    <Link to="/register" className="underline underline-offset-4 hover:text-primary">
-                      Sign up
-                    </Link>
-                  </p>
-                  <p className="text-[0.63rem] text-muted-foreground">
-                    Forgot your password?{" "}
-                    <Link to="/forgot-password" className="underline underline-offset-4 hover:text-primary">
-                      Reset Password
-                    </Link>
-                  </p>
-                </CardFooter>
-              </form>
-            </FormProvider>
-          </div>
-          <div className="hidden md:block md:w-1/2">
-            <div className="relative h-full">
-              <img
-                src={`${imgUrl}?height=600&width=400" alt="Login visual`}
-                className="absolute inset-0 h-full w-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/20"></div>
-              <div className="absolute inset-0 flex items-center justify-center p-6">
-                <h2 className="text-3xl font-bold text-white text-center">All your note needs in one place</h2>
-              </div>
+
+                    <div className="relative w-full">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-muted-foreground/40" />
+                      </div>
+                      <div className="relative flex justify-center">
+                        <span className="bg-card px-2 text-xs uppercase tracking-wide text-muted-foreground">
+                          Or continue with
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid w-full grid-cols-2 gap-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isSocialLoading || loader}
+                        onClick={() => signInWithProvider("google")}>
+                        {loadingProvider === "google" ?
+                          <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
+                        : <GoogleIcon />}
+                        Google
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isSocialLoading || loader}
+                        onClick={() => signInWithProvider("github")}>
+                        {loadingProvider === "github" ?
+                          <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
+                        : <GitHubLogoIcon />}
+                        Github
+                      </Button>
+                    </div>
+
+                    <p className="text-center text-sm text-muted-foreground">
+                      Don&apos;t have an account?{" "}
+                      <Link to="/register" className="font-medium underline underline-offset-4 hover:text-primary">
+                        Create one
+                      </Link>
+                    </p>
+                  </CardFooter>
+                </form>
+              </FormProvider>
             </div>
+
+            <aside className="login-visual-panel hidden lg:block">
+              <img
+                src={`${imgUrl}?height=640&width=360`}
+                alt="Notebook workspace preview"
+                className="login-visual-panel__image"
+              />
+              <div className="login-visual-panel__overlay" aria-hidden="true" />
+              <div className="login-visual-panel__content">
+                <p className="login-visual-panel__eyebrow">Workspace</p>
+                <h2 className="login-visual-panel__headline">All your note needs in one place</h2>
+              </div>
+            </aside>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

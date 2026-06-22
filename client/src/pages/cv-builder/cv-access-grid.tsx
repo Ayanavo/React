@@ -74,12 +74,16 @@ const columns: GridColumnConfig<CVAccessRecord>[] = [
   {
     key: "name",
     label: "Name",
+    width: 180,
+    minWidth: 140,
     render: (value) => <span className="font-semibold text-foreground">{value}</span>,
   },
-  { key: "job", label: "Job" },
+  { key: "job", label: "Job", width: 160, minWidth: 120 },
   {
     key: "atsScore",
     label: "ATS Score",
+    width: 110,
+    minWidth: 90,
     render: (value: number | null) =>
       typeof value === "number" ?
         <Badge className={atsBadgeClassName(value)}>{formatAtsBadgeLabel(value)}</Badge>
@@ -88,6 +92,8 @@ const columns: GridColumnConfig<CVAccessRecord>[] = [
   {
     key: "tagName",
     label: "Tag",
+    width: 140,
+    minWidth: 110,
     listable: true,
     kanbanIdKey: "tagId",
     kanbanColorKey: "tagColor",
@@ -105,8 +111,8 @@ const columns: GridColumnConfig<CVAccessRecord>[] = [
       );
     },
   },
-  { key: "createdAt", label: "Created Date" },
-  { key: "modifiedAt", label: "Modified Date" },
+  { key: "createdAt", label: "Created Date", width: 150, minWidth: 130 },
+  { key: "modifiedAt", label: "Modified Date", width: 150, minWidth: 130 },
   { key: "action", label: "Actions" },
 ];
 

@@ -6,6 +6,7 @@ import { LoaderCircleIcon } from "lucide-react";
 import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
 import LoginComponent from "@/pages/auth/login/login";
 import RegistrationComponent from "@/pages/auth/registration/registration";
+import TermsAndConditionsComponent from "@/pages/layout/terms/terms";
 import CVAccessGrid from "@/pages/cv-builder/cv-access-grid";
 import CVBuilder from "@/pages/cv-builder/cv-builder";
 import ActivityComponent from "@/pages/layout/activity/activity";
@@ -82,6 +83,7 @@ const STATIC_ROUTES: RouteConfig[] = [
       </GuestOnly>
     ),
   },
+
 ];
 
 /** Protected layout routes */
@@ -91,6 +93,7 @@ const PROTECTED_LAYOUT_ROUTES: RouteConfig[] = [
   { path: "dashboard", element: <DashboardComponent /> },
   { path: "profile", element: <ProfileComponent /> },
   { path: "settings", element: <SettingsComponent /> },
+  { path: "terms", element: <TermsAndConditionsComponent /> },
 ];
 
 /** Dynamic routes - permission based */

@@ -24,6 +24,7 @@ import {
   type CVSubmitPayload,
   type CVTemplateRecord,
 } from "@/shared/services/cvbuilder";
+import { ApiMessageResponse } from "@/shared/types/api";
 import { getTags, type TagRecord } from "@/shared/services/tag";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -200,13 +201,13 @@ const CVBuilderContent = () => {
   // Keep a ref to the pending download callback so we can invoke it after mutation succeeds.
   const pendingSaveCallbackRef = useRef<((savedName: string) => void) | null>(null);
 
-  const mutation = useMutation<unknown, Error, CVSubmitPayload>({
+  const mutation = useMutation<ApiMessageResponse, Error, CVSubmitPayload>({
     mutationFn: (payload) => (id ? updateCV(id, payload) : submitCV(payload)),
-    onSuccess: () => {
+    onSuccess: (data) => {
       const savedName = name.trim();
 
       showToast({
-        title: isEditMode ? "CV updated successfully" : "CV submitted successfully",
+        title: data?.message || (isEditMode ? "CV updated successfully" : "CV submitted successfully"),
         variant: "success",
       });
       setIsSubmitDialogOpen(false);

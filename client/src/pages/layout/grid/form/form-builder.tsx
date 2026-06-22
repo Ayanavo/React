@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import showToast from "@/hooks/toast";
 import { ActivityPayload, createActivity, fetchActivityDetail, updateActivity } from "@/shared/services/activity";
+import { ApiMessageResponse } from "@/shared/types/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { FormProvider } from "react-hook-form";
@@ -47,7 +48,7 @@ function FormBuilder() {
     }>
   );
 
-  const mutation = useMutation<unknown, Error, ActivityFormValues>({
+  const mutation = useMutation<ApiMessageResponse, Error, ActivityFormValues>({
     mutationFn: async (formValues) => {
       const payload = {
         title: (formValues.title ?? "").trim(),
@@ -65,11 +66,11 @@ function FormBuilder() {
       }
       return await createActivity(payload);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["activities"] });
       navigate("/table");
       showToast({
-        title: id ? "Activity updated successfully" : "Activity created successfully",
+        title: data?.message || (id ? "Activity updated successfully" : "Activity created successfully"),
         variant: "success",
       });
     },

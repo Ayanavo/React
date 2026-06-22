@@ -13,6 +13,8 @@ import { getCurrentUserAPI } from "@/shared/services/auth";
 import showToast from "@/hooks/toast";
 import axios from "axios";
 import { getAxiosErrorMessage } from "@/shared/interceptors/auth-interceptor";
+import { Link } from "react-router-dom";
+import { TERMS_PATH } from "@/shared/utils/cache-warning";
 
 const getInitials = (firstName?: string, lastName?: string) => {
   const first = firstName?.trim() ?? "";
@@ -155,7 +157,7 @@ function profile() {
       });
 
       console.log("Update profile response:", response);
-      showToast({ title: "Profile updated successfully", variant: "success" });
+      showToast({ title: response?.message || "Profile updated successfully", variant: "success" });
     } catch (error) {
       console.error("Update profile error:", error);
       showToast({
@@ -244,6 +246,11 @@ function profile() {
                 disabled={!form.formState.isDirty || form.formState.isSubmitting || !form.formState.isValid}>
                 {form.formState.isSubmitting ? "Updating..." : "Update profile"}
               </Button>
+              <p className="pt-2 text-center text-sm text-muted-foreground">
+                <Link to={TERMS_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+                  Terms & Conditions
+                </Link>
+              </p>
             </div>
           </form>
         </FormProvider>

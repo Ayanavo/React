@@ -6,11 +6,11 @@ import { Tag } from "./tag.model";
 
 const tagColumns: GridColumnConfig<Tag>[] = [
   { key: "select" as const, label: "Select" },
-  { key: "name" as const, label: "Tag Name", type: "text" as const },
-  { key: "description" as const, label: "Tag Description", type: "text" as const },
-  { key: "color" as const, label: "Tag Color", type: "color" as const },
-  { key: "createdAt" as const, label: "Created Date", type: "date" as const },
-  { key: "updatedAt" as const, label: "Modified Date", type: "date" as const },
+  { key: "name" as const, label: "Tag Name", type: "text" as const, width: 160, minWidth: 120 },
+  { key: "description" as const, label: "Tag Description", type: "text" as const, width: 220, minWidth: 160 },
+  { key: "color" as const, label: "Tag Color", type: "color" as const, width: 120, minWidth: 100 },
+  { key: "createdAt" as const, label: "Created Date", type: "date" as const, width: 150, minWidth: 130 },
+  { key: "updatedAt" as const, label: "Modified Date", type: "date" as const, width: 150, minWidth: 130 },
   { key: "action" as const, label: "Actions" },
 ];
 

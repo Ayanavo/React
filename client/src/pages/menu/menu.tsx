@@ -54,10 +54,7 @@ function menu({
       if (res) {
         logoutAPI()
           .then((res) => {
-            showToast({
-              title: res.message,
-              variant: "success",
-            });
+            showToast({ title: res.message || "Logged out successfully", variant: "success" });
             closeMobileMenu();
             navigate("/login");
           })

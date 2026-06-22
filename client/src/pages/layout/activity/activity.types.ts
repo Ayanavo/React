@@ -19,7 +19,7 @@ export type ActivityItem = {
   source: ActivitySource;
 };
 
-export type RecurrenceInterval = "day" | "month" | "year";
+export type RecurrenceInterval = "day" | "week" | "month" | "year";
 
 export type ActivityFormValues = {
   title: string;
@@ -32,12 +32,14 @@ export type ActivityFormValues = {
   location?: string;
   tag?: string;
   recurring?: boolean;
+  recurrenceCount?: number;
   recurrenceInterval?: RecurrenceInterval;
   recurrenceEndDate?: Date;
 };
 
 export const RECURRENCE_INTERVAL_LABELS: Record<RecurrenceInterval, string> = {
   day: "Day",
+  week: "Week",
   month: "Month",
   year: "Year",
 };

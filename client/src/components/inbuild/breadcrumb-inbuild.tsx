@@ -22,6 +22,7 @@ const routeLabels: Record<string, string> = {
   notes: "Notes",
   profile: "Profile",
   settings: "Settings",
+  terms: "Terms & Conditions",
   table: "Table",
   whiteboard: "Whiteboard",
 };

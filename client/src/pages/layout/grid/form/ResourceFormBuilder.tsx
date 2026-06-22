@@ -1,10 +1,11 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import showToast from "@/hooks/toast";
+import { cn } from "@/lib/utils";
+import { ApiMessageResponse } from "@/shared/types/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { FormProvider } from "react-hook-form";
@@ -18,8 +19,8 @@ type ResourceFormBuilderProps<T extends Record<string, unknown>> = {
   queryKey: string;
   listPath: string;
   resourceLabel: string;
-  createResource?: (data: T) => Promise<unknown>;
-  updateResource?: (id: string, data: T) => Promise<unknown>;
+  createResource?: (data: T) => Promise<ApiMessageResponse>;
+  updateResource?: (id: string, data: T) => Promise<ApiMessageResponse>;
   fetchResource?: (id: string) => Promise<T>;
 };
 
@@ -66,7 +67,7 @@ function ResourceFormBuilder<T extends Record<string, unknown>>({
     }
   }, [id, fetchResource, form, resourceLabel]);
 
-  const mutation = useMutation<unknown, Error, T>({
+  const mutation = useMutation<ApiMessageResponse, Error, T>({
     mutationFn: async (payload) => {
       if (id) {
         if (!updateResource) {
@@ -79,11 +80,11 @@ function ResourceFormBuilder<T extends Record<string, unknown>>({
       }
       return createResource(payload);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [queryKey] });
       navigate(listPath);
       showToast({
-        title: id ? `${resourceLabel} updated successfully` : `${resourceLabel} created successfully`,
+        title: data?.message || (id ? `${resourceLabel} updated successfully` : `${resourceLabel} created successfully`),
         variant: "success",
       });
     },

@@ -122,7 +122,8 @@ const activityURL = `${apiUrl}activities`;
 
 export type RecurrencePayload = {
   enabled: boolean;
-  interval?: "day" | "month" | "year";
+  interval?: "day" | "week" | "month" | "year";
+  count?: number;
   endDate?: string;
 };
 

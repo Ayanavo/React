@@ -43,6 +43,7 @@ function formValuesToPayload(values: ActivityFormValues): ActivityPayload {
     payload.recurrence = {
       enabled: true,
       interval: values.recurrenceInterval,
+      count: Math.min(99, Math.max(1, values.recurrenceCount ?? 1)),
       endDate: moment(values.recurrenceEndDate).toISOString(),
     };
   }
@@ -80,6 +81,7 @@ function activityToFormValues(activity: ActivityItem | null, fallbackDate: Date)
       location: "",
       tag: "",
       recurring: false,
+      recurrenceCount: 1,
       recurrenceInterval: "month",
       recurrenceEndDate: moment(fallbackDate).add(1, "month").toDate(),
     };
@@ -206,7 +208,10 @@ export function useActivityManager(focusDate: Date, calendarView: CalendarView) 
 
       createdActivities.forEach((activity) => upsertActivityInCache(activity));
       await refreshActivities();
-      return mapApiActivities(createdActivities);
+      return {
+        activities: mapApiActivities(createdActivities),
+        message: response.message,
+      };
     },
     [refreshActivities, upsertActivityInCache]
   );
@@ -219,7 +224,10 @@ export function useActivityManager(focusDate: Date, calendarView: CalendarView) 
       const response = await updateActivityApi(id, formValuesToPayload(values));
       upsertActivityInCache(response.activity);
       await refreshActivities();
-      return mapApiActivities([response.activity])[0];
+      return {
+        activity: mapApiActivities([response.activity])[0],
+        message: response.message,
+      };
     },
     [apiActivities, refreshActivities, upsertActivityInCache]
   );
@@ -227,14 +235,14 @@ export function useActivityManager(focusDate: Date, calendarView: CalendarView) 
   const deleteActivity = useCallback(
     async (id: string) => {
       const existing = apiActivities.find((item) => item.id === id);
-      if (!existing || existing.source === "holiday") return false;
+      if (!existing || existing.source === "holiday") return null;
 
-      await deleteActivityApi(id);
+      const response = await deleteActivityApi(id);
       queryClient.setQueryData<{ activities: ActivityRecord[] }>(["activities"], (current) => ({
         activities: (current?.activities ?? []).filter((item) => item._id !== id),
       }));
       await refreshActivities();
-      return true;
+      return { message: response.message };
     },
     [apiActivities, queryClient, refreshActivities]
   );

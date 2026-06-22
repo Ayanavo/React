@@ -77,6 +77,10 @@ function ActivityPage() {
   function openCalendarEvent(event: CalendarEvent, date: Date) {
     setFocusedDate(null);
     const activity = findActivity(event.id) ?? null;
+    if (activity?.source === "holiday") {
+      return;
+    }
+
     if (activity) {
       openEditDialog(activity);
       return;
@@ -88,16 +92,15 @@ function ActivityPage() {
   async function handleSubmit(values: Parameters<typeof createActivity>[0], activityId?: string) {
     try {
       if (activityId) {
-        await updateActivity(activityId, values);
-        showToast({ title: "Activity updated", variant: "success" });
+        const result = await updateActivity(activityId, values);
+        if (!result) return;
+
+        showToast({ title: result.message || "Activity updated successfully", variant: "success" });
         return;
       }
 
-      const created = await createActivity(values);
-      showToast({
-        title: created.length > 1 ? `${created.length} activities created` : "Activity created",
-        variant: "success",
-      });
+      const result = await createActivity(values);
+      showToast({ title: result.message || "Activity created successfully", variant: "success" });
     } catch {
       showToast({ title: "Failed to save activity", variant: "error" });
     }
@@ -114,14 +117,14 @@ function ActivityPage() {
     if (!accepted) return;
 
     try {
-      const deleted = await deleteActivity(activityId);
-      if (!deleted) {
+      const result = await deleteActivity(activityId);
+      if (!result) {
         showToast({ title: "Unable to delete activity", variant: "error" });
         return;
       }
 
       setDialogOpen(false);
-      showToast({ title: "Activity deleted", variant: "success" });
+      showToast({ title: result.message || "Activity deleted successfully", variant: "success" });
     } catch {
       showToast({ title: "Failed to delete activity", variant: "error" });
     }

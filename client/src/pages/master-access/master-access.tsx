@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import ResourceGrid, { GridColumnConfig } from "@/pages/layout/grid/ResourceGrid";
 import { formatAppDateTime, formatDuration } from "@/lib/date-format";
+import showToast from "@/hooks/toast";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { useUserLoginStatusSocket } from "@/shared/hooks/useUserLoginStatusSocket";
 import { deleteUser, fetchUsers, savePermissions } from "@/shared/services/masterAccess";
@@ -63,11 +64,12 @@ const MasterAccess = () => {
   };
 
   const onSavePermissions = async (userId: string, routes: string[], menuOrder: string[]) => {
-    await savePermissions(userId, routes, menuOrder);
+    const response = await savePermissions(userId, routes, menuOrder);
     if (userId === currentUserId) {
       await refetchPermissions();
     }
     setOpenPermissionsFor(null);
+    showToast({ title: response?.message || "Permissions saved successfully", variant: "success" });
   };
 
   const columns: GridColumnConfig<MasterAccessUser>[] = [
@@ -75,6 +77,8 @@ const MasterAccess = () => {
     {
       key: "firstName",
       label: "First Name",
+      width: 140,
+      minWidth: 110,
       render: (_value, row) => (
         <div className="flex items-center gap-2">
           <span>{row.firstName ?? "—"}</span>
@@ -86,11 +90,13 @@ const MasterAccess = () => {
         </div>
       ),
     },
-    { key: "lastName", label: "Last Name" },
-    { key: "email", label: "Email" },
+    { key: "lastName", label: "Last Name", width: 140, minWidth: 110 },
+    { key: "email", label: "Email", width: 220, minWidth: 180 },
     {
       key: "isLoggedIn",
       label: "Status",
+      width: 100,
+      minWidth: 90,
       align: "center",
       render: (_value, row) => (
         <div className="flex w-full items-center justify-center gap-1.5">
@@ -112,6 +118,8 @@ const MasterAccess = () => {
     {
       key: "lastLoginAt",
       label: "Last Logged In",
+      width: 160,
+      minWidth: 130,
       render: (_value, row) => (
         <span className="text-sm text-muted-foreground">{formatAppDateTime(row.lastLoginAt, "—")}</span>
       ),
@@ -119,6 +127,8 @@ const MasterAccess = () => {
     {
       key: "lastLogoutAt",
       label: "Last Logged Out",
+      width: 160,
+      minWidth: 130,
       render: (_value, row) => (
         <span className="text-sm text-muted-foreground">{formatAppDateTime(row.lastLogoutAt, "—")}</span>
       ),
@@ -126,6 +136,8 @@ const MasterAccess = () => {
     {
       key: "totalTimeSpentMs",
       label: "Total Time Spent",
+      width: 140,
+      minWidth: 120,
       render: (_value, row) => (
         <span className="text-sm text-muted-foreground">{formatDuration(getEffectiveTotalTimeSpentMs(row))}</span>
       ),

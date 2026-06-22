@@ -92,6 +92,8 @@ function getPickerProps(type: DatePickerType, timeIntervals: number) {
 function PickerNavigation({
   viewDate,
   type,
+  drillView = "day",
+  onLabelClick,
   onPrev,
   onNext,
   prevDisabled,
@@ -99,12 +101,18 @@ function PickerNavigation({
 }: {
   viewDate: Date;
   type: DatePickerType;
+  drillView?: "day" | "month";
+  onLabelClick?: () => void;
   onPrev: () => void;
   onNext: () => void;
   prevDisabled?: boolean;
   nextDisabled?: boolean;
 }) {
-  const label = type === "year" ? moment(viewDate).format("YYYY") : formatAppMonthYear(viewDate);
+  const navType = drillView === "month" ? "month" : type;
+  const label =
+    navType === "year" ? moment(viewDate).format("YYYY")
+    : navType === "month" ? moment(viewDate).format("YYYY")
+    : formatAppMonthYear(viewDate);
 
   return (
     <div className="activity-picker__header flex items-center justify-between px-3 pb-2 pt-2">
@@ -117,9 +125,18 @@ function PickerNavigation({
         disabled={prevDisabled}>
         <ChevronLeftIcon className="h-4 w-4" />
       </Button>
-      <div className="text-sm font-semibold text-foreground" aria-live="polite">
-        {label}
-      </div>
+      {onLabelClick ?
+        <button
+          type="button"
+          className="activity-picker__header-label text-sm font-semibold text-foreground"
+          onClick={onLabelClick}
+          aria-live="polite">
+          {label}
+        </button>
+      : <div className="text-sm font-semibold text-foreground" aria-live="polite">
+          {label}
+        </div>
+      }
       <Button
         type="button"
         variant="ghost"
@@ -146,6 +163,7 @@ function PickerCore({
   maxDate,
   filterDate,
   onContinue,
+  isOpen = true,
 }: {
   selectedDate: Date;
   onChange: (date: Date | null) => void;
@@ -159,13 +177,22 @@ function PickerCore({
   maxDate?: Date;
   filterDate?: (date: Date) => boolean;
   onContinue?: (date: Date) => void;
+  isOpen?: boolean;
 }) {
   const pickerProps = getPickerProps(type, timeIntervals);
+  const supportsMonthDrillDown = type === "date" || type === "datetime";
   const [viewDate, setViewDate] = useState(selectedDate);
+  const [drillView, setDrillView] = useState<"day" | "month">("day");
 
   useEffect(() => {
     setViewDate(selectedDate);
   }, [selectedDate]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setDrillView("day");
+    }
+  }, [isOpen]);
 
   const summary = useMemo(() => {
     if (typeof footerText === "function") return footerText(selectedDate, type);
@@ -177,23 +204,25 @@ function PickerCore({
     "activity-datetime-picker",
     type === "datetime" && "activity-datetime-picker--with-time",
     type === "time" && "activity-datetime-picker--time-only",
-    (type === "month" || type === "year") && "activity-datetime-picker--compact"
+    (type === "month" || type === "year" || drillView === "month") && "activity-datetime-picker--compact"
   );
+
+  const navigationType = drillView === "month" && supportsMonthDrillDown ? "month" : type;
 
   const shiftViewDate = (direction: -1 | 1) => {
     setViewDate((current) => {
       const unit =
-        type === "year" ? "year"
-        : type === "month" ? "year"
+        navigationType === "year" ? "year"
+        : navigationType === "month" ? "year"
         : "month";
-      const amount = type === "year" ? 12 * direction : direction;
+      const amount = navigationType === "year" ? 12 * direction : direction;
       return moment(current).add(amount, unit).toDate();
     });
   };
 
   const viewBoundary =
-    type === "year" ? "year"
-    : type === "month" ? "year"
+    navigationType === "year" ? "year"
+    : navigationType === "month" ? "year"
     : "month";
   const prevDisabled =
     minDate ? moment(viewDate).startOf(viewBoundary).isSameOrBefore(moment(minDate).startOf(viewBoundary)) : false;
@@ -201,12 +230,21 @@ function PickerCore({
     maxDate ? moment(viewDate).startOf(viewBoundary).isSameOrAfter(moment(maxDate).startOf(viewBoundary)) : false;
   const showNavigation = type !== "time";
 
+  const handleMonthSelect = (nextDate: Date | null) => {
+    if (!nextDate) return;
+
+    setViewDate(nextDate);
+    setDrillView("day");
+  };
+
   return (
     <div className="activity-picker">
       {showNavigation && (
         <PickerNavigation
           viewDate={viewDate}
           type={type}
+          drillView={drillView}
+          onLabelClick={supportsMonthDrillDown && drillView === "day" ? () => setDrillView("month") : undefined}
           onPrev={() => shiftViewDate(-1)}
           onNext={() => shiftViewDate(1)}
           prevDisabled={prevDisabled}
@@ -215,19 +253,35 @@ function PickerCore({
       )}
 
       <div className="activity-picker__body">
-        <DatePicker
-          inline
-          selected={selectedDate}
-          onChange={onChange}
-          openToDate={viewDate}
-          onMonthChange={setViewDate}
-          minDate={minDate}
-          maxDate={maxDate}
-          filterDate={filterDate}
-          calendarClassName={pickerClassName}
-          {...pickerProps}
-          renderCustomHeader={() => <div className="activity-datetime-picker__header-spacer" aria-hidden="true" />}
-        />
+        {drillView === "month" && supportsMonthDrillDown ?
+          <DatePicker
+            inline
+            selected={selectedDate}
+            onChange={handleMonthSelect}
+            openToDate={viewDate}
+            onMonthChange={setViewDate}
+            minDate={minDate}
+            maxDate={maxDate}
+            filterDate={filterDate}
+            calendarClassName={pickerClassName}
+            showMonthYearPicker
+            dateFormat="MM/yyyy"
+            renderCustomHeader={() => <div className="activity-datetime-picker__header-spacer" aria-hidden="true" />}
+          />
+        : <DatePicker
+            inline
+            selected={selectedDate}
+            onChange={onChange}
+            openToDate={viewDate}
+            onMonthChange={setViewDate}
+            minDate={minDate}
+            maxDate={maxDate}
+            filterDate={filterDate}
+            calendarClassName={pickerClassName}
+            {...pickerProps}
+            renderCustomHeader={() => <div className="activity-datetime-picker__header-spacer" aria-hidden="true" />}
+          />
+        }
       </div>
 
       {showFooter && (
@@ -272,8 +326,19 @@ function DateTimePicker({
   const resolvedShowContinue = showContinue ?? false;
 
   const handleDateChange = (nextDate: Date | null) => {
-    if (nextDate) {
-      onSendData?.(nextDate);
+    if (!nextDate) return;
+
+    onSendData?.(nextDate);
+
+    if (mode !== "form") return;
+
+    if (resolvedType === "date" || resolvedType === "month" || resolvedType === "year") {
+      setOpen(false);
+      return;
+    }
+
+    if (resolvedType === "datetime" && moment(nextDate).isSame(selectedDate, "day")) {
+      setOpen(false);
     }
   };
 
@@ -296,6 +361,7 @@ function DateTimePicker({
       maxDate={maxDate}
       filterDate={filterDate}
       onContinue={handleContinue}
+      isOpen={mode === "form" ? open : true}
     />
   );
 

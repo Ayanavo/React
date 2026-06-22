@@ -152,7 +152,7 @@ function settings() {
   const saveSettings = async () => {
     try {
       setIsSaving(true);
-      await saveSettingsAPI({
+      const response = await saveSettingsAPI({
         date_format: selectedDateFormat,
         currency_format: selectedCurrencyCode,
         font_style: selectedFontStyle,
@@ -171,7 +171,7 @@ function settings() {
         theme,
       });
 
-      showToast({ title: "Settings saved successfully", variant: "success" });
+      showToast({ title: response?.message || "Settings saved successfully", variant: "success" });
     } catch (error) {
       showToast({
         title: "Settings save failed",

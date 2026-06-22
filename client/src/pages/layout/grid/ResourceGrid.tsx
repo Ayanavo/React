@@ -13,11 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
+import { ApiMessageResponse } from "@/shared/types/api";
 import { formatAppDate } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useConfirmDialog } from "@/shared/confirmation";
 import {
+  ColumnSizingState,
   createColumnHelper,
   getCoreRowModel,
   getFilteredRowModel,
@@ -25,12 +27,14 @@ import {
   getSortedRowModel,
   PaginationState,
   SortingState,
+  Updater,
   useReactTable,
 } from "@tanstack/react-table";
 import { EllipsisIcon, PencilIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
 import AddActionButton from "@/components/inbuild/add-action-button";
 import React, { useEffect, useId, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { resolveGridColumnSizing, normalizeColumnSizingFromConfig } from "./grid-column-sizing";
 import ColumnComponent from "./table/column";
 import KanbanComponent from "./table/kanban";
 import PaginationComponent from "./table/pagination";
@@ -43,6 +47,10 @@ export type GridColumnConfig<T> = {
   label: string;
   type?: GridColumnType;
   align?: "left" | "center" | "right";
+  width?: number;
+  minWidth?: number;
+  maxWidth?: number;
+  resizable?: boolean;
   listable?: boolean;
   kanbanIdKey?: keyof T & string;
   kanbanColorKey?: keyof T & string;
@@ -56,7 +64,7 @@ type ResourceGridProps<T extends { _id: string }> = {
   addLabel?: string;
   columns: GridColumnConfig<T>[];
   fetchList: () => Promise<T[]>;
-  deleteResource: (id: string) => Promise<unknown>;
+  deleteResource: (id: string) => Promise<ApiMessageResponse>;
   actionRenderer?: (row: T, deleteResource: (id: string) => void) => React.ReactNode;
   showAddButton?: boolean;
   onAddClick?: () => void;
@@ -114,6 +122,7 @@ function ResourceGrid<T extends { _id: string }>({
   const [rowSelection, setRowSelection] = useState({});
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const [layout, setLayout] = useState<string>("column");
   const [kanbanGroupByKey, setKanbanGroupByKey] = useState<string>("");
 
@@ -129,14 +138,11 @@ function ResourceGrid<T extends { _id: string }>({
     }
   }, [filteredList, isSuccess]);
 
-  const deleteMutation = useMutation({
+  const deleteMutation = useMutation<ApiMessageResponse, Error, string>({
     mutationFn: deleteResource,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [queryKey] });
-      showToast({
-        title: `${resourceLabel} deleted successfully`,
-        variant: "success",
-      });
+      showToast({ title: data?.message || `${resourceLabel} deleted successfully`, variant: "success" });
     },
     onError: (error: Error) => {
       showToast({
@@ -166,9 +172,12 @@ function ResourceGrid<T extends { _id: string }>({
 
   const createColumns = () => {
     return columnConfig.map((column) => {
+      const sizing = resolveGridColumnSizing(column);
+
       if (column.key === "action") {
         return columnHelper.display({
           id: "action",
+          ...sizing,
           header: column.label,
           meta: { align: column.align ?? "right" },
           cell: ({ row }) => {
@@ -245,6 +254,7 @@ function ResourceGrid<T extends { _id: string }>({
       if (column.key === "select") {
         return columnHelper.display({
           id: "select",
+          ...sizing,
           meta: { align: column.align ?? "center" },
           header: ({ table }) => (
             <Checkbox
@@ -268,6 +278,7 @@ function ResourceGrid<T extends { _id: string }>({
       if (column.type === "date") {
         return columnHelper.accessor((row) => row[column.key as keyof T], {
           id: column.key,
+          ...sizing,
           header: () => column.label,
           meta: { align: column.align },
           cell: (info) => formatAppDate(info.getValue() as string, "-"),
@@ -277,6 +288,7 @@ function ResourceGrid<T extends { _id: string }>({
       if (column.type === "color") {
         return columnHelper.accessor((row) => row[column.key as keyof T], {
           id: column.key,
+          ...sizing,
           header: () => column.label,
           meta: { align: column.align },
           cell: (info) => {
@@ -293,6 +305,7 @@ function ResourceGrid<T extends { _id: string }>({
 
       return columnHelper.accessor((row) => row[column.key as keyof T], {
         id: column.key,
+        ...sizing,
         header: () => column.label,
         meta: { align: column.align },
         cell: (info) => {
@@ -304,18 +317,28 @@ function ResourceGrid<T extends { _id: string }>({
     });
   };
 
+  const handleColumnSizingChange = (updater: Updater<ColumnSizingState>) => {
+    setColumnSizing((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      return normalizeColumnSizingFromConfig(next, columnConfig);
+    });
+  };
+
   const tableBody = useReactTable({
     data,
     columns: createColumns(),
-    state: { sorting, pagination, rowSelection, globalFilter },
+    state: { sorting, pagination, rowSelection, globalFilter, columnSizing },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onRowSelectionChange: setRowSelection,
+    onColumnSizingChange: handleColumnSizingChange,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     enableRowSelection: true,
+    enableColumnResizing: true,
+    columnResizeMode: "onEnd",
   });
 
   const handleSearchKey = (event: React.KeyboardEvent<HTMLInputElement>) => {

@@ -8,10 +8,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import ColorComponent from "@/shared/controls/color";
+import LocationComponent from "@/shared/controls/location";
 import TextComponent from "@/shared/controls/text";
 import TextAreaComponent from "@/shared/controls/textarea";
 import { getTags, type TagRecord } from "@/shared/services/tag";
@@ -21,7 +23,6 @@ import moment from "moment";
 import React, { useEffect, useMemo } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import DateTimePicker from "./datepicker";
-import LocationAutocompleteField from "./location-autocomplete";
 import {
   ActivityFormValues,
   ActivityItem,
@@ -53,6 +54,7 @@ function buildDefaultValues(activity: ActivityItem | null, defaultDate: Date): A
       location: "",
       tag: "",
       recurring: false,
+      recurrenceCount: 1,
       recurrenceInterval: "month",
       recurrenceEndDate: moment(defaultDate).add(1, "month").toDate(),
     };
@@ -91,6 +93,8 @@ export default function ActivityFormDialog({
   const form = useForm<ActivityFormValues>({
     defaultValues,
   });
+
+  const isAllDay = Boolean(form.watch("allDay"));
 
   useEffect(() => {
     if (open) {
@@ -152,7 +156,7 @@ export default function ActivityFormDialog({
               <Label>Schedule</Label>
               <DateTimePicker
                 mode="form"
-                type="datetime"
+                type={isAllDay ? "date" : "datetime"}
                 date={form.watch("date")}
                 onSendData={(nextDate) => form.setValue("date", nextDate, { shouldDirty: true, shouldValidate: true })}
               />
@@ -220,21 +224,50 @@ export default function ActivityFormDialog({
 
                 {form.watch("recurring") ?
                   <>
-                    <SelectField<RecurrenceInterval>
-                      label="Repeat every"
-                      value={form.watch("recurrenceInterval") ?? "month"}
-                      onValueChange={(value) => form.setValue("recurrenceInterval", value, { shouldDirty: true })}
-                      options={Object.entries(RECURRENCE_INTERVAL_LABELS).map(([value, label]) => ({
-                        value: value as RecurrenceInterval,
-                        label,
-                      }))}
-                    />
+                    <div className="space-y-2">
+                      <Label>Repeat every</Label>
+                      <div className="flex items-end gap-2">
+                        <div className="w-20 shrink-0">
+                          <Input
+                            type="number"
+                            min={1}
+                            max={99}
+                            value={form.watch("recurrenceCount") ?? 1}
+                            disabled={isReadOnly}
+                            onChange={(event) => {
+                              const parsed = Number.parseInt(event.target.value, 10);
+                              const nextCount = Number.isNaN(parsed) ? 1 : Math.min(99, Math.max(1, parsed));
+                              form.setValue("recurrenceCount", nextCount, { shouldDirty: true });
+                            }}
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <Select
+                            value={form.watch("recurrenceInterval") ?? "month"}
+                            onValueChange={(value) =>
+                              form.setValue("recurrenceInterval", value as RecurrenceInterval, { shouldDirty: true })
+                            }
+                            disabled={isReadOnly}>
+                            <SelectTrigger className="[&>span]:flex [&>span]:items-center">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(RECURRENCE_INTERVAL_LABELS).map(([value, label]) => (
+                                <SelectItem key={value} value={value}>
+                                  {label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
 
                     <div className="space-y-2">
-                      <Label>Until date and time</Label>
+                      <Label>{isAllDay ? "Until date" : "Until date and time"}</Label>
                       <DateTimePicker
                         mode="form"
-                        type="datetime"
+                        type={isAllDay ? "date" : "datetime"}
                         minDate={form.watch("date")}
                         date={form.watch("recurrenceEndDate") ?? moment(form.watch("date")).add(1, "month").toDate()}
                         onSendData={(nextDate) =>
@@ -242,7 +275,9 @@ export default function ActivityFormDialog({
                         }
                       />
                       <p className="text-xs text-muted-foreground">
-                        Events will repeat on the same time until this date.
+                        {isAllDay ?
+                          "Events will repeat on the same date until this date."
+                        : "Events will repeat on the same time until this date."}
                       </p>
                     </div>
                   </>
@@ -250,7 +285,17 @@ export default function ActivityFormDialog({
               </div>
             : null}
 
-            <LocationAutocompleteField form={form} disabled={isReadOnly} />
+            <LocationComponent
+              form={form}
+              disabled={isReadOnly}
+              schema={{
+                name: "location",
+                label: "Location",
+                placeholder: "Search location...",
+                type: "location",
+                validation: { required: false },
+              }}
+            />
 
             <ColorComponent
               form={form}
