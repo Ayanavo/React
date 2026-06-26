@@ -1,6 +1,6 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/toaster";
-import { NavExclusionList, NavList } from "@/config/nav";
+import { NavList } from "@/config/nav";
 import { usePermissions } from "@/shared/context/PermissionsContext";
 import React, { useMemo, useState } from "react";
 import { Outlet } from "react-router-dom";
@@ -8,7 +8,6 @@ import MenuComponent from "../menu/menu";
 import HeaderComponent from "./header/header";
 
 export const Layout = () => {
-  const exclutionList = NavExclusionList;
   const [isExpanded, setIsExpanded] = useState(false);
   const { permissions, menuOrder, isLoading } = usePermissions();
 
@@ -34,7 +33,7 @@ export const Layout = () => {
       />
 
       <SidebarInset className="app-layout-shell__main min-h-0 flex-1 overflow-hidden">
-        <HeaderComponent NavList={filteredNavList} exclutionList={exclutionList} />
+        <HeaderComponent NavList={filteredNavList} />
         <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
           <Outlet />
           <Toaster />

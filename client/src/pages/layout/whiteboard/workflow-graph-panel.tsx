@@ -223,9 +223,7 @@ function WorkflowGraphPanel({ nodes, edges, onNodesChange, onEdgesChange, isLoad
 
     if (!isValidWorkflowConnection(connection, nodes)) return;
 
-    onEdgesChange(
-      addWorkflowEdge(nodes, edges, connection)
-    );
+    onEdgesChange(addWorkflowEdge(edges, connection));
   };
 
   if (isLoading) {
