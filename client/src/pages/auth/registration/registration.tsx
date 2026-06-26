@@ -17,6 +17,7 @@ import {
   sendVerificationEmailAPI,
 } from "@/shared/services/auth.ts";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from "@/shared/utils/password-strength";
+import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { BadgeAlert, LoaderCircleIcon, MailIcon, ShieldCheckIcon, UserPlusIcon } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
@@ -353,17 +354,28 @@ function registration() {
           <span className="bg-card px-2 text-xs uppercase text-muted-foreground">Or register with</span>
         </div>
       </div>
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full"
-        disabled={isSocialLoading || isSubmitting}
-        onClick={() => signInWithProvider("google")}>
-        {loadingProvider === "google" ?
-          <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
-        : <GoogleIcon />}
-        Google
-      </Button>
+      <div className="grid w-full grid-cols-2 gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isSocialLoading || isSubmitting}
+          onClick={() => signInWithProvider("google")}>
+          {loadingProvider === "google" ?
+            <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
+          : <GoogleIcon />}
+          Google
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={isSocialLoading || isSubmitting}
+          onClick={() => signInWithProvider("github")}>
+          {loadingProvider === "github" ?
+            <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
+          : <GitHubLogoIcon />}
+          Github
+        </Button>
+      </div>
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link to="/login" className="underline underline-offset-4 hover:text-primary" preventScrollReset={true}>
