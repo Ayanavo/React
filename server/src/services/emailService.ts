@@ -41,7 +41,7 @@ export const sendVerificationEmail = async (to: string, verifyUrl: string): Prom
   const { error } = await resend.emails.send({
     from: resendFromEmail,
     to,
-    subject: "Verify your email for Epsilon",
+    subject: "Verify your email for Notofy",
     html,
     text,
     attachments: [getAppIconAttachment()],

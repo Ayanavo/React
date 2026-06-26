@@ -1,4 +1,4 @@
-﻿import { hash } from "bcrypt";
+import { hash } from "bcrypt";
 import crypto from "crypto";
 import { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
@@ -11,6 +11,7 @@ import { emitUserLoginStatus } from "../websockets/socket.js";
 import { assertEmailVerifiedForRegistration, clearVerificationRecord } from "./emailVerificationController.js";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_PATTERN_MESSAGE } from "../utils/passwordValidation.js";
 import { grantDefaultUserAccess } from "../services/userPermissions.js";
+import { CompanyProfile, formatCompaniesForResponse, sanitizeCompanies } from "../utils/profileValidation.js";
 
 const refreshCookieOptions = {
   httpOnly: true,
@@ -18,6 +19,13 @@ const refreshCookieOptions = {
   sameSite: process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
   path: "/",
 };
+
+const formatCompanies = (companies: unknown): CompanyProfile[] => formatCompaniesForResponse(companies);
+
+const formatUserProfileResponse = (user: Record<string, any>) => ({
+  ...user,
+  companies: formatCompanies(user.companies),
+});
 
 const invalidateUserSession = async (userId: string): Promise<void> => {
   const user = await User.findById(userId);
@@ -285,7 +293,7 @@ export const getUserProfile = async (req: Request, res: Response) => {
       if (!decoded) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.status(200).json({ user: decoded });
+      res.status(200).json({ user: formatUserProfileResponse(decoded as Record<string, any>) });
     }
   } catch (error) {
     console.error("Error fetching profile:", error);
@@ -295,37 +303,60 @@ export const getUserProfile = async (req: Request, res: Response) => {
 
 export const saveUserProfile = async (req: Request, res: Response) => {
   try {
-    if (req.headers?.authorization) {
-      const token = req.headers.authorization.split(" ")[1];
-      if (!token) return res.status(401).json({ message: "Not authenticated" });
-      const decoded = await getUserDataByToken(token);
-      if (decoded === null) return res.status(401).json({ message: "Invalid token" });
-      const userId = decoded._id;
-      const { photoURL, firstName, lastName, mobile, addressLine1, addressLine2, landmark, city, state, pincode } = req.body;
-
-      if ([firstName, lastName, mobile, addressLine1, city, state, pincode].some((field) => field === undefined)) {
-        return res.status(400).json({ message: "Required fields are missing" });
-      }
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      user.firstName = firstName;
-      user.lastName = lastName;
-      user.photoURL = photoURL;
-      user.mobile = mobile;
-      user.address.addressLine1 = addressLine1;
-      user.address.addressLine2 = addressLine2 ?? "";
-      user.address.landmark = landmark ?? "";
-      user.address.city = city;
-      user.address.state = state;
-      user.address.pincode = pincode;
-
-      await user.save();
-      res.status(200).json({ message: "Profile updated successfully" });
+    if (!req.headers?.authorization) {
+      return res.status(401).json({ message: "Not authenticated" });
     }
-  } catch (error) {
+
+    const token = req.headers.authorization.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "Not authenticated" });
+
+    const decoded = await getUserDataByToken(token);
+    if (decoded === null) return res.status(401).json({ message: "Invalid token" });
+
+    const userId = decoded._id;
+    const { photoURL, firstName, lastName, mobile, addressLine1, addressLine2, landmark, city, state, pincode, companies } =
+      req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const sanitizedCompanies = sanitizeCompanies(companies);
+
+    user.firstName = firstName;
+    user.lastName = lastName;
+    user.photoURL = photoURL ?? "";
+    user.mobile = mobile;
+    user.address.addressLine1 = addressLine1;
+    user.address.addressLine2 = addressLine2 ?? "";
+    user.address.landmark = landmark ?? "";
+    user.address.city = city;
+    user.address.state = state;
+    user.address.pincode = pincode;
+    user.companies = sanitizedCompanies;
+    user.markModified("companies");
+
+    await user.save();
+    res.status(200).json({
+      message: "Profile updated successfully",
+      companies: sanitizedCompanies,
+    });
+  } catch (error: any) {
+    if (error?.name === "ValidationError") {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: Object.values(error.errors ?? {}).map((entry: any) => ({
+          field: entry.path,
+          message: entry.message,
+        })),
+      });
+    }
+
+    if (error?.code === 11000) {
+      return res.status(409).json({ message: "Mobile number is already in use" });
+    }
+
     console.error("Error updating profile:", error);
     res.status(500).json({ message: "Failed to update profile" });
   }

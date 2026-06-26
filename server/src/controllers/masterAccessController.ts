@@ -15,19 +15,23 @@ const defaultMenuOrder = [
   "/notes",
   "/tags",
   "/cv-builder",
+  "/cover-letter",
   "/whiteboard",
   "/summarize",
   "/profile",
   "/settings",
 ];
 
+const pinnedMenuRoutes = ["/profile", "/settings"] as const;
+const pinnedMenuRouteSet = new Set<string>(pinnedMenuRoutes);
+
 const normalizeMenuOrder = (menuOrder: string[] | undefined | null): string[] => {
   const validRoutes = new Set(defaultMenuOrder);
-  const settingsRoute = "/settings";
-  const ordered = (menuOrder ?? []).filter((route) => validRoutes.has(route) && route !== settingsRoute);
-  const remaining = defaultMenuOrder.filter((route) => route !== settingsRoute && !ordered.includes(route));
+  const sortableRoutes = defaultMenuOrder.filter((route) => !pinnedMenuRouteSet.has(route));
+  const ordered = (menuOrder ?? []).filter((route) => validRoutes.has(route) && !pinnedMenuRouteSet.has(route));
+  const remaining = sortableRoutes.filter((route) => !ordered.includes(route));
 
-  return [...ordered, ...remaining, settingsRoute];
+  return [...ordered, ...remaining, ...pinnedMenuRoutes];
 };
 
 

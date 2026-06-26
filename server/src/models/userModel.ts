@@ -1,6 +1,52 @@
-﻿import { compare } from "bcrypt";
+import { compare } from "bcrypt";
 import jwt from "jsonwebtoken";
 import { Document, model, Schema } from "mongoose";
+
+const MOBILE_PATTERN = /^[\+]?[1-9][\d]{0,15}$/;
+const MONTH_PATTERN = /^(0[1-9]|1[0-2])$/;
+const YEAR_PATTERN = /^\d{4}$/;
+const PINCODE_PATTERN = /^\d{6}$/;
+
+const companySchema = new Schema(
+  {
+    companyName: { type: String, default: "", trim: true, maxlength: 200 },
+    designation: { type: String, default: "", trim: true, maxlength: 200 },
+    fromMonth: {
+      type: String,
+      default: "",
+      validate: {
+        validator: (value: string) => !value || MONTH_PATTERN.test(value),
+        message: "From month must be between 01 and 12",
+      },
+    },
+    fromYear: {
+      type: String,
+      default: "",
+      validate: {
+        validator: (value: string) => !value || YEAR_PATTERN.test(value),
+        message: "From year must be a 4-digit year",
+      },
+    },
+    toMonth: {
+      type: String,
+      default: "",
+      validate: {
+        validator: (value: string) => !value || MONTH_PATTERN.test(value),
+        message: "To month must be between 01 and 12",
+      },
+    },
+    toYear: {
+      type: String,
+      default: "",
+      validate: {
+        validator: (value: string) => !value || YEAR_PATTERN.test(value),
+        message: "To year must be a 4-digit year",
+      },
+    },
+    isPresent: { type: Boolean, default: false },
+  },
+  { _id: false }
+);
 
 export interface IUser extends Document {
   photoURL?: string;
@@ -27,6 +73,15 @@ export interface IUser extends Document {
     state: string;
     pincode: string;
   };
+  companies: Array<{
+    companyName: string;
+    designation: string;
+    fromMonth: string;
+    fromYear: string;
+    toMonth?: string;
+    toYear?: string;
+    isPresent: boolean;
+  }>;
   settings: {
     date_format: string;
     currency_format: string;
@@ -40,10 +95,19 @@ export interface IUser extends Document {
 
 const userSchema: Schema = new Schema(
   {
-    photoURL: { type: String },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    mobile: { type: String, default: "", unique: true },
+    photoURL: { type: String, default: "" },
+    firstName: { type: String, required: true, trim: true, maxlength: 100 },
+    lastName: { type: String, required: true, trim: true, maxlength: 100 },
+    mobile: {
+      type: String,
+      default: "",
+      unique: true,
+      trim: true,
+      validate: {
+        validator: (value: string) => !value || MOBILE_PATTERN.test(value),
+        message: "Mobile number format is invalid",
+      },
+    },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     firebaseUid: { type: String, unique: true, sparse: true },
@@ -59,12 +123,24 @@ const userSchema: Schema = new Schema(
     totalTimeSpentMs: { type: Number, default: 0 },
     currentSessionStartedAt: { type: Date, default: null },
     address: {
-      addressLine1: { type: String, default: "" },
-      addressLine2: { type: String, default: "" },
-      landmark: { type: String, default: "" },
-      city: { type: String, default: "" },
-      state: { type: String, default: "" },
-      pincode: { type: String, default: "" },
+      addressLine1: { type: String, default: "", trim: true, maxlength: 255 },
+      addressLine2: { type: String, default: "", trim: true, maxlength: 255 },
+      landmark: { type: String, default: "", trim: true, maxlength: 255 },
+      city: { type: String, default: "", trim: true, maxlength: 100 },
+      state: { type: String, default: "", trim: true, maxlength: 100 },
+      pincode: {
+        type: String,
+        default: "",
+        trim: true,
+        validate: {
+          validator: (value: string) => !value || PINCODE_PATTERN.test(value),
+          message: "Pincode must be 6 digits",
+        },
+      },
+    },
+    companies: {
+      type: [companySchema],
+      default: [],
     },
     settings: {
       date_format: { type: String, default: "DD/MM/YYYY" },

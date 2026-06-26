@@ -16,6 +16,7 @@ import {
   socialLogin,
   verifyToken,
 } from "../controllers/userController.js";
+import { handleSaveUserProfileValidation, saveUserProfileValidators } from "../utils/profileValidation.js";
 
 const router = Router();
 
@@ -28,7 +29,7 @@ router.post("/register", signUp);
 router.post("/logout", logout as RequestHandler);
 router.post("/refresh-token", refreshToken as RequestHandler);
 router.get("/getUserProfile", getUserProfile as RequestHandler);
-router.post("/saveUserProfile", saveUserProfile as RequestHandler);
+router.post("/saveUserProfile", ...saveUserProfileValidators, handleSaveUserProfileValidation, saveUserProfile as RequestHandler);
 router.get("/saveSetting", saveSettings as RequestHandler);
 router.post("/SaveSettings", saveSettings as RequestHandler);
 router.post("/social-login", socialLogin as RequestHandler);

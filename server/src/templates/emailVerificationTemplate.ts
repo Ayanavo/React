@@ -22,9 +22,9 @@ export const buildVerificationEmailContent = (verifyUrl: string) => {
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
           <tr>
             <td style="padding:32px 32px 16px;text-align:center;">
-              <img src="cid:app-icon" alt="Epsilon" width="64" height="64" style="display:block;margin:0 auto 16px;" />
+              <img src="cid:app-icon" alt="Notofy" width="64" height="64" style="display:block;margin:0 auto 16px;" />
               <h1 style="margin:0 0 8px;font-size:24px;line-height:1.3;color:#18181b;">Verify your email</h1>
-              <p style="margin:0;font-size:15px;line-height:1.6;color:#52525b;">Thanks for signing up for Epsilon. Click the button below to verify your email and continue registration.</p>
+              <p style="margin:0;font-size:15px;line-height:1.6;color:#52525b;">Thanks for signing up for Notofy. Click the button below to verify your email and continue registration.</p>
             </td>
           </tr>
           <tr>
@@ -40,7 +40,7 @@ export const buildVerificationEmailContent = (verifyUrl: string) => {
           </tr>
           <tr>
             <td style="padding:16px 32px 32px;border-top:1px solid #e4e4e7;text-align:center;">
-              <p style="margin:0;font-size:12px;color:#a1a1aa;">&copy; ${new Date().getFullYear()} Epsilon. All rights reserved.</p>
+              <p style="margin:0;font-size:12px;color:#a1a1aa;">&copy; ${new Date().getFullYear()} Notofy. All rights reserved.</p>
             </td>
           </tr>
         </table>
@@ -50,7 +50,7 @@ export const buildVerificationEmailContent = (verifyUrl: string) => {
 </body>
 </html>`;
 
-  const text = `Verify your email for Epsilon
+  const text = `Verify your email for Notofy
 
 Thanks for signing up. Open the link below to verify your email and continue registration:
 

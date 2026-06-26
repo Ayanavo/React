@@ -3,9 +3,13 @@ import { Request, Response } from "express";
 import { extractTextFromFile, isSupportedFile } from "../utils/fileExtractor.js";
 
 const SUMMARY_SYSTEM_PROMPT =
-  "You are a helpful assistant that creates clear, concise summaries. " +
-  "Highlight key points, main ideas, and important details. " +
-  "Use bullet points when appropriate. Keep summaries focused and readable.";
+  "You are a helpful assistant that creates clear, structured summaries of job descriptions and documents. " +
+  "Format your response in markdown with these rules:\n" +
+  "- Use ## headings for sections (e.g. Role Overview, Key Requirements, Required Skills, Responsibilities, Highlights)\n" +
+  "- Use - bullet points under each section for individual items\n" +
+  "- Wrap important keywords, skills, technologies, and qualifications in **double asterisks** for emphasis\n" +
+  "- Keep summaries focused, scannable, and readable\n" +
+  "- Do not use code blocks or tables";
 
 const CHAT_SYSTEM_PROMPT =
   "You are a helpful assistant answering questions about documents and text the user has shared. " +
@@ -29,7 +33,7 @@ export type GeminiModelId = (typeof ALLOWED_GEMINI_MODELS)[number];
 const DEFAULT_GEMINI_MODEL =
   (process.env.GOOGLE_GEMINI_MODEL?.trim() as GeminiModelId | undefined) || "gemini-2.5-flash";
 
-function resolveModel(requested?: unknown): GeminiModelId {
+export function resolveModel(requested?: unknown): GeminiModelId {
   if (typeof requested === "string" && ALLOWED_GEMINI_MODELS.includes(requested as GeminiModelId)) {
     return requested as GeminiModelId;
   }
@@ -79,7 +83,7 @@ function formatGoogleError(error: unknown, modelId: string): { status: number; m
   return { status: 500, code: "GOOGLE_AI_ERROR", message: raw || "Failed to communicate with Google AI" };
 }
 
-function sendGoogleError(res: Response, error: unknown, modelId: string) {
+export function sendGoogleError(res: Response, error: unknown, modelId: string) {
   const { status, message, code } = formatGoogleError(error, modelId);
   console.error("Google AI error:", message);
   res.status(status).json({ message, code, model: modelId });
