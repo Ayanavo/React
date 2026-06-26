@@ -1,24 +1,22 @@
 <!doctype html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Epsilon</title>
+  <title>Notofy</title>
   <link rel="firebase icon" href="/React/assets/favicon-Bz-WR5SX.svg" type="image/svg+xml" />
-  <script type="module" crossorigin src="/React/assets/index-BoOKeHJY.js"></script>
-  <link rel="stylesheet" crossorigin href="/React/assets/index-I33OkJ-A.css">
+  <script type="module" crossorigin src="/React/assets/index-Dmf_QQmU.js"></script>
+  <link rel="stylesheet" crossorigin href="/React/assets/index-DsJlBh01.css">
 </head>
-
 <body style="pointer-events: auto">
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root">
-    <div class="loader-screen"><span class="loader"></span></div>
+    <div class="loader-screen" role="status" aria-live="polite" aria-busy="true" aria-label="Loading">
+      <div class="loader-sphere" aria-hidden="true"></div>
+    </div>
   </div>
   <script>
-    //Base Url redirect
     if (window.location.pathname === '/') window.location.replace('/React');
   </script>
 </body>
-
 </html>
