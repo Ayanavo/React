@@ -1,6 +1,7 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
 import { useCV } from "@/lib/useCV";
+import { prepareHtml2CanvasClone } from "@/shared/utils/html2canvas-capture";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import { Download, Eye, GripHorizontal, GripVertical, Hand, Minus, Plus, Maximize2, Trash, X } from "lucide-react";
@@ -139,8 +140,10 @@ const Canvas = () => {
         useCORS: true,
         width: captureWidth,
         height: captureHeight,
-        onclone: (clonedDoc) => {
-          clonedDoc.querySelectorAll("[data-cv-capture-ignore]").forEach((node) => node.remove());
+        onclone: (clonedDoc, clonedPageEl) => {
+          if (clonedPageEl instanceof HTMLElement) {
+            prepareHtml2CanvasClone(clonedDoc, clonedPageEl, pageEl);
+          }
         },
       });
 

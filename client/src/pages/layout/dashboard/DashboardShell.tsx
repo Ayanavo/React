@@ -2,21 +2,67 @@ import { Moon, Sun } from "lucide-react";
 import { formatAppDateTime } from "@/lib/date-format";
 import moment from "moment";
 import React, { useEffect, useState } from "react";
-import ActivityTimeline from "./ActivityTimeline";
+import { Link } from "react-router-dom";
 import AIInsights from "./AIInsights";
 import QuickActions from "./QuickActions";
 import RecentNotesList from "./RecentNotesList";
+import UpcomingActivitiesList from "./UpcomingActivitiesList";
 import { getCurrentUserAPI } from "@/shared/services/auth";
-import CategoryDistribution from "./widgets/CategoryDistribution";
+import ActivitiesByTag from "./widgets/ActivitiesByTag";
 import NotesPerWeek from "./widgets/NotesPerWeek";
 import StatsGrid from "./widgets/StatsGrid";
-import DashboardCard from "./DashboardCard";
+import { useDashboardData } from "./use-dashboard-data";
+import "./dashboard.scss";
+
+function Panel({
+  title,
+  description,
+  linkTo,
+  linkLabel = "View all",
+  span = "span-4",
+  children,
+}: {
+  title: string;
+  description?: string;
+  linkTo?: string;
+  linkLabel?: string;
+  span?: "span-4" | "span-6" | "span-8" | "span-12";
+  children: React.ReactNode;
+}) {
+  return (
+    <section className={`dashboard__panel dashboard__panel--${span}`}>
+      <div className="dashboard__panel-head">
+        <div className="space-y-1">
+          <h2 className="text-base font-semibold">{title}</h2>
+          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+        </div>
+        {linkTo ?
+          <Link to={linkTo} className="text-xs font-medium text-primary hover:underline">
+            {linkLabel}
+          </Link>
+        : null}
+      </div>
+      <div className="dashboard__panel-body">{children}</div>
+    </section>
+  );
+}
 
 const DashboardShell: React.FC = () => {
-  const [userName, setUserName] = useState("Ayanavo");
+  const [userName, setUserName] = useState("there");
   const [greetingLabel, setGreetingLabel] = useState("Good Morning");
   const [isDaytime, setIsDaytime] = useState(true);
   const [timeText, setTimeText] = useState("");
+
+  const {
+    isLoading,
+    recentNotes,
+    upcomingActivities,
+    activitiesByTag,
+    notesPerDay,
+    stats,
+    insights,
+    tagById,
+  } = useDashboardData();
 
   useEffect(() => {
     let isMounted = true;
@@ -27,7 +73,7 @@ const DashboardShell: React.FC = () => {
         if (!isMounted || !response?.user) return;
         const firstName = response.user.firstName?.trim();
         const lastName = response.user.lastName?.trim();
-        const fullName = [firstName, lastName].filter(Boolean).join(" ") || "Ayanavo";
+        const fullName = [firstName, lastName].filter(Boolean).join(" ") || "there";
         setUserName(fullName);
       } catch (error) {
         console.error("Unable to load current user", error);
@@ -60,10 +106,10 @@ const DashboardShell: React.FC = () => {
   const GreetingIcon = isDaytime ? Sun : Moon;
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto scrollbar-none text-foreground">
-      <main className="space-y-6 p-6">
-        <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div className="space-y-1">
+    <div className="dashboard h-full min-h-0 overflow-y-auto scrollbar-none text-foreground">
+      <main className="dashboard__main">
+        <header className="dashboard__header">
+          <div className="min-w-0 space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
               {greetingLabel}, {userName}{" "}
               <GreetingIcon className="inline-block h-6 w-6 align-middle text-primary md:h-7 md:w-7" />
@@ -74,35 +120,28 @@ const DashboardShell: React.FC = () => {
           <QuickActions />
         </header>
 
-        <StatsGrid />
+        <StatsGrid stats={stats} isLoading={isLoading} />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="space-y-6 lg:col-span-2">
-            <DashboardCard title="Notes Created This Week" description="Activity over the last 7 days">
-              <NotesPerWeek />
-            </DashboardCard>
+        <div className="dashboard__bento">
+          <Panel title="Notes Created This Week" description="New notes over the last 7 days" span="span-8">
+            <NotesPerWeek days={notesPerDay} isLoading={isLoading} />
+          </Panel>
 
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <DashboardCard title="Category Distribution" description="How your notes are grouped">
-                <CategoryDistribution />
-              </DashboardCard>
-              <DashboardCard title="Recent Activity" description="Latest updates across your workspace">
-                <ActivityTimeline />
-              </DashboardCard>
-            </div>
-          </div>
+          <Panel title="Workspace Insights" description="Patterns from your notes and activities" span="span-4">
+            <AIInsights insights={insights} isLoading={isLoading} />
+          </Panel>
 
-          <aside className="space-y-6">
-            <DashboardCard title="AI Insights" description="Patterns from your writing habits">
-              <AIInsights />
-            </DashboardCard>
-            <DashboardCard
-              title="Recent Notes"
-              description="Quick access to what you worked on last"
-              headerAction={<span className="text-xs font-medium text-primary">View all</span>}>
-              <RecentNotesList />
-            </DashboardCard>
-          </aside>
+          <Panel title="Activities by Tag" description="How your scheduled work is grouped" span="span-6">
+            <ActivitiesByTag slices={activitiesByTag} isLoading={isLoading} />
+          </Panel>
+
+          <Panel title="Upcoming Activities" description="Your next scheduled items" linkTo="/activities" span="span-6">
+            <UpcomingActivitiesList activities={upcomingActivities} tagById={tagById} isLoading={isLoading} />
+          </Panel>
+
+          <Panel title="Recent Notes" description="Quick access to what you worked on last" linkTo="/notes" span="span-12">
+            <RecentNotesList notes={recentNotes} isLoading={isLoading} compact />
+          </Panel>
         </div>
       </main>
     </div>

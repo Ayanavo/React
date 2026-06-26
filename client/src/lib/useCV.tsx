@@ -21,7 +21,8 @@ export type CVElementType =
   | "image"
   | "icon"
   | "header"
-  | "location";
+  | "location"
+  | "quote";
 export type fontWeight = "light" | "normal" | "medium" | "semi-bold" | "bold";
 export type DateFormat = "DD_MM_YYYY" | "DD_MMM_YYYY" | "DD_MMMM_YYYY" | "MMM_YYYY" | "MMMM_YYYY" | "YYYY";
 
@@ -90,6 +91,9 @@ export interface CVElement {
       padding?: number;
     };
     icon?: string;
+    textIndent?: number;
+    marginTop?: number;
+    marginBottom?: number;
   };
 
   editable?: boolean;
@@ -151,7 +155,15 @@ interface CVContextType {
 }
 
 const CVContext = createContext<CVContextType | undefined>(undefined);
-const STORAGE_KEY = "cv-editor-session";
+const DEFAULT_STORAGE_KEY = "cv-editor-session";
+const DEFAULT_PAGE_PROPERTIES_KEY = "cv-page-properties";
+
+export type CVProviderProps = {
+  children: React.ReactNode;
+  storageKey?: string;
+  pagePropertiesKey?: string;
+  initialElements?: CVElement[];
+};
 
 /* ---------------- CONSTANTS ---------------- */
 
@@ -215,7 +227,12 @@ const findElementById = (nodes: CVElement[], id: string | null): CVElement | nul
 
 /* ---------------- PROVIDER ---------------- */
 
-export function CVProvider({ children }: { children: React.ReactNode }) {
+export function CVProvider({
+  children,
+  storageKey = DEFAULT_STORAGE_KEY,
+  pagePropertiesKey = DEFAULT_PAGE_PROPERTIES_KEY,
+  initialElements,
+}: CVProviderProps) {
   const [cvName, setCvName] = useState("");
   const [onRequestSave, setOnRequestSaveRaw] = useState<((afterSave?: (savedName: string) => void) => void) | null>(
     null
@@ -224,7 +241,11 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
     setOnRequestSaveRaw(() => cb);
   }, []);
   const getInitialElements = (): CVElement[] => {
-    const saved = sessionStorage.getItem(STORAGE_KEY);
+    if (initialElements) {
+      return initialElements;
+    }
+
+    const saved = sessionStorage.getItem(storageKey);
     if (saved) {
       return JSON.parse(saved);
     }
@@ -245,7 +266,7 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
   const [showSideBar, setShowSideBar] = useState(false);
   const [pageProperties, setPageProperties] = useState<PageProperties>(() => {
     try {
-      const saved = sessionStorage.getItem("cv-page-properties");
+      const saved = sessionStorage.getItem(pagePropertiesKey);
       return saved ? JSON.parse(saved) : {};
     } catch {
       return {};
@@ -254,15 +275,15 @@ export function CVProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(elements));
+      sessionStorage.setItem(storageKey, JSON.stringify(elements));
     } catch {
       // ignore quota / serialization errors
     }
-  }, [elements]);
+  }, [elements, storageKey]);
 
   useEffect(() => {
-    sessionStorage.setItem("cv-page-properties", JSON.stringify(pageProperties));
-  }, [pageProperties]);
+    sessionStorage.setItem(pagePropertiesKey, JSON.stringify(pageProperties));
+  }, [pageProperties, pagePropertiesKey]);
 
   useEffect(() => {
     console.log(selectedHeaderId, selectedBlockId, selectedSectionId);

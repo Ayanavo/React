@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NavList } from "@/config/nav";
-import { SETTINGS_ROUTE, getSortableMenuOrder, normalizeMenuOrder } from "@/config/nav-order";
+import { pinnedMenuRoutes, getSortableMenuOrder, normalizeMenuOrder } from "@/config/nav-order";
 import { cn } from "@/lib/utils";
 import { fetchPermissions } from "@/shared/services/masterAccess";
 import { getUserIdFromToken } from "@/shared/utils/auth-token";
@@ -108,6 +108,29 @@ const MenuRowContent = ({
   </div>
 );
 
+const LockedMenuRow = ({ item }: { item: NavListItem }) => (
+  <div className="flex items-center justify-between bg-card px-3 py-2.5 opacity-75">
+    <div className="flex min-w-0 flex-1 items-center gap-2">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/40">
+        <GripVertical className="h-4 w-4" />
+      </span>
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground">
+        <IconsComponent icon={item.icon} customClass="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <div className="truncate text-sm font-medium text-foreground">{item.label}</div>
+        <div className="truncate text-xs text-muted-foreground">{item.route}</div>
+      </div>
+    </div>
+    <Checkbox
+      className="ml-3 border-primary/60 shadow-none"
+      checked
+      disabled
+      aria-label={`${item.label} permission`}
+    />
+  </div>
+);
+
 const SortableMenuRow = ({ item, isChecked, isLocked, onToggle }: SortableMenuRowProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.route });
 
@@ -151,7 +174,10 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
   const [lastLoginAt, setLastLoginAt] = useState<string | null>(null);
 
   const navByRoute = useMemo(() => new Map(NavList.map((item) => [item.route, item])), []);
-  const settingsItem = navByRoute.get(SETTINGS_ROUTE);
+  const pinnedMenuItems = useMemo(
+    () => pinnedMenuRoutes.map((route) => navByRoute.get(route)).filter((item): item is NavListItem => Boolean(item)),
+    [navByRoute]
+  );
   const selectedCount = NavList.filter((item) => checked[item.route]).length;
 
   const sensors = useSensors(
@@ -228,7 +254,7 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
     const routes = Object.entries(withLockedRoutes(checked, lockedRoutes))
       .filter(([, value]) => value)
       .map(([route]) => route);
-    const menuOrder = normalizeMenuOrder([...orderedRoutes, SETTINGS_ROUTE]);
+    const menuOrder = normalizeMenuOrder(orderedRoutes);
     onSave(userId, routes, menuOrder);
     setOpen(false);
     onClose();
@@ -324,28 +350,9 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
                     </DragOverlay>
                   </DndContext>
 
-                  {settingsItem ?
-                    <div className="flex items-center justify-between bg-card px-3 py-2.5 opacity-75">
-                      <div className="flex min-w-0 flex-1 items-center gap-2">
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/40">
-                          <GripVertical className="h-4 w-4" />
-                        </span>
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground">
-                          <IconsComponent icon={settingsItem.icon} customClass="h-4 w-4" />
-                        </span>
-                        <div className="min-w-0">
-                          <div className="truncate text-sm font-medium text-foreground">{settingsItem.label}</div>
-                          <div className="truncate text-xs text-muted-foreground">{settingsItem.route}</div>
-                        </div>
-                      </div>
-                      <Checkbox
-                        className="ml-3 border-primary/60 shadow-none"
-                        checked
-                        disabled
-                        aria-label={`${settingsItem.label} permission`}
-                      />
-                    </div>
-                  : null}
+                  {pinnedMenuItems.map((item) => (
+                    <LockedMenuRow key={item.route} item={item} />
+                  ))}
                 </>
               }
             </div>

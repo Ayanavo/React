@@ -7,7 +7,10 @@ import CvIconRenderer from "./cv-icon-renderer";
 import CvImageRenderer from "./cv-image-renderer";
 import CvListRenderer from "./cv-list-renderer";
 import CvLocationRenderer from "./cv-location-renderer";
+import CvQuoteRenderer from "./cv-quote-renderer";
 import CvTextRenderer from "./cv-text-renderer";
+import ElementSpacingWrapper from "./element-spacing-wrapper";
+import { isSpacedElementType } from "./element-spacing";
 import CvTokenRenderer from "./cv-token-renderer";
 
 const CVElementRenderer = ({
@@ -232,24 +235,34 @@ const CVElementRenderer = ({
   }
 
   // ---------- CONTENT ----------
-  switch (element.type) {
-    case "text":
-      return <CvTextRenderer element={element} readonly={readonly} />;
-    case "list":
-      return <CvListRenderer element={element} readonly={readonly} />;
-    case "date":
-      return <CvDateRenderer element={element} readonly={readonly} />;
-    case "token":
-      return <CvTokenRenderer element={element} readonly={readonly} />;
-    case "image":
-      return <CvImageRenderer element={element} readonly={readonly} />;
-    case "icon":
-      return <CvIconRenderer element={element} readonly={readonly} />;
-    case "location":
-      return <CvLocationRenderer element={element} readonly={readonly} />;
-    default:
-      return <div>{element.content}</div>;
+  const renderContent = () => {
+    switch (element.type) {
+      case "text":
+        return <CvTextRenderer element={element} readonly={readonly} />;
+      case "list":
+        return <CvListRenderer element={element} readonly={readonly} />;
+      case "date":
+        return <CvDateRenderer element={element} readonly={readonly} />;
+      case "token":
+        return <CvTokenRenderer element={element} readonly={readonly} />;
+      case "image":
+        return <CvImageRenderer element={element} readonly={readonly} />;
+      case "icon":
+        return <CvIconRenderer element={element} readonly={readonly} />;
+      case "location":
+        return <CvLocationRenderer element={element} readonly={readonly} />;
+      case "quote":
+        return <CvQuoteRenderer element={element} readonly={readonly} />;
+      default:
+        return <div>{element.content}</div>;
+    }
+  };
+
+  if (isSpacedElementType(element.type)) {
+    return <ElementSpacingWrapper element={element}>{renderContent()}</ElementSpacingWrapper>;
   }
+
+  return renderContent();
 };
 
 export default CVElementRenderer;

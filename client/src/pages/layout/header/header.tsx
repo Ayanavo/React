@@ -25,18 +25,6 @@ function header({ NavList, exclutionList = [] }: { NavList: Array<NavItem>; excl
           <div className="flex min-w-0 items-center gap-2 overflow-hidden md:col-start-1">
             <SidebarTrigger className="shrink-0 md:hidden" />
             <h1 className="truncate text-lg font-bold sm:text-2xl">{NavObj?.label ?? "Dashboard"}</h1>
-            {NavObj && !exclutionList.includes(NavObj?.route) && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <InfoIcon className="hidden h-4 w-4 shrink-0 text-muted-foreground sm:block" />
-                  </TooltipTrigger>
-                  <TooltipContent side="right">
-                    <p>Every {NavObj?.label} record in your workspace in one place.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            )}
           </div>
 
           <GlobalSearch.Trigger className="hidden md:col-start-2 md:flex md:justify-self-center" />

@@ -2,30 +2,28 @@ import Icon from "@/common/icons";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NumericSliderField } from "@/components/ui/numeric-slider-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { fontWeight, useCV } from "@/lib/useCV";
+import { useCV } from "@/lib/useCV";
 import * as Iconlist from "lucide-react";
 import {
-  AlignCenter,
-  AlignLeft,
-  AlignRight,
-  ArrowRight,
   Columns2,
-  Dot,
   Italic,
-  Minus,
-  PlusIcon,
   Rows2,
-  Slash,
   Strikethrough,
   Underline,
   X,
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
+import { BUILDER_TOGGLE_GROUP_CLASS, BUILDER_TOGGLE_GROUP_WIDE_CLASS } from "./builder-control-styles";
 import { ListIcon } from "./list-icons";
+import ElementSpacingControls from "./element-spacing-controls";
+import FontWeightControls from "./font-weight-controls";
+import TextAlignControls from "./text-align-controls";
+import TokenFormatControls from "./token-format-controls";
+import { isSpacedElementType, TEXT_INDENT_MAX } from "./element-spacing";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import DatePickerComponent from "../layout/activity/datepicker";
 
@@ -119,69 +117,39 @@ const ElementOptions = () => {
   if (!selectedElement || !selectedElement.properties) return null;
 
   const props = selectedElement.properties;
-  const FONT_WEIGHTS: {
-    label: string;
-    value: fontWeight;
-    css: number;
-  }[] = [
-    { label: "Light", value: "light", css: 300 },
-    { label: "Normal", value: "normal", css: 400 },
-    { label: "Medium", value: "medium", css: 500 },
-    { label: "Semi Bold", value: "semi-bold", css: 600 },
-    { label: "Bold", value: "bold", css: 700 },
-  ];
   const isPresetBulletIcon = (icon?: string) => BULLET_ICONS.includes(icon ?? "");
 
   return (
     <div className="mt-4 rounded-lg border p-3 space-y-1">
       {/* FONT SIZE */}
-      <div className="space-y-2 flex items-center justify-between">
-        <Label className="text-xs font-medium text-muted-foreground text-wrap">Size</Label>
-        <Input
-          type="number"
-          value={props.fontSize ?? 14}
-          onChange={(e) => {
-            const value = Math.round(Number(e.target.value));
-            updateElement(selectedElement.id, {
-              properties: {
-                ...props,
-                fontSize: value,
-              },
-            });
-          }}
-          className="w-32"
-          step={1}
-          min={8}
-          max={72}
-        />
-      </div>
+      <NumericSliderField
+        label="Size"
+        value={props.fontSize ?? 14}
+        min={8}
+        max={72}
+        step={1}
+        onChange={(value) =>
+          updateElement(selectedElement.id, {
+            properties: {
+              ...props,
+              fontSize: value,
+            },
+          })
+        }
+      />
 
       {/* FONT WEIGHT */}
-      <div className="space-y-2 flex items-center justify-between">
-        <Label className="text-xs font-medium text-muted-foreground text-wrap">Weight</Label>
-
-        <Select
-          value={props.fontWeight ?? "normal"}
-          onValueChange={(value) =>
-            updateElement(selectedElement.id, {
-              properties: {
-                ...props,
-                fontWeight: value as fontWeight,
-              },
-            })
-          }>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="Select weight" />
-          </SelectTrigger>
-          <SelectContent>
-            {FONT_WEIGHTS.map((fw) => (
-              <SelectItem key={fw.value} value={fw.value} style={{ fontWeight: fw.css }}>
-                {fw.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <FontWeightControls
+        value={props.fontWeight ?? "normal"}
+        onChange={(fontWeightValue) =>
+          updateElement(selectedElement.id, {
+            properties: {
+              ...props,
+              fontWeight: fontWeightValue,
+            },
+          })
+        }
+      />
 
       {/* FONT STYLE */}
       {selectedElement.type !== "icon" && (
@@ -212,7 +180,7 @@ const ElementOptions = () => {
                 },
               });
             }}
-            className="w-32 flex gap-2">
+            className={BUILDER_TOGGLE_GROUP_CLASS}>
             <ToggleGroupItem value="underline">
               <Underline className="h-4 w-4" />
             </ToggleGroupItem>
@@ -229,37 +197,51 @@ const ElementOptions = () => {
       )}
 
       {/* ALIGNMENT */}
-      <div className="space-y-2 flex items-center justify-between">
-        <Label className="text-xs font-medium text-muted-foreground text-wrap">Align</Label>
+      <TextAlignControls
+        value={props.textAlign ?? "start"}
+        onChange={(textAlign) =>
+          updateElement(selectedElement.id, {
+            properties: {
+              ...props,
+              textAlign,
+            },
+          })
+        }
+      />
 
-        <ToggleGroup
-          size="sm"
-          type="single"
-          variant="outline"
-          value={props.textAlign ?? "start"}
-          onValueChange={(value) => {
-            if (!value) return;
-            updateElement(selectedElement.id, {
-              properties: {
-                ...props,
-                textAlign: value as "start" | "center" | "end",
-              },
-            });
-          }}
-          className="w-32 flex gap-2">
-          <ToggleGroupItem value="start">
-            <AlignLeft className="h-4 w-4" />
-          </ToggleGroupItem>
-
-          <ToggleGroupItem value="center">
-            <AlignCenter className="h-4 w-4" />
-          </ToggleGroupItem>
-
-          <ToggleGroupItem value="end">
-            <AlignRight className="h-4 w-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
+      {isSpacedElementType(selectedElement.type) && (
+        <>
+          {["text", "list", "quote"].includes(selectedElement.type) && (
+            <NumericSliderField
+              label="Tab / indent"
+              value={props.textIndent ?? 0}
+              min={0}
+              max={TEXT_INDENT_MAX}
+              step={1}
+              onChange={(indent) =>
+                updateElement(selectedElement.id, {
+                  properties: {
+                    ...props,
+                    textIndent: indent,
+                  },
+                })
+              }
+            />
+          )}
+          <ElementSpacingControls
+            marginTop={props.marginTop}
+            marginBottom={props.marginBottom}
+            onChange={(spacing) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  ...spacing,
+                },
+              })
+            }
+          />
+        </>
+      )}
 
       {/* TEXT COLOR */}
       <div className="space-y-2 flex items-center justify-between">
@@ -368,7 +350,7 @@ const ElementOptions = () => {
                 },
               });
             }}
-            className="flex gap-2">
+            className={BUILDER_TOGGLE_GROUP_WIDE_CLASS}>
             {BULLET_ICONS.map((item, index) => (
               <ToggleGroupItem key={item} value={item}>
                 <ListIcon element={item} index={index} />
@@ -399,7 +381,7 @@ const ElementOptions = () => {
                 },
               });
             }}
-            className="w-32 flex gap-2">
+            className={BUILDER_TOGGLE_GROUP_CLASS}>
             <ToggleGroupItem value="column" className="text-xs">
               <Rows2 className="h-4 w-4" />
             </ToggleGroupItem>
@@ -565,7 +547,7 @@ const ElementOptions = () => {
                 },
               });
             }}
-            className="flex gap-2">
+            className={BUILDER_TOGGLE_GROUP_WIDE_CLASS}>
             <ToggleGroupItem value="24"> 24 </ToggleGroupItem>
             <ToggleGroupItem value="12-lower"> 12 am </ToggleGroupItem>
             <ToggleGroupItem value="12-upper"> 12 AM </ToggleGroupItem>
@@ -574,220 +556,57 @@ const ElementOptions = () => {
       )}
 
       {selectedElement.type === "token" && (
-        <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-wrap">Token background</Label>
-          <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
-            <span
-              className="w-4 h-4 block rounded-md border cursor-pointer"
-              style={{ background: props.tokenStyle?.backgroundColor ?? "#f1f5f9" }}
-            />
-            <input
-              type="color"
-              value={props.tokenStyle?.backgroundColor ?? "#f1f5f9"}
-              onChange={(e) =>
-                updateElement(selectedElement.id, {
-                  properties: {
-                    ...props,
-                    tokenStyle: {
-                      ...props.tokenStyle,
-                      backgroundColor: e.target.value,
-                    },
-                  },
-                })
-              }
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            {props.tokenStyle?.backgroundColor ?? "#f1f5f9"}
-          </label>
-        </div>
-      )}
-
-      {selectedElement.type === "token" && (
-        <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-wrap">Border color</Label>
-          <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow">
-            <span
-              className="w-4 h-4 block rounded border cursor-pointer"
-              style={{ background: props.tokenStyle?.borderColor ?? "#cbd5e1" }}
-            />
-            <input
-              type="color"
-              value={props.tokenStyle?.borderColor ?? "#cbd5e1"}
-              onChange={(e) =>
-                updateElement(selectedElement.id, {
-                  properties: {
-                    ...props,
-                    tokenStyle: {
-                      ...props.tokenStyle,
-                      borderColor: e.target.value,
-                    },
-                  },
-                })
-              }
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            {props.tokenStyle?.borderColor ?? "#cbd5e1"}
-          </label>
-        </div>
-      )}
-
-      {selectedElement.type === "token" && (
-        <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-wrap">Border radius</Label>
-          <Input
-            type="number"
-            step={1}
-            min={0}
-            max={24}
-            value={props.tokenStyle?.radius ?? 6}
-            onChange={(e) =>
-              updateElement(selectedElement.id, {
-                properties: {
-                  ...props,
-                  tokenStyle: {
-                    ...props.tokenStyle,
-                    radius: Number(e.target.value),
-                  },
-                },
-              })
-            }
-            className="w-32"
-          />
-        </div>
-      )}
-
-      {selectedElement.type === "token" && (
-        <div className="space-y-6 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-wrap">Border radius</Label>
-          <Slider
-            className="w-32"
-            min={0}
-            max={12}
-            step={1}
-            value={[props.tokenStyle?.radius ?? 6]}
-            onValueChange={([value]) =>
-              updateElement(selectedElement.id, {
-                properties: {
-                  ...props,
-                  tokenStyle: {
-                    ...props.tokenStyle,
-                    radius: Number(value),
-                  },
-                },
-              })
-            }
-          />
-        </div>
-      )}
-      {selectedElement.type === "token" && (
-        <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground">Add interlink</Label>
-          <Switch
-            checked={props.tokenInterlink?.enabled ?? false}
-            onCheckedChange={(checked) =>
-              updateElement(selectedElement.id, {
-                properties: {
-                  ...props,
-                  tokenInterlink: {
-                    ...props.tokenInterlink,
-                    enabled: checked,
-                  },
-                },
-              })
-            }
-          />
-        </div>
-      )}
-
-      {selectedElement.type === "token" && props.tokenInterlink?.enabled && (
-        <ToggleGroup
-          type="single"
-          size="sm"
-          variant="outline"
-          value={props.tokenInterlink?.icon ?? "dot"}
-          onValueChange={(value) => {
-            if (!value) return;
+        <TokenFormatControls
+          properties={props}
+          onChange={(nextProperties) =>
             updateElement(selectedElement.id, {
-              properties: {
-                ...props,
-                tokenInterlink: {
-                  ...props.tokenInterlink,
-                  icon: value as any,
-                },
-              },
-            });
-          }}
-          className="flex gap-2 mt-2">
-          <ToggleGroupItem value="dot">
-            <Dot className="w-4 h-4" />
-          </ToggleGroupItem>
-
-          <ToggleGroupItem value="slash">
-            <Slash className="w-4 h-4" />
-          </ToggleGroupItem>
-
-          <ToggleGroupItem value="pipe">
-            <Minus className="w-4 h-4 rotate-90" strokeWidth={2} />
-          </ToggleGroupItem>
-
-          <ToggleGroupItem value="arrow">
-            <ArrowRight className="w-4 h-4" />
-          </ToggleGroupItem>
-
-          <ToggleGroupItem value="plus">
-            <PlusIcon className="w-4 h-4" />
-          </ToggleGroupItem>
-        </ToggleGroup>
+              properties: nextProperties,
+            })
+          }
+        />
       )}
 
       {/* IMAGE OPTIONS */}
       {selectedElement.type === "image" && (
         <>
-          {/* IMAGE SIZE */}
-          <div className="space-y-2 flex items-center justify-between">
-            <Label className="text-xs font-medium text-muted-foreground text-wrap">Image size</Label>
-            <Slider
-              className="w-32"
-              min={0.2}
-              max={3}
-              step={0.05}
-              value={[props.imageStyle?.imageScale ?? 1]}
-              onValueChange={([value]) =>
-                updateElement(selectedElement.id, {
-                  properties: {
-                    ...props,
-                    imageStyle: {
-                      ...props.imageStyle,
-                      imageScale: value,
-                    },
+          <NumericSliderField
+            label="Image size"
+            value={props.imageStyle?.imageScale ?? 1}
+            min={0.2}
+            max={3}
+            step={0.05}
+            unit="x"
+            onChange={(imageScale) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  imageStyle: {
+                    ...props.imageStyle,
+                    imageScale,
                   },
-                })
-              }
-            />
-          </div>
+                },
+              })
+            }
+          />
 
-          {/* IMAGE RADIUS */}
-          <div className="space-y-6 flex items-center justify-between">
-            <Label className="text-xs font-medium text-muted-foreground text-wrap">Image radius</Label>
-            <Slider
-              className="w-32"
-              min={0}
-              max={60 * (props.imageStyle?.imageScale ?? 1)}
-              step={1}
-              value={[props.imageStyle?.radius ?? 6]}
-              onValueChange={([value]) =>
-                updateElement(selectedElement.id, {
-                  properties: {
-                    ...props,
-                    imageStyle: {
-                      ...props.imageStyle,
-                      radius: Number(value),
-                    },
+          <NumericSliderField
+            label="Image radius"
+            value={props.imageStyle?.radius ?? 6}
+            min={0}
+            max={60 * (props.imageStyle?.imageScale ?? 1)}
+            step={1}
+            onChange={(radius) =>
+              updateElement(selectedElement.id, {
+                properties: {
+                  ...props,
+                  imageStyle: {
+                    ...props.imageStyle,
+                    radius,
                   },
-                })
-              }
-            />
-          </div>
+                },
+              })
+            }
+          />
 
           {/* BORDER ENABLE */}
           <div className="space-y-2 flex items-center justify-between">
@@ -838,53 +657,43 @@ const ElementOptions = () => {
                 </label>
               </div>
 
-              {/* BORDER WIDTH */}
-              <div className="space-y-2 flex items-center justify-between">
-                <Label className="text-xs font-medium text-muted-foreground text-wrap">Border width</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={12}
-                  step={1}
-                  value={props.imageBorder?.borderWidth ?? 1}
-                  onChange={(e) =>
-                    updateElement(selectedElement.id, {
-                      properties: {
-                        ...props,
-                        imageBorder: {
-                          ...props.imageBorder,
-                          borderWidth: Number(e.target.value),
-                        },
+              <NumericSliderField
+                label="Border width"
+                value={props.imageBorder?.borderWidth ?? 1}
+                min={0}
+                max={12}
+                step={1}
+                onChange={(borderWidth) =>
+                  updateElement(selectedElement.id, {
+                    properties: {
+                      ...props,
+                      imageBorder: {
+                        ...props.imageBorder,
+                        borderWidth,
                       },
-                    })
-                  }
-                  className="w-32"
-                />
-              </div>
+                    },
+                  })
+                }
+              />
 
-              {/* BORDER PADDING */}
-              <div className="space-y-2 flex items-center justify-between">
-                <Label className="text-xs font-medium text-muted-foreground text-wrap">Border padding</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  max={24}
-                  step={1}
-                  value={props.imageBorder?.padding ?? 0}
-                  onChange={(e) =>
-                    updateElement(selectedElement.id, {
-                      properties: {
-                        ...props,
-                        imageBorder: {
-                          ...props.imageBorder,
-                          padding: Number(e.target.value),
-                        },
+              <NumericSliderField
+                label="Border padding"
+                value={props.imageBorder?.padding ?? 0}
+                min={0}
+                max={24}
+                step={1}
+                onChange={(padding) =>
+                  updateElement(selectedElement.id, {
+                    properties: {
+                      ...props,
+                      imageBorder: {
+                        ...props.imageBorder,
+                        padding,
                       },
-                    })
-                  }
-                  className="w-32"
-                />
-              </div>
+                    },
+                  })
+                }
+              />
             </>
           )}
         </>

@@ -27,6 +27,12 @@ import {
 import { ApiMessageResponse } from "@/shared/types/api";
 import { getTags, type TagRecord } from "@/shared/services/tag";
 import { useConfirmDialog } from "@/shared/confirmation";
+import { consumeJobSummaryContext } from "@/shared/utils/job-summary-context";
+import {
+  mapProfileUserToContactInfo,
+  seedEmptyCvWithProfile,
+} from "@/shared/utils/profile-contact";
+import { getCurrentUserAPI } from "@/shared/services/auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FilePlus, LayoutTemplate, Loader2, Save, ScanSearch } from "lucide-react";
 import React, { FormEvent, useCallback, useEffect, useRef, useState } from "react";
@@ -76,6 +82,13 @@ const CVBuilderContent = () => {
   const [atsResult, setAtsResult] = useState<AtsCheckResponse | null>(null);
   const [isAtsChecking, setIsAtsChecking] = useState(false);
   const autoAtsAttemptedRef = useRef<string | null>(null);
+  const profileSeededRef = useRef(false);
+
+  const { data: currentUser, isLoading: isProfileLoading } = useQuery({
+    queryKey: ["current-user-profile"],
+    queryFn: getCurrentUserAPI,
+    staleTime: 1000 * 60 * 5,
+  });
 
   const { data: cvBuilder, isFetching } = useQuery({
     queryKey: ["cv-builder", id],
@@ -118,6 +131,43 @@ const CVBuilderContent = () => {
       }
     }
   }, [cvBuilder, loadCVState, setCvName, tags]);
+
+  useEffect(() => {
+    if (isEditMode) return;
+
+    const jobContext = consumeJobSummaryContext();
+    if (!jobContext) return;
+
+    const jobText = jobContext.summary?.trim() || jobContext.sourceText?.trim() || "";
+    if (jobText) {
+      setJob(jobText);
+    }
+  }, [isEditMode]);
+
+  useEffect(() => {
+    if (isEditMode || profileSeededRef.current || isProfileLoading || isFetching) return;
+    if (!currentUser?.user) return;
+    if (!hasMeaningfulCvContent(elements)) {
+      const contactInfo = mapProfileUserToContactInfo(currentUser.user);
+      const seeded = seedEmptyCvWithProfile(elements, contactInfo);
+      loadCVState(seeded, pageProperties);
+      if (contactInfo.fullName) {
+        const suggestedName = `${contactInfo.fullName} CV`;
+        setName(suggestedName);
+        setCvName(suggestedName);
+      }
+      profileSeededRef.current = true;
+    }
+  }, [
+    isEditMode,
+    isProfileLoading,
+    isFetching,
+    currentUser,
+    elements,
+    pageProperties,
+    loadCVState,
+    setCvName,
+  ]);
 
   const buildSubmitPayload = useCallback(
     (ats: AtsCheckResponse | null): CVSubmitPayload => ({

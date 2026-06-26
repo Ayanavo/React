@@ -1,11 +1,13 @@
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NumericSliderField } from "@/components/ui/numeric-slider-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CVElement, useCV } from "@/lib/useCV";
-import { AlignCenter, AlignLeft, AlignRight, Blocks, LayoutPanelTop } from "lucide-react";
+import { Blocks, LayoutPanelTop } from "lucide-react";
 import React from "react";
+import SectionDividerControls from "./section-divider-controls";
+import TextAlignControls from "./text-align-controls";
 
 const findElementById = (items: CVElement[], id: string | null): CVElement | null => {
   if (!id) return null;
@@ -25,11 +27,9 @@ const LayoutPallet = () => {
     addSection,
     addBlock,
     addHeader,
-    showSectionDividers,
     selectedSectionId,
     selectedPageId,
     selectedHeaderId,
-    toggleSectionDividers,
     removeHeader,
     MAX_SECTIONS,
     MAX_BLOCKS_PER_SECTION,
@@ -115,51 +115,7 @@ const LayoutPallet = () => {
       </button>
 
       {/* Toggle Section Divider */}
-      <div className="space-y-3 px-2 py-2 rounded-md border border-border/50 bg-muted/20">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-foreground">Add section dividers</span>
-          <Switch checked={showSectionDividers} onCheckedChange={toggleSectionDividers} />
-        </div>
-
-        {showSectionDividers && (
-          <div className="space-y-2.5 pt-2 border-t border-border/40">
-            {/* Divider Color */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Divider Color</span>
-              <label className="relative flex w-32 justify-between items-center border rounded-md px-2 py-[6px] shadow bg-card">
-                <span
-                  className="w-4 h-4 rounded border"
-                  style={{ background: pageProperties.dividerColor ?? "#e4e4e7" }}
-                />
-                <input
-                  type="color"
-                  value={pageProperties.dividerColor ?? "#e4e4e7"}
-                  onChange={(e) => updatePageProperties({ dividerColor: e.target.value })}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <span className="text-xs font-mono">{pageProperties.dividerColor ?? "#e4e4e7"}</span>
-              </label>
-            </div>
-
-            {/* Divider Style */}
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Divider Style</span>
-              <Select
-                value={pageProperties.dividerStyle ?? "solid"}
-                onValueChange={(value) => updatePageProperties({ dividerStyle: value as any })}>
-                <SelectTrigger className="w-32 h-8 text-xs bg-card">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="solid">Solid</SelectItem>
-                  <SelectItem value="dashed">Dashed</SelectItem>
-                  <SelectItem value="dotted">Dotted</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
-      </div>
+      <SectionDividerControls />
 
       {/* Toggle Section Header */}
       <div className="flex items-center justify-between px-2 py-2 rounded-md">
@@ -216,34 +172,18 @@ const LayoutPallet = () => {
       {selectedElement &&
         ["text", "list", "date", "token", "image", "icon", "location"].includes(selectedElement.type) && (
           <div className="mt-4 rounded-lg border p-3 space-y-1">
-            <div className="space-y-2 flex items-center justify-between">
-              <Label className="text-xs font-medium text-muted-foreground text-wrap">Alignment</Label>
-              <ToggleGroup
-                type="single"
-                size="sm"
-                variant="outline"
-                value={selectedElementAlignment}
-                onValueChange={(value) => {
-                  if (!value) return;
-                  updateElement(selectedElement.id, {
-                    properties: {
-                      ...selectedElement.properties,
-                      textAlign: value as "start" | "center" | "end",
-                    },
-                  });
-                }}
-                className="w-32 flex gap-2">
-                <ToggleGroupItem value="start">
-                  <AlignLeft className="h-4 w-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="center">
-                  <AlignCenter className="h-4 w-4" />
-                </ToggleGroupItem>
-                <ToggleGroupItem value="end">
-                  <AlignRight className="h-4 w-4" />
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
+            <TextAlignControls
+              label="Alignment"
+              value={selectedElementAlignment}
+              onChange={(textAlign) =>
+                updateElement(selectedElement.id, {
+                  properties: {
+                    ...selectedElement.properties,
+                    textAlign,
+                  },
+                })
+              }
+            />
           </div>
         )}
 
@@ -278,27 +218,23 @@ const LayoutPallet = () => {
                 </label>
               </div>
 
-              <div className="space-y-2 flex items-center justify-between">
-                <Label className="text-xs font-medium text-muted-foreground text-wrap">Header size</Label>
-                <Input
-                  type="number"
-                  value={headerStyle?.fontSize ?? 20}
-                  onChange={(e) =>
-                    updateElement(headerElement.id, {
-                      properties: {
-                        headerStyle: {
-                          ...headerStyle,
-                          fontSize: Number(e.target.value),
-                        },
+              <NumericSliderField
+                label="Header size"
+                value={headerStyle?.fontSize ?? 20}
+                min={8}
+                max={72}
+                step={1}
+                onChange={(fontSize) =>
+                  updateElement(headerElement.id, {
+                    properties: {
+                      headerStyle: {
+                        ...headerStyle,
+                        fontSize,
                       },
-                    })
-                  }
-                  className="w-32"
-                  step={1}
-                  min={8}
-                  max={72}
-                />
-              </div>
+                    },
+                  })
+                }
+              />
 
               <div className="space-y-2 flex items-center justify-between">
                 <Label className="text-xs font-medium text-muted-foreground text-wrap">Background</Label>
@@ -323,36 +259,20 @@ const LayoutPallet = () => {
                 </label>
               </div>
 
-              <div className="space-y-2 flex items-center justify-between">
-                <Label className="text-xs font-medium text-muted-foreground text-wrap">Alignment</Label>
-                <ToggleGroup
-                  type="single"
-                  size="sm"
-                  variant="outline"
-                  value={headerStyle?.textAlign ?? "start"}
-                  onValueChange={(value) => {
-                    if (!value) return;
-                    updateElement(headerElement.id, {
-                      properties: {
-                        headerStyle: {
-                          ...headerStyle,
-                          textAlign: value as "start" | "center" | "end",
-                        },
+              <TextAlignControls
+                label="Alignment"
+                value={headerStyle?.textAlign ?? "start"}
+                onChange={(textAlign) =>
+                  updateElement(headerElement.id, {
+                    properties: {
+                      headerStyle: {
+                        ...headerStyle,
+                        textAlign,
                       },
-                    });
-                  }}
-                  className="w-32 flex gap-2">
-                  <ToggleGroupItem value="start">
-                    <AlignLeft className="h-4 w-4" />
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="center">
-                    <AlignCenter className="h-4 w-4" />
-                  </ToggleGroupItem>
-                  <ToggleGroupItem value="end">
-                    <AlignRight className="h-4 w-4" />
-                  </ToggleGroupItem>
-                </ToggleGroup>
-              </div>
+                    },
+                  })
+                }
+              />
 
               <div className="space-y-2 flex items-center justify-between">
                 <Label className="text-xs font-medium text-muted-foreground text-wrap">Underline</Label>
@@ -403,30 +323,26 @@ const LayoutPallet = () => {
                     </Select>
                   </div>
 
-                  <div className="space-y-2 flex items-center justify-between">
-                    <Label className="text-xs font-medium text-muted-foreground text-wrap">Underline gap</Label>
-                    <Input
-                      type="number"
-                      value={headerStyle?.underline?.gap ?? 4}
-                      onChange={(e) =>
-                        updateElement(headerElement.id, {
-                          properties: {
-                            headerStyle: {
-                              ...headerStyle,
-                              underline: {
-                                ...headerStyle?.underline,
-                                gap: Number(e.target.value),
-                              },
+                  <NumericSliderField
+                    label="Underline gap"
+                    value={headerStyle?.underline?.gap ?? 4}
+                    min={0}
+                    max={32}
+                    step={1}
+                    onChange={(gap) =>
+                      updateElement(headerElement.id, {
+                        properties: {
+                          headerStyle: {
+                            ...headerStyle,
+                            underline: {
+                              ...headerStyle?.underline,
+                              gap,
                             },
                           },
-                        })
-                      }
-                      className="w-32"
-                      step={1}
-                      min={0}
-                      max={32}
-                    />
-                  </div>
+                        },
+                      })
+                    }
+                  />
                 </>
               )}
             </div>

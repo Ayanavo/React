@@ -159,6 +159,10 @@
   margin-top: auto;
 }
 
+.app-sidebar__item--bottom + .app-sidebar__item--bottom {
+  margin-top: 0;
+}
+
 .app-sidebar__item {
   position: relative;
   list-style: none;

@@ -1,48 +1,45 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { Activity, ArrowUpRight, CheckCircle, FileText, Star } from "lucide-react";
+import { Activity, CalendarClock, CheckCircle, FileText } from "lucide-react";
 import React from "react";
+import { cn } from "@/lib/utils";
+import { DashboardStats } from "../use-dashboard-data";
+import { StatsGridSkeleton } from "../dashboard-skeletons";
 
-const stats = [
-  { id: 1, label: "Total Notes", value: "342", hint: "Increased from last month", icon: FileText, featured: true },
-  { id: 2, label: "Notes Today", value: "4", hint: "Captured today", icon: Star, featured: false },
-  { id: 3, label: "Completed Tasks", value: "27", hint: "On track this week", icon: CheckCircle, featured: false },
-  { id: 4, label: "Productivity", value: "86%", hint: "Steady progress", icon: Activity, featured: false },
+type StatsGridProps = {
+  stats: DashboardStats;
+  isLoading?: boolean;
+};
+
+const statItems = [
+  { key: "totalNotes" as const, label: "Total Notes", icon: FileText, featured: true },
+  { key: "notesToday" as const, label: "Notes Today", icon: Activity, featured: false },
+  { key: "upcomingActivities" as const, label: "Upcoming", icon: CalendarClock, featured: false },
+  { key: "completedActivities" as const, label: "Completed", icon: CheckCircle, featured: false },
 ];
 
-const StatsGrid: React.FC = () => {
+const StatsGrid: React.FC<StatsGridProps> = ({ stats, isLoading }) => {
+  if (isLoading) {
+    return <StatsGridSkeleton />;
+  }
+
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {stats.map((item) => {
+    <div className="dashboard__stat-strip">
+      {statItems.map((item) => {
         const Icon = item.icon;
         return (
-          <Card
-            key={item.id}
+          <div
+            key={item.key}
             className={cn(
-              "shadow-sm transition-colors",
-              item.featured ? "border-primary bg-primary text-primary-foreground" : "bg-card"
+              "dashboard__stat",
+              item.featured && "border-primary/30 bg-primary/5"
             )}>
-            <CardContent className="p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className={cn("rounded-xl p-2", item.featured ? "bg-primary-foreground/15" : "bg-muted")}>
-                  <Icon className={cn("h-5 w-5", item.featured ? "text-primary-foreground" : "text-primary")} />
-                </div>
-                <ArrowUpRight
-                  className={cn(
-                    "h-4 w-4 shrink-0",
-                    item.featured ? "text-primary-foreground/80" : "text-muted-foreground"
-                  )}
-                />
-              </div>
-              <p className={cn("mt-4 text-sm", item.featured ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                {item.label}
-              </p>
-              <p className="mt-1 text-3xl font-semibold tracking-tight">{item.value}</p>
-              <p className={cn("mt-2 text-xs", item.featured ? "text-primary-foreground/70" : "text-muted-foreground")}>
-                {item.hint}
-              </p>
-            </CardContent>
-          </Card>
+            <span className="dashboard__stat-icon">
+              <Icon className="h-3.5 w-3.5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-2xl font-semibold tracking-tight">{stats[item.key]}</p>
+              <p className="text-sm text-muted-foreground">{item.label}</p>
+            </div>
+          </div>
         );
       })}
     </div>

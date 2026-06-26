@@ -13,7 +13,6 @@ export function showCacheUseWarning() {
       },
     },
     closeButton: true,
-    richColors: true,
   });
 }
 

@@ -1,6 +1,16 @@
 import { axiosInstance } from "@/shared/interceptors/auth-interceptor";
 const apiUrl = import.meta.env.VITE_API_URL;
 
+export type CompanyPayload = {
+  companyName: string;
+  designation: string;
+  fromMonth: string;
+  fromYear: string;
+  toMonth: string;
+  toYear: string;
+  isPresent: boolean;
+};
+
 export type UpdateProfilePayload = {
   photoURL?: string;
   firstName: string;
@@ -12,6 +22,7 @@ export type UpdateProfilePayload = {
   city: string;
   state: string;
   pincode: string;
+  companies?: CompanyPayload[];
 };
 
 export const updateProfileAPI = async (data: UpdateProfilePayload) => {

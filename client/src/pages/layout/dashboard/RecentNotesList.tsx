@@ -1,61 +1,70 @@
-import { Bookmark, Star } from "lucide-react";
+import { State } from "@/pages/layout/notes/state";
+import { FileText } from "lucide-react";
+import moment from "moment";
 import React from "react";
+import { Link } from "react-router-dom";
+import { NoteGridSkeleton, NoteListSkeleton } from "./dashboard-skeletons";
 
-const notes = [
-  {
-    id: 1,
-    title: "Design system notes",
-    preview: "Ideas for colors, spacing, tokens...",
-    tags: ["design", "ui"],
-    time: "2h ago",
-    fav: true,
-  },
-  {
-    id: 2,
-    title: "Weekly plan",
-    preview: "Tasks to ship the editor MVP.",
-    tags: ["planning"],
-    time: "Yesterday",
-    fav: false,
-  },
-  {
-    id: 3,
-    title: "AI prompt experiments",
-    preview: "Testing summarization prompts...",
-    tags: ["ai", "research"],
-    time: "Mon",
-    fav: false,
-  },
-];
+type RecentNotesListProps = {
+  notes: NonNullable<State>[];
+  isLoading?: boolean;
+  compact?: boolean;
+};
 
-const RecentNotesList: React.FC = () => {
+const RecentNotesList: React.FC<RecentNotesListProps> = ({ notes, isLoading, compact }) => {
+  if (isLoading) {
+    return compact ? <NoteGridSkeleton count={5} /> : <NoteListSkeleton count={3} />;
+  }
+
+  if (notes.length === 0) {
+    return (
+      <div className="dashboard__empty">
+        <FileText className="h-5 w-5 opacity-50" />
+        <p>No notes yet</p>
+        <Link to="/notes" className="text-sm font-medium text-primary hover:underline">
+          Create a note
+        </Link>
+      </div>
+    );
+  }
+
+  const listClass = compact ?
+    "grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+  : "dashboard__list";
+
   return (
-    <div className="space-y-3">
-      {notes.map((note) => (
-        <div key={note.id} className="rounded-xl border bg-muted/30 p-4 transition-colors hover:bg-muted/50">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="font-medium text-foreground">{note.title}</p>
-              <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{note.preview}</p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {note.tags.map((tag) => (
-                  <span key={tag} className="rounded-md bg-background px-2 py-0.5 text-xs text-muted-foreground">
-                    {tag}
-                  </span>
-                ))}
+    <div className={listClass}>
+      {notes.map((note) => {
+        const updatedLabel = note.updatedAt ? moment(note.updatedAt).fromNow() : "";
+
+        return (
+          <Link key={note._id} to="/notes" className="dashboard__list-item block min-w-0">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <p className="truncate text-sm font-medium text-foreground">{note.title || "Untitled"}</p>
+                {updatedLabel ?
+                  <span className="shrink-0 text-xs text-muted-foreground">{updatedLabel}</span>
+                : null}
               </div>
+              <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{note.description?.trim() || "No description"}</p>
+              {note.tagName ?
+                <span
+                  className="dashboard__tag mt-1.5"
+                  style={
+                    note.tagColor ?
+                      { borderColor: `${note.tagColor}55`, backgroundColor: `${note.tagColor}22` }
+                    : undefined
+                  }>
+                  {note.tagColor ?
+                    <span className="dashboard__tag-dot" style={{ backgroundColor: note.tagColor }} />
+                  : null}
+                  {note.tagName}
+                </span>
+              : null}
             </div>
-            <div className="shrink-0 text-right">
-              <p className="text-xs text-muted-foreground">{note.time}</p>
-              <div className="mt-2 flex justify-end">
-                {note.fav ?
-                  <Star className="h-4 w-4 text-primary" />
-                : <Bookmark className="h-4 w-4 text-muted-foreground" />}
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
+          </Link>
+        );
+      })}
     </div>
   );
 };

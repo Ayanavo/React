@@ -28,6 +28,7 @@ const CvTextRenderer = ({ element, readonly = false }: { element: CVElement; rea
       : "none",
     textAlign: element.properties?.textAlign,
     color: element.properties?.color,
+    paddingLeft: element.properties?.textIndent ? `${element.properties.textIndent}px` : undefined,
   };
   const justifyContent =
     element.properties?.textAlign === "center" ? "center"

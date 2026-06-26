@@ -12,10 +12,12 @@ import showToast from "@/hooks/toast";
 type AddressSchema = {
   name: string;
   label: string;
+  showHeader?: boolean;
   validation?: { required?: boolean };
 };
 
 function address({ form, schema }: { form: UseFormReturn<any>; schema: AddressSchema }) {
+  const showHeader = schema.showHeader ?? true;
   const addressConfig = {
     addressLine1: {
       label: "Flat, House no., Building, Company, Apartment",
@@ -111,7 +113,7 @@ function address({ form, schema }: { form: UseFormReturn<any>; schema: AddressSc
       },
       (error) => {
         console.error("Error getting location:", error);
-        alert("Unable to retrieve your location. Please check your browser permissions.");
+        showToast({ title: "Unable to retrieve your location. Please check your browser permissions.", variant: "error" });
         setIsLoadingLocation(false);
       },
       {
@@ -138,8 +140,12 @@ function address({ form, schema }: { form: UseFormReturn<any>; schema: AddressSc
   }
   return (
     <div className="space-y-4">
-      <h2 className="font-medium">{schema.label}</h2>
-      <Separator />
+      {showHeader && (
+        <>
+          <h2 className="font-medium">{schema.label}</h2>
+          <Separator />
+        </>
+      )}
       <Button
         type="button"
         variant="outline"

@@ -20,7 +20,6 @@ function showToast({
       },
     }),
     closeButton: true,
-    richColors: true,
   });
 }
 

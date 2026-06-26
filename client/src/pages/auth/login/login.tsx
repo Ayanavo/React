@@ -95,7 +95,7 @@ function login() {
                     <AppLogo className="h-4 w-4" />
                   </span>
                   <div>
-                    <p className="text-sm font-semibold tracking-tight text-foreground">Epsilon</p>
+                    <p className="text-sm font-semibold tracking-tight text-foreground">Notofy</p>
                     <p className="text-xs text-muted-foreground">Your note workspace</p>
                   </div>
                 </div>

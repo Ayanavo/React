@@ -9,6 +9,8 @@ import RegistrationComponent from "@/pages/auth/registration/registration";
 import TermsAndConditionsComponent from "@/pages/layout/terms/terms";
 import CVAccessGrid from "@/pages/cv-builder/cv-access-grid";
 import CVBuilder from "@/pages/cv-builder/cv-builder";
+import CoverLetterAccessGrid from "@/pages/cover-letter/cover-letter-access-grid";
+import CoverLetterBuilder from "@/pages/cover-letter/cover-letter-builder";
 import ActivityComponent from "@/pages/layout/activity/activity";
 import DashboardComponent from "@/pages/layout/dashboard/dashboard";
 import { Layout } from "@/pages/layout/layout";
@@ -104,6 +106,9 @@ const DYNAMIC_ROUTES: RouteConfig[] = [
   { path: "cv-builder", element: <CVAccessGrid /> },
   { path: "cv-builder/create", element: <CVBuilder /> },
   { path: "cv-builder/:id", element: <CVBuilder /> },
+  { path: "cover-letter", element: <CoverLetterAccessGrid /> },
+  { path: "cover-letter/create", element: <CoverLetterBuilder /> },
+  { path: "cover-letter/:id", element: <CoverLetterBuilder /> },
   { path: "whiteboard", element: <WhiteboardComponent /> },
   { path: "notes", element: <NoteComponent /> },
   { path: "tags", element: <TagsLayoutComponent /> },

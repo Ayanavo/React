@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
+import { NumericSliderField } from "@/components/ui/numeric-slider-field";
 import { Save, SquareX } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
@@ -82,15 +81,15 @@ const ImageCropper = ({ open, image, aspect = 1, onClose, onCropped }: ImageCrop
           )}
         </div>
 
-        <div className="flex items-center gap-4 pt-4">
-          <Label className="min-w-12">Zoom</Label>
-          <Slider
-            value={[zoom]}
-            onValueChange={(v) => setZoom(v[0] ?? 1)}
+        <div className="pt-4">
+          <NumericSliderField
+            label="Zoom"
+            value={zoom}
             min={0.5}
             max={3}
             step={0.05}
-            className="w-full"
+            unit="x"
+            onChange={setZoom}
           />
         </div>
 

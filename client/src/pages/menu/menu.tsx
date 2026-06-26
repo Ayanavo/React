@@ -12,7 +12,8 @@ import "./menu.scss";
 
 type NavItem = { label: string; icon: string; route: string };
 
-const BOTTOM_ROUTES = new Set(["/profile"]);
+const BOTTOM_ROUTES = new Set(["/profile", "/settings"]);
+const BOTTOM_ROUTE_ORDER = ["/profile", "/settings"];
 
 function menu({
   NavList,
@@ -31,7 +32,9 @@ function menu({
   const showLabels = isMobile || sidebarState === "expanded";
 
   const mainNav = NavList.filter((item) => !BOTTOM_ROUTES.has(item.route));
-  const bottomNav = NavList.filter((item) => BOTTOM_ROUTES.has(item.route));
+  const bottomNav = NavList.filter((item) => BOTTOM_ROUTES.has(item.route)).sort(
+    (a, b) => BOTTOM_ROUTE_ORDER.indexOf(a.route) - BOTTOM_ROUTE_ORDER.indexOf(b.route),
+  );
 
   const closeMobileMenu = () => {
     if (isMobile) setOpenMobile(false);
@@ -96,7 +99,7 @@ function menu({
         <span className="app-sidebar__brand-mark">
           <AppLogo />
         </span>
-        {showLabels && <span className="app-sidebar__brand-text">Epsilon</span>}
+        {showLabels && <span className="app-sidebar__brand-text">Notofy</span>}
       </button>
 
       <ul className="app-sidebar__nav">
@@ -115,6 +118,7 @@ function menu({
                   key={item.route}
                   className={cn(
                     "app-sidebar__item",
+                    "app-sidebar__item--bottom",
                     isRouteActive(item.route) && "app-sidebar__item--active",
                     index === 0 && "app-sidebar__item--push-bottom",
                   )}>
@@ -130,7 +134,7 @@ function menu({
                 </li>
               ))}
             {!isLoadingPermissions && (
-              <li className="app-sidebar__item">
+              <li className="app-sidebar__item app-sidebar__item--bottom">
                 <button
                   type="button"
                   className="app-sidebar__link app-sidebar__link--danger"

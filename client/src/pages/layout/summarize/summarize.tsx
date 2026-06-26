@@ -1,4 +1,5 @@
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import SummaryContent from "@/components/summary/summary-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,8 +15,10 @@ import {
   type GeminiModelId,
   type SummarizeErrorInfo,
 } from "@/shared/services/summarize";
-import { AlertCircle, Bot, FileText, Loader2, Paperclip, Send, Sparkles, X } from "lucide-react";
+import { setJobSummaryContext } from "@/shared/utils/job-summary-context";
+import { AlertCircle, Bot, FileText, Loader2, Mail, Paperclip, Send, Sparkles, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./summarize.scss";
 
 const MODEL_STORAGE_KEY = "summarize:selected-model";
@@ -74,6 +77,7 @@ function readStoredModel(): GeminiModelId {
 }
 
 function SummarizeComponent() {
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -175,6 +179,44 @@ function SummarizeComponent() {
     event.target.value = "";
   };
 
+  const firstUserMessage = messages.find((msg) => msg.role === "user");
+  const firstSummaryMessage = messages.find(
+    (msg) => msg.role === "assistant" && msg.meta?.startsWith("Summary")
+  );
+
+  const handleCreateFromSummary = (target: "cv" | "cover-letter") => {
+    if (!firstSummaryMessage) return;
+
+    setJobSummaryContext({
+      summary: firstSummaryMessage.content,
+      sourceText: firstUserMessage?.content,
+      fileName: firstUserMessage?.meta,
+      model: selectedModel,
+      createdAt: new Date().toISOString(),
+    });
+
+    if (target === "cv") {
+      sessionStorage.removeItem("cv-editor-session");
+      sessionStorage.removeItem("cv-page-properties");
+      navigate("/cv-builder/create", { state: { from: "summarize" } });
+      return;
+    }
+
+    sessionStorage.removeItem("cover-letter-editor-session");
+    sessionStorage.removeItem("cover-letter-page-properties");
+    navigate("/cover-letter/create", { state: { from: "summarize" } });
+  };
+
+  const renderMessageContent = (message: Message) => {
+    if (message.role === "assistant" && message.meta?.startsWith("Summary")) {
+      return <SummaryContent content={message.content} />;
+    }
+
+    return message.content.split("\n").map((line, index) => (
+      <p key={index}>{line || "\u00A0"}</p>
+    ));
+  };
+
   return (
     <div className="summarize-page">
       <div className="summarize-page__header">
@@ -208,9 +250,20 @@ function SummarizeComponent() {
             </div>
           : messages.map((message) => (
               <Bubble key={message.id} role={message.role} meta={message.meta}>
-                {message.content.split("\n").map((line, index) => (
-                  <p key={index}>{line || "\u00A0"}</p>
-                ))}
+                {renderMessageContent(message)}
+                {message.id === firstSummaryMessage?.id && (
+                  <div className="summarize-actions">
+                    <span className="summarize-actions__label">Turn this job summary into:</span>
+                    <Button type="button" size="sm" variant="outline" onClick={() => handleCreateFromSummary("cv")}>
+                      <FileText className="h-3.5 w-3.5 mr-1" />
+                      Create CV
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => handleCreateFromSummary("cover-letter")}>
+                      <Mail className="h-3.5 w-3.5 mr-1" />
+                      Create Cover Letter
+                    </Button>
+                  </div>
+                )}
               </Bubble>
             ))
           }

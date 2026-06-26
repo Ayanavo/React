@@ -31,9 +31,8 @@ const CvListRenderer = ({ element, readonly = false }: { element: CVElement; rea
     fontStyle: element.properties?.fontStyle?.italic ? "italic" : "normal",
     textDecoration: decorations.length ? decorations.join(" ") : "none",
     color: element.properties?.color,
+    paddingLeft: element.properties?.textIndent ? `${element.properties.textIndent}px` : undefined,
   };
-
-  // ---------- Caret helpers ----------
   const placeCaretAtStart = (el: HTMLElement) => {
     const range = document.createRange();
     range.selectNodeContents(el);

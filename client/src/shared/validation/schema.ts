@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { hasMonthYear, normalizeMonth, normalizeYear } from "@/shared/utils/work-experience";
 
 // Base field types
 export const textField = z.string();
@@ -69,6 +70,90 @@ export const createNumberField = (options: { required?: boolean; min?: number; m
   return schema;
 };
 
+const companyEntrySchema = z
+  .object({
+    companyName: z.string().optional(),
+    designation: z.string().optional(),
+    fromMonth: z.string().optional(),
+    fromYear: z.string().optional(),
+    toMonth: z.string().optional(),
+    toYear: z.string().optional(),
+    isPresent: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasContent =
+      !!data.companyName?.trim() ||
+      !!data.designation?.trim() ||
+      !!data.fromMonth ||
+      !!data.fromYear ||
+      !!data.toMonth ||
+      !!data.toYear;
+
+    if (!hasContent) return;
+
+    if (!data.companyName?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Company name is required",
+        path: ["companyName"],
+      });
+    }
+
+    if (!data.designation?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Designation is required",
+        path: ["designation"],
+      });
+    }
+
+    if (!hasMonthYear(data.fromMonth, data.fromYear)) {
+      if (!normalizeMonth(data.fromMonth)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "From month is required",
+          path: ["fromMonth"],
+        });
+      }
+
+      if (!normalizeYear(data.fromYear)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "From year is required",
+          path: ["fromYear"],
+        });
+      }
+    }
+
+    if (!data.isPresent && !hasMonthYear(data.toMonth, data.toYear)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "To date is required",
+        path: ["toMonth"],
+      });
+    }
+
+    const fromMonth = normalizeMonth(data.fromMonth);
+    const fromYear = normalizeYear(data.fromYear);
+    const toMonth = normalizeMonth(data.toMonth);
+    const toYear = normalizeYear(data.toYear);
+
+    if (!fromMonth || !fromYear || data.isPresent || !toMonth || !toYear) {
+      return;
+    }
+
+    const from = parseInt(fromYear, 10) * 12 + parseInt(fromMonth, 10);
+    const to = parseInt(toYear, 10) * 12 + parseInt(toMonth, 10);
+
+    if (from > to) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "To date must be after from date",
+        path: ["toMonth"],
+      });
+    }
+  });
+
 // Predefined schemas
 export const createProfileBaseSchema = (mobileSingle: boolean) =>
   z.object({
@@ -96,6 +181,8 @@ export const createProfileBaseSchema = (mobileSingle: boolean) =>
     city: z.string().min(1, "City is required"),
     state: z.string().min(1, "State is required"),
     pincode: z.string().min(1, "Pincode is required"),
+
+    companies: z.array(companyEntrySchema).default([]),
   });
 
 // Schema with async validation (to be used when API is available)

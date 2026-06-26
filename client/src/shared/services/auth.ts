@@ -40,6 +40,7 @@ export type SaveSettingsPayload = {
 
 export type ProfileResponse = {
   user: {
+    email?: string;
     photoURL?: string;
     firstName: string;
     lastName: string;
@@ -52,6 +53,15 @@ export type ProfileResponse = {
       state: string;
       pincode: string;
     };
+    companies?: Array<{
+      companyName: string;
+      designation: string;
+      fromMonth: string;
+      fromYear: string;
+      toMonth?: string;
+      toYear?: string;
+      isPresent: boolean;
+    }>;
   };
 };
 

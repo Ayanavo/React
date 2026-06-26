@@ -18,6 +18,7 @@ type BreadcrumbInbuildProps = {
 const routeLabels: Record<string, string> = {
   activities: "Activities",
   "cv-builder": "CV Builder",
+  "cover-letter": "Cover Letter",
   dashboard: "Dashboard",
   notes: "Notes",
   profile: "Profile",
@@ -42,8 +43,13 @@ function BreadcrumbInbuild({ isEditMode = false, className = "flex items-center"
   const getRouteLabel = (segment: string, index: number) => {
     const isLastSegment = index === segments.length - 1;
     const isCVBuilderAction = segments[0] === "cv-builder" && (segment === "create" || isEditMode);
+    const isCoverLetterAction = segments[0] === "cover-letter" && (segment === "create" || isEditMode);
 
     if (isLastSegment && isCVBuilderAction) {
+      return isEditMode ? "Update" : "Create";
+    }
+
+    if (isLastSegment && isCoverLetterAction) {
       return isEditMode ? "Update" : "Create";
     }
 

@@ -1,21 +1,28 @@
 import { NavList } from "./nav";
 
+export const PROFILE_ROUTE = "/profile";
 export const SETTINGS_ROUTE = "/settings";
+
+export const pinnedMenuRoutes = [PROFILE_ROUTE, SETTINGS_ROUTE] as const;
+
+const pinnedMenuRouteSet = new Set<string>(pinnedMenuRoutes);
 
 export const defaultMenuOrder = NavList.map((item) => item.route);
 
-export const sortableMenuRoutes = NavList.filter((item) => item.route !== SETTINGS_ROUTE).map((item) => item.route);
+export const sortableMenuRoutes = NavList.filter((item) => !pinnedMenuRouteSet.has(item.route)).map(
+  (item) => item.route
+);
 
 export function normalizeMenuOrder(menuOrder: string[] | undefined | null): string[] {
   const validRoutes = new Set(defaultMenuOrder);
-  const ordered = (menuOrder ?? []).filter((route) => validRoutes.has(route) && route !== SETTINGS_ROUTE);
+  const ordered = (menuOrder ?? []).filter((route) => validRoutes.has(route) && !pinnedMenuRouteSet.has(route));
   const remaining = sortableMenuRoutes.filter((route) => !ordered.includes(route));
 
-  return [...ordered, ...remaining, SETTINGS_ROUTE];
+  return [...ordered, ...remaining, ...pinnedMenuRoutes];
 }
 
 export function getSortableMenuOrder(menuOrder: string[] | undefined | null): string[] {
-  return normalizeMenuOrder(menuOrder).filter((route) => route !== SETTINGS_ROUTE);
+  return normalizeMenuOrder(menuOrder).filter((route) => !pinnedMenuRouteSet.has(route));
 }
 
 export function sortNavItemsByOrder<T extends { route: string }>(
