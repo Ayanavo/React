@@ -2,7 +2,6 @@ import { Label } from "@/components/ui/label";
 import { NumericSliderField } from "@/components/ui/numeric-slider-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CVElement, useCV } from "@/lib/useCV";
 import { Blocks, LayoutPanelTop } from "lucide-react";
 import React from "react";

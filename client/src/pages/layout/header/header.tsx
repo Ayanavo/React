@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { EllipsisVerticalIcon, InfoIcon } from "lucide-react";
 import React from "react";
 import { useLocation } from "react-router-dom";
@@ -14,7 +13,7 @@ import GlobalSearch from "./global-search";
 
 type NavItem = { label: string; icon: string; route: string };
 
-function header({ NavList, exclutionList = [] }: { NavList: Array<NavItem>; exclutionList: Array<string> }) {
+function header({ NavList }: { NavList: Array<NavItem> }) {
   const { pathname } = useLocation();
   const NavObj = NavList.find((item) => pathname.includes(item.route));
 

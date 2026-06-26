@@ -28,7 +28,7 @@ export function removeWorkflowNode(nodes: Node[], edges: Edge[], nodeId: string)
   };
 }
 
-export function addWorkflowEdge(nodes: Node[], edges: Edge[], connection: Omit<Edge, "id">) {
+export function addWorkflowEdge( edges: Edge[], connection: Omit<Edge, "id">) {
   const id = `edge-${crypto.randomUUID()}`;
   return [...edges, { ...connection, id }];
 }

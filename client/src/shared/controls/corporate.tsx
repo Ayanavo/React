@@ -7,6 +7,7 @@ import {
   calculateWorkExperience,
   EMPTY_COMPANY_ENTRY,
   monthYearToDate,
+  type CompanyEntry,
 } from "@/shared/utils/work-experience";
 import { SquarePlusIcon, TrashIcon } from "lucide-react";
 import React, { useCallback, useEffect, useMemo } from "react";
@@ -25,7 +26,7 @@ function corporate({ form, schema }: { form: FieldValue<any>; schema: CorporateS
     name: schema.name,
   });
 
-  const companies = form.watch(schema.name) ?? [];
+  const companies: CompanyEntry[] = form.watch(schema.name) ?? [];
   const workExperience = useMemo(() => calculateWorkExperience(companies), [companies]);
   const showHeader = schema.showHeader ?? true;
   const presentIndex = companies.findIndex((company) => company?.isPresent);
