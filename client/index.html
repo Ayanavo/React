@@ -10,13 +10,17 @@
 <body style="pointer-events: auto">
   <noscript>You need to enable JavaScript to run this app.</noscript>
   <div id="root">
-    <div class="loader-screen" role="status" aria-live="polite" aria-busy="true" aria-label="Loading">
-      <div class="loader-sphere" aria-hidden="true"></div>
+    <div class="particle-loader-screen" role="status" aria-live="polite" aria-busy="true" aria-label="Loading">
+      <div class="particle-loader-container" style="width: 320px; height: 320px">
+        <canvas id="loaderCanvas" class="particle-loader-canvas"></canvas>
+        <div class="particle-loader-status">Loading assets...</div>
+      </div>
     </div>
   </div>
   <script>
     if (window.location.pathname === '/') window.location.replace('/React');
   </script>
+  <script type="module" src="/src/bootstrap-loader.ts"></script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

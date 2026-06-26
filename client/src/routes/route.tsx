@@ -2,7 +2,7 @@ import React from "react";
 import { Navigate, useRoutes } from "react-router-dom";
 import { usePermissions, useHasAuthToken } from "@/shared/context/PermissionsContext";
 import { isAuthenticated } from "@/shared/utils/auth-token";
-import { LoaderCircleIcon } from "lucide-react";
+import { ParticleLoader } from "@/components/particle-loader/ParticleLoader";
 import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
 import LoginComponent from "@/pages/auth/login/login";
 import RegistrationComponent from "@/pages/auth/registration/registration";
@@ -31,11 +31,7 @@ export type RouteConfig = {
   index?: boolean;
 };
 
-const AppLoader = () => (
-  <div className="flex min-h-screen items-center justify-center bg-transparent">
-    <LoaderCircleIcon className="h-8 w-8 animate-spin text-muted-foreground" aria-label="Loading" />
-  </div>
-);
+const AppLoader = () => <ParticleLoader statusText="Loading assets..." />;
 
 const GuestOnly = ({ children }: { children: React.ReactNode }) => {
   const hasToken = useHasAuthToken();

@@ -9,6 +9,15 @@
   overflow: hidden;
 }
 
+.particle-loader-inline {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100vh;
+  background-color: transparent;
+}
+
 .particle-loader-container {
   position: relative;
   display: flex;
