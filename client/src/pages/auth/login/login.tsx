@@ -9,7 +9,6 @@ import generateControl from "@/pages/layout/grid/form/validation";
 import { loginAPI } from "@/shared/services/auth.ts";
 import { showCacheUseWarning } from "@/shared/utils/cache-warning";
 import "@ayanavo/locusjs";
-import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { LoaderCircleIcon } from "lucide-react";
 import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
@@ -137,28 +136,17 @@ function login() {
                       </div>
                     </div>
 
-                    <div className="grid w-full grid-cols-2 gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={isSocialLoading || loader}
-                        onClick={() => signInWithProvider("google")}>
-                        {loadingProvider === "google" ?
-                          <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
-                        : <GoogleIcon />}
-                        Google
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={isSocialLoading || loader}
-                        onClick={() => signInWithProvider("github")}>
-                        {loadingProvider === "github" ?
-                          <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
-                        : <GitHubLogoIcon />}
-                        Github
-                      </Button>
-                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      disabled={isSocialLoading || loader}
+                      onClick={() => signInWithProvider("google")}>
+                      {loadingProvider === "google" ?
+                        <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
+                      : <GoogleIcon />}
+                      Google
+                    </Button>
 
                     <p className="text-center text-sm text-muted-foreground">
                       Don&apos;t have an account?{" "}

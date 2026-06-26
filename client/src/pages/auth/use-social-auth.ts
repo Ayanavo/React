@@ -3,19 +3,14 @@ import showToast from "@/hooks/toast";
 import { socialLoginAPI } from "@/shared/services/auth";
 import { showCacheUseWarning } from "@/shared/utils/cache-warning";
 import { FirebaseError } from "firebase/app";
-import { GithubAuthProvider, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export type SocialProvider = "google" | "github";
+export type SocialProvider = "google";
 
-function getProvider(provider: SocialProvider) {
-  switch (provider) {
-    case "google":
-      return new GoogleAuthProvider();
-    case "github":
-      return new GithubAuthProvider();
-  }
+function getProvider() {
+  return new GoogleAuthProvider();
 }
 
 function getSocialLoginErrorMessage(error: unknown): string {
@@ -46,7 +41,7 @@ export function useSocialAuth() {
       setLoadingProvider(provider);
 
       try {
-        const loginProvider = getProvider(provider);
+        const loginProvider = getProvider();
         const userCredential = await signInWithPopup(auth, loginProvider);
         const idToken = await userCredential.user.getIdToken();
         const response = await socialLoginAPI(idToken);
