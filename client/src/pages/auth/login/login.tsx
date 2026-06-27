@@ -15,7 +15,8 @@ import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { startOAuthLogin } from "@/pages/auth/use-oauth-login";
-import { TERMS_PATH } from "@/shared/utils/cache-warning";
+import { FORGOT_PASSWORD_PATH, REGISTER_PATH } from "@/shared/utils/auth-paths";
+import { PRIVACY_PATH, TERMS_PATH } from "@/shared/utils/policy-paths";
 import InfinityBackground from "./infinity-background";
 import "./login.scss";
 
@@ -113,7 +114,7 @@ function login() {
 
                     <div className="flex justify-end">
                       <Link
-                        to="/forgot-password"
+                        to={FORGOT_PASSWORD_PATH}
                         className="text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
                         Forgot password?
                       </Link>
@@ -150,7 +151,7 @@ function login() {
 
                     <p className="text-center text-sm text-muted-foreground">
                       Don&apos;t have an account?{" "}
-                      <Link to="/register" className="font-medium underline underline-offset-4 hover:text-primary">
+                      <Link to={REGISTER_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
                         Create one
                       </Link>
                     </p>
@@ -159,6 +160,10 @@ function login() {
                       By signing in, you agree to our{" "}
                       <Link to={TERMS_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
                         Terms & Conditions
+                      </Link>{" "}
+                      and{" "}
+                      <Link to={PRIVACY_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+                        Privacy Policy
                       </Link>
                       .
                     </p>

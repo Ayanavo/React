@@ -17,7 +17,8 @@ import {
   sendVerificationEmailAPI,
 } from "@/shared/services/auth.ts";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from "@/shared/utils/password-strength";
-import { TERMS_PATH } from "@/shared/utils/cache-warning";
+import { LOGIN_PATH } from "@/shared/utils/auth-paths";
+import { PRIVACY_PATH, TERMS_PATH } from "@/shared/utils/policy-paths";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { BadgeAlert, LoaderCircleIcon, MailIcon, ShieldCheckIcon, UserPlusIcon } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -371,7 +372,7 @@ function registration() {
       </div>
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link to="/login" className="underline underline-offset-4 hover:text-primary" preventScrollReset={true}>
+        <Link to={LOGIN_PATH} className="underline underline-offset-4 hover:text-primary" preventScrollReset={true}>
           Log in
         </Link>
       </p>
@@ -379,6 +380,10 @@ function registration() {
         By registering, you agree to our{" "}
         <Link to={TERMS_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
           Terms & Conditions
+        </Link>{" "}
+        and{" "}
+        <Link to={PRIVACY_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+          Privacy Policy
         </Link>
         .
       </p>

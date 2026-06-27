@@ -13,6 +13,8 @@ import {
   UserRound,
   type LucideIcon,
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { PRIVACY_PATH } from "@/shared/utils/policy-paths";
 import React, { useMemo } from "react";
 import { cn } from "@/lib/utils";
 
@@ -153,7 +155,11 @@ function TermsAndConditions() {
             <h1 className="text-xl font-semibold">Terms & Conditions</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               These terms govern your access to Notofy. By signing in, you confirm that you have read,
-              understood, and agree to comply with the policies outlined below.
+              understood, and agree to comply with the policies outlined below, including our{" "}
+              <Link to={PRIVACY_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+                Privacy Policy
+              </Link>
+              .
             </p>
             <p className="mt-2 text-xs text-muted-foreground">
               Version {TERMS_VERSION} · Last updated {lastUpdated}

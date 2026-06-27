@@ -5,6 +5,7 @@ import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { logoutAPI } from "@/shared/services/auth";
+import { LOGIN_PATH } from "@/shared/utils/auth-paths";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import IconsComponent from "../../common/icons";
@@ -59,7 +60,7 @@ function menu({
           .then((res) => {
             showToast({ title: res.message || "Logged out successfully", variant: "success" });
             closeMobileMenu();
-            navigate("/login");
+            navigate(LOGIN_PATH);
           })
           .catch((error) => {
             showToast({

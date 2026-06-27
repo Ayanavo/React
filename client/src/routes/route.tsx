@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, useRoutes } from "react-router-dom";
+import { Navigate, Outlet, useRoutes } from "react-router-dom";
 import { usePermissions, useHasAuthToken } from "@/shared/context/PermissionsContext";
 import { isAuthenticated } from "@/shared/utils/auth-token";
 import { ParticleLoader } from "@/components/particle-loader/ParticleLoader";
@@ -7,7 +7,13 @@ import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-passwor
 import LoginComponent from "@/pages/auth/login/login";
 import OAuthCallbackComponent from "@/pages/auth/oauth-callback/oauth-callback";
 import RegistrationComponent from "@/pages/auth/registration/registration";
+import {
+  FORGOT_PASSWORD_PATH,
+  LOGIN_PATH,
+  REGISTER_PATH,
+} from "@/shared/utils/auth-paths";
 import TermsAndConditionsComponent from "@/pages/layout/terms/terms";
+import PrivacyPolicyComponent from "@/pages/layout/privacy/privacy";
 import CVAccessGrid from "@/pages/cv-builder/cv-access-grid";
 import CVBuilder from "@/pages/cv-builder/cv-builder";
 import CoverLetterAccessGrid from "@/pages/cover-letter/cover-letter-access-grid";
@@ -43,7 +49,7 @@ const GuestOnly = ({ children }: { children: React.ReactNode }) => {
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const { isLoading, isInitialized } = usePermissions();
   if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={LOGIN_PATH} replace />;
   }
 
   if (!isInitialized || isLoading) {
@@ -53,49 +59,66 @@ const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const LegalPageShell = ({ children }: { children: React.ReactNode }) => (
+  <div className="min-h-screen overflow-y-auto bg-muted/60">{children}</div>
+);
+
 /** Static routes - Always available regardless of permissions */
 
 const STATIC_ROUTES: RouteConfig[] = [
   {
-    path: "/login",
-    element: (
-      <GuestOnly>
-        <LoginComponent />
-      </GuestOnly>
-    ),
+    path: "/auth",
+    element: <Outlet />,
+    children: [
+      { index: true, element: <Navigate to="login" replace /> },
+      {
+        path: "login",
+        element: (
+          <GuestOnly>
+            <LoginComponent />
+          </GuestOnly>
+        ),
+      },
+      {
+        path: "register",
+        element: (
+          <GuestOnly>
+            <RegistrationComponent />
+          </GuestOnly>
+        ),
+      },
+      {
+        path: "forgot-password",
+        element: (
+          <GuestOnly>
+            <ForgotPasswordComponent />
+          </GuestOnly>
+        ),
+      },
+      { path: "callback", element: <OAuthCallbackComponent /> },
+    ],
   },
 
-  {
-    path: "/register",
-    element: (
-      <GuestOnly>
-        <RegistrationComponent />
-      </GuestOnly>
-    ),
-  },
+  { path: "/login", element: <Navigate to={LOGIN_PATH} replace /> },
+  { path: "/register", element: <Navigate to={REGISTER_PATH} replace /> },
+  { path: "/forgot-password", element: <Navigate to={FORGOT_PASSWORD_PATH} replace /> },
 
   {
-    path: "/forgot-password",
+    path: "/legal",
     element: (
-      <GuestOnly>
-        <ForgotPasswordComponent />
-      </GuestOnly>
+      <LegalPageShell>
+        <Outlet />
+      </LegalPageShell>
     ),
+    children: [
+      { index: true, element: <Navigate to="terms" replace /> },
+      { path: "terms", element: <TermsAndConditionsComponent /> },
+      { path: "privacy", element: <PrivacyPolicyComponent /> },
+    ],
   },
 
-  {
-    path: "/auth/callback",
-    element: <OAuthCallbackComponent />,
-  },
-
-  {
-    path: "/terms",
-    element: (
-      <div className="min-h-screen overflow-y-auto bg-muted/60">
-        <TermsAndConditionsComponent />
-      </div>
-    ),
-  },
+  { path: "/terms", element: <Navigate to="/legal/terms" replace /> },
+  { path: "/privacy", element: <Navigate to="/legal/privacy" replace /> },
 
 ];
 

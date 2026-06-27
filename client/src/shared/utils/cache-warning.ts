@@ -1,6 +1,6 @@
 import { toast } from "sonner";
 
-const TERMS_PATH = "/terms";
+import { TERMS_PATH } from "@/shared/utils/policy-paths";
 
 export function showCacheUseWarning() {
   toast.warning("Cache required", {

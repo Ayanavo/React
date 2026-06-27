@@ -6,6 +6,7 @@ import { BadgeAlert } from "lucide-react";
 import React, { useEffect, useId, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
+import { LOGIN_PATH } from "@/shared/utils/auth-paths";
 
 function forgotPassword() {
   const id = useId();
@@ -89,7 +90,7 @@ function forgotPassword() {
               </span>
             )}
             <p className="mt-4 text-sm text-muted-foreground">
-              <Link to="/login" className="underline underline-offset-4 hover:text-primary">
+              <Link to={LOGIN_PATH} className="underline underline-offset-4 hover:text-primary">
                 Back to login
               </Link>
             </p>

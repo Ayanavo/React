@@ -15,7 +15,7 @@ import showToast from "@/hooks/toast";
 import axios from "axios";
 import { getAxiosErrorMessage } from "@/shared/interceptors/auth-interceptor";
 import { Link } from "react-router-dom";
-import { TERMS_PATH } from "@/shared/utils/cache-warning";
+import { PRIVACY_PATH, TERMS_PATH } from "@/shared/utils/policy-paths";
 import { EMPTY_COMPANY_ENTRY, normalizeCompanies } from "@/shared/utils/work-experience";
 import { BriefcaseBusiness, MapPin, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -325,6 +325,10 @@ function profile() {
                   <p className="text-center text-sm text-muted-foreground">
                     <Link to={TERMS_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
                       Terms & Conditions
+                    </Link>
+                    {" · "}
+                    <Link to={PRIVACY_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+                      Privacy Policy
                     </Link>
                   </p>
                 </div>

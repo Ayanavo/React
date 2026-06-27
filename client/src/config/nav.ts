@@ -13,4 +13,4 @@ export const NavList: Array<NavItem> = [
   { label: "Settings", icon: "SettingsIcon", route: "/settings" },
 ];
 
-export const NavExclusionList = ["/profile", "/settings", "/dashboard", "/terms"];
+export const NavExclusionList = ["/profile", "/settings", "/dashboard", "/legal/terms", "/legal/privacy"];

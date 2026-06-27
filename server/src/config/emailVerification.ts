@@ -28,9 +28,9 @@ export const getEmailVerificationConfig = () => ({
   ).replace(/\/$/, ""),
 });
 
-/** HashRouter routes live under #/ — plain /register paths 404 in the SPA. */
+/** HashRouter routes live under #/ — plain /auth/register paths are required for the SPA. */
 export const buildRegistrationRedirectUrl = (params: Record<string, string>): string => {
   const { clientUrl } = getEmailVerificationConfig();
   const query = new URLSearchParams(params).toString();
-  return `${clientUrl}/#/register?${query}`;
+  return `${clientUrl}/#/auth/register?${query}`;
 };

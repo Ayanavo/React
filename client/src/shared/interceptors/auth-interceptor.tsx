@@ -1,4 +1,5 @@
 import showToast from "@/hooks/toast";
+import { LOGIN_PATH } from "@/shared/utils/auth-paths";
 import { DefaultChatTransport } from "ai";
 import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { disconnectSocket } from "@/shared/services/socket";
@@ -35,7 +36,7 @@ const redirectToLogin = async (message: string) => {
     variant: "error",
   });
 
-  window.location.hash = "#/login";
+  window.location.hash = `#${LOGIN_PATH}`;
 };
 
 const showError = (message: string) => {

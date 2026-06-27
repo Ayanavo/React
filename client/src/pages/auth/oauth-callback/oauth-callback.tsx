@@ -1,6 +1,7 @@
 import { ParticleLoader } from "@/components/particle-loader/ParticleLoader";
 import showToast from "@/hooks/toast";
 import { showCacheUseWarning } from "@/shared/utils/cache-warning";
+import { LOGIN_PATH } from "@/shared/utils/auth-paths";
 import { setAuthToken } from "@/shared/utils/auth-token";
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -25,13 +26,13 @@ function OAuthCallback() {
         title: ERROR_MESSAGES[error] || error,
         variant: "error",
       });
-      navigate("/login", { replace: true });
+      navigate(LOGIN_PATH, { replace: true });
       return;
     }
 
     if (!token) {
       showToast({ title: "Sign-in failed. No access token was returned.", variant: "error" });
-      navigate("/login", { replace: true });
+      navigate(LOGIN_PATH, { replace: true });
       return;
     }
 
