@@ -1,25 +1,15 @@
 import moment from "moment";
 import { hash } from "bcrypt";
-import crypto from "crypto";
 import { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 import jwt, { Secret, VerifyErrors } from "jsonwebtoken";
-import admin from "../firebase.js";
-import type { DecodedIdToken } from "firebase-admin/auth";
-import User, { IUser } from "../models/userModel.js";
+import User from "../models/userModel.js";
 import { getUserDataByRefreshToken, getUserDataByToken, getUserIdFromRefreshToken } from "../services/userAccess.js";
-import { emitUserLoginStatus } from "../websockets/socket.js";
+import { invalidateUserSession, issueAuthSession, refreshCookieOptions } from "../services/authSession.js";
 import { assertEmailVerifiedForRegistration, clearVerificationRecord } from "./emailVerificationController.js";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_PATTERN_MESSAGE } from "../utils/passwordValidation.js";
 import { grantDefaultUserAccess } from "../services/userPermissions.js";
 import { CompanyProfile, formatCompaniesForResponse, sanitizeCompanies } from "../utils/profileValidation.js";
-
-const refreshCookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: process.env.NODE_ENV === "production" ? ("none" as const) : ("lax" as const),
-  path: "/",
-};
 
 const formatCompanies = (companies: unknown): CompanyProfile[] => formatCompaniesForResponse(companies);
 
@@ -27,54 +17,6 @@ const formatUserProfileResponse = (user: Record<string, any>) => ({
   ...user,
   companies: formatCompanies(user.companies),
 });
-
-const invalidateUserSession = async (userId: string): Promise<void> => {
-  const user = await User.findById(userId);
-  if (!user) return;
-
-  const now = moment().toDate();
-  let totalTimeSpentMs = user.totalTimeSpentMs ?? 0;
-
-  if (user.isLoggedIn && user.currentSessionStartedAt) {
-    totalTimeSpentMs += moment(now).diff(moment(user.currentSessionStartedAt));
-  }
-
-  user.isLoggedIn = false;
-  user.lastLogoutAt = now;
-  user.totalTimeSpentMs = totalTimeSpentMs;
-  user.currentSessionStartedAt = null;
-  await user.save();
-
-  emitUserLoginStatus(userId, false, {
-    lastLogoutAt: now.toISOString(),
-    totalTimeSpentMs,
-    currentSessionStartedAt: null,
-  });
-};
-
-const issueAuthSession = async (user: IUser, res: Response) => {
-  const loginTime = moment().toDate();
-  user.isLoggedIn = true;
-  user.lastLoginAt = loginTime;
-  user.currentSessionStartedAt = loginTime;
-  await user.save();
-
-  emitUserLoginStatus(String(user._id), true, {
-    lastLoginAt: loginTime.toISOString(),
-    currentSessionStartedAt: loginTime.toISOString(),
-  });
-
-  const accessToken = user.generateJwt();
-  const refreshTokenValue = user.generateRefreshToken();
-
-  res.cookie("refreshToken", refreshTokenValue, refreshCookieOptions);
-
-  return {
-    token: accessToken,
-    message: "Successfully logged in",
-    expiresIn: 1 * 60 * 60,
-  };
-};
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -397,128 +339,3 @@ export const saveSettings = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to save settings" });
   }
 };
-
-type SocialAuthProvider = "google.com" | "github.com";
-
-const parseDisplayName = (displayName: string | undefined, email: string): { firstName: string; lastName: string } => {
-  const trimmed = displayName?.trim();
-  if (trimmed) {
-    const parts = trimmed.split(/\s+/);
-    if (parts.length === 1) {
-      return { firstName: parts[0], lastName: parts[0] };
-    }
-    return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
-  }
-
-  const localPart = email.split("@")[0] ?? "User";
-  return { firstName: localPart, lastName: "User" };
-};
-
-const resolveSocialAuthProvider = (provider: string | undefined): SocialAuthProvider | null => {
-  if (provider === "google.com" || provider === "github.com") {
-    return provider;
-  }
-  return null;
-};
-
-const findOrCreateSocialUser = async (decoded: DecodedIdToken): Promise<{ user: IUser; isNewUser: boolean }> => {
-  const email = decoded.email?.trim().toLowerCase();
-  if (!email) {
-    throw new Error("SOCIAL_EMAIL_REQUIRED");
-  }
-
-  const firebaseUid = decoded.uid;
-  const authProvider = resolveSocialAuthProvider(decoded.firebase?.sign_in_provider);
-  if (!authProvider) {
-    throw new Error("SOCIAL_PROVIDER_UNSUPPORTED");
-  }
-
-  const photoURL = decoded.picture ?? "";
-  const { firstName, lastName } = parseDisplayName(decoded.name, email);
-
-  let user = await User.findOne({ $or: [{ firebaseUid }, { email }] });
-
-  if (!user) {
-    const randomPassword = crypto.randomBytes(32).toString("hex");
-    const hashedPassword = await hash(randomPassword, 10);
-
-    user = new User({
-      photoURL,
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      firebaseUid,
-      authProvider,
-    });
-    await user.save();
-    await grantDefaultUserAccess(String(user._id));
-    return { user, isNewUser: true };
-  }
-
-  if (user.firebaseUid && user.firebaseUid !== firebaseUid) {
-    throw new Error("SOCIAL_ACCOUNT_CONFLICT");
-  }
-
-  if (!user.firebaseUid) {
-    user.firebaseUid = firebaseUid;
-  }
-
-  user.authProvider = authProvider;
-
-  if (photoURL && !user.photoURL) {
-    user.photoURL = photoURL;
-  }
-
-  if (!user.firstName?.trim()) {
-    user.firstName = firstName;
-  }
-
-  if (!user.lastName?.trim()) {
-    user.lastName = lastName;
-  }
-
-  await user.save();
-  return { user, isNewUser: false };
-};
-
-export const socialLogin = async (req: Request, res: Response) => {
-  try {
-    const idToken = (req.body?.idToken ?? req.query.access) as string | undefined;
-    if (!idToken) {
-      return res.status(400).json({ message: "No ID token provided" });
-    }
-
-    const decoded = await admin.auth().verifyIdToken(idToken);
-    const { user, isNewUser } = await findOrCreateSocialUser(decoded);
-    const authResponse = await issueAuthSession(user, res);
-
-    return res.status(200).json({
-      ...authResponse,
-      isNewUser,
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "SOCIAL_EMAIL_REQUIRED") {
-        return res.status(400).json({
-          message: "Your social account did not share an email address. Please use a provider that exposes your email or register with email instead.",
-        });
-      }
-
-      if (error.message === "SOCIAL_PROVIDER_UNSUPPORTED") {
-        return res.status(400).json({ message: "Unsupported social sign-in provider." });
-      }
-
-      if (error.message === "SOCIAL_ACCOUNT_CONFLICT") {
-        return res.status(409).json({
-          message: "This email is already linked to a different social account.",
-        });
-      }
-    }
-
-    console.error("Social login error:", error);
-    return res.status(401).json({ message: "Social authentication failed. Please try again." });
-  }
-};
-
-export const verifyToken = socialLogin;

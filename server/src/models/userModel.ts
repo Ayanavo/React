@@ -55,8 +55,8 @@ export interface IUser extends Document {
   lastName: string;
   email: string;
   password: string;
-  firebaseUid?: string;
-  authProvider?: "local" | "google.com" | "github.com";
+  oauthProvider?: "google" | "github";
+  oauthId?: string;
   title: string;
   createdAt: Date;
   updatedAt: Date;
@@ -110,12 +110,8 @@ const userSchema: Schema = new Schema(
     },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    firebaseUid: { type: String, unique: true, sparse: true },
-    authProvider: {
-      type: String,
-      enum: ["local", "google.com", "github.com"],
-      default: "local",
-    },
+    oauthProvider: { type: String, enum: ["google", "github"], default: null },
+    oauthId: { type: String, default: null, sparse: true },
     title: { type: String },
     isLoggedIn: { type: Boolean, default: false },
     lastLoginAt: { type: Date, default: null },

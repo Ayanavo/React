@@ -1,12 +1,12 @@
-import GoogleIcon from "@/assets/google.svg";
 import profile from "@/assets/profile.jpg";
+import GoogleIcon from "@/assets/google.svg";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import showToast from "@/hooks/toast";
 import { useFullPageScroll } from "@/hooks/use-full-page-scroll";
 import { cn } from "@/lib/utils";
 import PasswordStrengthField from "@/pages/auth/registration/password-strength-field";
-import { useSocialAuth } from "@/pages/auth/use-social-auth";
+import { startOAuthLogin } from "@/pages/auth/use-oauth-login";
 import { componentMap } from "@/pages/layout/grid/form/field-map";
 import generateControl from "@/pages/layout/grid/form/validation";
 import {
@@ -112,7 +112,6 @@ function StepIndicator({ currentStep }: { currentStep: RegistrationStep }) {
 function registration() {
   useFullPageScroll();
   const navigate = useNavigate();
-  const { signInWithProvider, isSocialLoading, loadingProvider } = useSocialAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [step, setStep] = useState<RegistrationStep>("email");
   const [verifiedEmail, setVerifiedEmail] = useState("");
@@ -258,8 +257,13 @@ function registration() {
       showToast({ title: response.message || "Verification email sent", variant: "success" });
       startResendCooldown(response.resendAvailableIn ?? 60);
     } catch (error: any) {
+      const suggestion = error.response?.data?.suggestion;
       const message = error.response?.data?.message || "Failed to send verification email";
       showToast({ title: message, variant: "error" });
+
+      if (suggestion) {
+        emailForm.setValue("email", suggestion);
+      }
 
       if (error.response?.status === 409) {
         showToast({ title: "This email is already registered. Please log in.", variant: "error" });
@@ -344,7 +348,7 @@ function registration() {
     details: "Set your password and complete your profile.",
   }[step];
 
-  const renderSocialFooter = () => (
+  const renderAuthFooter = () => (
     <>
       <div className="relative w-full my-4">
         <div className="absolute inset-0 flex items-center">
@@ -355,24 +359,12 @@ function registration() {
         </div>
       </div>
       <div className="grid w-full grid-cols-2 gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={isSocialLoading || isSubmitting}
-          onClick={() => signInWithProvider("google")}>
-          {loadingProvider === "google" ?
-            <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
-          : <GoogleIcon />}
+        <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => startOAuthLogin("google")}>
+          <GoogleIcon />
           Google
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          disabled={isSocialLoading || isSubmitting}
-          onClick={() => signInWithProvider("github")}>
-          {loadingProvider === "github" ?
-            <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
-          : <GitHubLogoIcon />}
+        <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => startOAuthLogin("github")}>
+          <GitHubLogoIcon />
           Github
         </Button>
       </div>
@@ -454,7 +446,7 @@ function registration() {
                   {isSubmitting && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
                   Send verification email
                 </Button>
-                {renderSocialFooter()}
+                {renderAuthFooter()}
               </>
             )}
 
@@ -469,7 +461,7 @@ function registration() {
                   onClick={handleChangeEmail}>
                   Change email
                 </button>
-                {renderSocialFooter()}
+                {renderAuthFooter()}
               </>
             )}
 
@@ -479,7 +471,7 @@ function registration() {
                   {isSubmitting && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
                   Create account
                 </Button>
-                {renderSocialFooter()}
+                {renderAuthFooter()}
               </>
             )}
           </CardFooter>

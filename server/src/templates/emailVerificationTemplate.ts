@@ -6,7 +6,7 @@ type VerificationEmailParams = {
   verifyUrl: string;
 };
 
-export const buildVerificationEmailContent = (verifyUrl: string) => {
+export const buildVerificationEmailContent = (verifyUrl: string, iconSrc: string) => {
   const { tokenTtlMinutes } = getEmailVerificationConfig();
 
   const html = `<!DOCTYPE html>
@@ -22,8 +22,25 @@ export const buildVerificationEmailContent = (verifyUrl: string) => {
       <td align="center">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
           <tr>
-            <td style="padding:32px 32px 16px;text-align:center;">
-              <img src="cid:app-icon" alt="Notofy" width="64" height="64" style="display:block;margin:0 auto 16px;" />
+            <td align="center" style="padding:32px 32px 12px;text-align:center;">
+              <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 auto;">
+                <tr>
+                  <td align="center" style="background-color:#fff7ed;border:1px solid #fdba74;border-radius:20px;padding:18px;line-height:0;">
+                    <img
+                      src="${iconSrc}"
+                      alt="Notofy"
+                      width="96"
+                      height="96"
+                      style="display:block;width:96px;height:96px;max-width:96px;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;"
+                    />
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:14px 0 0;font-size:18px;font-weight:700;color:#ea580c;letter-spacing:0.03em;">Notofy</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 32px 16px;text-align:center;">
               <h1 style="margin:0 0 8px;font-size:24px;line-height:1.3;color:#18181b;">Verify your email</h1>
               <p style="margin:0;font-size:15px;line-height:1.6;color:#52525b;">Thanks for signing up for Notofy. Click the button below to verify your email and continue registration.</p>
             </td>

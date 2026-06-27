@@ -1,53 +1,72 @@
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { Resend } from "resend";
+import axios from "axios";
 import { getEmailVerificationConfig } from "../config/emailVerification.js";
 import { buildVerificationEmailContent } from "../templates/emailVerificationTemplate.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const BREVO_SEND_EMAIL_URL = "https://api.brevo.com/v3/smtp/email";
+const EXTERNAL_REQUEST_TIMEOUT_MS = 30_000;
+const EMAIL_ICON_FILENAME = "app-icon-email.svg";
 
-let resendClient: Resend | null = null;
+const getEmailIconPath = (): string => join(__dirname, "../assets", EMAIL_ICON_FILENAME);
 
-const getResendClient = (): Resend => {
-  if (!resendClient) {
-    const { resendApiKey } = getEmailVerificationConfig();
-    if (!resendApiKey) {
-      throw new Error("RESEND_API_KEY is not configured");
-    }
-    resendClient = new Resend(resendApiKey);
-  }
-  return resendClient;
+const getAppIconDataUri = (): string => {
+  const content = readFileSync(getEmailIconPath(), "utf8").trim();
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(content)}`;
 };
 
-const getAppIconAttachment = () => {
-  const iconPath = join(__dirname, "../assets/app-icon.svg");
-  return {
-    filename: "app-icon.svg",
-    content: readFileSync(iconPath),
-    contentId: "app-icon",
-  };
+const resolveAppIconSrc = (): string => {
+  const { apiPublicUrl } = getEmailVerificationConfig();
+  if (apiPublicUrl.includes("localhost")) {
+    return getAppIconDataUri();
+  }
+  return `${apiPublicUrl}/api/public/${EMAIL_ICON_FILENAME}`;
 };
 
 export const sendVerificationEmail = async (to: string, verifyUrl: string): Promise<void> => {
-  const { resendFromEmail } = getEmailVerificationConfig();
-  if (!resendFromEmail) {
-    throw new Error("RESEND_FROM_EMAIL is not configured");
+  const { brevoApiKey, brevoFromEmail, brevoFromName } = getEmailVerificationConfig();
+
+  if (!brevoApiKey) {
+    throw new Error("BREVO_API_KEY is not configured");
   }
 
-  const { html, text } = buildVerificationEmailContent(verifyUrl);
-  const resend = getResendClient();
+  if (!brevoFromEmail) {
+    throw new Error("BREVO_FROM_EMAIL is not configured");
+  }
 
-  const { error } = await resend.emails.send({
-    from: resendFromEmail,
-    to,
-    subject: "Verify your email for Notofy",
-    html,
-    text,
-    attachments: [getAppIconAttachment()],
-  });
+  const iconSrc = resolveAppIconSrc();
+  const { html, text } = buildVerificationEmailContent(verifyUrl, iconSrc);
 
-  if (error) {
-    throw new Error(error.message || "Failed to send verification email");
+  try {
+    await axios.post(
+      BREVO_SEND_EMAIL_URL,
+      {
+        sender: { name: brevoFromName, email: brevoFromEmail },
+        to: [{ email: to }],
+        subject: "Verify your email for Notofy",
+        htmlContent: html,
+        textContent: text,
+      },
+      {
+        timeout: EXTERNAL_REQUEST_TIMEOUT_MS,
+        headers: {
+          "api-key": brevoApiKey,
+          "Content-Type": "application/json",
+          accept: "application/json",
+        },
+      }
+    );
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const message =
+        (error.response?.data as { message?: string } | undefined)?.message ||
+        error.message ||
+        "Failed to send verification email";
+      throw new Error(message);
+    }
+
+    throw error;
   }
 };

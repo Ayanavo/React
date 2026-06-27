@@ -116,23 +116,6 @@ export const getCurrentUserAPI = async () => {
   return response.data;
 };
 
-export type SocialLoginResponse = {
-  token: string;
-  message: string;
-  expiresIn: number;
-  isNewUser?: boolean;
-};
-
-export const socialLoginAPI = async (idToken: string) => {
-  const response = await axiosInstance.post<SocialLoginResponse>(apiUrl + "auth/social-login", { idToken });
-  if (response.data.token) {
-    setAuthToken(response.data.token);
-  }
-  return response.data;
-};
-
-export const verifyAuthAPI = socialLoginAPI;
-
 export const saveSettingsAPI = async (payload: SaveSettingsPayload) => {
   const response = await axiosInstance.post(apiUrl + "auth/saveSettings", payload);
   return response.data;

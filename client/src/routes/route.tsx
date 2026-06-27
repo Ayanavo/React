@@ -5,6 +5,7 @@ import { isAuthenticated } from "@/shared/utils/auth-token";
 import { ParticleLoader } from "@/components/particle-loader/ParticleLoader";
 import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-password";
 import LoginComponent from "@/pages/auth/login/login";
+import OAuthCallbackComponent from "@/pages/auth/oauth-callback/oauth-callback";
 import RegistrationComponent from "@/pages/auth/registration/registration";
 import TermsAndConditionsComponent from "@/pages/layout/terms/terms";
 import CVAccessGrid from "@/pages/cv-builder/cv-access-grid";
@@ -80,6 +81,11 @@ const STATIC_ROUTES: RouteConfig[] = [
         <ForgotPasswordComponent />
       </GuestOnly>
     ),
+  },
+
+  {
+    path: "/auth/callback",
+    element: <OAuthCallbackComponent />,
   },
 
 ];

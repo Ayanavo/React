@@ -14,7 +14,7 @@ import { LoaderCircleIcon } from "lucide-react";
 import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
-import { useSocialAuth } from "@/pages/auth/use-social-auth";
+import { startOAuthLogin } from "@/pages/auth/use-oauth-login";
 import InfinityBackground from "./infinity-background";
 import "./login.scss";
 
@@ -38,7 +38,6 @@ const formSchemaObj = [
 function login() {
   const navigate = useNavigate();
   const [loader, setLoader] = useState(false);
-  const { signInWithProvider, isSocialLoading, loadingProvider } = useSocialAuth();
   const form = generateControl(formSchemaObj);
 
   function renderField(field: {
@@ -138,24 +137,12 @@ function login() {
                     </div>
 
                     <div className="grid w-full grid-cols-2 gap-3">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={isSocialLoading || loader}
-                        onClick={() => signInWithProvider("google")}>
-                        {loadingProvider === "google" ?
-                          <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
-                        : <GoogleIcon />}
+                      <Button type="button" variant="outline" disabled={loader} onClick={() => startOAuthLogin("google")}>
+                        <GoogleIcon />
                         Google
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={isSocialLoading || loader}
-                        onClick={() => signInWithProvider("github")}>
-                        {loadingProvider === "github" ?
-                          <LoaderCircleIcon className="animate-spin" size={16} aria-hidden="true" />
-                        : <GitHubLogoIcon />}
+                      <Button type="button" variant="outline" disabled={loader} onClick={() => startOAuthLogin("github")}>
+                        <GitHubLogoIcon />
                         Github
                       </Button>
                     </div>

@@ -9,6 +9,7 @@ import dotenv from "dotenv";
 import activityRoutes from "./routes/activityRoutes.js";
 import settingRoutes from "./routes/settingRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import publicRoutes from "./routes/publicRoutes.js";
 import connectDB from "./utils/db.js";
 import i18n from "./utils/i18n.js";
 import aiRoutes from "./routes/aitRoutes.js";
@@ -96,6 +97,7 @@ app.get("/", (_req, res) => {
 });
 
 /** --- Routes --- */
+app.use("/api/public", publicRoutes);
 app.use("/api/activities", activityRoutes);
 app.use("/api/auth", userRoutes);
 app.use("/api/cv-builder", cvBuilderRoutes);
