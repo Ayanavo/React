@@ -1,14 +1,7 @@
-import { Button } from "@/components/ui/button";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { EllipsisVerticalIcon, InfoIcon } from "lucide-react";
 import React from "react";
 import { useLocation } from "react-router-dom";
+import packageJson from "../../../../package.json";
 import GlobalSearch from "./global-search";
 
 type NavItem = { label: string; icon: string; route: string };
@@ -31,6 +24,10 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
           <div className="col-start-2 flex shrink-0 items-center justify-end gap-1 sm:gap-2 md:col-start-3 md:row-start-1">
             <GlobalSearch.IconButton className="md:hidden" />
 
+            <span className="shrink-0 text-xs text-muted-foreground">
+              v{packageJson.version}
+            </span>
+{/* 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" aria-label="More options">
@@ -42,8 +39,11 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
                   <InfoIcon className="mr-2 h-4 w-4" />
                   <span>Help</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+                  Version {packageJson.version}
+                </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </div>
         </div>
       </header>

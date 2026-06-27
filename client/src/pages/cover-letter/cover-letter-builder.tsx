@@ -1,12 +1,12 @@
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,29 +14,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import showToast from "@/hooks/toast";
 import { CVElement, CVProvider, useCV } from "@/lib/useCV";
+import { getCurrentUserAPI } from "@/shared/services/auth";
 import {
-  fetchCoverLetterById,
-  generateCoverLetterDraft,
-  submitCoverLetter,
-  updateCoverLetter,
-  type CoverLetterSubmitPayload,
+    fetchCoverLetterById,
+    generateCoverLetterDraft,
+    submitCoverLetter,
+    updateCoverLetter,
+    type CoverLetterSubmitPayload,
 } from "@/shared/services/cover-letter";
 import type { GeminiModelId } from "@/shared/services/summarize";
 import { getTags, type TagRecord } from "@/shared/services/tag";
 import { ApiMessageResponse } from "@/shared/types/api";
 import { consumeJobSummaryContext } from "@/shared/utils/job-summary-context";
 import {
-  mapProfileUserToContactInfo,
-  type UserContactInfo,
+    mapProfileUserToContactInfo,
+    type UserContactInfo,
 } from "@/shared/utils/profile-contact";
-import { getCurrentUserAPI } from "@/shared/services/auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FilePlus, Loader2, Save } from "lucide-react";
 import React, { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import Canvas from "../cv-builder/canvas";
-import { CvCanvasOverlayProvider } from "../cv-builder/cv-canvas-overlay";
 import BuilderWorkspace from "../cv-builder/builder-workspace";
+import { CvCanvasOverlayProvider } from "../cv-builder/cv-canvas-overlay";
 import CoverLetterPallet from "./cover-letter-pallet";
 import { applyDraftToTemplate, createCoverLetterTemplate } from "./cover-letter-template";
 import "./cover-letter.scss";

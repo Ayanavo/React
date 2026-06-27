@@ -31,7 +31,7 @@ export type RouteConfig = {
   index?: boolean;
 };
 
-const AppLoader = () => <ParticleLoader statusText="Loading assets..." />;
+const AppLoader = () => <ParticleLoader statusText="Loading application..." />;
 
 const GuestOnly = ({ children }: { children: React.ReactNode }) => {
   const hasToken = useHasAuthToken();
