@@ -88,6 +88,15 @@ const STATIC_ROUTES: RouteConfig[] = [
     element: <OAuthCallbackComponent />,
   },
 
+  {
+    path: "/terms",
+    element: (
+      <div className="min-h-screen overflow-y-auto bg-muted/60">
+        <TermsAndConditionsComponent />
+      </div>
+    ),
+  },
+
 ];
 
 /** Protected layout routes */
@@ -97,7 +106,6 @@ const PROTECTED_LAYOUT_ROUTES: RouteConfig[] = [
   { path: "dashboard", element: <DashboardComponent /> },
   { path: "profile", element: <ProfileComponent /> },
   { path: "settings", element: <SettingsComponent /> },
-  { path: "terms", element: <TermsAndConditionsComponent /> },
 ];
 
 /** Dynamic routes - permission based */

@@ -15,6 +15,7 @@ import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { startOAuthLogin } from "@/pages/auth/use-oauth-login";
+import { TERMS_PATH } from "@/shared/utils/cache-warning";
 import InfinityBackground from "./infinity-background";
 import "./login.scss";
 
@@ -152,6 +153,14 @@ function login() {
                       <Link to="/register" className="font-medium underline underline-offset-4 hover:text-primary">
                         Create one
                       </Link>
+                    </p>
+
+                    <p className="text-center text-xs text-muted-foreground">
+                      By signing in, you agree to our{" "}
+                      <Link to={TERMS_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+                        Terms & Conditions
+                      </Link>
+                      .
                     </p>
                   </CardFooter>
                 </form>

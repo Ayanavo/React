@@ -17,6 +17,7 @@ import {
   sendVerificationEmailAPI,
 } from "@/shared/services/auth.ts";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from "@/shared/utils/password-strength";
+import { TERMS_PATH } from "@/shared/utils/cache-warning";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { BadgeAlert, LoaderCircleIcon, MailIcon, ShieldCheckIcon, UserPlusIcon } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -373,6 +374,13 @@ function registration() {
         <Link to="/login" className="underline underline-offset-4 hover:text-primary" preventScrollReset={true}>
           Log in
         </Link>
+      </p>
+      <p className="text-center text-xs text-muted-foreground">
+        By registering, you agree to our{" "}
+        <Link to={TERMS_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+          Terms & Conditions
+        </Link>
+        .
       </p>
     </>
   );
