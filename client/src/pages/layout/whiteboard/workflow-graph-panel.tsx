@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { ActivityPriority } from "@/pages/layout/activity/activity.types";
+import DateTimePicker from "@/pages/layout/activity/datepicker";
 import { cn } from "@/lib/utils";
 import { fetchCVTemplates, type CVTemplateRecord } from "@/shared/services/cvbuilder";
 import { getTags } from "@/shared/services/tag";
@@ -93,11 +94,15 @@ function WorkflowNodeFields({
       return (
         <>
           <Label className="workflow-graph-panel__label">Date & time</Label>
-          <Input
-            type="datetime-local"
-            value={String(data.value ?? "").slice(0, 16)}
-            onChange={(event) => onPatch({ value: moment(event.target.value).toISOString() })}
-            className="h-8"
+          <DateTimePicker
+            mode="form"
+            type="datetime"
+            date={
+              data.value && moment(String(data.value)).isValid() ?
+                moment(String(data.value)).toDate()
+              : moment().toDate()
+            }
+            onSendData={(nextDate) => onPatch({ value: moment(nextDate).toISOString() })}
           />
         </>
       );
