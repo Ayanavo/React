@@ -1,3 +1,4 @@
+import moment from "moment";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,7 +38,7 @@ type MasterAccessUser = {
 function getEffectiveTotalTimeSpentMs(user: MasterAccessUser): number {
   let ms = user.totalTimeSpentMs ?? 0;
   if (user.isLoggedIn && user.currentSessionStartedAt) {
-    ms += Date.now() - new Date(user.currentSessionStartedAt).getTime();
+    ms += moment().valueOf() - moment(user.currentSessionStartedAt).valueOf();
   }
   return ms;
 }

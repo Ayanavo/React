@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useCV } from "@/lib/useCV";
+import moment from "moment";
 import * as Iconlist from "lucide-react";
 import {
   Columns2,
@@ -519,10 +520,10 @@ const ElementOptions = () => {
           <Label className="text-xs font-medium text-muted-foreground">Pick date</Label>
           <DatePickerComponent
             type="date"
-            date={selectedElement.content ? new Date(String(selectedElement.content)) : new Date()}
+            date={selectedElement.content ? moment(String(selectedElement.content)).toDate() : moment().toDate()}
             onSendData={(d: Date) => {
               updateElement(selectedElement.id, {
-                content: d.toISOString(),
+                content: moment(d).toISOString(),
               });
             }}
           />

@@ -1,3 +1,4 @@
+import moment from "moment";
 import { connectSocket, USER_LOGIN_STATUS_EVENT, type UserLoginStatusPayload } from "@/shared/services/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -36,7 +37,7 @@ export const useUserLoginStatusSocket = <T extends UserLoginTrackable>({
             ? {
                 ...user,
                 isLoggedIn,
-                ...(lastLoginAt !== undefined ? { lastLoginAt } : isLoggedIn ? { lastLoginAt: new Date().toISOString() } : {}),
+                ...(lastLoginAt !== undefined ? { lastLoginAt } : isLoggedIn ? { lastLoginAt: moment().toISOString() } : {}),
                 ...(lastLogoutAt !== undefined ? { lastLogoutAt } : {}),
                 ...(totalTimeSpentMs !== undefined ? { totalTimeSpentMs } : {}),
                 ...(currentSessionStartedAt !== undefined ? { currentSessionStartedAt } : {}),

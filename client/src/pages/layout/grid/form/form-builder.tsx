@@ -7,6 +7,7 @@ import showToast from "@/hooks/toast";
 import { ActivityPayload, createActivity, fetchActivityDetail, updateActivity } from "@/shared/services/activity";
 import { ApiMessageResponse } from "@/shared/types/api";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import moment from "moment";
 import React, { useEffect, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { useNavigate, useParams } from "react-router-dom";
@@ -53,7 +54,7 @@ function FormBuilder() {
       const payload = {
         title: (formValues.title ?? "").trim(),
         description: formValues.description?.trim() || undefined,
-        start: formValues.start ?? new Date().toISOString(),
+        start: formValues.start ?? moment().toISOString(),
         end: formValues.end,
         allDay: formValues.allDay,
         color: formValues.color,

@@ -319,7 +319,7 @@ function DateTimePicker({
   onContinue,
 }: DatePickerProps) {
   const resolvedType = type ?? getDefaultType(mode);
-  const selectedDate = date ?? new Date();
+  const selectedDate = date ?? moment().toDate();
   const [open, setOpen] = useState(false);
 
   const resolvedShowFooter = showFooter ?? false;

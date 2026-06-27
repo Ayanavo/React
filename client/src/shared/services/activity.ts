@@ -182,5 +182,5 @@ export const deleteActivity = async (activityId: string) => {
 
 /** @deprecated Use useHolidayEvents instead */
 export function HolidayEvent() {
-  return useHolidayEvents(new Date(), "dayGridMonth");
+  return useHolidayEvents(moment().toDate(), "dayGridMonth");
 }

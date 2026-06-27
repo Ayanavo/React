@@ -1,3 +1,4 @@
+import moment from "moment";
 import type { CVElement } from "@/lib/useCV";
 import type { UserContactInfo } from "@/shared/utils/profile-contact";
 import {
@@ -49,7 +50,7 @@ export function createCoverLetterTemplate(profile?: UserContactInfo | null): {
                 {
                   id: crypto.randomUUID(),
                   type: "date",
-                  content: new Date().toISOString(),
+                  content: moment().toISOString(),
                   properties: {
                     fontSize: 12,
                     fontWeight: "normal",

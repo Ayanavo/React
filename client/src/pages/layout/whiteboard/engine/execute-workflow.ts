@@ -5,6 +5,7 @@ import type { CVSubmitPayload, CVTemplateRecord } from "@/shared/services/cvbuil
 import { fetchCVTemplates, submitCV } from "@/shared/services/cvbuilder";
 import type { NotePayload } from "@/shared/services/note";
 import { createNote } from "@/shared/services/note";
+import moment from "moment";
 import type { Edge, Node } from "@xyflow/react";
 import type { WorkflowNodeType, WorkflowNodeOutputs } from "./node-registry";
 import { getNodeDefinition } from "./node-registry";
@@ -139,7 +140,7 @@ async function executeNode(
       return { string: String(data.value ?? "") };
 
     case "dateTimeInput":
-      return { date: String(data.value ?? new Date().toISOString()) };
+      return { date: String(data.value ?? moment().toISOString()) };
 
     case "tagInput":
       return { tag: data.tagId ? String(data.tagId) : undefined };
@@ -168,7 +169,7 @@ async function executeNode(
 
     case "activityBuilder": {
       const title = String(resolved["in-title"] ?? data.title ?? "Untitled activity");
-      const start = String(resolved["in-start"] ?? data.start ?? new Date().toISOString());
+      const start = String(resolved["in-start"] ?? data.start ?? moment().toISOString());
       const end = resolved["in-end"] ? String(resolved["in-end"]) : data.end ? String(data.end) : undefined;
       const tag = resolved["in-tag"] ? String(resolved["in-tag"]) : undefined;
       const payload = buildActivityPayload({

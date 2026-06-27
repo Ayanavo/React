@@ -1,3 +1,4 @@
+import { formatAppDateTime } from "@/lib/date-format";
 import IconsComponent from "@/common/icons";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -276,7 +277,7 @@ const PermissionsDialog = ({ userId, onClose, onSave }: Props) => {
                   <> · {isLoggedIn ? "Currently logged in" : "Not logged in"}</>
                 : null}
                 {lastLoginAt ?
-                  <> · Last login {new Date(lastLoginAt).toLocaleString()}</>
+                  <> · Last login {formatAppDateTime(lastLoginAt)}</>
                 : null}
               </p>
             </div>

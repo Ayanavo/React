@@ -1,3 +1,4 @@
+import moment from "moment";
 import { getEmailVerificationConfig } from "../config/emailVerification.js";
 
 type VerificationEmailParams = {
@@ -40,7 +41,7 @@ export const buildVerificationEmailContent = (verifyUrl: string) => {
           </tr>
           <tr>
             <td style="padding:16px 32px 32px;border-top:1px solid #e4e4e7;text-align:center;">
-              <p style="margin:0;font-size:12px;color:#a1a1aa;">&copy; ${new Date().getFullYear()} Notofy. All rights reserved.</p>
+              <p style="margin:0;font-size:12px;color:#a1a1aa;">&copy; ${moment().year()} Notofy. All rights reserved.</p>
             </td>
           </tr>
         </table>

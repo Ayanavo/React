@@ -1,3 +1,4 @@
+import { formatAppDate } from "@/lib/date-format";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -60,7 +61,7 @@ function WorkflowSidebar({
               <button type="button" className="workflow-page__sidebar-item-main" onClick={() => onSelect(workflow._id)}>
                 <span className="workflow-page__sidebar-item-title">{workflow.name}</span>
                 <span className="workflow-page__sidebar-item-meta">
-                  Updated {new Date(workflow.updatedAt).toLocaleDateString()}
+                  Updated {formatAppDate(workflow.updatedAt)}
                 </span>
               </button>
               <Tooltip>

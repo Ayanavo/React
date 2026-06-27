@@ -63,8 +63,8 @@ function buildDefaultValues(activity: ActivityItem | null, defaultDate: Date): A
   return {
     title: activity.title,
     description: activity.description ?? "",
-    date: new Date(activity.start),
-    endDate: activity.end ? new Date(activity.end) : undefined,
+    date: moment(activity.start).toDate(),
+    endDate: activity.end ? moment(activity.end).toDate() : undefined,
     allDay: activity.allDay ?? false,
     color: activity.color ?? "#6366f1",
     priority: activity.priority,

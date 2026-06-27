@@ -1,3 +1,4 @@
+import moment from "moment";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -44,8 +45,8 @@ export async function buildValidationSchema(formSchema: Array<FormGeneral>) {
       case "date":
         schema = z
           .string()
-          .refine((val) => !isNaN(Date.parse(val)), `${label} must be a valid date`)
-          .transform((val) => new Date(val));
+          .refine((val) => moment(val).isValid(), `${label} must be a valid date`)
+          .transform((val) => moment(val).toDate());
         break;
 
       case "image":

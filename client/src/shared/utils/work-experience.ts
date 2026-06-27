@@ -1,3 +1,5 @@
+import moment from "moment";
+
 export type CompanyEntry = {
   companyName?: string;
   designation?: string;
@@ -56,7 +58,7 @@ export const MONTH_OPTIONS = [
 ];
 
 export const getYearOptions = (startYear = 1970) => {
-  const currentYear = new Date().getFullYear();
+  const currentYear = moment().year();
   const years: Array<{ label: string; value: string }> = [];
 
   for (let year = currentYear; year >= startYear; year--) {
@@ -76,9 +78,9 @@ export const getCompanyTenureMonths = (company: CompanyEntry): number => {
   const fromYearNum = parseInt(fromYear, 10);
 
   if (company.isPresent) {
-    const now = new Date();
-    const toMonth = now.getMonth() + 1;
-    const toYear = now.getFullYear();
+    const now = moment();
+    const toMonth = now.month() + 1;
+    const toYear = now.year();
     return Math.max(0, (toYear - fromYearNum) * 12 + (toMonth - fromMonthNum) + 1);
   }
 
@@ -119,10 +121,10 @@ export const monthYearToDate = (month?: string | number, year?: string | number)
 
   if (!normalizedMonth || !normalizedYear) return null;
 
-  return new Date(parseInt(normalizedYear, 10), parseInt(normalizedMonth, 10) - 1, 1);
+  return moment({ year: parseInt(normalizedYear, 10), month: parseInt(normalizedMonth, 10) - 1, day: 1 }).toDate();
 };
 
 export const dateToMonthYear = (date: Date) => ({
-  month: String(date.getMonth() + 1).padStart(2, "0"),
-  year: String(date.getFullYear()),
+  month: String(moment(date).month() + 1).padStart(2, "0"),
+  year: String(moment(date).year()),
 });

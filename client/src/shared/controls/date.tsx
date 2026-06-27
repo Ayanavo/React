@@ -5,6 +5,7 @@ import { formatAppDate, formatAppMonthYear } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { CalendarIcon } from "lucide-react";
+import moment from "moment";
 import React from "react";
 import DatePicker from "react-datepicker";
 
@@ -26,7 +27,7 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
   };
 
   const handleTodayClick = () => {
-    const today = new Date();
+    const today = moment().toDate();
     form.setValue(schema.name, today);
   };
 
@@ -91,7 +92,7 @@ function date({ form, schema }: { form: FieldValue<any>; schema: DateSchema }) {
                 onChange={handleDateChange}
                 calendarClassName="bg-white font-sans"
                 timeClassName={(time) =>
-                  time.getTime() === field.value.getTime() ?
+                  moment(time).valueOf() === moment(field.value).valueOf() ?
                     "bg-black text-white hover:!bg-black"
                   : "text-black hover:bg-gray-200 active:bg-gray-200"
                 }

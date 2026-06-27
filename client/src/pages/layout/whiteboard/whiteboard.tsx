@@ -7,6 +7,7 @@ import showToast from "@/hooks/toast";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { useQueryClient } from "@tanstack/react-query";
+import moment from "moment";
 import type { Edge, Node } from "@xyflow/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { executeWorkflow } from "./engine/execute-workflow";
@@ -136,7 +137,7 @@ function WhiteboardComponent() {
         id: workflowId,
         payload: {
           name: workflowName.trim() || "Untitled workflow",
-          lastRunAt: new Date().toISOString(),
+          lastRunAt: moment().toISOString(),
         },
       });
 

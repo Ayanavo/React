@@ -90,8 +90,8 @@ function activityToFormValues(activity: ActivityItem | null, fallbackDate: Date)
   return {
     title: activity.title,
     description: activity.description ?? "",
-    date: new Date(activity.start),
-    endDate: activity.end ? new Date(activity.end) : undefined,
+    date: moment(activity.start).toDate(),
+    endDate: activity.end ? moment(activity.end).toDate() : undefined,
     allDay: activity.allDay ?? false,
     color: activity.color ?? DEFAULT_ACTIVITY_COLOR,
     priority: activity.priority,

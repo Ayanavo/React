@@ -9,6 +9,7 @@ import {
   monthYearToDate,
   type CompanyEntry,
 } from "@/shared/utils/work-experience";
+import moment from "moment";
 import { SquarePlusIcon, TrashIcon } from "lucide-react";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { FieldValue, useFieldArray } from "react-hook-form";
@@ -103,7 +104,7 @@ function corporate({ form, schema }: { form: FieldValue<any>; schema: CorporateS
             {fields.map((field, index) => {
               const isPresent = !!companies[index]?.isPresent;
               const fromDate = monthYearToDate(companies[index]?.fromMonth, companies[index]?.fromYear);
-              const maxToDate = new Date();
+              const maxToDate = moment().toDate();
 
               return (
                 <div

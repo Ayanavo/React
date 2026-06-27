@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { fetchCVTemplates, type CVTemplateRecord } from "@/shared/services/cvbuilder";
 import { getTags } from "@/shared/services/tag";
 import type { Edge, Node } from "@xyflow/react";
+import moment from "moment";
 import { ArrowRight, Plus, Trash2 } from "lucide-react";
 import React, { useEffect, useMemo, useState } from "react";
 import { getNodeDefinition, NODE_DEFINITIONS, type WorkflowNodeType } from "./engine/node-registry";
@@ -95,7 +96,7 @@ function WorkflowNodeFields({
           <Input
             type="datetime-local"
             value={String(data.value ?? "").slice(0, 16)}
-            onChange={(event) => onPatch({ value: new Date(event.target.value).toISOString() })}
+            onChange={(event) => onPatch({ value: moment(event.target.value).toISOString() })}
             className="h-8"
           />
         </>

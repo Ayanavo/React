@@ -4,6 +4,7 @@ import { useCV } from "@/lib/useCV";
 import { prepareHtml2CanvasClone } from "@/shared/utils/html2canvas-capture";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
+import moment from "moment";
 import { Download, Eye, GripHorizontal, GripVertical, Hand, Minus, Plus, Maximize2, Trash, X } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import CVElementRenderer from "./cv-element-renderer";
@@ -321,7 +322,7 @@ const Canvas = () => {
     if (!id) {
       if (onRequestSave) {
         onRequestSave((savedName) => {
-          const fileName = savedName || `CV_${new Date().toISOString().slice(0, 10)}`;
+          const fileName = savedName || `CV_${moment().format("YYYY-MM-DD")}`;
           void generatePDF(fileName);
         });
       } else {
@@ -334,7 +335,7 @@ const Canvas = () => {
       return;
     }
 
-    const fileName = cvName || `CV_${new Date().toISOString().slice(0, 10)}`;
+    const fileName = cvName || `CV_${moment().format("YYYY-MM-DD")}`;
     await generatePDF(fileName);
   }, [id, cvName, onRequestSave, generatePDF]);
 

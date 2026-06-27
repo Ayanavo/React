@@ -1,3 +1,4 @@
+import moment from "moment";
 import { NoteRecord } from "@/shared/services/note";
 import { TagRecord } from "@/shared/services/tag";
 import { NoteSortOption, State } from "./state";
@@ -51,7 +52,7 @@ export function sortNotes(notes: NonNullable<State>[], sortBy: NoteSortOption) {
   sorted.sort((a, b) => {
     switch (sortBy) {
       case "updated-asc":
-        return new Date(a.updatedAt ?? 0).getTime() - new Date(b.updatedAt ?? 0).getTime();
+        return moment(a.updatedAt ?? 0).valueOf() - moment(b.updatedAt ?? 0).valueOf();
       case "title-asc":
         return a.title.localeCompare(b.title, undefined, { sensitivity: "base" });
       case "title-desc":
@@ -72,7 +73,7 @@ export function sortNotes(notes: NonNullable<State>[], sortBy: NoteSortOption) {
       }
       case "updated-desc":
       default:
-        return new Date(b.updatedAt ?? 0).getTime() - new Date(a.updatedAt ?? 0).getTime();
+        return moment(b.updatedAt ?? 0).valueOf() - moment(a.updatedAt ?? 0).valueOf();
     }
   });
 

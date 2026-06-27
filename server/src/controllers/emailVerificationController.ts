@@ -1,3 +1,4 @@
+import moment from "moment";
 import { hash, compare } from "bcrypt";
 import { randomBytes } from "crypto";
 import { Request, Response } from "express";
@@ -19,13 +20,13 @@ const buildVerifyUrl = (email: string, rawToken: string): string => {
 
 const getResendAvailableIn = (lastSentAt: Date): number => {
   const { resendCooldownSeconds } = getEmailVerificationConfig();
-  const elapsedSeconds = Math.floor((Date.now() - lastSentAt.getTime()) / 1000);
+  const elapsedSeconds = moment().diff(moment(lastSentAt), "seconds");
   return Math.max(0, resendCooldownSeconds - elapsedSeconds);
 };
 
 const issueVerificationEmail = async (email: string, forceResend = false) => {
   const config = getEmailVerificationConfig();
-  const now = new Date();
+  const now = moment().toDate();
 
   const existingUser = await User.findOne({ email });
   if (existingUser) {
@@ -60,7 +61,7 @@ const issueVerificationEmail = async (email: string, forceResend = false) => {
 
   const rawToken = generateVerificationToken();
   const tokenHash = await hash(rawToken, 10);
-  const tokenExpiresAt = new Date(now.getTime() + config.tokenTtlMinutes * 60 * 1000);
+  const tokenExpiresAt = moment(now).add(config.tokenTtlMinutes, "minutes").toDate();
 
   if (record) {
     record.tokenHash = tokenHash;
@@ -158,7 +159,7 @@ export const verifyEmailLinkHandler = async (req: Request, res: Response) => {
       return res.redirect(buildRegistrationRedirectUrl({ error: "invalid-link" }));
     }
 
-    if (record.tokenExpiresAt < new Date()) {
+    if (moment(record.tokenExpiresAt).isBefore(moment())) {
       return res.redirect(
         buildRegistrationRedirectUrl({ error: "expired-link", email })
       );
@@ -169,8 +170,8 @@ export const verifyEmailLinkHandler = async (req: Request, res: Response) => {
       return res.redirect(buildRegistrationRedirectUrl({ error: "invalid-link" }));
     }
 
-    const now = new Date();
-    const registrationExpiresAt = new Date(now.getTime() + registrationWindowMinutes * 60 * 1000);
+    const now = moment().toDate();
+    const registrationExpiresAt = moment(now).add(registrationWindowMinutes, "minutes").toDate();
     record.isVerified = true;
     record.verifiedAt = now;
     record.registrationExpiresAt = registrationExpiresAt;
@@ -193,7 +194,7 @@ export const getVerificationStatusHandler = async (req: Request, res: Response) 
 
   try {
     const email = normalizeEmail(String(req.query.email));
-    const now = new Date();
+    const now = moment().toDate();
     const record = await RegistrationVerification.findOne({ email });
 
     if (!record) {
@@ -225,7 +226,7 @@ export const assertEmailVerifiedForRegistration = async (email: string) => {
     return { ok: false as const, message: "Email is not verified" };
   }
 
-  if (record.registrationExpiresAt < new Date()) {
+  if (moment(record.registrationExpiresAt).isBefore(moment())) {
     return { ok: false as const, message: "Registration window has expired. Please verify your email again." };
   }
 

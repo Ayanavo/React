@@ -1,3 +1,4 @@
+import moment from "moment";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { Button } from "@/components/ui/button";
 import {
@@ -132,11 +133,7 @@ function TermsSection({
 function TermsAndConditions() {
   const lastUpdated = useMemo(
     () =>
-      new Date().toLocaleDateString(undefined, {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }),
+      moment().format("MMMM D, YYYY"),
     []
   );
 

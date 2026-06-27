@@ -1,3 +1,4 @@
+import moment from "moment";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import SummaryContent from "@/components/summary/summary-content";
 import { Button } from "@/components/ui/button";
@@ -192,7 +193,7 @@ function SummarizeComponent() {
       sourceText: firstUserMessage?.content,
       fileName: firstUserMessage?.meta,
       model: selectedModel,
-      createdAt: new Date().toISOString(),
+      createdAt: moment().toISOString(),
     });
 
     if (target === "cv") {

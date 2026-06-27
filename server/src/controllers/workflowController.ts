@@ -1,3 +1,4 @@
+import moment from "moment";
 import { Request, Response } from "express";
 import Workflow, { IWorkflow } from "../models/workflowModel.js";
 
@@ -105,7 +106,7 @@ export const updateWorkflow = async (req: Request, res: Response) => {
         ...(description !== undefined && { description: description?.trim() ?? "" }),
         ...(nodes !== undefined && { nodes }),
         ...(edges !== undefined && { edges }),
-        ...(lastRunAt !== undefined && { lastRunAt: lastRunAt ? new Date(lastRunAt) : null }),
+        ...(lastRunAt !== undefined && { lastRunAt: lastRunAt ? moment(lastRunAt).toDate() : null }),
       },
       { new: true }
     );

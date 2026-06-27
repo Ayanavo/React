@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import moment from "moment";
 import Activity from "../models/activityModel.js";
 import Tag from "../models/tagModel.js";
 
@@ -31,8 +32,8 @@ function parseActivityInput(body: ActivityBody) {
   return {
     title,
     description: body.description?.trim() ?? "",
-    start: body.start ? new Date(body.start) : undefined,
-    end: body.end ? new Date(body.end) : undefined,
+    start: body.start ? moment(body.start).toDate() : undefined,
+    end: body.end ? moment(body.end).toDate() : undefined,
     allDay: Boolean(body.allDay),
     color: body.color ?? "#6366f1",
     priority: body.priority ?? "medium",
@@ -54,26 +55,8 @@ async function resolveTagId(tagId: string | undefined, userId?: string) {
   return tag._id;
 }
 
-function addInterval(date: Date, interval: RecurrenceInterval, count = 1) {
-  const next = new Date(date);
-
-  if (interval === "day") {
-    next.setDate(next.getDate() + count);
-    return next;
-  }
-
-  if (interval === "week") {
-    next.setDate(next.getDate() + 7 * count);
-    return next;
-  }
-
-  if (interval === "month") {
-    next.setMonth(next.getMonth() + count);
-    return next;
-  }
-
-  next.setFullYear(next.getFullYear() + count);
-  return next;
+function addInterval(date: Date, interval: RecurrenceInterval, count = 1): Date {
+  return moment(date).add(count, interval).toDate();
 }
 
 function generateRecurrenceOccurrences(
@@ -84,17 +67,18 @@ function generateRecurrenceOccurrences(
   count = 1
 ) {
   const occurrences: Array<{ start: Date; end?: Date }> = [];
-  const durationMs = end ? end.getTime() - start.getTime() : 60 * 60 * 1000;
+  const durationMs = end ? moment(end).diff(moment(start)) : 60 * 60 * 1000;
 
-  let currentStart = new Date(start);
+  let currentStart = moment(start);
+  const recurrenceEndMoment = moment(recurrenceEnd);
 
-  while (currentStart <= recurrenceEnd && occurrences.length < MAX_RECURRENCE_OCCURRENCES) {
-    const occurrenceStart = new Date(currentStart);
-    const occurrenceEnd = end ? new Date(occurrenceStart.getTime() + durationMs) : undefined;
-    occurrences.push({ start: occurrenceStart, end: occurrenceEnd });
+  while (currentStart.isSameOrBefore(recurrenceEndMoment) && occurrences.length < MAX_RECURRENCE_OCCURRENCES) {
+    const occurrenceStart = currentStart.clone();
+    const occurrenceEnd = end ? occurrenceStart.clone().add(durationMs, "milliseconds") : undefined;
+    occurrences.push({ start: occurrenceStart.toDate(), end: occurrenceEnd?.toDate() });
 
-    const nextStart = addInterval(currentStart, interval, count);
-    if (nextStart.getTime() <= currentStart.getTime()) {
+    const nextStart = moment(addInterval(currentStart.toDate(), interval, count));
+    if (nextStart.valueOf() <= currentStart.valueOf()) {
       break;
     }
 
@@ -159,7 +143,7 @@ export const createActivity = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Title is required" });
     }
 
-    if (!parsed.start || Number.isNaN(parsed.start.getTime())) {
+    if (!parsed.start || !moment(parsed.start).isValid()) {
       return res.status(400).json({ message: "A valid start date is required" });
     }
 
@@ -175,18 +159,18 @@ export const createActivity = async (req: Request, res: Response) => {
 
     if (isRecurring) {
       const interval = recurrence?.interval;
-      const recurrenceEnd = recurrence?.endDate ? new Date(recurrence.endDate) : undefined;
+      const recurrenceEnd = recurrence?.endDate ? moment(recurrence.endDate).toDate() : undefined;
       const count = Math.min(99, Math.max(1, recurrence?.count ?? 1));
 
       if (!interval || !["day", "week", "month", "year"].includes(interval)) {
         return res.status(400).json({ message: "A valid recurrence interval is required" });
       }
 
-      if (!recurrenceEnd || Number.isNaN(recurrenceEnd.getTime())) {
+      if (!recurrenceEnd || !moment(recurrenceEnd).isValid()) {
         return res.status(400).json({ message: "A valid recurrence end date is required" });
       }
 
-      if (recurrenceEnd < parsed.start) {
+      if (moment(recurrenceEnd).isBefore(parsed.start)) {
         return res.status(400).json({ message: "Recurrence end date must be after the start date" });
       }
 
@@ -225,7 +209,7 @@ export const updateActivity = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Title is required" });
     }
 
-    if (!parsed.start || Number.isNaN(parsed.start.getTime())) {
+    if (!parsed.start || !moment(parsed.start).isValid()) {
       return res.status(400).json({ message: "A valid start date is required" });
     }
 

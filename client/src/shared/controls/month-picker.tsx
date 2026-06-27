@@ -5,6 +5,7 @@ import { formatAppMonthYear } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { CalendarIcon } from "lucide-react";
+import moment from "moment";
 import React, { useMemo, useState } from "react";
 import DatePicker from "react-datepicker";
 import { FieldValue, useFormState } from "react-hook-form";
@@ -131,7 +132,7 @@ function MonthPickerField({
                         disabled={prevYearButtonDisabled}>
                         <ChevronLeftIcon className="h-4 w-4" />
                       </Button>
-                      <div className="text-sm font-semibold text-foreground">{date.getFullYear()}</div>
+                      <div className="text-sm font-semibold text-foreground">{moment(date).year()}</div>
                       <Button
                         type="button"
                         variant="ghost"

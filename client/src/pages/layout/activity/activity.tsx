@@ -19,12 +19,12 @@ import { useActivityManager } from "./use-activity-manager";
 
 function ActivityPage() {
   const { confirm } = useConfirmDialog();
-  const [focusDate, setFocusDate] = useState<Date>(new Date());
-  const [sidebarDate, setSidebarDate] = useState<Date>(new Date());
+  const [focusDate, setFocusDate] = useState<Date>(moment().toDate());
+  const [sidebarDate, setSidebarDate] = useState<Date>(moment().toDate());
   const [calendarView, setCalendarView] = useState<CalendarView>("dayGridMonth");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(moment().toDate());
   const [focusedDate, setFocusedDate] = useState<Date | null>(null);
 
   const {
@@ -50,7 +50,7 @@ function ActivityPage() {
   }, [sidebarDate]);
 
   function focusCalendarOnActivity(activity: ActivityItem) {
-    const date = new Date(activity.start);
+    const date = moment(activity.start).toDate();
     setFocusDate(date);
     setSidebarDate(date);
     setFocusedDate(date);
@@ -70,7 +70,7 @@ function ActivityPage() {
 
   function openEditDialog(activity: ActivityItem) {
     setSelectedActivity(activity);
-    setSelectedDate(new Date(activity.start));
+    setSelectedDate(moment(activity.start).toDate());
     setDialogOpen(true);
   }
 

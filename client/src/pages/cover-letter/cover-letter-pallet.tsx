@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { NumericSliderField } from "@/components/ui/numeric-slider-field";
 import { CVElement, CVElementType, useCV } from "@/lib/useCV";
+import moment from "moment";
 import { AlignLeft, Calendar, ChevronDown, ChevronsDown, ChevronsUp, FileText, LayoutGrid, List, ListOrdered, Quote, Tag, Type } from "lucide-react";
 import React, { useState } from "react";
 import ElementSpacingControls from "../cv-builder/element-spacing-controls";
@@ -57,7 +58,7 @@ const CONTENT_ACCESSORIES: ContentAccessory[] = [
     id: "date",
     label: "Date",
     type: "date",
-    defaultContent: new Date().toISOString(),
+    defaultContent: moment().toISOString(),
     defaultProperties: { fontSize: 12, fontWeight: "normal", dateFormat: "DD_MMM_YYYY" },
     icon: Calendar,
   },

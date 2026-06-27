@@ -1,3 +1,4 @@
+import moment from "moment";
 import { hash } from "bcrypt";
 import crypto from "crypto";
 import { NextFunction, Request, Response } from "express";
@@ -31,11 +32,11 @@ const invalidateUserSession = async (userId: string): Promise<void> => {
   const user = await User.findById(userId);
   if (!user) return;
 
-  const now = new Date();
+  const now = moment().toDate();
   let totalTimeSpentMs = user.totalTimeSpentMs ?? 0;
 
   if (user.isLoggedIn && user.currentSessionStartedAt) {
-    totalTimeSpentMs += now.getTime() - user.currentSessionStartedAt.getTime();
+    totalTimeSpentMs += moment(now).diff(moment(user.currentSessionStartedAt));
   }
 
   user.isLoggedIn = false;
@@ -52,7 +53,7 @@ const invalidateUserSession = async (userId: string): Promise<void> => {
 };
 
 const issueAuthSession = async (user: IUser, res: Response) => {
-  const loginTime = new Date();
+  const loginTime = moment().toDate();
   user.isLoggedIn = true;
   user.lastLoginAt = loginTime;
   user.currentSessionStartedAt = loginTime;

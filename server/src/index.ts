@@ -1,4 +1,5 @@
 ﻿// src/index.ts
+import moment from "moment";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
@@ -77,7 +78,7 @@ app.use(errorLogger);
 
 /** --- Tiny request logger to confirm Origin/path in Render logs (optional) --- */
 app.use((req: Request, _res: Response, next: NextFunction) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} Origin=${req.headers.origin || "-"}`);
+  console.log(`[${moment().toISOString()}] ${req.method} ${req.originalUrl} Origin=${req.headers.origin || "-"}`);
   next();
 });
 

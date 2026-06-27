@@ -161,7 +161,7 @@ export default [
                   required: true,
                   pattern: "^(0[1-9]|1[0-2])/(?:0[1-9]|1\\d|2[0-9]|3[01])$",
                 },
-                default: new Date(moment("15.11.1999", "DD.MM.YYYY").format()),
+                default: moment("15.11.1999", "DD.MM.YYYY").toDate(),
                 placeholder: "DD.MM.YYYY",
               },
               {
