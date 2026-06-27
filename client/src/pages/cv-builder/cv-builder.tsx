@@ -37,9 +37,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FilePlus, LayoutTemplate, Loader2, Save, ScanSearch } from "lucide-react";
 import React, { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import Canvas from "../cv-builder/canvas";
+import BuilderWorkspace from "./builder-workspace";
 import { CvCanvasOverlayProvider } from "./cv-canvas-overlay";
-import Pallet from "../cv-builder/pallet";
+import Pallet from "./pallet";
 import AtsDialog from "./ats-dialog";
 import CvTemplateDialog from "./cv-template-dialog";
 import { atsBadgeClassName, atsRecordToResponse, formatAtsBadgeLabel, toAtsAnalysisRecord } from "./ats-utils";
@@ -338,58 +338,59 @@ const CVBuilderContent = () => {
   };
 
   return (
-    <div className="flex h-[90vh] flex-col overflow-hidden bg-background">
-      <div className="flex items-center justify-between px-6 py-3">
-        <BreadcrumbInbuild isEditMode={isEditMode} />
+    <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
+      <div className="flex flex-none flex-col gap-2 border-b border-border/60 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6">
+        <BreadcrumbInbuild isEditMode={isEditMode} className="w-full min-w-0" />
 
-        <div className="flex items-center gap-2">
+        <div className="ml-auto flex w-full shrink-0 items-center justify-end gap-2 overflow-x-auto md:w-auto">
           <Button
             type="button"
             variant="outline"
             onClick={() => setIsTemplateDialogOpen(true)}
             disabled={isFetching}
-            className="gap-2">
+            className="h-9 shrink-0 gap-2 px-2.5 md:px-4">
             <LayoutTemplate className="h-4 w-4" />
-            Templates
+            <span className="hidden md:inline">Templates</span>
           </Button>
           <Button
             type="button"
             variant="outline"
             onClick={() => setIsAtsDialogOpen(true)}
             disabled={isFetching || isAtsChecking}
-            className="gap-2">
+            className="h-9 shrink-0 gap-2 px-2.5 md:px-4">
             {isAtsChecking ?
               <Loader2 className="h-4 w-4 animate-spin" />
             : <ScanSearch className="h-4 w-4" />}
-            Check ATS
+            <span className="hidden md:inline">Check ATS</span>
             {atsResult && !isAtsChecking ?
               <Badge className={atsBadgeClassName(atsResult.score)}>{formatAtsBadgeLabel(atsResult.score)}</Badge>
             : null}
           </Button>
-          <Button type="button" onClick={() => openSubmitDialog()} disabled={mutation.isPending || isFetching}>
+          <Button
+            type="button"
+            onClick={() => openSubmitDialog()}
+            disabled={mutation.isPending || isFetching}
+            className="h-9 shrink-0 gap-2 px-2.5 md:px-4">
             {mutation.isPending ?
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isEditMode ? "Updating..." : "Submitting..."}
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="hidden md:inline">{isEditMode ? "Updating..." : "Submitting..."}</span>
               </>
             : isEditMode ?
               <>
-                <Save className="mr-2 h-4 w-4" />
-                Update CV
+                <Save className="h-4 w-4" />
+                <span className="hidden md:inline">Update CV</span>
               </>
             : <>
-                <FilePlus className="mr-2 h-4 w-4" />
-                Submit CV
+                <FilePlus className="h-4 w-4" />
+                <span className="hidden md:inline">Submit CV</span>
               </>
             }
           </Button>
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-        <Pallet />
-        <Canvas />
-      </div>
+      <BuilderWorkspace pallet={<Pallet />} />
 
       <CvTemplateDialog
         open={isTemplateDialogOpen}

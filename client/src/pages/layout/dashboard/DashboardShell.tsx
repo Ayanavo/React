@@ -32,12 +32,12 @@ function Panel({
   return (
     <section className={`dashboard__panel dashboard__panel--${span}`}>
       <div className="dashboard__panel-head">
-        <div className="space-y-1">
-          <h2 className="text-base font-semibold">{title}</h2>
+        <div className="min-w-0 flex-1 space-y-1">
+          <h2 className="truncate text-base font-semibold">{title}</h2>
           {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
         </div>
         {linkTo ?
-          <Link to={linkTo} className="text-xs font-medium text-primary hover:underline">
+          <Link to={linkTo} className="shrink-0 text-xs font-medium text-primary hover:underline">
             {linkLabel}
           </Link>
         : null}
@@ -109,10 +109,10 @@ const DashboardShell: React.FC = () => {
     <div className="dashboard h-full min-h-0 overflow-y-auto scrollbar-none text-foreground">
       <main className="dashboard__main">
         <header className="dashboard__header">
-          <div className="min-w-0 space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+          <div className="min-w-0 flex-1 space-y-1">
+            <h1 className="text-xl font-semibold tracking-tight text-foreground break-words md:text-3xl">
               {greetingLabel}, {userName}{" "}
-              <GreetingIcon className="inline-block h-6 w-6 align-middle text-primary md:h-7 md:w-7" />
+              <GreetingIcon className="inline-block h-5 w-5 align-middle text-primary md:h-7 md:w-7" />
             </h1>
             <p className="text-sm text-muted-foreground">Plan, capture, and review your notes from one place.</p>
             <p className="text-xs text-muted-foreground">{timeText}</p>

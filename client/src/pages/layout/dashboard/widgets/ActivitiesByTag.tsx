@@ -54,8 +54,10 @@ const ActivitiesByTag: React.FC<ActivitiesByTagProps> = ({ slices, isLoading }) 
     return <div className="dashboard__empty">No tagged activities yet.</div>;
   }
 
+  const chartHeight = Math.max(136, slices.length * 34 + 28);
+
   return (
-    <div className="dashboard__chart">
+    <div className="dashboard__chart dashboard__chart--horizontal" style={{ height: chartHeight }}>
       <BarChart data={chart.data} options={chart.options} />
     </div>
   );

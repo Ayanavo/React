@@ -137,7 +137,7 @@ function table() {
           ...sizing,
           header: column.label,
           cell: ({ row }) => (
-            <div className="flex w-full justify-center opacity-0 transition-opacity group-hover:opacity-100">
+            <div className="grid-row-actions flex w-full justify-center opacity-0 transition-opacity group-hover:opacity-100">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -319,27 +319,29 @@ function table() {
     <>
       {SidebarPanel}
       <div className="grid-layout flex h-[90vh] min-h-0 flex-col overflow-hidden">
-        <div className="flex-none p-3 flex justify-between items-center space-x-2">
-          <div className=" relative">
-            <Input
-              id={id}
-              className="pe-11"
-              placeholder="Search..."
-              type="search"
-              defaultValue={globalFilter}
-              onKeyDown={handleSearchKey}
-            />
-            <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground">
-              <kbd className="inline-flex h-5 max-h-full items-center rounded border border-border px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
-                Enter
-              </kbd>
+        <div className="grid-toolbar flex-none">
+          <div className="grid-toolbar__filters">
+            <div className="grid-toolbar__search relative min-w-0 flex-1 md:flex-none">
+              <Input
+                id={id}
+                className="pe-11"
+                placeholder="Search..."
+                type="search"
+                defaultValue={globalFilter}
+                onKeyDown={handleSearchKey}
+              />
+              <div className="pointer-events-none absolute inset-y-0 end-0 flex items-center justify-center pe-2 text-muted-foreground">
+                <kbd className="inline-flex h-5 max-h-full items-center rounded border border-border px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
+                  Enter
+                </kbd>
+              </div>
             </div>
           </div>
 
-          <div className="flex-none p-3 flex justify-end items-center space-x-2">
+          <div className="grid-toolbar__actions">
             <TooltipProvider disableHoverableContent>
               <ToggleGroup
-                className="gap-0"
+                className="hidden gap-0 md:flex"
                 type="single"
                 variant="outline"
                 value={layout}
@@ -369,14 +371,14 @@ function table() {
             <AddActionButton label="Add Activity" onClick={openAddPanel} />
           </div>
         </div>
-        {layout === "column" && (
-          <div className="grid-table-viewport flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl">
-            <ColumnComponent tableBody={tableBody} setSorting={setSorting} />
-          </div>
-        )}
-        {layout === "kanban" && <KanbanComponent tableBody={tableBody} columns={[]} listableColumns={[]} groupByKey="" />}
-        {layout === "column" && (
+        <div className={cn("grid-table-viewport flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl", layout !== "column" && "md:hidden")}>
+          <ColumnComponent tableBody={tableBody} setSorting={setSorting} />
           <PaginationComponent tableBody={tableBody} pagination={pagination} setPagination={setPagination} />
+        </div>
+        {layout === "kanban" && (
+          <div className="hidden min-h-0 min-w-0 flex-1 flex-col md:flex">
+            <KanbanComponent tableBody={tableBody} columns={[]} listableColumns={[]} groupByKey="" />
+          </div>
         )}
       </div>
     </>

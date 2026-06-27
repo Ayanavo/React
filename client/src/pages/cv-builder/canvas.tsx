@@ -478,7 +478,7 @@ const Canvas = () => {
       </div>
 
       <div
-        className="flex flex-col items-center justify-center gap-10 p-4 w-full relative"
+        className="flex flex-col items-center justify-center gap-6 p-2 w-full relative md:gap-10 md:p-4"
         style={{ pointerEvents: isDragging ? "none" : "auto", marginBlock: `${elements.length * 580}px` }} // Disable pointer events when dragging
       >
         {/* Render Pages Dynamically */}
@@ -495,7 +495,7 @@ const Canvas = () => {
                 pointerEvents: isDragging && draggingIndex !== pageIndex ? "none" : "auto", // Disable pointer events for other pages when dragging
               }}>
               {selectedPageId === page.id && (
-                <div className="absolute top-4 -right-12 z-20">
+                <div className="absolute top-4 right-2 z-20 md:-right-12">
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>

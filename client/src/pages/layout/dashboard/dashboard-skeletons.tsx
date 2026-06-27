@@ -128,7 +128,7 @@ export function NoteCardSkeleton() {
 
 export function NoteGridSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <div className="dashboard__list gap-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       {Array.from({ length: count }).map((_, index) => (
         <NoteCardSkeleton key={index} />
       ))}

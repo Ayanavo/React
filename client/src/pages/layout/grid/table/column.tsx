@@ -12,6 +12,7 @@ import { Cell, flexRender, SortingState, Table as TableModel } from "@tanstack/r
 import { ArrowDownIcon, ArrowUpIcon, ChevronDownIcon, ChevronUpIcon, EyeOffIcon } from "lucide-react";
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { GRID_COLUMN_ACTION_WIDTH, GRID_COLUMN_SELECT_WIDTH } from "../grid-column-sizing";
+import MobileGridList from "./mobile-list";
 import "./table.css";
 
 type ColumnProps<TData> = {
@@ -336,11 +337,12 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
   };
 
   return (
-    <div
-      className={cn(
-        "grid-table-shell flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden",
-        isResizing && "grid-table-shell--resizing"
-      )}>
+    <>
+      <div
+        className={cn(
+          "grid-table-shell hidden min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:flex",
+          isResizing && "grid-table-shell--resizing"
+        )}>
       <div ref={headerScrollRef} className="grid-table-header-band flex-none overflow-hidden">
         <Table
           ref={tableRef}
@@ -408,7 +410,15 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
           </TableBody>
         </Table>
       </div>
-    </div>
+      </div>
+
+      <MobileGridList
+        tableBody={tableBody}
+        isLoading={isLoading}
+        pageSize={pageSize}
+        className="md:hidden"
+      />
+    </>
   );
 }
 

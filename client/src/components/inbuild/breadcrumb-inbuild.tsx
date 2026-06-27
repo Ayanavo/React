@@ -36,7 +36,7 @@ const formatRouteLabel = (segment: string) => {
     .join(" ");
 };
 
-function BreadcrumbInbuild({ isEditMode = false, className = "flex items-center" }: BreadcrumbInbuildProps) {
+function BreadcrumbInbuild({ isEditMode = false, className = "flex w-full min-w-0 items-center" }: BreadcrumbInbuildProps) {
   const { pathname } = useLocation();
   const segments = pathname.split("/").filter(Boolean);
 
@@ -59,10 +59,10 @@ function BreadcrumbInbuild({ isEditMode = false, className = "flex items-center"
   return (
     <Breadcrumb className={className}>
       <BreadcrumbList>
-        <BreadcrumbItem>
+        <BreadcrumbItem className="shrink-0">
           <BreadcrumbLink asChild>
-            <Link to="/">
-              <House className="w-5" />
+            <Link to="/" aria-label="Home">
+              <House className="h-5 w-5" />
             </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
@@ -75,11 +75,16 @@ function BreadcrumbInbuild({ isEditMode = false, className = "flex items-center"
           return (
             <React.Fragment key={href}>
               <BreadcrumbSeparator />
-              <BreadcrumbItem>
+              <BreadcrumbItem
+                className={
+                  isLastSegment ? "min-w-0 flex-1 overflow-hidden" : "max-w-[45%] shrink overflow-hidden"
+                }>
                 {isLastSegment ?
-                  <BreadcrumbPage>{label}</BreadcrumbPage>
+                  <BreadcrumbPage title={label}>{label}</BreadcrumbPage>
                 : <BreadcrumbLink asChild>
-                    <Link to={href}>{label}</Link>
+                    <Link to={href} title={label}>
+                      {label}
+                    </Link>
                   </BreadcrumbLink>
                 }
               </BreadcrumbItem>

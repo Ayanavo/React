@@ -214,7 +214,7 @@ function ResourceGrid<T extends { _id: string }>({
             };
 
             return (
-              <div className="opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="grid-row-actions opacity-0 transition-opacity group-hover:opacity-100">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon" className="h-8 w-8">
@@ -350,8 +350,8 @@ function ResourceGrid<T extends { _id: string }>({
   return (
     <div className="grid-layout flex h-full min-h-0 flex-col overflow-hidden bg-transparent">
       <div className="grid-toolbar mb-3 flex-none">
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-          <div className="relative w-full max-w-xs">
+        <div className="grid-toolbar__filters">
+          <div className="grid-toolbar__search relative min-w-0 w-full max-w-xs flex-1 md:flex-none">
             <Input
               id={id}
               className="h-9 rounded-lg border-border/70 bg-background/80 pe-16 shadow-sm backdrop-blur-sm"
@@ -368,7 +368,7 @@ function ResourceGrid<T extends { _id: string }>({
           </div>
           {filterControls}
           {layout === "kanban" && listableColumns.length > 0 ?
-            <div className="flex items-center gap-1.5">
+            <div className="hidden items-center gap-1.5 md:flex">
              
               <Select value={resolvedKanbanGroupByKey} onValueChange={setKanbanGroupByKey}>
                 <SelectTrigger className="h-9 w-[11.5rem] rounded-lg border-border/70 bg-card shadow-sm">
@@ -386,10 +386,10 @@ function ResourceGrid<T extends { _id: string }>({
           : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="grid-toolbar__actions">
           <TooltipProvider disableHoverableContent>
             <ToggleGroup
-              className="gap-0"
+              className="hidden gap-0 md:flex"
               type="single"
               variant="outline"
               value={layout}
@@ -426,26 +426,26 @@ function ResourceGrid<T extends { _id: string }>({
         </div>
       </div>
 
-      {layout === "column" && (
+      <div className={cn("flex min-h-0 min-w-0 flex-1 flex-col", layout !== "column" && "md:hidden")}>
         <ColumnComponent
           tableBody={tableBody as never}
           setSorting={setSorting}
           isLoading={isLoading || (isFetching && data.length === 0)}
           pageSize={pagination.pageSize}
         />
-      )}
-      {layout === "kanban" && (
-        <KanbanComponent
-          tableBody={tableBody as never}
-          columns={columnConfig}
-          listableColumns={listableColumns}
-          groupByKey={resolvedKanbanGroupByKey}
-          isLoading={isLoading || (isFetching && data.length === 0)}
-          pageSize={pagination.pageSize}
-        />
-      )}
-      {layout === "column" && (
         <PaginationComponent tableBody={tableBody as never} pagination={pagination} setPagination={setPagination} />
+      </div>
+      {layout === "kanban" && (
+        <div className="hidden min-h-0 min-w-0 flex-1 flex-col md:flex">
+          <KanbanComponent
+            tableBody={tableBody as never}
+            columns={columnConfig}
+            listableColumns={listableColumns}
+            groupByKey={resolvedKanbanGroupByKey}
+            isLoading={isLoading || (isFetching && data.length === 0)}
+            pageSize={pagination.pageSize}
+          />
+        </div>
       )}
     </div>
   );

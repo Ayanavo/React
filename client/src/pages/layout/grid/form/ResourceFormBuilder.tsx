@@ -123,8 +123,8 @@ function ResourceFormBuilder<T extends Record<string, unknown>>({
             "grid w-full",
             formJson.length === 1 && "grid-cols-1",
             formJson.length === 2 && "grid-cols-2",
-            formJson.length === 3 && "grid-cols-3",
-            formJson.length >= 4 && "grid-cols-4"
+            formJson.length === 3 && "grid-cols-2 sm:grid-cols-3",
+            formJson.length >= 4 && "grid-cols-2 sm:grid-cols-4"
           )}>
           {formJson.map((tab) => (
             <TabsTrigger key={tab.tabId} value={tab.tabId}>

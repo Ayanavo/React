@@ -24,15 +24,15 @@ function WorkflowSidebar({
   onDelete,
 }: WorkflowSidebarProps) {
   return (
-    <aside className="workflow-page__sidebar">
+    <aside className="workflow-page__sidebar h-full w-full md:w-[17rem]">
       <div className="workflow-page__sidebar-header">
-        <div>
+        <div className="min-w-0 flex-1">
           <h2 className="workflow-page__sidebar-title">Workflows</h2>
           <p className="workflow-page__sidebar-copy">Design automations for notes, activities, and CVs.</p>
         </div>
-        <Button type="button" size="sm" className="h-8 gap-1.5" onClick={onCreate}>
+        <Button type="button" size="sm" className="ml-auto h-8 shrink-0 gap-1.5" onClick={onCreate}>
           <Plus className="h-4 w-4" />
-          New
+          <span className="workflow-page__toolbar-label">New</span>
         </Button>
       </div>
 

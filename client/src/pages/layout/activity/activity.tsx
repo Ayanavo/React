@@ -175,45 +175,66 @@ function ActivityPage() {
         onDelete={handleDelete}
       />
 
-      <div className="px-6 pt-4">
-        <BreadcrumbInbuild />
+      <div className="px-4 pt-3 sm:px-6 sm:pt-4">
+        <BreadcrumbInbuild className="w-full min-w-0" />
       </div>
 
-      <div className="activity-page__content flex flex-1 flex-col gap-4 overflow-hidden p-4">
-        <section className="activity-page__toolbar flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="mr-2 text-lg font-semibold text-foreground">{activeLabel}</h2>
-            <Button variant="outline" size="sm" onClick={() => handleNavigate("today")}>
-              Today
-            </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleNavigate("prev")} aria-label="Previous period">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => handleNavigate("next")} aria-label="Next period">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+      <div className="activity-page__content flex flex-1 flex-col gap-3 overflow-hidden p-3 sm:gap-4 sm:p-4">
+        <section className="activity-page__toolbar flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:p-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="activity-page__toolbar-period flex min-w-0 items-center justify-between gap-2">
+            <h2 className="activity-page__toolbar-title min-w-0 truncate text-base font-semibold text-foreground sm:mr-2 sm:text-lg">
+              {activeLabel}
+            </h2>
+            <div className="activity-page__toolbar-nav flex shrink-0 items-center gap-1.5">
+              <Button variant="outline" size="sm" className="h-8 shrink-0 px-2.5 sm:px-3" onClick={() => handleNavigate("today")}>
+                <span className="activity-page__toolbar-label">Today</span>
+                <span className="activity-page__toolbar-label-short">Now</span>
+              </Button>
+              <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleNavigate("prev")} aria-label="Previous period">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleNavigate("next")} aria-label="Next period">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <ToggleGroup type="single" value={calendarView} variant="outline" onValueChange={(value) => value && setCalendarView(value as CalendarView)}>
-              <ToggleGroupItem value="dayGridDay">Day</ToggleGroupItem>
-              <ToggleGroupItem value="dayGridWeek">Week</ToggleGroupItem>
-              <ToggleGroupItem value="dayGridMonth">Month</ToggleGroupItem>
-              <ToggleGroupItem value="dayGridYear">Year</ToggleGroupItem>
+          <div className="activity-page__toolbar-actions flex min-w-0 items-center gap-2 overflow-x-auto">
+            <ToggleGroup
+              type="single"
+              value={calendarView}
+              variant="outline"
+              className="activity-page__view-toggle shrink-0"
+              onValueChange={(value) => value && setCalendarView(value as CalendarView)}>
+              <ToggleGroupItem value="dayGridDay" className="h-8 px-2.5 text-xs sm:px-3 sm:text-sm">
+                Day
+              </ToggleGroupItem>
+              <ToggleGroupItem value="dayGridWeek" className="h-8 px-2.5 text-xs sm:px-3 sm:text-sm">
+                <span className="sm:hidden">Wk</span>
+                <span className="hidden sm:inline">Week</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="dayGridMonth" className="h-8 px-2.5 text-xs sm:px-3 sm:text-sm">
+                <span className="sm:hidden">Mo</span>
+                <span className="hidden sm:inline">Month</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem value="dayGridYear" className="h-8 px-2.5 text-xs sm:px-3 sm:text-sm">
+                <span className="sm:hidden">Yr</span>
+                <span className="hidden sm:inline">Year</span>
+              </ToggleGroupItem>
             </ToggleGroup>
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="lg:hidden">
-                  <PanelLeft className="mr-2 h-4 w-4" />
-                  Panel
+                <Button variant="outline" size="sm" className="h-8 shrink-0 px-2.5 lg:hidden">
+                  <PanelLeft className="h-4 w-4" />
+                  <span className="activity-page__toolbar-label ml-2">Panel</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[min(100vw-2rem,22rem)] overflow-y-auto">
-                <SheetHeader>
+              <SheetContent side="left" hideClose className="w-[min(100vw-2rem,22rem)] overflow-y-auto p-0">
+                <SheetHeader className="border-b px-4 py-3 text-left">
                   <SheetTitle>Activity panel</SheetTitle>
                 </SheetHeader>
-                <div className="mt-4">{sidebar}</div>
+                <div className="p-4">{sidebar}</div>
               </SheetContent>
             </Sheet>
           </div>

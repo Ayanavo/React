@@ -13,7 +13,7 @@ import FormBuilderComponent from "../form/form-builder";
 function update() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Breadcrumb className="flex items-center px-6 py-3">
+      <Breadcrumb className="flex items-center px-4 py-3 sm:px-6">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>

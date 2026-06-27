@@ -123,7 +123,7 @@ function FormBuilder() {
   return (
     <div className="m-3">
       <Tabs className="w-full 134 mx-auto" defaultValue={defaultTab}>
-        <TabsList className={`grid w-full grid-cols-4`}>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
           {formJson.map((tab) => (
             <TabsTrigger key={tab.tabId} value={tab.tabId}>
               {tab.tabLabel}

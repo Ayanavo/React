@@ -36,6 +36,7 @@ import React, { FormEvent, useCallback, useEffect, useRef, useState } from "reac
 import { useParams } from "react-router-dom";
 import Canvas from "../cv-builder/canvas";
 import { CvCanvasOverlayProvider } from "../cv-builder/cv-canvas-overlay";
+import BuilderWorkspace from "../cv-builder/builder-workspace";
 import CoverLetterPallet from "./cover-letter-pallet";
 import { applyDraftToTemplate, createCoverLetterTemplate } from "./cover-letter-template";
 import "./cover-letter.scss";
@@ -220,39 +221,42 @@ const CoverLetterBuilderContent = () => {
   };
 
   return (
-    <div className="flex h-[90vh] flex-col overflow-hidden bg-background cover-letter-builder">
-      <div className="flex items-center justify-between px-6 py-3">
-        <BreadcrumbInbuild isEditMode={isEditMode} />
-        <Button type="button" onClick={openSubmitDialog} disabled={mutation.isPending || isFetching || isGeneratingDraft}>
+    <div className="cover-letter-builder flex h-full min-h-0 flex-col overflow-hidden bg-background">
+      <div className="flex flex-none flex-col gap-2 border-b border-border/60 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6">
+        <BreadcrumbInbuild isEditMode={isEditMode} className="w-full min-w-0" />
+        <Button
+          type="button"
+          onClick={openSubmitDialog}
+          disabled={mutation.isPending || isFetching || isGeneratingDraft}
+          className="ml-auto h-9 shrink-0 gap-2 self-end px-2.5 md:self-auto md:px-4">
           {mutation.isPending || isGeneratingDraft ?
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              {isGeneratingDraft ? "Generating draft..." : isEditMode ? "Updating..." : "Saving..."}
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="hidden md:inline">
+                {isGeneratingDraft ? "Generating draft..." : isEditMode ? "Updating..." : "Saving..."}
+              </span>
             </>
           : isEditMode ?
             <>
-              <Save className="mr-2 h-4 w-4" />
-              Update Cover Letter
+              <Save className="h-4 w-4" />
+              <span className="hidden md:inline">Update Cover Letter</span>
             </>
           : <>
-              <FilePlus className="mr-2 h-4 w-4" />
-              Save Cover Letter
+              <FilePlus className="h-4 w-4" />
+              <span className="hidden md:inline">Save Cover Letter</span>
             </>
           }
         </Button>
       </div>
 
       {isGeneratingDraft && (
-        <div className="px-6 pb-2 text-sm text-muted-foreground flex items-center gap-2">
+        <div className="flex flex-none items-center gap-2 px-4 pb-2 text-sm text-muted-foreground md:px-6">
           <Loader2 className="h-4 w-4 animate-spin" />
           Generating cover letter draft from job summary...
         </div>
       )}
 
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-        <CoverLetterPallet />
-        <Canvas />
-      </div>
+      <BuilderWorkspace pallet={<CoverLetterPallet />} />
 
       <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
         <DialogContent>

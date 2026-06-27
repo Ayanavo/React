@@ -24,7 +24,7 @@ const AIInsights: React.FC<AIInsightsProps> = ({ insights, isLoading }) => {
             <span className="dashboard__insight-icon">
               <Icon className="h-3 w-3" />
             </span>
-            <p className="text-sm text-foreground">{item.text}</p>
+            <p className="line-clamp-3 text-sm text-foreground">{item.text}</p>
           </div>
         );
       })}

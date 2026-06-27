@@ -288,3 +288,126 @@
   gap: 0.75rem;
   padding-block: 0.75rem;
 }
+
+.grid-toolbar__filters {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.grid-toolbar__actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.grid-row-view__scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+.grid-row-card__value {
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.grid-row-card__value > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  .grid-layout {
+    padding-inline-end: 0.25rem;
+  }
+
+  .grid-toolbar {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.5rem;
+    padding-block: 0.5rem;
+  }
+
+  .grid-toolbar__filters {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.5rem;
+    width: auto;
+  }
+
+  .grid-toolbar__actions {
+    width: auto;
+    flex-shrink: 0;
+    justify-content: flex-end;
+  }
+
+  .grid-toolbar__search {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    max-width: none;
+  }
+
+  .grid-toolbar__search .pointer-events-none {
+    display: none;
+  }
+
+  .grid-table-head {
+    padding-inline: 0.75rem;
+    height: 2.5rem;
+  }
+
+  .grid-table-scroll-host {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .grid-table-scroll-host .grid-table-row td {
+    padding-inline: 0.75rem;
+  }
+
+  .grid-table-resizer {
+    display: none;
+    pointer-events: none;
+  }
+
+  .grid-table-cell--action > div,
+  .grid-table-row .grid-row-actions,
+  .grid-row-card .grid-table-cell--action > div {
+    opacity: 1 !important;
+  }
+
+  .kanban-board {
+    flex-direction: column;
+    overflow-x: visible;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .kanban-column {
+    width: 100%;
+    max-width: none;
+    max-height: min(24rem, 55vh);
+  }
+
+  .kanban-board .kanban-column__body {
+    max-height: min(18rem, 45vh);
+  }
+
+  .grid-pagination--mobile {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .grid-row-card__value .badge {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

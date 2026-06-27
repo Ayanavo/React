@@ -280,16 +280,18 @@ const CoverLetterPallet = () => {
   const isAnyExpanded = Object.values(expandedSections).some(Boolean);
 
   return (
-    <div className="cover-letter-pallet w-[20rem] h-full bg-background border-r shadow-sm flex-shrink-0 overflow-hidden flex flex-col">
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-card">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Cover Letter</span>
+    <div className="cover-letter-pallet w-full md:w-[20rem] h-full bg-background border-r shadow-sm flex-shrink-0 overflow-hidden flex flex-col">
+      <div className="flex w-full items-center gap-3 border-b bg-card px-4 py-3">
+        <span className="min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Cover Letter
+        </span>
         <button
           type="button"
           onClick={() => {
             const next = !isAnyExpanded;
             setExpandedSections({ page: next, layout: next, content: next, format: next });
           }}
-          className="text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-1">
+          className="ml-auto shrink-0 text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-1">
           {isAnyExpanded ?
             <>
               <ChevronsUp className="w-3.5 h-3.5" /> Collapse

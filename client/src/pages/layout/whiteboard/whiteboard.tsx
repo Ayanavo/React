@@ -1,8 +1,10 @@
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import { Input } from "@/components/ui/input";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Edge, Node } from "@xyflow/react";
@@ -35,6 +37,8 @@ function WhiteboardComponent() {
   const [edges, setEdges] = useState<Edge[]>([]);
   const [isDirty, setIsDirty] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const { data: activeWorkflow, isLoading: isLoadingWorkflow } = useWorkflow(activeWorkflowId);
   const createWorkflowMutation = useCreateWorkflow();
@@ -70,6 +74,7 @@ function WhiteboardComponent() {
       }
       setActiveWorkflowId(id);
       setIsDirty(false);
+      setSidebarOpen(false);
     },
     [activeWorkflowId, confirm, isDirty]
   );
@@ -217,11 +222,22 @@ function WhiteboardComponent() {
 
   const isWorkspaceLoading = isLoadingList || (Boolean(activeWorkflowId) && isLoadingWorkflow);
 
+  const sidebar = (
+    <WorkflowSidebar
+      workflows={workflows}
+      activeId={activeWorkflowId}
+      isLoading={isLoadingList}
+      onSelect={handleSelectWorkflow}
+      onCreate={handleCreate}
+      onDelete={handleDelete}
+    />
+  );
+
   return (
     <TooltipProvider delayDuration={300}>
       <div className="workflow-page">
         <div className="workflow-page__header">
-          <BreadcrumbInbuild />
+          <BreadcrumbInbuild className="w-full min-w-0" />
           <div className="workflow-page__title-row">
             {isWorkspaceLoading ? (
               <Skeleton className="h-9 w-full max-w-md" />
@@ -241,20 +257,14 @@ function WhiteboardComponent() {
         </div>
 
         <div className="workflow-page__body">
-          <WorkflowSidebar
-            workflows={workflows}
-            activeId={activeWorkflowId}
-            isLoading={isLoadingList}
-            onSelect={handleSelectWorkflow}
-            onCreate={handleCreate}
-            onDelete={handleDelete}
-          />
+          <div className="workflow-page__sidebar-host hidden md:flex">{sidebar}</div>
 
           <div className="workflow-page__workspace">
             <WorkflowToolbar
               onAddNode={handleAddNode}
               onSave={handleSave}
               onRun={handleRun}
+              onOpenWorkflows={isMobile ? () => setSidebarOpen(true) : undefined}
               isSaving={createWorkflowMutation.isPending || updateWorkflowMutation.isPending}
               isRunning={isRunning}
               canSave={isDirty || !activeWorkflowId}
@@ -270,6 +280,17 @@ function WhiteboardComponent() {
             />
           </div>
         </div>
+
+        {isMobile ?
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetContent
+              side="left"
+              hideClose
+              className="flex h-full w-[min(100%,17rem)] flex-col p-0 sm:max-w-xs">
+              {sidebar}
+            </SheetContent>
+          </Sheet>
+        : null}
       </div>
     </TooltipProvider>
   );

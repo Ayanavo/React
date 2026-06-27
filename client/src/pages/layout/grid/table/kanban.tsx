@@ -163,11 +163,11 @@ function KanbanCard<TData extends { _id: string }>({
 
 function KanbanSkeleton({ columns = 3, cards = 4 }: { columns?: number; cards?: number }) {
   return (
-    <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto p-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-x-auto p-4 md:flex-row">
       {Array.from({ length: columns }).map((_, columnIndex) => (
         <div
           key={`kanban-skeleton-column-${columnIndex}`}
-          className="flex w-[min(100%,18rem)] shrink-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm">
+          className="flex w-full shrink-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm md:w-[min(100%,18rem)]">
           <div className="border-b border-primary/10 bg-primary/5 px-3 py-3">
             <Skeleton className="h-6 w-28 rounded-lg" />
           </div>
@@ -252,11 +252,11 @@ function Kanban<TData extends { _id: string }>({
         <div className="flex flex-1 items-center justify-center p-8 text-sm text-muted-foreground">
           No items match the current filters.
         </div>
-      : <div className="kanban-board scrollbar-none flex min-h-0 flex-1 gap-4 overflow-x-auto p-4">
+      : <div className="kanban-board scrollbar-none flex min-h-0 flex-1 flex-col gap-4 overflow-x-auto p-4 md:flex-row">
           {groups.map((group) => (
             <section
               key={group.key}
-              className="kanban-column flex w-[min(100%,18rem)] shrink-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-muted/10 shadow-sm">
+              className="kanban-column flex w-full shrink-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-muted/10 shadow-sm md:w-[min(100%,18rem)]">
               <KanbanColumnHeader label={group.label} color={group.color} count={group.rows.length} />
 
               <div className="kanban-column__body scrollbar-none flex flex-1 flex-col gap-3 overflow-y-auto p-3">

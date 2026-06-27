@@ -29,7 +29,7 @@ const RecentNotesList: React.FC<RecentNotesListProps> = ({ notes, isLoading, com
   }
 
   const listClass = compact ?
-    "grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+    "dashboard__list gap-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
   : "dashboard__list";
 
   return (

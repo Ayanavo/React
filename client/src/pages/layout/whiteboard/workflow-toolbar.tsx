@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Loader2, Play, Plus, Save } from "lucide-react";
+import { Loader2, Play, Plus, Save, Workflow } from "lucide-react";
 import React from "react";
 import { NODE_PALETTE, type NodeCategory, type WorkflowNodeType } from "./engine/node-registry";
 
@@ -25,6 +25,7 @@ type WorkflowToolbarProps = {
   onAddNode: (type: WorkflowNodeType) => void;
   onSave: () => void;
   onRun: () => void;
+  onOpenWorkflows?: () => void;
   isSaving?: boolean;
   isRunning?: boolean;
   canSave?: boolean;
@@ -35,20 +36,21 @@ function ToolbarIconButton({
   label,
   onClick,
   disabled,
-  children,
+  icon,
   variant = "outline",
 }: {
   label: string;
   onClick?: () => void;
   disabled?: boolean;
-  children: React.ReactNode;
+  icon: React.ReactNode;
   variant?: "outline" | "default";
 }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button type="button" variant={variant} size="sm" className="h-8 gap-1.5" onClick={onClick} disabled={disabled}>
-          {children}
+        <Button type="button" variant={variant} size="sm" className="h-8 shrink-0 gap-1.5 px-2 md:px-3" onClick={onClick} disabled={disabled}>
+          {icon}
+          <span className="workflow-page__toolbar-label">{label}</span>
         </Button>
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
@@ -60,6 +62,7 @@ function WorkflowToolbar({
   onAddNode,
   onSave,
   onRun,
+  onOpenWorkflows,
   isSaving,
   isRunning,
   canSave = true,
@@ -75,14 +78,18 @@ function WorkflowToolbar({
 
   return (
     <div className="workflow-page__toolbar" role="toolbar" aria-label="Workflow tools">
+      {onOpenWorkflows ?
+        <ToolbarIconButton label="Workflows" onClick={onOpenWorkflows} icon={<Workflow className="h-4 w-4" />} />
+      : null}
+
       <Tooltip>
         <TooltipTrigger asChild>
           <div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5" disabled={disabled}>
+                <Button type="button" variant="outline" size="sm" className="h-8 shrink-0 gap-1.5 px-2 md:px-3" disabled={disabled}>
                   <Plus className="h-4 w-4" />
-                  Add node
+                  <span className="workflow-page__toolbar-label">Add node</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56">
@@ -106,15 +113,20 @@ function WorkflowToolbar({
 
       <div className="workflow-page__tool-spacer" />
 
-      <ToolbarIconButton label="Save workflow" onClick={onSave} disabled={disabled || !canSave || isSaving}>
-        {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-        Save
-      </ToolbarIconButton>
+      <ToolbarIconButton
+        label="Save workflow"
+        onClick={onSave}
+        disabled={disabled || !canSave || isSaving}
+        icon={isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+      />
 
-      <ToolbarIconButton label="Run workflow" onClick={onRun} disabled={disabled || isRunning} variant="default">
-        {isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-        Run
-      </ToolbarIconButton>
+      <ToolbarIconButton
+        label="Run workflow"
+        onClick={onRun}
+        disabled={disabled || isRunning}
+        variant="default"
+        icon={isRunning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+      />
     </div>
   );
 }

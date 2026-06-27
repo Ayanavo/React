@@ -157,7 +157,7 @@ const CVAccessGrid = () => {
   }, []);
 
   const actionRenderer = (row: CVAccessRecord, del: (id: string) => void) => (
-    <div className="opacity-0 transition-opacity group-hover:opacity-100">
+    <div className="grid-row-actions opacity-0 transition-opacity group-hover:opacity-100">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" className="h-8 w-8">
@@ -244,10 +244,10 @@ const CVAccessGrid = () => {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="flex-none px-6 pt-4">
-        <BreadcrumbInbuild />
+      <div className="flex flex-none items-center px-4 pt-3 sm:px-6 sm:pt-4">
+        <BreadcrumbInbuild className="w-full min-w-0" />
       </div>
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 overflow-hidden px-3 pb-2 sm:px-6">
         <ResourceGrid<CVAccessRecord>
         queryKey="cv-builder-list"
         resourceLabel="CV"

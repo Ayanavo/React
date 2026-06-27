@@ -7,18 +7,18 @@ const QuickActions: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button size="sm" onClick={() => navigate("/notes")}>
+    <div className="dashboard__quick-actions flex w-full flex-wrap items-center justify-end gap-2 md:w-auto md:justify-start">
+      <Button size="sm" className="h-9 shrink-0 gap-2 px-2.5 md:px-3" onClick={() => navigate("/notes")}>
         <Plus className="h-4 w-4" />
-        New Note
+        <span className="dashboard__quick-actions-label">New Note</span>
       </Button>
-      <Button size="sm" variant="outline" onClick={() => navigate("/activities")}>
+      <Button size="sm" variant="outline" className="h-9 shrink-0 gap-2 px-2.5 md:px-3" onClick={() => navigate("/activities")}>
         <CalendarDays className="h-4 w-4" />
-        Activities
+        <span className="dashboard__quick-actions-label">Activities</span>
       </Button>
-      <Button size="sm" variant="outline" onClick={() => navigate("/summarize")}>
+      <Button size="sm" variant="outline" className="h-9 shrink-0 gap-2 px-2.5 md:px-3" onClick={() => navigate("/summarize")}>
         <Sparkles className="h-4 w-4" />
-        AI Summary
+        <span className="dashboard__quick-actions-label">AI Summary</span>
       </Button>
     </div>
   );

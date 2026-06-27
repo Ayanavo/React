@@ -15,7 +15,10 @@ const BreadcrumbList = React.forwardRef<HTMLOListElement, React.ComponentPropsWi
   ({ className, ...props }, ref) => (
     <ol
       ref={ref}
-      className={cn("flex flex-wrap items-center break-words text-sm text-muted-foreground sm:gap-1", className)}
+      className={cn(
+        "flex w-full min-w-0 flex-nowrap items-center gap-3 overflow-hidden text-sm text-muted-foreground sm:gap-2",
+        className
+      )}
       {...props}
     />
   )
@@ -37,7 +40,7 @@ const BreadcrumbLink = React.forwardRef<
 >(({ asChild, className, ...props }, ref) => {
   const Comp = asChild ? Slot : "a";
 
-  return <Comp ref={ref} className={cn("transition-colors hover:text-foreground", className)} {...props} />;
+  return <Comp ref={ref} className={cn("block min-w-0 truncate transition-colors hover:text-foreground", className)} {...props} />;
 });
 BreadcrumbLink.displayName = "BreadcrumbLink";
 
@@ -48,7 +51,7 @@ const BreadcrumbPage = React.forwardRef<HTMLSpanElement, React.ComponentPropsWit
       role="link"
       aria-disabled="true"
       aria-current="page"
-      className={cn("font-normal text-foreground", className)}
+      className={cn("block min-w-0 truncate font-normal text-foreground", className)}
       {...props}
     />
   )
@@ -56,7 +59,11 @@ const BreadcrumbPage = React.forwardRef<HTMLSpanElement, React.ComponentPropsWit
 BreadcrumbPage.displayName = "BreadcrumbPage";
 
 const BreadcrumbSeparator = ({ children, className, ...props }: React.ComponentProps<"li">) => (
-  <li role="presentation" aria-hidden="true" className={cn("[&>svg]:w-3.5 [&>svg]:h-3.5", className)} {...props}>
+  <li
+    role="presentation"
+    aria-hidden="true"
+    className={cn("shrink-0 px-0.5 [&>svg]:h-3.5 [&>svg]:w-3.5", className)}
+    {...props}>
     {children ?? <ChevronRightIcon />}
   </li>
 );

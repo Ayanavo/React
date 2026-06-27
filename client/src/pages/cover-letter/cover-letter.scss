@@ -5,3 +5,12 @@
 .cover-letter-pallet {
   z-index: 1;
 }
+
+@media (max-width: 767px) {
+  .cover-letter-builder .grid-row-card__value .badge {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
