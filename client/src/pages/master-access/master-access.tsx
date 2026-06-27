@@ -213,7 +213,7 @@ const MasterAccess = () => {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="flex-none px-6 pt-4">
+      <div className="flex-none px-3 pt-3 sm:px-6 sm:pt-4">
         <BreadcrumbInbuild />
       </div>
       <div className="min-h-0 flex-1">

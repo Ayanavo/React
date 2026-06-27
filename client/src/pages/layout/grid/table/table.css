@@ -58,7 +58,13 @@
 }
 
 .grid-layout {
-  padding-inline-end: 0.75rem;
+  padding-inline: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .grid-layout {
+    padding-inline: 1.5rem;
+  }
 }
 
 .grid-table-viewport {
@@ -309,6 +315,15 @@
   -webkit-overflow-scrolling: touch;
 }
 
+.dark .grid-row-view,
+.dark .grid-row-view__scroll {
+  background: hsl(var(--background));
+}
+
+.dark .grid-row-card {
+  background: hsl(var(--card));
+}
+
 .grid-row-card__value {
   overflow: hidden;
   word-break: break-word;
@@ -320,10 +335,6 @@
 }
 
 @media (max-width: 767px) {
-  .grid-layout {
-    padding-inline-end: 0.25rem;
-  }
-
   .grid-toolbar {
     flex-direction: row;
     flex-wrap: nowrap;

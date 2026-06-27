@@ -91,6 +91,45 @@
   }
 }
 
+@media (max-width: 767px) {
+  .note-box.note-editor-dialog {
+    width: 100%;
+    max-width: calc(100vw - 2rem);
+    padding: 0.75rem 1rem !important;
+  }
+
+  .note-box.note-editor-dialog--minimized {
+    max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  .note-editor-dialog--maximized {
+    width: calc(100vw - 1rem) !important;
+    max-width: calc(100vw - 1rem) !important;
+    height: calc(100dvh - 1rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+    max-height: calc(100dvh - 1rem - env(safe-area-inset-top) - env(safe-area-inset-bottom)) !important;
+  }
+
+  .note-editor-footer {
+    padding-top: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .note-title {
+    padding-right: 4.5rem;
+    font-size: 1rem;
+    line-height: 1.375rem;
+  }
+
+  .note-description {
+    min-height: 5rem;
+  }
+}
+
 .note-card {
   position: relative;
   border-radius: 0.625rem;

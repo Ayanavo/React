@@ -110,16 +110,6 @@ function pagination({
     setPagination((old) => ({ ...old, pageSize: size }));
   };
 
-  const mobileSummary = (
-    <PaginationSummary className="min-w-0 truncate">
-      <span className="font-semibold text-foreground">{rangeStart}</span>
-      <span>-</span>
-      <span className="font-semibold text-foreground">{rangeEnd}</span>
-      <span>/</span>
-      <span className="font-semibold text-foreground">{totalRows}</span>
-    </PaginationSummary>
-  );
-
   const summary = (
     <PaginationSummary>
       <span className="font-semibold text-foreground">{rangeStart}</span>
@@ -157,7 +147,7 @@ function pagination({
     return (
       <div className="grid-pagination grid-pagination--mobile w-full min-w-0 shrink-0 border-t border-border/60 bg-background/80 px-2 py-3 backdrop-blur-sm">
         <div className="flex w-full min-w-0 flex-nowrap items-center gap-1">
-          <div className="min-w-0 flex-1 overflow-hidden">{mobileSummary}</div>
+          <div className="min-w-0 flex-1 overflow-hidden">{summary}</div>
           {previousButton}
           {pageCount > 1 ?
             <span className="flex h-9 shrink-0 items-center whitespace-nowrap px-1 text-xs font-medium text-muted-foreground">

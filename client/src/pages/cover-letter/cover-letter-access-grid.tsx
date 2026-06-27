@@ -237,7 +237,7 @@ const CoverLetterAccessGrid = () => {
       <div className="flex flex-none items-center px-4 pt-3 sm:px-6 sm:pt-4">
         <BreadcrumbInbuild className="w-full min-w-0" />
       </div>
-      <div className="min-h-0 flex-1 overflow-hidden px-3 pb-2 sm:px-6">
+      <div className="min-h-0 flex-1 overflow-hidden pb-2">
         <ResourceGrid<CoverLetterAccessRecord>
           queryKey="cover-letter-list"
           resourceLabel="Cover Letter"

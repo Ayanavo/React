@@ -119,8 +119,8 @@ function MobileGridList<TData>({
   }, [tableBody, visibleColumns]);
 
   return (
-    <div className={cn("grid-row-view flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card", className)}>
-      <div className="grid-row-view__scroll min-h-0 flex-1 overflow-y-auto p-2">
+    <div className={cn("grid-row-view flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card dark:bg-background", className)}>
+      <div className="grid-row-view__scroll min-h-0 flex-1 overflow-y-auto bg-transparent p-2 dark:bg-background">
         {isLoading ?
           <div className="space-y-3">
             {skeletonRows.map((_, rowIndex) => (

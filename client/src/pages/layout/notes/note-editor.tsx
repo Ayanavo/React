@@ -366,7 +366,7 @@ function noteeditor({
       </DialogTrigger>
       <DialogContent
         className={cn(
-          "note-box note-editor-dialog transition-colors flex flex-col gap-0 border",
+          "note-box note-editor-dialog transition-colors flex min-w-0 flex-col gap-0 overflow-hidden border",
           !isMaximized && "note-editor-dialog--minimized",
           isMaximized && "note-editor-dialog--maximized max-w-none",
           hasCustomBackground && "note-box--themed"
@@ -379,7 +379,7 @@ function noteeditor({
               variant="outline"
               size="icon"
               className={cn(
-                "absolute right-12 top-4 z-10 h-8 w-8",
+                "absolute right-11 top-3 z-10 h-7 w-7 sm:right-12 sm:top-4 sm:h-8 sm:w-8",
                 hasCustomBackground && "note-action-btn"
               )}
               onClick={() => setIsMaximized((value) => !value)}
@@ -459,8 +459,8 @@ function noteeditor({
             })()}
           </div>
 
-          <DialogFooter className="shrink-0">
-            <div className="flex items-center space-x-2">
+          <DialogFooter className="note-editor-footer shrink-0 !flex-row flex-nowrap items-center justify-between gap-2 overflow-x-auto">
+            <div className="flex shrink-0 flex-nowrap items-center gap-1.5 sm:gap-2">
               {note_actions
                 .filter((it) => it.name !== "delete" || !!formData)
                 .map((item) => {
@@ -516,12 +516,14 @@ function noteeditor({
                   );
                 })}
             </div>
-            <Button type="reset" variant="outline" className={hasCustomBackground ? "note-action-btn" : undefined} onClick={handleReset}>
+            <div className="flex shrink-0 items-center gap-2">
+            <Button type="reset" variant="outline" size="sm" className={cn("h-9 px-3 sm:h-10 sm:px-4", hasCustomBackground && "note-action-btn")} onClick={handleReset}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving}>
+            <Button type="submit" size="sm" className="h-9 px-3 sm:h-10 sm:px-4" disabled={isSaving}>
               {isSaving ? "Saving..." : "Submit"}
             </Button>
+            </div>
           </DialogFooter>
         </form>
 

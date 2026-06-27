@@ -17,7 +17,7 @@ const tagColumns: GridColumnConfig<Tag>[] = [
 function tagslayout() {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="flex flex-none items-center justify-between px-2 pt-3">
+      <div className="flex flex-none items-center justify-between px-3 pt-3 sm:px-6 sm:pt-4">
         <BreadcrumbInbuild />
       </div>
       <div className="min-h-0 flex-1">

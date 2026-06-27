@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import React from "react";
 import { useLocation } from "react-router-dom";
@@ -24,9 +25,9 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
           <div className="col-start-2 flex shrink-0 items-center justify-end gap-1 sm:gap-2 md:col-start-3 md:row-start-1">
             <GlobalSearch.IconButton className="md:hidden" />
 
-            <span className="shrink-0 text-xs text-muted-foreground">
+            <Badge variant="outline" className="shrink-0 px-2 py-1 text-[10px] font-medium sm:text-xs rounded-full">
               v{packageJson.version}
-            </span>
+            </Badge>
 {/* 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
