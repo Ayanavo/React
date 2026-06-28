@@ -17,6 +17,7 @@ import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_PATTERN_MESSAGE } from 
 import {
   buildPasswordResetExpiredPage,
   buildPasswordResetInvalidPage,
+  buildPasswordResetReadyPage,
 } from "../templates/passwordResetPagesTemplate.js";
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
@@ -186,8 +187,16 @@ export const verifyPasswordResetLinkHandler = async (req: Request, res: Response
         .send(buildPasswordResetInvalidPage({ iconSrc, actionUrl: buildForgotPasswordRedirectUrl() }));
     }
 
-    const redirectUrl = buildPasswordResetRedirectUrl({ token: rawToken, email });
-    return res.redirect(redirectUrl);
+    const { passwordResetTokenTtlMinutes } = getEmailVerificationConfig();
+    const continueUrl = buildPasswordResetRedirectUrl({ step: "reset", email, token: rawToken });
+    return res.type("html").send(
+      buildPasswordResetReadyPage({
+        email,
+        continueUrl,
+        iconSrc,
+        resetWindowMinutes: passwordResetTokenTtlMinutes,
+      })
+    );
   } catch (error) {
     console.error("Verify password reset link error:", error);
     const iconSrc = buildAppIconUrl();

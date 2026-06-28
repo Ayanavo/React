@@ -10,6 +10,7 @@ type PasswordResetPageParams = {
   badgeBackground: string;
   actionLabel: string;
   actionUrl: string;
+  footnote?: string;
 };
 
 const buildPasswordResetPage = ({
@@ -22,9 +23,18 @@ const buildPasswordResetPage = ({
   badgeBackground,
   actionLabel,
   actionUrl,
+  footnote,
 }: PasswordResetPageParams): string => {
   const emailLine = email
     ? `<p style="margin:8px 0 0;font-size:14px;line-height:1.6;color:#71717a;"><strong style="color:#18181b;">${email}</strong></p>`
+    : "";
+
+  const footnoteBlock = footnote
+    ? `<tr>
+            <td style="padding:0 32px 24px;">
+              <p style="margin:0;font-size:13px;line-height:1.6;color:#71717a;text-align:center;">${footnote}</p>
+            </td>
+          </tr>`
     : "";
 
   return `<!DOCTYPE html>
@@ -70,6 +80,7 @@ const buildPasswordResetPage = ({
               <a href="${actionUrl}" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:12px 24px;border-radius:8px;">${actionLabel}</a>
             </td>
           </tr>
+          ${footnoteBlock}
           <tr>
             <td style="padding:16px 32px 32px;border-top:1px solid #e4e4e7;text-align:center;">
               <p style="margin:0;font-size:12px;color:#a1a1aa;">&copy; ${moment().year()} Notofy. All rights reserved.</p>
@@ -87,6 +98,26 @@ type PageWithEmailParams = {
   email: string;
   iconSrc: string;
 };
+
+export const buildPasswordResetReadyPage = ({
+  email,
+  continueUrl,
+  iconSrc,
+  resetWindowMinutes,
+}: PageWithEmailParams & { continueUrl: string; resetWindowMinutes: number }): string =>
+  buildPasswordResetPage({
+    title: "Reset your password",
+    heading: "Reset link confirmed",
+    message:
+      "If an account is linked to this email address, you can set a new password in Notofy. Return to the application to continue.",
+    email,
+    iconSrc,
+    badgeSymbol: "&#10003;",
+    badgeBackground: "#dcfce7",
+    actionLabel: "Set new password",
+    actionUrl: continueUrl,
+    footnote: `You have ${resetWindowMinutes} minutes to set a new password before this link expires.`,
+  });
 
 export const buildPasswordResetExpiredPage = ({
   email,
