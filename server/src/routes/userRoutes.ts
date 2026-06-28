@@ -6,6 +6,7 @@ import {
   verifyEmailLinkHandler,
 } from "../controllers/emailVerificationController.js";
 import {
+  acceptTerms,
   getUserProfile,
   login,
   logout,
@@ -16,6 +17,7 @@ import {
 } from "../controllers/userController.js";
 import { oauthCallbackHandler, startOAuthHandler } from "../controllers/oauthController.js";
 import { handleSaveUserProfileValidation, saveUserProfileValidators } from "../utils/profileValidation.js";
+import { authenticateToken } from "../controllers/userController.js";
 
 const router = Router();
 
@@ -27,6 +29,7 @@ router.get("/oauth/callback", oauthCallbackHandler as unknown as RequestHandler)
 router.get("/oauth/:provider", startOAuthHandler as unknown as RequestHandler);
 router.post("/login", login as unknown as RequestHandler);
 router.post("/register", signUp);
+router.post("/accept-terms", authenticateToken, acceptTerms as unknown as RequestHandler);
 router.post("/logout", logout as RequestHandler);
 router.post("/refresh-token", refreshToken as RequestHandler);
 router.get("/getUserProfile", getUserProfile as RequestHandler);

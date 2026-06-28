@@ -57,6 +57,7 @@ export interface IUser extends Document {
   password: string;
   oauthProvider?: "google" | "github";
   oauthId?: string;
+  termsAcceptedAt?: Date | null;
   title: string;
   createdAt: Date;
   updatedAt: Date;
@@ -112,6 +113,7 @@ const userSchema: Schema = new Schema(
     password: { type: String, required: true },
     oauthProvider: { type: String, enum: ["google", "github"], default: null },
     oauthId: { type: String, default: null, sparse: true },
+    termsAcceptedAt: { type: Date, default: null },
     title: { type: String },
     isLoggedIn: { type: Boolean, default: false },
     lastLoginAt: { type: Date, default: null },

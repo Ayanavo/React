@@ -28,6 +28,13 @@ export const getEmailVerificationConfig = () => ({
   ).replace(/\/$/, ""),
 });
 
+const EMAIL_ICON_FILENAME = "app-icon-email.png";
+
+export const buildAppIconUrl = (): string => {
+  const { apiPublicUrl } = getEmailVerificationConfig();
+  return `${apiPublicUrl}/api/public/${EMAIL_ICON_FILENAME}`;
+};
+
 /** HashRouter routes live under #/ — plain /auth/register paths are required for the SPA. */
 export const buildRegistrationRedirectUrl = (params: Record<string, string>): string => {
   const { clientUrl } = getEmailVerificationConfig();

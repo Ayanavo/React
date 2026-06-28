@@ -226,6 +226,7 @@ export const findOrCreateOAuthUser = async (profile: OAuthProfile): Promise<{ us
       password: hashedPassword,
       oauthProvider: profile.provider,
       oauthId: profile.providerUserId,
+      termsAcceptedAt: new Date(),
     });
     await user.save();
     await grantDefaultUserAccess(String(user._id));

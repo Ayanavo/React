@@ -3,10 +3,19 @@ import { hash, compare } from "bcrypt";
 import { randomBytes } from "crypto";
 import { Request, Response } from "express";
 import { body, query, validationResult } from "express-validator";
-import { getEmailVerificationConfig, buildRegistrationRedirectUrl } from "../config/emailVerification.js";
+import {
+  buildAppIconUrl,
+  buildRegistrationRedirectUrl,
+  getEmailVerificationConfig,
+} from "../config/emailVerification.js";
 import RegistrationVerification from "../models/registrationVerificationModel.js";
 import User from "../models/userModel.js";
 import { sendVerificationEmail } from "../services/emailService.js";
+import {
+  buildVerificationAlreadyVerifiedPage,
+  buildVerificationExpiredPage,
+  buildVerificationSuccessPage,
+} from "../templates/emailVerificationPagesTemplate.js";
 
 const normalizeEmail = (email: string): string => email.trim().toLowerCase();
 
@@ -154,14 +163,28 @@ export const verifyEmailLinkHandler = async (req: Request, res: Response) => {
     const rawToken = String(req.query.token);
     const { registrationWindowMinutes } = getEmailVerificationConfig();
 
+    const iconSrc = buildAppIconUrl();
     const record = await RegistrationVerification.findOne({ email });
     if (!record) {
       return res.redirect(buildRegistrationRedirectUrl({ error: "invalid-link" }));
     }
 
+    const now = moment().toDate();
+    const registrationWindowValid = Boolean(
+      record.registrationExpiresAt && record.registrationExpiresAt > now
+    );
+
+    if (record.isVerified && registrationWindowValid) {
+      const continueUrl = buildRegistrationRedirectUrl({ step: "details", email });
+      return res.type("html").send(
+        buildVerificationAlreadyVerifiedPage({ email, continueUrl, iconSrc })
+      );
+    }
+
     if (moment(record.tokenExpiresAt).isBefore(moment())) {
-      return res.redirect(
-        buildRegistrationRedirectUrl({ error: "expired-link", email })
+      const returnUrl = buildRegistrationRedirectUrl({ step: "verify", email });
+      return res.type("html").send(
+        buildVerificationExpiredPage({ email, returnUrl, iconSrc })
       );
     }
 
@@ -170,7 +193,6 @@ export const verifyEmailLinkHandler = async (req: Request, res: Response) => {
       return res.redirect(buildRegistrationRedirectUrl({ error: "invalid-link" }));
     }
 
-    const now = moment().toDate();
     const registrationExpiresAt = moment(now).add(registrationWindowMinutes, "minutes").toDate();
     record.isVerified = true;
     record.verifiedAt = now;
@@ -178,7 +200,15 @@ export const verifyEmailLinkHandler = async (req: Request, res: Response) => {
     record.tokenExpiresAt = registrationExpiresAt;
     await record.save();
 
-    return res.redirect(buildRegistrationRedirectUrl({ step: "details", email }));
+    const continueUrl = buildRegistrationRedirectUrl({ step: "details", email });
+    return res.type("html").send(
+      buildVerificationSuccessPage({
+        email,
+        continueUrl,
+        iconSrc,
+        registrationWindowMinutes,
+      })
+    );
   } catch (error) {
     console.error("Verify email link error:", error);
     return res.redirect(buildRegistrationRedirectUrl({ error: "verification-failed" }));

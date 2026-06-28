@@ -1,29 +1,9 @@
-import { readFileSync } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
 import axios from "axios";
-import { getEmailVerificationConfig } from "../config/emailVerification.js";
+import { buildAppIconUrl, getEmailVerificationConfig } from "../config/emailVerification.js";
 import { buildVerificationEmailContent } from "../templates/emailVerificationTemplate.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const BREVO_SEND_EMAIL_URL = "https://api.brevo.com/v3/smtp/email";
 const EXTERNAL_REQUEST_TIMEOUT_MS = 30_000;
-const EMAIL_ICON_FILENAME = "app-icon-email.svg";
-
-const getEmailIconPath = (): string => join(__dirname, "../assets", EMAIL_ICON_FILENAME);
-
-const getAppIconDataUri = (): string => {
-  const content = readFileSync(getEmailIconPath(), "utf8").trim();
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(content)}`;
-};
-
-const resolveAppIconSrc = (): string => {
-  const { apiPublicUrl } = getEmailVerificationConfig();
-  if (apiPublicUrl.includes("localhost")) {
-    return getAppIconDataUri();
-  }
-  return `${apiPublicUrl}/api/public/${EMAIL_ICON_FILENAME}`;
-};
 
 export const sendVerificationEmail = async (to: string, verifyUrl: string): Promise<void> => {
   const { brevoApiKey, brevoFromEmail, brevoFromName } = getEmailVerificationConfig();
@@ -36,7 +16,7 @@ export const sendVerificationEmail = async (to: string, verifyUrl: string): Prom
     throw new Error("BREVO_FROM_EMAIL is not configured");
   }
 
-  const iconSrc = resolveAppIconSrc();
+  const iconSrc = buildAppIconUrl();
   const { html, text } = buildVerificationEmailContent(verifyUrl, iconSrc);
 
   try {

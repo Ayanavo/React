@@ -236,11 +236,53 @@ export const getUserProfile = async (req: Request, res: Response) => {
       if (!decoded) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.status(200).json({ user: formatUserProfileResponse(decoded as Record<string, any>) });
+      const user = decoded as Record<string, any>;
+      res.status(200).json({
+        user: formatUserProfileResponse(user),
+        termsAcceptedAt: user.termsAcceptedAt ?? null,
+        oauthProvider: user.oauthProvider ?? null,
+        requiresTermsAcceptance: !user.oauthProvider && !user.termsAcceptedAt,
+      });
     }
   } catch (error) {
     console.error("Error fetching profile:", error);
     res.status(500).json({ message: "Failed to fetch profile" });
+  }
+};
+
+export const acceptTerms = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.oauthProvider) {
+      return res.status(400).json({ message: "Terms acceptance is not required for this account" });
+    }
+
+    if (user.termsAcceptedAt) {
+      return res.status(200).json({
+        message: "Terms already accepted",
+        termsAcceptedAt: user.termsAcceptedAt.toISOString(),
+      });
+    }
+
+    user.termsAcceptedAt = moment().toDate();
+    await user.save();
+
+    res.status(200).json({
+      message: "Terms accepted successfully",
+      termsAcceptedAt: user.termsAcceptedAt.toISOString(),
+    });
+  } catch (error) {
+    console.error("Accept terms error:", error);
+    res.status(500).json({ message: "Failed to accept terms" });
   }
 };
 
