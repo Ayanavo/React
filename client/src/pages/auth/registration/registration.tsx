@@ -213,6 +213,14 @@ function registration() {
           });
         }
       });
+      return;
+    }
+
+    if (urlStep === "verify" && urlEmail) {
+      setVerifiedEmail(urlEmail);
+      setStep("verify");
+      emailForm.setValue("email", urlEmail);
+      setSearchParams({});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
