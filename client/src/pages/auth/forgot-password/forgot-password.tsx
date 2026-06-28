@@ -1,118 +1,198 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { OTPInput, SlotProps } from "input-otp";
-import { BadgeAlert } from "lucide-react";
-import React, { useEffect, useId, useRef, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { Link } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import showToast from "@/hooks/toast";
+import { useFullPageScroll } from "@/hooks/use-full-page-scroll";
+import { componentMap } from "@/pages/layout/grid/form/field-map";
+import generateControl from "@/pages/layout/grid/form/validation";
+import { forgotPasswordAPI, resendPasswordResetAPI } from "@/shared/services/auth.ts";
 import { LOGIN_PATH } from "@/shared/utils/auth-paths";
+import { BadgeAlert, LoaderCircleIcon } from "lucide-react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { FormProvider } from "react-hook-form";
+import { Link, useSearchParams } from "react-router-dom";
 
-function forgotPassword() {
-  const id = useId();
-  const [timer, setTimer] = useState(0);
-  const [isButtonDisabled, setIsButtonDisabled] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+const emailFieldSchema = [
+  {
+    name: "email",
+    label: "Email",
+    type: "emailsingle",
+    default: "",
+    validation: { required: true, email: true },
+  },
+];
 
-  const onSubmit = (data: { otp: string }) => {
-    console.log("OTP submitted:", data.otp);
-    setIsButtonDisabled(true);
-    setTimer(10);
+function ForgotPassword() {
+  useFullPageScroll();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+  const [isResendDisabled, setIsResendDisabled] = useState(false);
+  const resendTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Start the countdown
-    timerRef.current = setInterval(() => {
-      setTimer((prevTimer) => {
-        if (prevTimer === 1) {
-          clearInterval(timerRef.current!);
-          setIsButtonDisabled(false);
+  const emailForm = generateControl(emailFieldSchema);
+
+  const startResendCooldown = useCallback((seconds: number) => {
+    if (resendTimerRef.current) {
+      clearInterval(resendTimerRef.current);
+    }
+
+    setIsResendDisabled(true);
+    setResendTimer(seconds);
+
+    resendTimerRef.current = setInterval(() => {
+      setResendTimer((prev) => {
+        if (prev <= 1) {
+          if (resendTimerRef.current) {
+            clearInterval(resendTimerRef.current);
+          }
+          setIsResendDisabled(false);
+          return 0;
         }
-        return prevTimer - 1;
+        return prev - 1;
       });
     }, 1000);
-  };
+  }, []);
+
+  useEffect(() => {
+    const urlEmail = searchParams.get("email");
+    if (urlEmail) {
+      emailForm.setValue("email", urlEmail);
+      setSubmittedEmail(urlEmail.trim().toLowerCase());
+      setSearchParams({});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     return () => {
-      timerRef.current && clearInterval(timerRef.current);
+      if (resendTimerRef.current) {
+        clearInterval(resendTimerRef.current);
+      }
     };
   }, []);
 
-  const { control, handleSubmit } = useForm({
-    defaultValues: {
-      otp: "",
-    },
-  });
+  const onSubmit = async (data: Record<string, string>) => {
+    setIsSubmitting(true);
+    try {
+      const response = await forgotPasswordAPI(data.email);
+      const email = data.email.trim().toLowerCase();
+      setSubmittedEmail(email);
+      setEmailSent(true);
+      showToast({ title: response.message, variant: "success" });
+      startResendCooldown(response.resendAvailableIn ?? 60);
+    } catch (error: any) {
+      const retryAfterSeconds = error.response?.data?.retryAfterSeconds;
+      const message = error.response?.data?.message || "Failed to send password reset email";
+      showToast({ title: message, variant: "error" });
 
-  const formId = "otp-form"; // Add a form ID
+      if (error.response?.status === 429 && retryAfterSeconds) {
+        setSubmittedEmail(data.email.trim().toLowerCase());
+        setEmailSent(true);
+        startResendCooldown(retryAfterSeconds);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const onResend = async () => {
+    if (!submittedEmail || isResendDisabled) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await resendPasswordResetAPI(submittedEmail);
+      showToast({ title: response.message, variant: "success" });
+      startResendCooldown(response.resendAvailableIn ?? 60);
+    } catch (error: any) {
+      const retryAfterSeconds = error.response?.data?.retryAfterSeconds;
+      const message = error.response?.data?.message || "Failed to resend password reset email";
+      showToast({ title: message, variant: "error" });
+
+      if (error.response?.status === 429 && retryAfterSeconds) {
+        startResendCooldown(retryAfterSeconds);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const Component = componentMap.emailsingle;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted p-4 md:p-8">
-      <Card className="w-[700px] max-w-4xl overflow-hidden">
-        <div className="p-6 md:p-8">
-          <CardHeader className="p-0 mb-6">
-            <CardTitle>OTP Verification</CardTitle>
+    <div className="min-h-screen w-full bg-muted/60 px-4 py-6 md:px-6 md:py-10">
+      <div className="mx-auto w-full max-w-lg">
+        <Card className="border shadow-lg">
+          <CardHeader className="space-y-1 border-b pb-5">
+            <CardTitle className="text-2xl">Forgot password</CardTitle>
+            <CardDescription>
+              {emailSent
+                ? "Check your inbox for a password reset link."
+                : "Enter your account email and we will send you a reset link."}
+            </CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="*:not-first:mt-2 flex items-center justify-center">
-              <form id={formId} onSubmit={handleSubmit(onSubmit)}>
-                <Controller
-                  name="otp"
-                  control={control}
-                  render={({ field: { onChange, value } }) => (
-                    <OTPInput
-                      id={id}
-                      value={value}
-                      onChange={onChange}
-                      containerClassName="flex items-center gap-3 has-disabled:opacity-50"
-                      maxLength={4}
-                      inputMode={"numeric"}
-                      render={({ slots }) => (
-                        <div className="flex gap-2">
-                          {slots.map((slot, idx) => (
-                            <Slot key={idx} {...slot} />
-                          ))}
-                        </div>
-                      )}
-                    />
+
+          <CardContent className="py-6">
+            {!emailSent ? (
+              <FormProvider {...emailForm}>
+                <form id="forgot-password-form" onSubmit={emailForm.handleSubmit(onSubmit)} className="space-y-4">
+                  {emailFieldSchema.map((field) =>
+                    Component ? <Component key={field.name} form={emailForm} schema={field} /> : null
                   )}
-                />
-              </form>
-            </div>
-          </CardContent>
-          <CardFooter className="flex flex-col items-center gap-2 p-0 mt-6">
-            <Button className="w-full" type="submit" form={formId} disabled={isButtonDisabled}>
-              {isButtonDisabled ? `Resend OTP in ${timer}s` : "Send OTP"}
-            </Button>
-            {isButtonDisabled && (
-              <span className="flex space-x-2">
-                <BadgeAlert fill="green" className="text-white" />
-                <p className="text-sm text-muted-foreground">Otp has been sent to your registered email</p>
-              </span>
+                </form>
+              </FormProvider>
+            ) : (
+              <div className="space-y-4">
+                <div className="rounded-lg border bg-muted/40 p-4">
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    If an account exists for{" "}
+                    <span className="font-medium text-foreground">{submittedEmail}</span>, a password reset link has
+                    been sent. Open the link to set a new password.
+                  </p>
+                </div>
+                {isResendDisabled && (
+                  <div className="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-200">
+                    <BadgeAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                    <span>Reset email sent. The link expires after a short time.</span>
+                  </div>
+                )}
+              </div>
             )}
-            <p className="mt-4 text-sm text-muted-foreground">
+          </CardContent>
+
+          <CardFooter className="flex-col gap-2 border-t px-6 py-4">
+            {!emailSent ? (
+              <Button className="w-full" type="submit" form="forgot-password-form" disabled={isSubmitting}>
+                {isSubmitting && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
+                Send reset link
+              </Button>
+            ) : (
+              <Button className="w-full" type="button" onClick={onResend} disabled={isResendDisabled || isSubmitting}>
+                {isResendDisabled ? `Resend in ${resendTimer}s` : "Resend reset link"}
+              </Button>
+            )}
+            <p className="text-center text-sm text-muted-foreground">
               <Link to={LOGIN_PATH} className="underline underline-offset-4 hover:text-primary">
                 Back to login
               </Link>
             </p>
+            {emailSent && (
+              <button
+                type="button"
+                className="text-sm text-muted-foreground underline underline-offset-4 hover:text-primary"
+                onClick={() => {
+                  setEmailSent(false);
+                  setSubmittedEmail("");
+                }}>
+                Use a different email
+              </button>
+            )}
           </CardFooter>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }
 
-function Slot(props: SlotProps) {
-  return (
-    <div
-      className={cn(
-        "border-input bg-background text-foreground flex size-9 items-center justify-center rounded-md border font-medium shadow-xs transition-[color,box-shadow]",
-        {
-          "border border-input outline-none ring-1 ring-ring": props.isActive,
-        }
-      )}>
-      {props.char !== null && <div>{props.char}</div>}
-    </div>
-  );
-}
-
-export default forgotPassword;
+export default ForgotPassword;

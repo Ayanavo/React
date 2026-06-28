@@ -26,6 +26,7 @@ const routeLabels: Record<string, string> = {
   auth: "Auth",
   login: "Sign in",
   register: "Register",
+  "reset-password": "Reset password",
   "forgot-password": "Forgot password",
   callback: "OAuth callback",
   legal: "Legal",

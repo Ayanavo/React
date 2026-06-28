@@ -7,11 +7,13 @@ import ForgotPasswordComponent from "@/pages/auth/forgot-password/forgot-passwor
 import LoginComponent from "@/pages/auth/login/login";
 import OAuthCallbackComponent from "@/pages/auth/oauth-callback/oauth-callback";
 import RegistrationComponent from "@/pages/auth/registration/registration";
+import ResetPasswordComponent from "@/pages/auth/reset-password/reset-password";
 import {
   ACCEPT_TERMS_PATH,
   FORGOT_PASSWORD_PATH,
   LOGIN_PATH,
   REGISTER_PATH,
+  RESET_PASSWORD_PATH,
 } from "@/shared/utils/auth-paths";
 import TermsAndConditionsComponent from "@/pages/layout/terms/terms";
 import PrivacyPolicyComponent from "@/pages/layout/privacy/privacy";
@@ -117,6 +119,14 @@ const STATIC_ROUTES: RouteConfig[] = [
           </GuestOnly>
         ),
       },
+      {
+        path: "reset-password",
+        element: (
+          <GuestOnly>
+            <ResetPasswordComponent />
+          </GuestOnly>
+        ),
+      },
       { path: "callback", element: <OAuthCallbackComponent /> },
     ],
   },
@@ -124,6 +134,7 @@ const STATIC_ROUTES: RouteConfig[] = [
   { path: "/login", element: <Navigate to={LOGIN_PATH} replace /> },
   { path: "/register", element: <Navigate to={REGISTER_PATH} replace /> },
   { path: "/forgot-password", element: <Navigate to={FORGOT_PASSWORD_PATH} replace /> },
+  { path: "/reset-password", element: <Navigate to={RESET_PASSWORD_PATH} replace /> },
 
   {
     path: "/legal",

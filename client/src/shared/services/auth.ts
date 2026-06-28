@@ -109,6 +109,37 @@ export const forgotPasswordAPI = async (email: string) => {
   return response.data;
 };
 
+export type PasswordResetEmailResponse = {
+  message: string;
+  resendAvailableIn?: number;
+  retryAfterSeconds?: number;
+};
+
+export type PasswordResetStatusResponse = {
+  valid: boolean;
+  reason?: "invalid-link" | "expired-link";
+  email?: string;
+};
+
+export const resendPasswordResetAPI = async (email: string) => {
+  const response = await axiosInstance.post<PasswordResetEmailResponse>(apiUrl + "auth/resend-password-reset", {
+    email,
+  });
+  return response.data;
+};
+
+export const getPasswordResetStatusAPI = async (email: string, token: string) => {
+  const response = await axiosInstance.get<PasswordResetStatusResponse>(apiUrl + "auth/reset-password-status", {
+    params: { email, token },
+  });
+  return response.data;
+};
+
+export const resetPasswordAPI = async (payload: { email: string; token: string; password: string }) => {
+  const response = await axiosInstance.post(apiUrl + "auth/reset-password", payload);
+  return response.data;
+};
+
 export const logoutAPI = async () => {
   try {
     const response = await axiosInstance.post(apiUrl + "auth/logout");
