@@ -15,6 +15,13 @@ import {
   saveUserProfile,
   signUp,
 } from "../controllers/userController.js";
+import {
+  getPasswordResetStatusHandler,
+  requestPasswordResetHandler,
+  resendPasswordResetHandler,
+  resetPasswordHandler,
+  verifyPasswordResetLinkHandler,
+} from "../controllers/passwordResetController.js";
 import { oauthCallbackHandler, startOAuthHandler } from "../controllers/oauthController.js";
 import { handleSaveUserProfileValidation, saveUserProfileValidators } from "../utils/profileValidation.js";
 import { authenticateToken } from "../controllers/userController.js";
@@ -25,6 +32,11 @@ router.post("/send-verification-email", sendVerificationEmailHandler as unknown 
 router.post("/resend-verification-email", resendVerificationEmailHandler as unknown as RequestHandler);
 router.get("/verify-email", verifyEmailLinkHandler as unknown as RequestHandler);
 router.get("/verification-status", getVerificationStatusHandler as unknown as RequestHandler);
+router.post("/forgot-password", requestPasswordResetHandler as unknown as RequestHandler);
+router.post("/resend-password-reset", resendPasswordResetHandler as unknown as RequestHandler);
+router.get("/reset-password", verifyPasswordResetLinkHandler as unknown as RequestHandler);
+router.get("/reset-password-status", getPasswordResetStatusHandler as unknown as RequestHandler);
+router.post("/reset-password", resetPasswordHandler as unknown as RequestHandler);
 router.get("/oauth/callback", oauthCallbackHandler as unknown as RequestHandler);
 router.get("/oauth/:provider", startOAuthHandler as unknown as RequestHandler);
 router.post("/login", login as unknown as RequestHandler);

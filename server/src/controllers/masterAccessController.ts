@@ -69,7 +69,9 @@ export const getPermissions = async (req: Request, res: Response) => {
       permissions: {
         userId,
         allowedRoutes: resolveAllowedRoutes(record?.allowedRoutes),
-        menuOrder: record?.menuOrder?.length ? normalizeMenuOrder(record.menuOrder) : resolveMenuOrder(record?.menuOrder),
+        menuOrder: record?.menuOrder?.length
+          ? normalizeMenuOrder(resolveMenuOrder(record.menuOrder, record.allowedRoutes))
+          : resolveMenuOrder(record?.menuOrder, record?.allowedRoutes),
         isLoggedIn: user?.isLoggedIn ?? false,
         lastLoginAt: user?.lastLoginAt ?? null,
         lastLogoutAt: user?.lastLogoutAt ?? null,
@@ -119,7 +121,9 @@ export const getPermissionsByToken = async (req: Request, res: Response) => {
     const record = await MasterAccess.findOne({ userId }).select("allowedRoutes menuOrder").lean();
     res.status(200).json({
       allowedRoutes: resolveAllowedRoutes(record?.allowedRoutes),
-      menuOrder: record?.menuOrder?.length ? normalizeMenuOrder(record.menuOrder) : resolveMenuOrder(record?.menuOrder),
+      menuOrder: record?.menuOrder?.length
+        ? normalizeMenuOrder(resolveMenuOrder(record.menuOrder, record.allowedRoutes))
+        : resolveMenuOrder(record?.menuOrder, record?.allowedRoutes),
     });
   } catch (error) {
     console.error(error);

@@ -18,6 +18,8 @@ export const getEmailVerificationConfig = () => ({
   tokenTtlMinutes: Number(process.env.EMAIL_VERIFICATION_TOKEN_TTL_MINUTES) || 10,
   registrationWindowMinutes: Number(process.env.REGISTRATION_WINDOW_TTL_MINUTES) || 30,
   resendCooldownSeconds: Number(process.env.EMAIL_VERIFICATION_RESEND_COOLDOWN_SECONDS) || 60,
+  passwordResetTokenTtlMinutes: Number(process.env.PASSWORD_RESET_TOKEN_TTL_MINUTES) || 10,
+  passwordResetResendCooldownSeconds: Number(process.env.PASSWORD_RESET_RESEND_COOLDOWN_SECONDS) || 60,
   brevoApiKey: process.env.BREVO_API_KEY ?? "",
   brevoFromEmail: process.env.BREVO_FROM_EMAIL ?? "",
   brevoFromName: process.env.BREVO_FROM_NAME ?? "Notofy",
@@ -40,4 +42,16 @@ export const buildRegistrationRedirectUrl = (params: Record<string, string>): st
   const { clientUrl } = getEmailVerificationConfig();
   const query = new URLSearchParams(params).toString();
   return `${clientUrl}/#/auth/register?${query}`;
+};
+
+export const buildPasswordResetRedirectUrl = (params: Record<string, string>): string => {
+  const { clientUrl } = getEmailVerificationConfig();
+  const query = new URLSearchParams(params).toString();
+  return `${clientUrl}/#/auth/reset-password?${query}`;
+};
+
+export const buildForgotPasswordRedirectUrl = (params: Record<string, string> = {}): string => {
+  const { clientUrl } = getEmailVerificationConfig();
+  const query = new URLSearchParams(params).toString();
+  return query ? `${clientUrl}/#/auth/forgot-password?${query}` : `${clientUrl}/#/auth/forgot-password`;
 };
