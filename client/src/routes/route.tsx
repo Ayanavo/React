@@ -8,12 +8,14 @@ import LoginComponent from "@/pages/auth/login/login";
 import OAuthCallbackComponent from "@/pages/auth/oauth-callback/oauth-callback";
 import RegistrationComponent from "@/pages/auth/registration/registration";
 import {
+  ACCEPT_TERMS_PATH,
   FORGOT_PASSWORD_PATH,
   LOGIN_PATH,
   REGISTER_PATH,
 } from "@/shared/utils/auth-paths";
 import TermsAndConditionsComponent from "@/pages/layout/terms/terms";
 import PrivacyPolicyComponent from "@/pages/layout/privacy/privacy";
+import RegistrationTermsAcceptanceComponent from "@/pages/auth/registration-terms/registration-terms-acceptance";
 import CVAccessGrid from "@/pages/cv-builder/cv-access-grid";
 import CVBuilder from "@/pages/cv-builder/cv-builder";
 import CoverLetterAccessGrid from "@/pages/cover-letter/cover-letter-access-grid";
@@ -46,14 +48,26 @@ const GuestOnly = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const RequireAuthToken = ({ children }: { children: React.ReactNode }) => {
+  if (!isAuthenticated()) {
+    return <Navigate to={LOGIN_PATH} replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const RequireAuth = ({ children }: { children: React.ReactNode }) => {
-  const { isLoading, isInitialized } = usePermissions();
+  const { isLoading, isInitialized, requiresTermsAcceptance } = usePermissions();
   if (!isAuthenticated()) {
     return <Navigate to={LOGIN_PATH} replace />;
   }
 
   if (!isInitialized || isLoading) {
     return <AppLoader />;
+  }
+
+  if (requiresTermsAcceptance) {
+    return <Navigate to={ACCEPT_TERMS_PATH} replace />;
   }
 
   return <>{children}</>;
@@ -85,6 +99,14 @@ const STATIC_ROUTES: RouteConfig[] = [
           <GuestOnly>
             <RegistrationComponent />
           </GuestOnly>
+        ),
+      },
+      {
+        path: "accept-terms",
+        element: (
+          <RequireAuthToken>
+            <RegistrationTermsAcceptanceComponent />
+          </RequireAuthToken>
         ),
       },
       {

@@ -63,6 +63,9 @@ export type ProfileResponse = {
       isPresent: boolean;
     }>;
   };
+  termsAcceptedAt?: string | null;
+  oauthProvider?: string | null;
+  requiresTermsAcceptance?: boolean;
 };
 
 export const loginAPI = async (payload: LoginPayload) => {
@@ -93,6 +96,11 @@ export const registerAPI = async (payload: RegisterPayload) => {
   if (response.data.token) {
     setAuthToken(response.data.token);
   }
+  return response.data;
+};
+
+export const acceptTermsAPI = async () => {
+  const response = await axiosInstance.post(apiUrl + "auth/accept-terms");
   return response.data;
 };
 

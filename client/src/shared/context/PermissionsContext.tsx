@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { fetchPermissionsByToken } from "@/shared/services/masterAccess";
+import { getCurrentUserAPI } from "@/shared/services/auth.ts";
 import { defaultMenuOrder } from "@/config/nav-order";
 import { connectSocket, disconnectSocket } from "@/shared/services/socket";
 import { AUTH_CHANGED_EVENT, getAuthToken, isAuthenticated } from "@/shared/utils/auth-token";
@@ -10,6 +11,7 @@ type PermissionsContextType = {
   isLoading: boolean;
   isInitialized: boolean;
   error: Error | null;
+  requiresTermsAcceptance: boolean;
   refetchPermissions: () => Promise<void>;
 };
 
@@ -21,6 +23,7 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [requiresTermsAcceptance, setRequiresTermsAcceptance] = useState(false);
   // const [authToken, setAuthToken] = useState<string | null>(sessionStorage.getItem("auth_token"));
 
   const refetchPermissions = useCallback(async () => {
@@ -28,6 +31,7 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
       setPermissions([]);
       setMenuOrder(defaultMenuOrder);
       setError(null);
+      setRequiresTermsAcceptance(false);
       setIsLoading(false);
       setIsInitialized(true);
       return;
@@ -36,13 +40,15 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
     try {
       setIsLoading(true);
       setError(null);
-      const result = await fetchPermissionsByToken();
+      const [result, profile] = await Promise.all([fetchPermissionsByToken(), getCurrentUserAPI()]);
       setPermissions(result.allowedRoutes || []);
       setMenuOrder(result.menuOrder?.length ? result.menuOrder : defaultMenuOrder);
+      setRequiresTermsAcceptance(Boolean(profile.requiresTermsAcceptance));
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to fetch permissions"));
       setPermissions([]);
       setMenuOrder(defaultMenuOrder);
+      setRequiresTermsAcceptance(false);
     } finally {
       setIsLoading(false);
       setIsInitialized(true);
@@ -69,7 +75,8 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
   }, [permissions]);
 
   return (
-    <PermissionsContext.Provider value={{ permissions, menuOrder, isLoading, isInitialized, error, refetchPermissions }}>
+    <PermissionsContext.Provider
+      value={{ permissions, menuOrder, isLoading, isInitialized, error, requiresTermsAcceptance, refetchPermissions }}>
       {children}
     </PermissionsContext.Provider>
   );

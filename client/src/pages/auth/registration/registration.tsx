@@ -17,7 +17,7 @@ import {
   sendVerificationEmailAPI,
 } from "@/shared/services/auth.ts";
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from "@/shared/utils/password-strength";
-import { LOGIN_PATH } from "@/shared/utils/auth-paths";
+import { LOGIN_PATH, ACCEPT_TERMS_PATH } from "@/shared/utils/auth-paths";
 import { PRIVACY_PATH, TERMS_PATH } from "@/shared/utils/policy-paths";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
 import { BadgeAlert, LoaderCircleIcon, MailIcon, ShieldCheckIcon, UserPlusIcon } from "lucide-react";
@@ -331,7 +331,7 @@ function registration() {
 
       const response = await registerAPI(payload);
       showToast({ title: response?.message || "Account created successfully", variant: "success" });
-      navigate("/dashboard");
+      navigate(ACCEPT_TERMS_PATH);
     } catch (error: any) {
       const message = error.response?.data?.message || "Registration failed";
       showToast({ title: message, variant: "error" });

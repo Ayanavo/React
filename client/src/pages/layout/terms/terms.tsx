@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 
 export const SUPPORT_EMAIL = "ayanavo2057@gmail.com";
 
-const TERMS_VERSION = "1.0";
+export const TERMS_VERSION = "1.0";
 
 const termsCardClass = "bg-white dark:bg-card";
 
@@ -132,17 +132,97 @@ function TermsSection({
   );
 }
 
-function TermsAndConditions() {
-  const lastUpdated = useMemo(
-    () =>
-      moment().format("MMMM D, YYYY"),
-    []
-  );
+type TermsContentProps = {
+  introText?: string;
+  className?: string;
+};
+
+export function TermsContent({
+  introText = "These terms govern your access to Notofy. By signing in, you confirm that you have read, understood, and agree to comply with the policies outlined below, including our",
+  className,
+}: TermsContentProps) {
+  const lastUpdated = useMemo(() => moment().format("MMMM D, YYYY"), []);
 
   const openSupportEmail = () => {
     window.location.href = `mailto:${SUPPORT_EMAIL}`;
   };
 
+  return (
+    <div className={cn("space-y-4", className)}>
+      <div className={cn("rounded-lg border border-dashed border-border px-6 py-5 shadow-sm", termsCardClass)}>
+        <h1 className="text-xl font-semibold">Terms & Conditions</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {introText}{" "}
+          <Link to={PRIVACY_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+            Privacy Policy
+          </Link>
+          .
+        </p>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Version {TERMS_VERSION} · Last updated {lastUpdated}
+        </p>
+      </div>
+
+      <div className={cn("rounded-lg border border-dashed border-border p-5 shadow-sm", termsCardClass)}>
+        <div className="mb-4 flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-dotted border-border bg-amber-500/10 text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-base font-semibold">Important notice</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Notofy relies on browser cache and local storage. Disabling site data or using restrictive
+              privacy modes may break core functionality including authentication and saved preferences.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          {POLICY_HIGHLIGHTS.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.title}
+                className="rounded-md border border-dotted border-border bg-muted/20 p-4">
+                <div className="mb-2 flex items-center gap-2">
+                  <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  <p className="text-sm font-medium">{item.title}</p>
+                </div>
+                <p className="text-sm text-muted-foreground">{item.description}</p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {SECTIONS.map((section) => (
+        <TermsSection key={section.title} title={section.title} icon={section.icon}>
+          <div className="space-y-3">
+            {section.paragraphs.map((paragraph) => (
+              <p key={paragraph.slice(0, 48)} className="text-sm leading-relaxed text-muted-foreground">
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </TermsSection>
+      ))}
+
+      <TermsSection title="Contact & support" icon={Mail}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            If you have questions about these terms, contact your workspace administrator or reach out to our
+            support team using the button below.
+          </p>
+          <Button type="button" variant="outline" className="shrink-0" onClick={openSupportEmail}>
+            Email support
+          </Button>
+        </div>
+      </TermsSection>
+    </div>
+  );
+}
+
+function TermsAndConditions() {
   return (
     <div className="h-full min-h-0 overflow-y-auto scrollbar-none">
       <div className="flex flex-col">
@@ -150,77 +230,8 @@ function TermsAndConditions() {
           <BreadcrumbInbuild />
         </div>
 
-        <div className="mx-4 my-2 mb-5 space-y-4">
-          <div className={cn("rounded-lg border border-dashed border-border px-6 py-5 shadow-sm", termsCardClass)}>
-            <h1 className="text-xl font-semibold">Terms & Conditions</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              These terms govern your access to Notofy. By signing in, you confirm that you have read,
-              understood, and agree to comply with the policies outlined below, including our{" "}
-              <Link to={PRIVACY_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
-                Privacy Policy
-              </Link>
-              .
-            </p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Version {TERMS_VERSION} · Last updated {lastUpdated}
-            </p>
-          </div>
-
-          <div className={cn("rounded-lg border border-dashed border-border p-5 shadow-sm", termsCardClass)}>
-            <div className="mb-4 flex items-start gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-dotted border-border bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                <AlertTriangle className="h-4 w-4" aria-hidden="true" />
-              </div>
-              <div className="min-w-0">
-                <h2 className="text-base font-semibold">Important notice</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Notofy relies on browser cache and local storage. Disabling site data or using restrictive
-                  privacy modes may break core functionality including authentication and saved preferences.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              {POLICY_HIGHLIGHTS.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <div
-                    key={item.title}
-                    className="rounded-md border border-dotted border-border bg-muted/20 p-4">
-                    <div className="mb-2 flex items-center gap-2">
-                      <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                      <p className="text-sm font-medium">{item.title}</p>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {SECTIONS.map((section) => (
-            <TermsSection key={section.title} title={section.title} icon={section.icon}>
-              <div className="space-y-3">
-                {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph.slice(0, 48)} className="text-sm leading-relaxed text-muted-foreground">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </TermsSection>
-          ))}
-
-          <TermsSection title="Contact & support" icon={Mail}>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                If you have questions about these terms, contact your workspace administrator or reach out to our
-                support team using the button below.
-              </p>
-              <Button type="button" variant="outline" className="shrink-0" onClick={openSupportEmail}>
-                Email support
-              </Button>
-            </div>
-          </TermsSection>
+        <div className="mx-4 my-2 mb-5">
+          <TermsContent />
         </div>
       </div>
     </div>
