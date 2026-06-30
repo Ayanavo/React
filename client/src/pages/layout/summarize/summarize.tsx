@@ -17,18 +17,30 @@ import {
   type SummarizeErrorInfo,
 } from "@/shared/services/summarize";
 import { setJobSummaryContext } from "@/shared/utils/job-summary-context";
-import { AlertCircle, Bot, FileText, Loader2, Mail, Paperclip, Send, Sparkles, X } from "lucide-react";
+import { AlertCircle, Bot, FileText, History, Loader2, Mail, MessageSquare, Paperclip, Plus, Send, Sparkles, Trash2, X } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./summarize.scss";
 
 const MODEL_STORAGE_KEY = "summarize:selected-model";
+const CHAT_HISTORY_STORAGE_KEY = "summarize:chat-sessions";
+const ACTIVE_SESSION_KEY = "summarize:active-session-id";
+const MAX_STORED_SESSIONS = 50;
 
 type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
   meta?: string;
+};
+
+type ChatSession = {
+  id: string;
+  title: string;
+  messages: Message[];
+  model: GeminiModelId;
+  createdAt: string;
+  updatedAt: string;
 };
 
 function Bubble({ role, children, meta }: { role: "user" | "assistant"; children: React.ReactNode; meta?: string }) {
@@ -77,18 +89,67 @@ function readStoredModel(): GeminiModelId {
   return DEFAULT_GEMINI_MODEL;
 }
 
+function loadChatSessions(): ChatSession[] {
+  try {
+    const raw = localStorage.getItem(CHAT_HISTORY_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as ChatSession[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveChatSessions(sessions: ChatSession[]) {
+  localStorage.setItem(CHAT_HISTORY_STORAGE_KEY, JSON.stringify(sessions.slice(0, MAX_STORED_SESSIONS)));
+}
+
+function getSessionTitle(messages: Message[]): string {
+  const firstUser = messages.find((msg) => msg.role === "user");
+  if (!firstUser) return "New conversation";
+
+  const source = firstUser.meta || firstUser.content;
+  const normalized = source.replace(/\s+/g, " ").trim();
+  if (!normalized) return "New conversation";
+  return normalized.length > 56 ? `${normalized.slice(0, 53)}…` : normalized;
+}
+
+function formatSessionTime(iso: string): string {
+  const date = moment(iso);
+  if (date.isSame(moment(), "day")) return date.format("h:mm A");
+  if (date.isSame(moment().subtract(1, "day"), "day")) return "Yesterday";
+  if (date.isAfter(moment().subtract(7, "days"))) return date.format("ddd");
+  return date.format("MMM D");
+}
+
 function SummarizeComponent() {
   const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [sessions, setSessions] = useState<ChatSession[]>(loadChatSessions);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(
+    () => sessionStorage.getItem(ACTIVE_SESSION_KEY)
+  );
+  const [messages, setMessages] = useState<Message[]>(() => {
+    const storedSessions = loadChatSessions();
+    const activeId = sessionStorage.getItem(ACTIVE_SESSION_KEY);
+    return activeId ? (storedSessions.find((session) => session.id === activeId)?.messages ?? []) : [];
+  });
   const [input, setInput] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedModel, setSelectedModel] = useState<GeminiModelId>(readStoredModel);
+  const [selectedModel, setSelectedModel] = useState<GeminiModelId>(() => {
+    const storedSessions = loadChatSessions();
+    const activeId = sessionStorage.getItem(ACTIVE_SESSION_KEY);
+    const activeSession = activeId ? storedSessions.find((session) => session.id === activeId) : undefined;
+    return activeSession?.model ?? readStoredModel();
+  });
   const [lastError, setLastError] = useState<SummarizeErrorInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const selectedModelOption = GEMINI_MODEL_OPTIONS.find((option) => option.id === selectedModel);
+  const sortedSessions = [...sessions].sort(
+    (a, b) => moment(b.updatedAt).valueOf() - moment(a.updatedAt).valueOf()
+  );
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -97,6 +158,85 @@ function SummarizeComponent() {
   useEffect(() => {
     sessionStorage.setItem(MODEL_STORAGE_KEY, selectedModel);
   }, [selectedModel]);
+
+  useEffect(() => {
+    if (activeSessionId) {
+      sessionStorage.setItem(ACTIVE_SESSION_KEY, activeSessionId);
+      return;
+    }
+    sessionStorage.removeItem(ACTIVE_SESSION_KEY);
+  }, [activeSessionId]);
+
+  const upsertActiveSession = (nextMessages: Message[], model: GeminiModelId, sessionId?: string) => {
+    const now = moment().toISOString();
+    const id = sessionId ?? activeSessionId ?? crypto.randomUUID();
+    const title = getSessionTitle(nextMessages);
+
+    setSessions((prev) => {
+      const existing = prev.find((session) => session.id === id);
+      const nextSession: ChatSession = existing
+        ? {
+            ...existing,
+            title,
+            messages: nextMessages,
+            model,
+            updatedAt: now,
+          }
+        : {
+            id,
+            title,
+            messages: nextMessages,
+            model,
+            createdAt: now,
+            updatedAt: now,
+          };
+
+      const withoutCurrent = prev.filter((session) => session.id !== id);
+      const nextSessions = [nextSession, ...withoutCurrent].slice(0, MAX_STORED_SESSIONS);
+      saveChatSessions(nextSessions);
+      return nextSessions;
+    });
+
+    if (!activeSessionId) {
+      setActiveSessionId(id);
+    }
+
+    return id;
+  };
+
+  const handleNewChat = () => {
+    if (isLoading) return;
+    setActiveSessionId(null);
+    setMessages([]);
+    setInput("");
+    setSelectedFile(null);
+    setLastError(null);
+  };
+
+  const handleSelectSession = (session: ChatSession) => {
+    if (isLoading || session.id === activeSessionId) return;
+    setActiveSessionId(session.id);
+    setMessages(session.messages);
+    setSelectedModel(session.model);
+    setInput("");
+    setSelectedFile(null);
+    setLastError(null);
+  };
+
+  const handleDeleteSession = (sessionId: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (isLoading) return;
+
+    setSessions((prev) => {
+      const nextSessions = prev.filter((session) => session.id !== sessionId);
+      saveChatSessions(nextSessions);
+      return nextSessions;
+    });
+
+    if (activeSessionId === sessionId) {
+      handleNewChat();
+    }
+  };
 
   const buildChatHistory = (nextMessages: Message[]) =>
     nextMessages.map((msg) => ({
@@ -121,6 +261,7 @@ function SummarizeComponent() {
     };
 
     const nextMessages = [...messages, userMessage];
+    const sessionId = upsertActiveSession(nextMessages, selectedModel);
     setMessages(nextMessages);
     setInput("");
     setSelectedFile(null);
@@ -147,19 +288,32 @@ function SummarizeComponent() {
         assistantMeta = modelLabel;
       }
 
-      setMessages((prev) => [
-        ...prev,
+      const withAssistant: Message[] = [
+        ...nextMessages,
         {
           id: crypto.randomUUID(),
           role: "assistant",
           content: assistantContent,
           meta: assistantMeta,
         },
-      ]);
+      ];
+      setMessages(withAssistant);
+      upsertActiveSession(withAssistant, selectedModel, sessionId);
     } catch (error) {
       const errorInfo = parseSummarizeError(error, selectedModel);
       setLastError(errorInfo);
-      setMessages((prev) => prev.slice(0, -1));
+      setMessages(messages);
+
+      if (messages.length > 0) {
+        upsertActiveSession(messages, selectedModel, sessionId);
+      } else {
+        setSessions((current) => {
+          const nextSessions = current.filter((session) => session.id !== sessionId);
+          saveChatSessions(nextSessions);
+          return nextSessions;
+        });
+        setActiveSessionId(null);
+      }
 
       showToast({
         title: errorInfo.title,
@@ -235,6 +389,7 @@ function SummarizeComponent() {
         </div>
       </div>
 
+      <div className="summarize-page__body">
       <section className="summarize-chat" aria-label="Summarize chat">
         <div className="summarize-chat__messages">
           {messages.length === 0 && !lastError ?
@@ -355,6 +510,69 @@ function SummarizeComponent() {
           </div>
         </form>
       </section>
+
+      <aside className="summarize-history" aria-label="Chat history">
+        <div className="summarize-history__header">
+          <div className="summarize-history__title-row">
+            <History className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <h2 className="summarize-history__title">Chat history</h2>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="summarize-history__new"
+            disabled={isLoading}
+            onClick={handleNewChat}>
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            New chat
+          </Button>
+        </div>
+
+        <div className="summarize-history__list">
+          {sortedSessions.length === 0 ?
+            <div className="summarize-history__empty">
+              <MessageSquare className="summarize-history__empty-icon" aria-hidden="true" />
+              <p className="summarize-history__empty-title">No conversations yet</p>
+              <p className="summarize-history__empty-text">
+                Your summarize chats are saved here so you can return to them later.
+              </p>
+            </div>
+          : sortedSessions.map((session) => {
+              const isActive = session.id === activeSessionId;
+              const modelLabel =
+                GEMINI_MODEL_OPTIONS.find((option) => option.id === session.model)?.label ?? session.model;
+
+              return (
+                <button
+                  key={session.id}
+                  type="button"
+                  className={cn("summarize-history__item", isActive && "summarize-history__item--active")}
+                  disabled={isLoading}
+                  onClick={() => handleSelectSession(session)}>
+                  <div className="summarize-history__item-main">
+                    <p className="summarize-history__item-title">{session.title}</p>
+                    <p className="summarize-history__item-meta">
+                      {formatSessionTime(session.updatedAt)} · {session.messages.length} messages · {modelLabel}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="summarize-history__delete"
+                    aria-label={`Delete ${session.title}`}
+                    disabled={isLoading}
+                    onClick={(event) => handleDeleteSession(session.id, event)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </button>
+              );
+            })
+          }
+        </div>
+      </aside>
+      </div>
     </div>
   );
 }

@@ -31,6 +31,7 @@ import {
     type UserContactInfo,
 } from "@/shared/utils/profile-contact";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import moment from "moment";
 import { FilePlus, Loader2, Save } from "lucide-react";
 import React, { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
@@ -75,7 +76,7 @@ const CoverLetterBuilderContent = () => {
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const queryClient = useQueryClient();
-  const { elements, pageProperties, commitEdits, loadCVState, setCvName, setOnRequestSave } = useCV();
+  const { elements, pageProperties, commitEdits, loadCVState, setCvName, cvName, setOnRequestSave } = useCV();
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
   const [name, setName] = useState("");
@@ -208,10 +209,28 @@ const CoverLetterBuilderContent = () => {
     setIsSubmitDialogOpen(true);
   }, [commitEdits, elements, tags]);
 
+  const handleDownloadRequest = useCallback(
+    (afterSave?: (savedName: string) => void) => {
+      if (!afterSave) {
+        openSubmitDialog();
+        return;
+      }
+
+      commitEdits();
+      const fileName =
+        cvName.trim() ||
+        name.trim() ||
+        findCoverLetterName(elements) ||
+        `Cover_Letter_${moment().format("YYYY-MM-DD")}`;
+      afterSave(fileName);
+    },
+    [commitEdits, cvName, name, elements, openSubmitDialog]
+  );
+
   useEffect(() => {
-    setOnRequestSave(openSubmitDialog);
+    setOnRequestSave(handleDownloadRequest);
     return () => setOnRequestSave(null);
-  }, [openSubmitDialog, setOnRequestSave]);
+  }, [handleDownloadRequest, setOnRequestSave]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
