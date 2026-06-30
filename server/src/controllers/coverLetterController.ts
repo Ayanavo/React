@@ -10,6 +10,7 @@ import {
 
 const COVER_LETTER_DRAFT_PROMPT =
   "You are a professional cover letter writer. Given a job summary, write a tailored cover letter draft. " +
+  "Write entirely in the first person from the applicant's perspective (use I, me, and my; never refer to the applicant by name or in third person). " +
   "Respond ONLY with valid JSON (no markdown fences) in this exact shape:\n" +
   '{"salutation":"Dear Hiring Manager,","body":["paragraph 1","paragraph 2"],"closing":"Sincerely,"}\n' +
   "Rules: body must contain only the main letter paragraphs. Do not repeat the salutation or any sign-off in body. " +
@@ -66,12 +67,19 @@ export const generateCoverLetterDraft = async (req: Request, res: Response) => {
   try {
     const jobSummary = typeof req.body?.jobSummary === "string" ? req.body.jobSummary.trim() : "";
     const sourceText = typeof req.body?.sourceText === "string" ? req.body.sourceText.trim() : "";
+    const applicantName = typeof req.body?.applicantName === "string" ? req.body.applicantName.trim() : "";
+    const applicantRole = typeof req.body?.applicantRole === "string" ? req.body.applicantRole.trim() : "";
 
     if (!jobSummary && !sourceText) {
       return res.status(400).json({ message: "jobSummary or sourceText is required", code: "MISSING_DATA" });
     }
 
-    const content = [jobSummary && `Job summary:\n${jobSummary}`, sourceText && `Original posting:\n${sourceText}`]
+    const content = [
+      applicantName && `Applicant name: ${applicantName}`,
+      applicantRole && `Applicant current role: ${applicantRole}`,
+      jobSummary && `Job summary:\n${jobSummary}`,
+      sourceText && `Original posting:\n${sourceText}`,
+    ]
       .filter(Boolean)
       .join("\n\n");
 
