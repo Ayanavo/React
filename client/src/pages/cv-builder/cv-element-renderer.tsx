@@ -1,5 +1,6 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { type CVElement, useCV } from "@/lib/useCV";
+import { fontWeightMap } from "@/lib/utils";
 import { Trash } from "lucide-react";
 import React, { useRef } from "react";
 import CvDateRenderer from "./cv-date-renderer";
@@ -35,9 +36,10 @@ const CVElementRenderer = ({
     removeHeader,
     showSectionDividers,
     pageProperties,
-    locationDropdownElementId,
+    isCapturing,
   } = useCV();
   const headerRef = useRef<HTMLDivElement>(null);
+  const captureReadonly = readonly || isCapturing;
   // const isSelected = selectedElementId === element.id || selectedHeaderId === element.id;
 
   // ---------- SECTION ----------
@@ -78,7 +80,7 @@ const CVElementRenderer = ({
             </Tooltip>
           </TooltipProvider>
         )}
-        {headerChild && <CVElementRenderer key={headerChild.id} element={headerChild} readonly={readonly} />}
+        {headerChild && <CVElementRenderer key={headerChild.id} element={headerChild} readonly={captureReadonly} />}
         <div className="flex w-full h-full">
           {blockChildren.map((child, idx) => {
             const fallback = 100 / blockChildren.length;
@@ -95,7 +97,7 @@ const CVElementRenderer = ({
                   element={child}
                   sectionCount={sectionCount}
                   blockCount={blockChildren.length}
-                  readonly={readonly}
+                  readonly={captureReadonly}
                 />
               </div>
             );
@@ -109,10 +111,24 @@ const CVElementRenderer = ({
   if (element.type === "header") {
     const headerStyle = element.properties?.headerStyle;
     const isHeaderSelected = selectedHeaderId === element.id;
+    const headerLines = headerStyle?.lines?.filter((line) => line.text.trim());
+
+    const updateHeaderLines = (nextLines: NonNullable<typeof headerStyle>["lines"]) => {
+      updateElement(element.id, {
+        properties: {
+          ...element.properties,
+          headerStyle: {
+            ...headerStyle,
+            lines: nextLines,
+            content: nextLines?.map((line) => line.text).join("\n") ?? headerStyle?.content,
+          },
+        },
+      });
+    };
 
     return (
       <div
-        className="w-full px-4 py-3 flex-shrink-0"
+        className="w-full px-4 py-4 flex-shrink-0"
         style={{
           backgroundColor: headerStyle?.backgroundColor ?? "transparent",
         }}>
@@ -137,53 +153,97 @@ const CVElementRenderer = ({
               display: headerStyle?.underline?.width === "fullWidth" ? "block" : "inline-block",
               maxWidth: "100%",
             }}>
-            <div
-              ref={headerRef}
-              contentEditable={!readonly}
-              suppressContentEditableWarning
-              data-placeholder="Section Header"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!readonly) {
-                  selectHeaderByElementId(element.id);
-                }
-              }}
-              onBlur={() => {
-                updateElement(element.id, {
-                  properties: {
-                    ...element.properties,
-                    headerStyle: {
-                      ...headerStyle,
-                      content: headerRef.current?.innerText ?? headerStyle?.content,
+            {headerLines && headerLines.length > 0 ?
+              <div
+                className={`space-y-0.5 px-1 transition rounded-sm ${
+                  isHeaderSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!readonly) {
+                    selectHeaderByElementId(element.id);
+                  }
+                }}>
+                {headerLines.map((line, index) => (
+                  <div
+                    key={`${element.id}-line-${index}`}
+                    contentEditable={!readonly}
+                    suppressContentEditableWarning
+                    onBlur={(event) => {
+                      const nextLines = [...(headerStyle?.lines ?? [])];
+                      nextLines[index] = { ...nextLines[index], text: event.currentTarget.innerText };
+                      updateHeaderLines(nextLines);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPaste={(e) => {
+                      e.preventDefault();
+                      const text = e.clipboardData.getData("text/plain");
+                      document.execCommand("insertText", false, text);
+                    }}
+                    className="cursor-text outline-none leading-snug"
+                    style={{
+                      color: line.color ?? headerStyle?.color ?? "inherit",
+                      fontSize: line.fontSize ? `${line.fontSize}px` : headerStyle?.fontSize ? `${headerStyle.fontSize}px` : undefined,
+                      fontWeight: line.fontWeight ? fontWeightMap[line.fontWeight] : undefined,
+                      whiteSpace: "pre-wrap",
+                      cursor: readonly ? "default" : "text",
+                    }}>
+                    {line.text}
+                  </div>
+                ))}
+              </div>
+            : <div
+                ref={headerRef}
+                contentEditable={!readonly}
+                suppressContentEditableWarning
+                data-placeholder="Section Header"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!readonly) {
+                    selectHeaderByElementId(element.id);
+                  }
+                }}
+                onBlur={() => {
+                  updateElement(element.id, {
+                    properties: {
+                      ...element.properties,
+                      headerStyle: {
+                        ...headerStyle,
+                        content: headerRef.current?.innerText ?? headerStyle?.content,
+                      },
                     },
-                  },
-                });
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                  });
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    document.execCommand("insertLineBreak");
+                  }
+                }}
+                onPaste={(e) => {
                   e.preventDefault();
-                  document.execCommand("insertLineBreak");
-                }
-              }}
-              onPaste={(e) => {
-                e.preventDefault();
-                const text = e.clipboardData.getData("text/plain");
-                document.execCommand("insertText", false, text);
-              }}
-              className={`
+                  const text = e.clipboardData.getData("text/plain");
+                  document.execCommand("insertText", false, text);
+                }}
+                className={`
             cursor-text outline-none whitespace-pre-wrap px-1 transition rounded-sm
             empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground
             ${isHeaderSelected ? "ring-2 ring-primary bg-primary/5" : "ring-1 ring-transparent hover:ring-muted"}
           `}
-              style={{
-                color: headerStyle?.color ?? "inherit",
-                fontSize: headerStyle?.fontSize ? `${headerStyle.fontSize}px` : undefined,
-                outline: "none",
-                whiteSpace: "pre-wrap",
-                cursor: readonly ? "default" : "text",
-              }}>
-              {headerStyle?.content || ""}
-            </div>
+                style={{
+                  color: headerStyle?.color ?? "inherit",
+                  fontSize: headerStyle?.fontSize ? `${headerStyle.fontSize}px` : undefined,
+                  outline: "none",
+                  whiteSpace: "pre-wrap",
+                  cursor: readonly ? "default" : "text",
+                }}>
+                {headerStyle?.content || ""}
+              </div>
+            }
 
             {headerStyle?.underline?.enabled && (
               <div
@@ -191,7 +251,7 @@ const CVElementRenderer = ({
                 style={{
                   marginTop: `${headerStyle.underline.gap ?? 4}px`,
                   width: "100%",
-                  color: headerStyle?.color ?? "inherit",
+                  color: headerLines?.[0]?.color ?? headerStyle?.color ?? "inherit",
                 }}
               />
             )}
@@ -203,13 +263,9 @@ const CVElementRenderer = ({
 
   // ---------- BLOCK ----------
   if (element.type === "block") {
-    const containsOpenLocationDropdown =
-      Boolean(locationDropdownElementId) &&
-      (element.children?.some((child) => child.id === locationDropdownElementId) ?? false);
-
     return (
       <div
-        className={`relative h-full min-h-0 p-4 ${containsOpenLocationDropdown ? "overflow-visible" : "overflow-y-auto"} ${selectedBlockId === element.id ? "bg-zinc-50" : ""}`}>
+        className={`relative p-4 overflow-visible ${selectedBlockId === element.id ? "bg-zinc-50" : ""}`}>
         {!readonly && selectedBlockId === element.id && (blockCount ?? 0) > 1 && (
           <TooltipProvider>
             <Tooltip>
@@ -228,7 +284,7 @@ const CVElementRenderer = ({
           </TooltipProvider>
         )}
         {element.children?.map((child) => (
-          <CVElementRenderer key={child.id} element={child} readonly={readonly} />
+          <CVElementRenderer key={child.id} element={child} readonly={captureReadonly} />
         ))}
       </div>
     );
@@ -238,21 +294,21 @@ const CVElementRenderer = ({
   const renderContent = () => {
     switch (element.type) {
       case "text":
-        return <CvTextRenderer element={element} readonly={readonly} />;
+        return <CvTextRenderer element={element} readonly={captureReadonly} />;
       case "list":
-        return <CvListRenderer element={element} readonly={readonly} />;
+        return <CvListRenderer element={element} readonly={captureReadonly} />;
       case "date":
-        return <CvDateRenderer element={element} readonly={readonly} />;
+        return <CvDateRenderer element={element} readonly={captureReadonly} />;
       case "token":
-        return <CvTokenRenderer element={element} readonly={readonly} />;
+        return <CvTokenRenderer element={element} readonly={captureReadonly} />;
       case "image":
-        return <CvImageRenderer element={element} readonly={readonly} />;
+        return <CvImageRenderer element={element} readonly={captureReadonly} />;
       case "icon":
-        return <CvIconRenderer element={element} readonly={readonly} />;
+        return <CvIconRenderer element={element} readonly={captureReadonly} />;
       case "location":
-        return <CvLocationRenderer element={element} readonly={readonly} />;
+        return <CvLocationRenderer element={element} readonly={captureReadonly} />;
       case "quote":
-        return <CvQuoteRenderer element={element} readonly={readonly} />;
+        return <CvQuoteRenderer element={element} readonly={captureReadonly} />;
       default:
         return <div>{element.content}</div>;
     }

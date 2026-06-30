@@ -1,4 +1,8 @@
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import GenerationProgressDialog, {
+  type GenerationStep,
+  type GenerationStepStatus,
+} from "@/components/inbuild/generation-progress-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import showToast from "@/hooks/toast";
 import { CVElement, CVProvider, useCV } from "@/lib/useCV";
+import { cn } from "@/lib/utils";
 import {
   checkAtsScore,
   fetchCVBuilderById,
@@ -24,10 +29,11 @@ import {
   type CVSubmitPayload,
   type CVTemplateRecord,
 } from "@/shared/services/cvbuilder";
+import type { GeminiModelId } from "@/shared/services/summarize";
 import { ApiMessageResponse } from "@/shared/types/api";
 import { getTags, type TagRecord } from "@/shared/services/tag";
 import { useConfirmDialog } from "@/shared/confirmation";
-import { consumeJobSummaryContext } from "@/shared/utils/job-summary-context";
+import { consumeJobSummaryContext, type JobSummaryContext } from "@/shared/utils/job-summary-context";
 import {
   mapProfileUserToContactInfo,
   seedEmptyCvWithProfile,
@@ -43,8 +49,13 @@ import Pallet from "./pallet";
 import AtsDialog from "./ats-dialog";
 import CvTemplateDialog from "./cv-template-dialog";
 import { atsBadgeClassName, atsRecordToResponse, formatAtsBadgeLabel, toAtsAnalysisRecord } from "./ats-utils";
+import { buildSummarizeCvAsync, type CvBuildPhase } from "./cv-summary-seed";
 import { extractCVContent } from "./cv-extractor";
 import { hasMeaningfulCvContent, regenerateElementIds } from "./cv-template-utils";
+import {
+  buildCvPdfFileName,
+  extractCompanyNameFromJobText,
+} from "@/shared/utils/cv-export-filename";
 
 type CVTag = string;
 
@@ -67,12 +78,55 @@ const findCVName = (elements: CVElement[]) => {
   return "Untitled CV";
 };
 
+const CV_GENERATION_STEPS = [
+  { id: "profile", label: "Loading your profile" },
+  { id: "contact", label: "Formatting contact header" },
+  { id: "summary", label: "Writing professional summary" },
+  { id: "experience", label: "Building work experience" },
+  { id: "education", label: "Adding education & certifications" },
+  { id: "parse-job", label: "Parsing job summary" },
+  { id: "role", label: "Applying role analysis" },
+  { id: "skills", label: "Extracting skills & keywords" },
+  { id: "layout", label: "Applying layout & styling" },
+  { id: "load", label: "Loading content into editor" },
+  { id: "ats", label: "Analyzing job match" },
+  { id: "finalize", label: "Finalizing editor" },
+] as const;
+
+const CV_GENERATION_STEP_IDS = CV_GENERATION_STEPS.map((step) => step.id);
+
+const yieldToUi = () =>
+  new Promise<void>((resolve) => {
+    requestAnimationFrame(() => resolve());
+  });
+
+const createCvGenerationSteps = (): GenerationStep[] =>
+  CV_GENERATION_STEPS.map((step) => ({ ...step, status: "pending" }));
+
+const updateGenerationStep = (steps: GenerationStep[], id: string, status: GenerationStepStatus) =>
+  steps.map((step) => (step.id === id ? { ...step, status } : step));
+
+const activateGenerationStep = (steps: GenerationStep[], activeId: string) => {
+  const activeIndex = CV_GENERATION_STEP_IDS.indexOf(activeId as (typeof CV_GENERATION_STEP_IDS)[number]);
+  if (activeIndex < 0) return steps;
+
+  return steps.map((step, index) => {
+    if (index < activeIndex) return { ...step, status: "complete" as const };
+    if (index === activeIndex) return { ...step, status: "active" as const };
+    if (step.status === "complete") return step;
+    return { ...step, status: "pending" as const };
+  });
+};
+
+const completeGenerationSteps = (steps: GenerationStep[], ids: string[]) =>
+  steps.map((step) => (ids.includes(step.id) ? { ...step, status: "complete" as const } : step));
+
 const CVBuilderContent = () => {
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const queryClient = useQueryClient();
   const { confirm } = useConfirmDialog();
-  const { elements, pageProperties, commitEdits, loadCVState, setCvName, setOnRequestSave } = useCV();
+  const { elements, pageProperties, commitEdits, loadCVState, setCvName, cvName, setOnRequestSave, setResolveExportFileName } = useCV();
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isAtsDialogOpen, setIsAtsDialogOpen] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
@@ -81,8 +135,11 @@ const CVBuilderContent = () => {
   const [tag, setTag] = useState<CVTag>("");
   const [atsResult, setAtsResult] = useState<AtsCheckResponse | null>(null);
   const [isAtsChecking, setIsAtsChecking] = useState(false);
+  const [isGenerationDialogOpen, setIsGenerationDialogOpen] = useState(false);
+  const [generationSteps, setGenerationSteps] = useState<GenerationStep[]>(createCvGenerationSteps);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const autoAtsAttemptedRef = useRef<string | null>(null);
-  const profileSeededRef = useRef(false);
+  const createInitRef = useRef(false);
 
   const { data: currentUser, isLoading: isProfileLoading } = useQuery({
     queryKey: ["current-user-profile"],
@@ -133,31 +190,103 @@ const CVBuilderContent = () => {
   }, [cvBuilder, loadCVState, setCvName, tags]);
 
   useEffect(() => {
-    if (isEditMode) return;
-
-    const jobContext = consumeJobSummaryContext();
-    if (!jobContext) return;
-
-    const jobText = jobContext.summary?.trim() || jobContext.sourceText?.trim() || "";
-    if (jobText) {
-      setJob(jobText);
-    }
-  }, [isEditMode]);
-
-  useEffect(() => {
-    if (isEditMode || profileSeededRef.current || isProfileLoading || isFetching) return;
+    if (isEditMode || createInitRef.current || isProfileLoading || isFetching) return;
     if (!currentUser?.user) return;
-    if (!hasMeaningfulCvContent(elements)) {
+
+    createInitRef.current = true;
+    const jobContext = consumeJobSummaryContext();
+
+    if (!jobContext) {
+      if (!hasMeaningfulCvContent(elements)) {
+        const contactInfo = mapProfileUserToContactInfo(currentUser.user);
+        const seeded = seedEmptyCvWithProfile(elements, contactInfo);
+        loadCVState(seeded, pageProperties);
+        if (contactInfo.fullName) {
+          const suggestedName = `${contactInfo.fullName} CV`;
+          setName(suggestedName);
+          setCvName(suggestedName);
+        }
+      }
+      return;
+    }
+
+    const runSummarizeInitialization = async (context: JobSummaryContext) => {
+      setGenerationError(null);
+      setGenerationSteps(createCvGenerationSteps());
+      setIsGenerationDialogOpen(true);
+
+      const setStep = (id: string, status: GenerationStepStatus) => {
+        setGenerationSteps((current) => updateGenerationStep(current, id, status));
+      };
+
+      const activateStep = async (id: string) => {
+        setGenerationSteps((current) => activateGenerationStep(current, id));
+        await yieldToUi();
+      };
+
       const contactInfo = mapProfileUserToContactInfo(currentUser.user);
-      const seeded = seedEmptyCvWithProfile(elements, contactInfo);
-      loadCVState(seeded, pageProperties);
+      const summaryText = context.summary?.trim() || "";
+      const jobText = summaryText || context.sourceText?.trim() || "";
+
+      setGenerationSteps((current) => updateGenerationStep(current, "profile", "complete"));
+      await yieldToUi();
+
+      const built = await buildSummarizeCvAsync(currentUser.user, summaryText, async (phase: CvBuildPhase) => {
+        await activateStep(phase);
+      });
+
+      if (built.skippedPhases?.length) {
+        setGenerationSteps((current) => completeGenerationSteps(current, built.skippedPhases!));
+        await yieldToUi();
+      }
+
+      await activateStep("load");
+      loadCVState(built.elements, built.pageProperties);
       if (contactInfo.fullName) {
         const suggestedName = `${contactInfo.fullName} CV`;
         setName(suggestedName);
         setCvName(suggestedName);
       }
-      profileSeededRef.current = true;
-    }
+
+      if (jobText) {
+        setJob(jobText);
+      }
+
+      await yieldToUi();
+      setStep("load", "complete");
+      await activateStep("ats");
+
+      if (jobText) {
+        const extracted = extractCVContent(built.elements, built.pageProperties);
+        if (extracted.text.trim()) {
+          setIsAtsChecking(true);
+          try {
+            const result = await checkAtsScore({
+              cvText: extracted.text,
+              jobDescription: jobText,
+              colors: extracted.colors,
+              pageProperties: extracted.pageProperties,
+              model: context.model as GeminiModelId | undefined,
+            });
+            setAtsResult(result);
+          } catch {
+            setGenerationError("ATS analysis could not be completed. You can run it manually later.");
+          } finally {
+            setIsAtsChecking(false);
+          }
+        }
+      }
+
+      setStep("ats", "complete");
+      await activateStep("finalize");
+
+      await yieldToUi();
+
+      setStep("finalize", "complete");
+      setIsGenerationDialogOpen(false);
+    };
+
+    void runSummarizeInitialization(jobContext);
   }, [
     isEditMode,
     isProfileLoading,
@@ -302,6 +431,28 @@ const CVBuilderContent = () => {
     return () => setOnRequestSave(null);
   }, [openSubmitDialog, setOnRequestSave]);
 
+  useEffect(() => {
+    setResolveExportFileName(() => {
+      const userName =
+        name.trim().replace(/\s+CV$/i, "") ||
+        cvName.trim().replace(/\s+CV$/i, "") ||
+        cvBuilder?.name?.trim().replace(/\s+CV$/i, "") ||
+        (currentUser?.user ?
+          mapProfileUserToContactInfo(currentUser.user).fullName
+        : "") ||
+        "User";
+
+      const companyName =
+        extractCompanyNameFromJobText(job.trim() || cvBuilder?.job || "") ||
+        (currentUser?.user ? mapProfileUserToContactInfo(currentUser.user).companyName : undefined) ||
+        "Company";
+
+      return buildCvPdfFileName({ userName, companyName });
+    });
+
+    return () => setResolveExportFileName(null);
+  }, [name, cvName, job, cvBuilder, currentUser, setResolveExportFileName]);
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     // Sync the name to the context so Canvas can use it for PDF filename
@@ -339,7 +490,12 @@ const CVBuilderContent = () => {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
-      <div className="flex flex-none flex-col gap-2 border-b border-border/60 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6">
+      <div
+        className={cn(
+          "flex flex-none flex-col gap-2 border-b border-border/60 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6",
+          isGenerationDialogOpen && "pointer-events-none opacity-60"
+        )}
+        aria-hidden={isGenerationDialogOpen}>
         <BreadcrumbInbuild isEditMode={isEditMode} className="w-full min-w-0" />
 
         <div className="ml-auto flex w-full shrink-0 items-center justify-end gap-2 overflow-x-auto md:w-auto">
@@ -347,7 +503,7 @@ const CVBuilderContent = () => {
             type="button"
             variant="outline"
             onClick={() => setIsTemplateDialogOpen(true)}
-            disabled={isFetching}
+            disabled={isFetching || isGenerationDialogOpen}
             className="h-9 shrink-0 gap-2 px-2.5 md:px-4">
             <LayoutTemplate className="h-4 w-4" />
             <span className="hidden md:inline">Templates</span>
@@ -356,7 +512,7 @@ const CVBuilderContent = () => {
             type="button"
             variant="outline"
             onClick={() => setIsAtsDialogOpen(true)}
-            disabled={isFetching || isAtsChecking}
+            disabled={isFetching || isAtsChecking || isGenerationDialogOpen}
             className="h-9 shrink-0 gap-2 px-2.5 md:px-4">
             {isAtsChecking ?
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -369,7 +525,7 @@ const CVBuilderContent = () => {
           <Button
             type="button"
             onClick={() => openSubmitDialog()}
-            disabled={mutation.isPending || isFetching}
+            disabled={mutation.isPending || isFetching || isGenerationDialogOpen}
             className="h-9 shrink-0 gap-2 px-2.5 md:px-4">
             {mutation.isPending ?
               <>
@@ -390,7 +546,21 @@ const CVBuilderContent = () => {
         </div>
       </div>
 
-      <BuilderWorkspace pallet={<Pallet />} />
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col overflow-hidden",
+          isGenerationDialogOpen && "pointer-events-none opacity-60"
+        )}>
+        <BuilderWorkspace pallet={<Pallet />} />
+      </div>
+
+      <GenerationProgressDialog
+        open={isGenerationDialogOpen}
+        title="Preparing your CV"
+        description="Setting up your CV from the job summary. Please wait while the editor is prepared."
+        steps={generationSteps}
+        errorMessage={generationError}
+      />
 
       <CvTemplateDialog
         open={isTemplateDialogOpen}

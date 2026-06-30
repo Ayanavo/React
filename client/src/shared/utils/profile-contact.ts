@@ -1,6 +1,6 @@
 import type { ProfileResponse } from "@/shared/services/auth";
 import { getCurrentUserAPI } from "@/shared/services/auth";
-import type { CVElement } from "@/lib/useCV";
+import type { CVElement, fontWeight } from "@/lib/useCV";
 
 export type UserContactInfo = {
   fullName: string;
@@ -9,12 +9,19 @@ export type UserContactInfo = {
   city?: string;
   state?: string;
   designation?: string;
+  companyName?: string;
+};
+
+export type CoverLetterHeaderLine = {
+  text: string;
+  fontSize: number;
+  fontWeight: fontWeight;
+  color: string;
 };
 
 const CLOSING_LINE_PATTERN =
   /^(sincerely|best regards|kind regards|warm regards|regards|yours truly|respectfully|thank you)[,.!\s]*$/i;
 
-const PLACEHOLDER_HEADER = "[Your Name]\n[Email] · [Phone]\n[City, Country]";
 
 export function mapProfileUserToContactInfo(user: ProfileResponse["user"] & { email?: string }): UserContactInfo {
   const currentCompany = user.companies?.find((company) => company.isPresent) ?? user.companies?.[0];
@@ -26,6 +33,7 @@ export function mapProfileUserToContactInfo(user: ProfileResponse["user"] & { em
     city: user.address?.city?.trim() || undefined,
     state: user.address?.state?.trim() || undefined,
     designation: currentCompany?.designation?.trim() || undefined,
+    companyName: currentCompany?.companyName?.trim() || undefined,
   };
 }
 
@@ -39,26 +47,44 @@ export async function fetchUserContactInfo(): Promise<UserContactInfo | null> {
   }
 }
 
-export function buildCoverLetterHeaderContent(info?: UserContactInfo | null): string {
-  if (!info?.fullName) return PLACEHOLDER_HEADER;
-
-  const lines: string[] = [info.fullName];
-
-  if (info.designation) {
-    lines.push(info.designation);
+export function buildCoverLetterHeaderLines(info?: UserContactInfo | null): CoverLetterHeaderLine[] {
+  if (!info?.fullName) {
+    return [
+      { text: "[Your Name]", fontSize: 22, fontWeight: "bold", color: "#0f172a" },
+      { text: "[Email]", fontSize: 12, fontWeight: "normal", color: "#475569" },
+      { text: "[Phone]", fontSize: 12, fontWeight: "normal", color: "#475569" },
+      { text: "[City, Country]", fontSize: 12, fontWeight: "normal", color: "#64748b" },
+    ];
   }
 
-  const contactParts = [info.email, info.mobile].filter(Boolean);
-  if (contactParts.length) {
-    lines.push(contactParts.join(" · "));
+  const lines: CoverLetterHeaderLine[] = [
+    { text: info.fullName, fontSize: 22, fontWeight: "bold", color: "#0f172a" },
+  ];
+
+  if (info.designation) {
+    lines.push({ text: info.designation, fontSize: 14, fontWeight: "medium", color: "#2563eb" });
+  }
+
+  if (info.email) {
+    lines.push({ text: info.email, fontSize: 12, fontWeight: "normal", color: "#475569" });
+  }
+
+  if (info.mobile) {
+    lines.push({ text: info.mobile, fontSize: 12, fontWeight: "normal", color: "#475569" });
   }
 
   const location = [info.city, info.state].filter(Boolean).join(", ");
   if (location) {
-    lines.push(location);
+    lines.push({ text: location, fontSize: 12, fontWeight: "normal", color: "#64748b" });
   }
 
-  return lines.join("\n");
+  return lines;
+}
+
+export function buildCoverLetterHeaderContent(info?: UserContactInfo | null): string {
+  return buildCoverLetterHeaderLines(info)
+    .map((line) => line.text)
+    .join("\n");
 }
 
 export function buildCoverLetterClosing(info?: UserContactInfo | null): string {

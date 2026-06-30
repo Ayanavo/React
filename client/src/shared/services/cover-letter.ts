@@ -57,6 +57,8 @@ export const generateCoverLetterDraft = async (payload: {
   jobSummary: string;
   sourceText?: string;
   model?: GeminiModelId;
+  applicantName?: string;
+  applicantRole?: string;
 }) => {
   const response = await axiosInstance.post<CoverLetterDraftResponse>(`${apiUrl}cover-letter/generate-draft`, payload);
   return response.data;

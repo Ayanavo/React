@@ -66,6 +66,12 @@ export interface CVElement {
     };
     headerStyle?: {
       content?: string;
+      lines?: Array<{
+        text: string;
+        fontSize?: number;
+        fontWeight?: fontWeight;
+        color?: string;
+      }>;
       color?: string;
       fontSize?: number;
       backgroundColor?: string;
@@ -145,6 +151,10 @@ interface CVContextType {
   setCvName: (name: string) => void;
   onRequestSave: ((afterSave?: (savedName: string) => void) => void) | null;
   setOnRequestSave: (cb: ((afterSave?: (savedName: string) => void) => void) | null) => void;
+  resolveExportFileName: (() => string) | null;
+  setResolveExportFileName: (cb: (() => string) | null) => void;
+  isCapturing: boolean;
+  setIsCapturing: (capturing: boolean) => void;
   MAX_PAGES: number;
   MAX_SECTIONS: number;
   MAX_BLOCKS_PER_SECTION: number;
@@ -234,11 +244,16 @@ export function CVProvider({
   initialElements,
 }: CVProviderProps) {
   const [cvName, setCvName] = useState("");
+  const [isCapturing, setIsCapturing] = useState(false);
   const [onRequestSave, setOnRequestSaveRaw] = useState<((afterSave?: (savedName: string) => void) => void) | null>(
     null
   );
+  const [resolveExportFileName, setResolveExportFileNameRaw] = useState<(() => string) | null>(null);
   const setOnRequestSave = useCallback((cb: ((afterSave?: (savedName: string) => void) => void) | null) => {
     setOnRequestSaveRaw(() => cb);
+  }, []);
+  const setResolveExportFileName = useCallback((cb: (() => string) | null) => {
+    setResolveExportFileNameRaw(() => cb);
   }, []);
   const getInitialElements = (): CVElement[] => {
     if (initialElements) {
@@ -696,6 +711,10 @@ export function CVProvider({
         setCvName,
         onRequestSave,
         setOnRequestSave,
+        resolveExportFileName,
+        setResolveExportFileName,
+        isCapturing,
+        setIsCapturing,
         MAX_PAGES,
         MAX_SECTIONS,
         MAX_BLOCKS_PER_SECTION,

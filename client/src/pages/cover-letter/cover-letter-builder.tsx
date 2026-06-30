@@ -1,4 +1,8 @@
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import GenerationProgressDialog, {
+  type GenerationStep,
+  type GenerationStepStatus,
+} from "@/components/inbuild/generation-progress-dialog";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -14,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import showToast from "@/hooks/toast";
 import { CVElement, CVProvider, useCV } from "@/lib/useCV";
+import { cn } from "@/lib/utils";
 import { getCurrentUserAPI } from "@/shared/services/auth";
 import {
     fetchCoverLetterById,
@@ -72,13 +77,28 @@ const findCoverLetterName = (elements: CVElement[]) => {
   return "Untitled Cover Letter";
 };
 
+const COVER_LETTER_GENERATION_STEPS = [
+  { id: "profile", label: "Loading your profile" },
+  { id: "template", label: "Preparing cover letter template" },
+  { id: "generate", label: "Generating tailored cover letter" },
+  { id: "apply", label: "Applying content to editor" },
+] as const;
+
+const createCoverLetterGenerationSteps = (): GenerationStep[] =>
+  COVER_LETTER_GENERATION_STEPS.map((step) => ({ ...step, status: "pending" }));
+
+const updateGenerationStep = (steps: GenerationStep[], id: string, status: GenerationStepStatus) =>
+  steps.map((step) => (step.id === id ? { ...step, status } : step));
+
 const CoverLetterBuilderContent = () => {
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const queryClient = useQueryClient();
   const { elements, pageProperties, commitEdits, loadCVState, setCvName, cvName, setOnRequestSave } = useCV();
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
-  const [isGeneratingDraft, setIsGeneratingDraft] = useState(false);
+  const [isGenerationDialogOpen, setIsGenerationDialogOpen] = useState(false);
+  const [generationSteps, setGenerationSteps] = useState<GenerationStep[]>(createCoverLetterGenerationSteps);
+  const [generationError, setGenerationError] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [job, setJob] = useState("");
   const [tag, setTag] = useState<CoverLetterTag>("");
@@ -141,32 +161,61 @@ const CoverLetterBuilderContent = () => {
       setJob(jobText);
     }
 
-    setIsGeneratingDraft(true);
+    const runGeneration = async () => {
+      setGenerationError(null);
+      setGenerationSteps(createCoverLetterGenerationSteps());
+      setIsGenerationDialogOpen(true);
 
-    generateCoverLetterDraft({
-      jobSummary: jobContext.summary,
-      sourceText: jobContext.sourceText,
-      model: jobContext.model as GeminiModelId | undefined,
-    })
-      .then((draft) => {
+      const setStep = (id: string, status: GenerationStepStatus) => {
+        setGenerationSteps((current) => updateGenerationStep(current, id, status));
+      };
+
+      setStep("profile", "complete");
+      setStep("template", "active");
+
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+
+      setStep("template", "complete");
+      setStep("generate", "active");
+
+      try {
+        const draft = await generateCoverLetterDraft({
+          jobSummary: jobContext.summary,
+          sourceText: jobContext.sourceText,
+          model: jobContext.model as GeminiModelId | undefined,
+          applicantName: contactInfo?.fullName,
+          applicantRole: contactInfo?.designation,
+        });
+
+        setStep("generate", "complete");
+        setStep("apply", "active");
+
         const seeded = applyDraftToTemplate(template.elements, draft.sections, contactInfo);
         loadCVState(seeded, template.pageProperties);
         setName(defaultName);
         setCvName(defaultName);
-      })
-      .catch((error) => {
+
+        setStep("apply", "complete");
+      } catch (error) {
+        setStep("generate", "error");
         loadCVState(template.elements, template.pageProperties);
         setName(defaultName);
         setCvName(defaultName);
+        const message = error instanceof Error ? error.message : "Loaded blank template instead.";
+        setGenerationError(message);
         showToast({
           title: "Draft generation failed",
-          description: error instanceof Error ? error.message : "Loaded blank template instead.",
+          description: message,
           variant: "warning",
         });
-      })
-      .finally(() => {
-        setIsGeneratingDraft(false);
-      });
+      } finally {
+        setIsGenerationDialogOpen(false);
+      }
+    };
+
+    void runGeneration();
   }, [isEditMode, isProfileLoading, contactInfo, loadCVState, setCvName]);
 
   const buildSubmitPayload = useCallback(
@@ -240,18 +289,23 @@ const CoverLetterBuilderContent = () => {
 
   return (
     <div className="cover-letter-builder flex h-full min-h-0 flex-col overflow-hidden bg-background">
-      <div className="flex flex-none flex-col gap-2 border-b border-border/60 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6">
+      <div
+        className={cn(
+          "flex flex-none flex-col gap-2 border-b border-border/60 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6",
+          isGenerationDialogOpen && "pointer-events-none opacity-60"
+        )}
+        aria-hidden={isGenerationDialogOpen}>
         <BreadcrumbInbuild isEditMode={isEditMode} className="w-full min-w-0" />
         <Button
           type="button"
           onClick={openSubmitDialog}
-          disabled={mutation.isPending || isFetching || isGeneratingDraft}
+          disabled={mutation.isPending || isFetching || isGenerationDialogOpen}
           className="ml-auto h-9 shrink-0 gap-2 self-end px-2.5 md:self-auto md:px-4">
-          {mutation.isPending || isGeneratingDraft ?
+          {mutation.isPending || isGenerationDialogOpen ?
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="hidden md:inline">
-                {isGeneratingDraft ? "Generating draft..." : isEditMode ? "Updating..." : "Saving..."}
+                {isGenerationDialogOpen ? "Generating draft..." : isEditMode ? "Updating..." : "Saving..."}
               </span>
             </>
           : isEditMode ?
@@ -267,14 +321,21 @@ const CoverLetterBuilderContent = () => {
         </Button>
       </div>
 
-      {isGeneratingDraft && (
-        <div className="flex flex-none items-center gap-2 px-4 pb-2 text-sm text-muted-foreground md:px-6">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Generating cover letter draft from job summary...
-        </div>
-      )}
+      <div
+        className={cn(
+          "flex min-h-0 flex-1 flex-col overflow-hidden",
+          isGenerationDialogOpen && "pointer-events-none opacity-60"
+        )}>
+        <BuilderWorkspace pallet={<CoverLetterPallet />} />
+      </div>
 
-      <BuilderWorkspace pallet={<CoverLetterPallet />} />
+      <GenerationProgressDialog
+        open={isGenerationDialogOpen}
+        title="Generating cover letter"
+        description="Creating a tailored draft from your job summary. Please wait while the editor is prepared."
+        steps={generationSteps}
+        errorMessage={generationError}
+      />
 
       <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
         <DialogContent>

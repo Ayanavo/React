@@ -1,7 +1,7 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
 import { useCV } from "@/lib/useCV";
-import { prepareHtml2CanvasClone } from "@/shared/utils/html2canvas-capture";
+import { applyCaptureExpansion, getHtml2CanvasCaptureScale, prepareHtml2CanvasClone } from "@/shared/utils/html2canvas-capture";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import moment from "moment";
@@ -13,16 +13,11 @@ import { useParams } from "react-router-dom";
 const ZOOM = 1;
 const MIN_SECTION_HEIGHT = 80;
 const MIN_BLOCK_WIDTH = 60;
-const PREVIEW_MIN_SCALE = 0.3;
-const PREVIEW_MAX_SCALE = 3;
-const PREVIEW_ZOOM_STEP = 0.1;
+const PREVIEW_MIN_SCALE = 0.25;
+const PREVIEW_MAX_SCALE = 6;
+const PREVIEW_ZOOM_STEP = 0.15;
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
-
-const containsElementId = (node: { id: string; children?: Array<{ id: string; children?: unknown[] }> }, targetId: string): boolean => {
-  if (node.id === targetId) return true;
-  return node.children?.some((child) => containsElementId(child as typeof node, targetId)) ?? false;
-};
 
 const getSectionHeights = (sections: Array<{ height?: number }>) => {
   if (sections.length === 0) return [];
@@ -36,6 +31,9 @@ const getSectionHeights = (sections: Array<{ height?: number }>) => {
   if (total <= 0) return sections.map(() => fallback);
   return heights.map((height) => (height / total) * 100);
 };
+
+const sectionUsesFixedHeight = (section: { height?: number }) =>
+  typeof section.height === "number" && section.height > 0;
 
 const getBlockWidths = (blocks: Array<{ width?: number }>) => {
   if (blocks.length === 0) return [];
@@ -56,7 +54,6 @@ const Canvas = () => {
     A4_WIDTH,
     A4_HEIGHT,
     selectedBlockId,
-    locationDropdownElementId,
     selectPage,
     selectSection,
     selectBlock,
@@ -71,6 +68,8 @@ const Canvas = () => {
     showSectionDividers,
     cvName,
     onRequestSave,
+    resolveExportFileName,
+    setIsCapturing,
   } = useCV();
   const { id } = useParams();
   const [isDragging, setIsDragging] = useState(false);
@@ -82,12 +81,14 @@ const Canvas = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [previewScale, setPreviewScale] = useState(1);
   const [previewDimensions, setPreviewDimensions] = useState({ width: A4_WIDTH, height: A4_HEIGHT });
+  const [previewCaptureScale, setPreviewCaptureScale] = useState(4);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = useState(false);
   const panStart = useRef({ x: 0, y: 0, offsetX: 0, offsetY: 0 });
   const previewOverlayRef = useRef<HTMLDivElement>(null);
   const previewScaleRef = useRef(previewScale);
   const panOffsetRef = useRef(panOffset);
+  const previewObjectUrlRef = useRef<string | null>(null);
 
   const pageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
@@ -115,44 +116,81 @@ const Canvas = () => {
     });
   }, [clearSelection, commitEdits]);
 
-  const getScaleToFit = useCallback(() => {
-    const maxW = window.innerWidth * 0.85;
-    const maxH = window.innerHeight * 0.85;
-    return Math.min(maxW / A4_WIDTH, maxH / A4_HEIGHT, 1);
-  }, [A4_WIDTH, A4_HEIGHT]);
+  const getScaleToFit = useCallback(
+    (logicalWidth: number, logicalHeight: number) => {
+      const maxW = window.innerWidth * 0.85;
+      const maxH = window.innerHeight * 0.85;
+      return Math.min(maxW / logicalWidth, maxH / logicalHeight, 1);
+    },
+    []
+  );
+
+  const revokePreviewObjectUrl = useCallback(() => {
+    if (previewObjectUrlRef.current) {
+      URL.revokeObjectURL(previewObjectUrlRef.current);
+      previewObjectUrlRef.current = null;
+    }
+  }, []);
+
+  useEffect(() => () => revokePreviewObjectUrl(), [revokePreviewObjectUrl]);
 
   const captureAllPages = useCallback(async () => {
     await prepareCanvasCapture();
+    setIsCapturing(true);
 
-    const captures: Array<{ canvas: HTMLCanvasElement; width: number; height: number }> = [];
+    const captures: Array<{ canvas: HTMLCanvasElement; width: number; height: number; scale: number }> = [];
 
-    for (const page of elements) {
-      const pageEl = pageRefs.current.get(page.id);
-      if (!pageEl) continue;
+    try {
+      for (const page of elements) {
+        const pageEl = pageRefs.current.get(page.id);
+        if (!pageEl) continue;
 
-      const rect = pageEl.getBoundingClientRect();
-      const captureWidth = rect.width;
-      const captureHeight = rect.height;
+        const { width: captureWidth, height: captureHeight, restore } = applyCaptureExpansion(pageEl);
 
-      if (captureWidth <= 0 || captureHeight <= 0) continue;
+        if (captureWidth <= 0 || captureHeight <= 0) {
+          restore();
+          continue;
+        }
 
-      const canvas = await html2canvas(pageEl, {
-        scale: 2,
-        useCORS: true,
-        width: captureWidth,
-        height: captureHeight,
-        onclone: (clonedDoc, clonedPageEl) => {
-          if (clonedPageEl instanceof HTMLElement) {
-            prepareHtml2CanvasClone(clonedDoc, clonedPageEl, pageEl);
-          }
-        },
-      });
+        const captureScale = getHtml2CanvasCaptureScale();
 
-      captures.push({ canvas, width: captureWidth, height: captureHeight });
+        try {
+          await new Promise<void>((resolve) => {
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+          });
+
+          const canvas = await html2canvas(pageEl, {
+            scale: captureScale,
+            useCORS: true,
+            backgroundColor: pageProperties.backgroundColor ?? "#ffffff",
+            scrollX: 0,
+            scrollY: 0,
+            onclone: (clonedDoc, clonedPageEl) => {
+              if (clonedPageEl instanceof HTMLElement) {
+                prepareHtml2CanvasClone(clonedDoc, clonedPageEl, pageEl, {
+                  width: captureWidth,
+                  height: captureHeight,
+                });
+              }
+            },
+          });
+
+          captures.push({
+            canvas,
+            width: canvas.width / captureScale,
+            height: canvas.height / captureScale,
+            scale: captureScale,
+          });
+        } finally {
+          restore();
+        }
+      }
+
+      return captures;
+    } finally {
+      setIsCapturing(false);
     }
-
-    return captures;
-  }, [elements, prepareCanvasCapture]);
+  }, [elements, pageProperties.backgroundColor, prepareCanvasCapture, setIsCapturing]);
 
   const openPreview = useCallback(async () => {
     try {
@@ -173,22 +211,36 @@ const Canvas = () => {
         throw new Error("Could not create preview canvas");
       }
 
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
       let offsetY = 0;
       for (const capture of captures) {
-        ctx.drawImage(capture.canvas, 0, offsetY);
+        const offsetX = Math.floor((maxWidth - capture.canvas.width) / 2);
+        ctx.drawImage(capture.canvas, offsetX, offsetY);
         offsetY += capture.canvas.height;
       }
 
-      const displayWidth = maxWidth / 2;
-      const displayHeight = totalHeight / 2;
-      const fitScale = Math.min(
-        (window.innerWidth * 0.85) / displayWidth,
-        (window.innerHeight * 0.85) / displayHeight,
-        1,
-      );
+      const captureScale = captures[0]?.scale ?? getHtml2CanvasCaptureScale();
+      const displayWidth = maxWidth / captureScale;
+      const displayHeight = totalHeight / captureScale;
+      const fitScale = getScaleToFit(displayWidth, displayHeight);
 
+      const blob = await new Promise<Blob | null>((resolve) => {
+        combined.toBlob(resolve, "image/png");
+      });
+
+      if (!blob) {
+        throw new Error("Could not create preview image");
+      }
+
+      revokePreviewObjectUrl();
+      const objectUrl = URL.createObjectURL(blob);
+      previewObjectUrlRef.current = objectUrl;
+
+      setPreviewCaptureScale(captureScale);
       setPreviewDimensions({ width: displayWidth, height: displayHeight });
-      setPreviewImage(combined.toDataURL("image/png"));
+      setPreviewImage(objectUrl);
       setPanOffset({ x: 0, y: 0 });
       setPreviewScale(fitScale);
     } catch (error) {
@@ -199,16 +251,17 @@ const Canvas = () => {
         variant: "error",
       });
     }
-  }, [captureAllPages]);
+  }, [captureAllPages, getScaleToFit, revokePreviewObjectUrl]);
 
   const closePreview = useCallback(() => {
+    revokePreviewObjectUrl();
     setPreviewImage(null);
     setPanOffset({ x: 0, y: 0 });
-  }, []);
+  }, [revokePreviewObjectUrl]);
 
   const zoomIn = useCallback(
-    () => setPreviewScale((s) => Math.min(s + PREVIEW_ZOOM_STEP, PREVIEW_MAX_SCALE)),
-    []
+    () => setPreviewScale((s) => Math.min(s + PREVIEW_ZOOM_STEP, Math.max(PREVIEW_MAX_SCALE, previewCaptureScale))),
+    [previewCaptureScale]
   );
   const zoomOut = useCallback(
     () => setPreviewScale((s) => Math.max(s - PREVIEW_ZOOM_STEP, PREVIEW_MIN_SCALE)),
@@ -230,7 +283,8 @@ const Canvas = () => {
 
     const currentScale = previewScaleRef.current;
     const zoomFactor = Math.exp(-e.deltaY * 0.002);
-    const nextScale = clamp(currentScale * zoomFactor, PREVIEW_MIN_SCALE, PREVIEW_MAX_SCALE);
+    const maxZoom = Math.max(PREVIEW_MAX_SCALE, previewCaptureScale);
+    const nextScale = clamp(currentScale * zoomFactor, PREVIEW_MIN_SCALE, maxZoom);
     const scaleRatio = nextScale / currentScale;
 
     if (scaleRatio === 1) return;
@@ -240,7 +294,7 @@ const Canvas = () => {
       y: currentPan.y - pointerY * (scaleRatio - 1),
     });
     setPreviewScale(nextScale);
-  }, []);
+  }, [previewCaptureScale]);
 
   useEffect(() => {
     if (!previewImage) return;
@@ -252,9 +306,9 @@ const Canvas = () => {
     return () => overlay.removeEventListener("wheel", handlePreviewWheel);
   }, [handlePreviewWheel, previewImage]);
   const resetZoom = useCallback(() => {
-    setPreviewScale(getScaleToFit());
+    setPreviewScale(getScaleToFit(previewDimensions.width, previewDimensions.height));
     setPanOffset({ x: 0, y: 0 });
-  }, [getScaleToFit]);
+  }, [getScaleToFit, previewDimensions.height, previewDimensions.width]);
 
   // Pan handlers
   const handlePanStart = useCallback(
@@ -295,14 +349,16 @@ const Canvas = () => {
 
         for (const capture of captures) {
           const imgData = capture.canvas.toDataURL("image/png");
+          const pageWidth = capture.canvas.width;
+          const pageHeight = capture.canvas.height;
 
           if (!pdf) {
-            pdf = new jsPDF("p", "px", [capture.width, capture.height]);
+            pdf = new jsPDF("p", "px", [pageWidth, pageHeight]);
           } else {
-            pdf.addPage([capture.width, capture.height]);
+            pdf.addPage([pageWidth, pageHeight]);
           }
 
-          pdf.addImage(imgData, "PNG", 0, 0, capture.width, capture.height);
+          pdf.addImage(imgData, "PNG", 0, 0, pageWidth, pageHeight);
         }
 
         pdf?.save(`${fileName}.pdf`);
@@ -318,12 +374,19 @@ const Canvas = () => {
     [captureAllPages],
   );
 
+  const resolvePdfFileName = useCallback(() => {
+    if (resolveExportFileName) {
+      return resolveExportFileName();
+    }
+
+    return cvName.trim() || `CV_${moment().format("YYYY-MM-DD")}`;
+  }, [resolveExportFileName, cvName]);
+
   const downloadPDF = useCallback(async () => {
     if (!id) {
       if (onRequestSave) {
-        onRequestSave((savedName) => {
-          const fileName = savedName || `CV_${moment().format("YYYY-MM-DD")}`;
-          void generatePDF(fileName);
+        onRequestSave(() => {
+          void generatePDF(resolvePdfFileName());
         });
       } else {
         showToast({
@@ -335,9 +398,8 @@ const Canvas = () => {
       return;
     }
 
-    const fileName = cvName || `CV_${moment().format("YYYY-MM-DD")}`;
-    await generatePDF(fileName);
-  }, [id, cvName, onRequestSave, generatePDF]);
+    await generatePDF(resolvePdfFileName());
+  }, [id, onRequestSave, generatePDF, resolvePdfFileName]);
 
   // Handle resizing
   // const handleMouseDown = (pageIndex: number, sectionIndex: number, e: React.MouseEvent) => {
@@ -522,6 +584,7 @@ const Canvas = () => {
                   style={{
                     width: A4_WIDTH,
                     height: A4_HEIGHT,
+                    overflow: "hidden",
                     transform: `scale(${ZOOM})`,
                     transformOrigin: "top center",
                     backgroundColor: pageProperties.backgroundColor ?? "#ffffff",
@@ -548,15 +611,17 @@ const Canvas = () => {
 
                       const isSectionSelected = selectedSectionId === section.id;
                       const isLastSection = sectionIndex === sections.length - 1;
-                      const hasOpenLocationDropdown =
-                        Boolean(locationDropdownElementId) && containsElementId(section, locationDropdownElementId!);
-                      const allowSectionOverflow = (isSectionSelected && !isLastSection) || hasOpenLocationDropdown;
+                      const fixedHeight = sectionUsesFixedHeight(section);
 
                       return (
                         <div
                           key={section.id}
-                          className={`relative flex flex-col w-full min-h-0 flex-shrink-0 ${allowSectionOverflow ? "overflow-visible" : "overflow-hidden"} ${isSectionSelected ? "ring-2 ring-ring" : ""} ${sectionIndex > 0 ? "my-[1px]" : "mb-[1px]"} ${!isLastSection ? "mb-1" : ""}`}
-                          style={{ height: `${sectionHeights[sectionIndex]}%` }}
+                          className={`relative flex flex-col w-full flex-shrink-0 overflow-visible ${fixedHeight ? "min-h-0" : ""} ${isSectionSelected ? "ring-2 ring-ring" : ""} ${sectionIndex > 0 ? "my-[1px]" : "mb-[1px]"} ${!isLastSection ? "mb-1" : ""}`}
+                          style={
+                            fixedHeight ?
+                              { height: `${sectionHeights[sectionIndex]}%` }
+                            : { height: "auto", flexShrink: 0 }
+                          }
                           onClick={(e) => {
                             e.stopPropagation();
                             selectSection(page.id, section.id);
@@ -589,7 +654,7 @@ const Canvas = () => {
                             const blockWidths = getBlockWidths(blockChildren);
                             return (
                               <div
-                                className={`flex w-full min-h-0 flex-1 items-stretch ${hasOpenLocationDropdown ? "overflow-visible" : "overflow-hidden"}`}
+                                className={`flex w-full items-start overflow-visible ${fixedHeight ? "min-h-0 flex-1" : ""}`}
                                 style={{
                                   pointerEvents:
                                     isBlockDragging && blockDraggingSectionId !== section.id ? "none" : "auto",
@@ -645,7 +710,7 @@ const Canvas = () => {
                           )}
 
                           {/* ✅ SECTION RESIZE JOCKEY */}
-                          {isSectionSelected && !isLastSection && (
+                          {isSectionSelected && !isLastSection && fixedHeight && (
                             <div
                               className="group absolute inset-x-0 bottom-0 z-30 h-3 translate-y-1/2 cursor-ns-resize"
                               onMouseDown={(e) => handleSectionResizeStart(pageIndex, sections, sectionIndex, e)}>
@@ -707,11 +772,11 @@ const Canvas = () => {
             <Hand className="h-3 w-3" /> Scroll to zoom · Drag to pan
           </div>
 
-          {/* Preview image — pan/zoom via transform to avoid shrink-to-fit distortion */}
+          {/* Preview image — zoom via rendered size (keeps high-DPI source sharp) */}
           <div
             className="absolute left-1/2 top-1/2"
             style={{
-              transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px)) scale(${previewScale})`,
+              transform: `translate(calc(-50% + ${panOffset.x}px), calc(-50% + ${panOffset.y}px))`,
               transformOrigin: "center center",
               willChange: "transform",
             }}>
@@ -720,9 +785,12 @@ const Canvas = () => {
               alt="CV Preview"
               className="block max-w-none shadow-2xl rounded-sm"
               style={{
-                width: previewDimensions.width,
-                height: previewDimensions.height,
+                width: previewDimensions.width * previewScale,
+                height: previewDimensions.height * previewScale,
+                imageRendering: "auto",
               }}
+              width={Math.round(previewDimensions.width * previewCaptureScale)}
+              height={Math.round(previewDimensions.height * previewCaptureScale)}
               draggable={false}
             />
           </div>
