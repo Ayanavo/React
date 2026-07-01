@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { formatAppDateTime } from "@/lib/date-format";
 import { getNoteThemeStyle, hasExplicitNoteBackground } from "@/shared/color-picker";
 import { cn } from "@/lib/utils";
@@ -10,9 +11,11 @@ type NoteCardProps = {
   item: State;
   onSelect: (note: State) => void;
   className?: string;
+  isSelected?: boolean;
+  onToggleSelect?: (noteId: string) => void;
 };
 
-function notecard({ item, onSelect, className }: NoteCardProps) {
+function notecard({ item, onSelect, className, isSelected = false, onToggleSelect }: NoteCardProps) {
   const modifiedDate = formatAppDateTime(item?.updatedAt);
   const hasCustomBackground = hasExplicitNoteBackground(item?.backgroundColor);
   const noteThemeStyle = getNoteThemeStyle(item?.backgroundColor);
@@ -29,13 +32,26 @@ function notecard({ item, onSelect, className }: NoteCardProps) {
   return (
     <Card
       className={cn(
-        "note-card note-box shadow-none cursor-pointer min-h-[140px] flex flex-col overflow-hidden",
+        "note-card note-box shadow-none cursor-pointer min-h-[140px] flex flex-col overflow-hidden relative",
         hasCustomBackground && "note-box--themed",
         item?.tagColor && "note-card--tagged",
+        isSelected && "ring-2 ring-primary/40",
         className
       )}
       style={cardStyle}
       onClick={() => item && onSelect(item)}>
+      {item?._id && onToggleSelect ?
+        <div
+          className="absolute left-3 top-3 z-10"
+          onClick={(event) => event.stopPropagation()}>
+          <Checkbox
+            className="border-primary/60 bg-background shadow-sm"
+            checked={isSelected}
+            onCheckedChange={() => onToggleSelect(item._id!)}
+            aria-label={`Select ${item.title || "note"}`}
+          />
+        </div>
+      : null}
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium leading-snug line-clamp-3 pr-2">
           {item?.title || "Untitled"}

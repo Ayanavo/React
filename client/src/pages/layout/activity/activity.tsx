@@ -6,7 +6,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import showToast from "@/hooks/toast";
 import { formatAppMonthYear } from "@/lib/date-format";
 import { useConfirmDialog } from "@/shared/confirmation";
-import { ChevronLeft, ChevronRight, PanelLeft } from "lucide-react";
+import { CalendarClock, ChevronLeft, ChevronRight, PanelLeft } from "lucide-react";
 import moment from "moment";
 import React, { useEffect, useMemo, useState } from "react";
 import ActivityCalendar, { CalendarEvent, CalendarView } from "./activity-calendar";
@@ -157,9 +157,14 @@ function ActivityPage() {
     setFocusedDate(null);
   }
 
-  const sidebar = (
+  const dateSidebar = (
     <aside className="activity-page__sidebar">
       <DatePickerComponent type="datetime" onSendData={handleSidebarDateChange} date={sidebarDate} />
+    </aside>
+  );
+
+  const upcomingPanel = (
+    <aside className="activity-page__upcoming">
       <ActivityUpcomingList activities={activities} onSelect={focusCalendarOnActivity} />
     </aside>
   );
@@ -225,23 +230,38 @@ function ActivityPage() {
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 shrink-0 px-2.5 lg:hidden">
+                <Button variant="outline" size="sm" className="h-8 shrink-0 px-2.5 xl:hidden">
                   <PanelLeft className="h-4 w-4" />
-                  <span className="activity-page__toolbar-label ml-2">Panel</span>
+                  <span className="activity-page__toolbar-label ml-2">Date</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" hideClose className="w-[min(100vw-2rem,22rem)] overflow-y-auto p-0">
+              <SheetContent side="left" hideClose className="scrollbar-none w-[min(100vw-2rem,22rem)] overflow-y-auto p-0">
                 <SheetHeader className="border-b px-4 py-3 text-left">
-                  <SheetTitle>Activity panel</SheetTitle>
+                  <SheetTitle>Pick a date</SheetTitle>
                 </SheetHeader>
-                <div className="p-4">{sidebar}</div>
+                <div className="p-4">{dateSidebar}</div>
+              </SheetContent>
+            </Sheet>
+
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 shrink-0 px-2.5 xl:hidden">
+                  <CalendarClock className="h-4 w-4" />
+                  <span className="activity-page__toolbar-label ml-2">Upcoming</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" hideClose className="scrollbar-none w-[min(100vw-2rem,22rem)] overflow-y-auto p-0">
+                <SheetHeader className="border-b px-4 py-3 text-left">
+                  <SheetTitle>Upcoming events</SheetTitle>
+                </SheetHeader>
+                <div className="p-4">{upcomingPanel}</div>
               </SheetContent>
             </Sheet>
           </div>
         </section>
 
-        <div className="activity-page__workspace grid min-h-0 flex-1 gap-4 xl:grid-cols-[20rem_minmax(0,1fr)]">
-          <div className="activity-page__sidebar-column">{sidebar}</div>
+        <div className="activity-page__workspace grid min-h-0 flex-1 gap-4 xl:grid-cols-[20rem_minmax(0,1fr)_20rem]">
+          <div className="activity-page__sidebar-column">{dateSidebar}</div>
 
           <main className="activity-page__main">
             {isLoading ?
@@ -259,6 +279,8 @@ function ActivityPage() {
               />
             }
           </main>
+
+          <div className="activity-page__upcoming-column">{upcomingPanel}</div>
         </div>
       </div>
     </div>

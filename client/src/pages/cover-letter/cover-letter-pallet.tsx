@@ -1,8 +1,26 @@
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { NumericSliderField } from "@/components/ui/numeric-slider-field";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CVElement, CVElementType, useCV } from "@/lib/useCV";
 import moment from "moment";
-import { AlignLeft, Calendar, ChevronDown, ChevronsDown, ChevronsUp, FileText, LayoutGrid, List, ListOrdered, Quote, Tag, Type } from "lucide-react";
+import {
+  AlignLeft,
+  Calendar,
+  ChevronDown,
+  ChevronsDown,
+  ChevronsUp,
+  FileText,
+  LayoutGrid,
+  List,
+  ListOrdered,
+  Loader2,
+  Quote,
+  RefreshCw,
+  Sparkles,
+  Tag,
+  Type,
+} from "lucide-react";
 import React, { useState } from "react";
 import ElementSpacingControls from "../cv-builder/element-spacing-controls";
 import { isSpacedElementType, TEXT_INDENT_MAX } from "../cv-builder/element-spacing";
@@ -11,6 +29,15 @@ import SectionDividerControls from "../cv-builder/section-divider-controls";
 import TextAlignControls from "../cv-builder/text-align-controls";
 import TokenFormatControls from "../cv-builder/token-format-controls";
 import PagePallet from "../cv-builder/page-panel";
+import { COVER_LETTER_TONES, type CoverLetterTone } from "@/shared/constants/cover-letter-tone";
+
+type CoverLetterPalletProps = {
+  tone: CoverLetterTone;
+  onToneChange: (tone: CoverLetterTone) => void;
+  onRegenerate: () => void;
+  isRegenerating: boolean;
+  canRegenerate: boolean;
+};
 
 type ContentAccessory = {
   id: string;
@@ -80,7 +107,13 @@ const CONTENT_ACCESSORIES: ContentAccessory[] = [
   },
 ];
 
-const CoverLetterPallet = () => {
+const CoverLetterPallet = ({
+  tone,
+  onToneChange,
+  onRegenerate,
+  isRegenerating,
+  canRegenerate,
+}: CoverLetterPalletProps) => {
   const {
     selectedBlockId,
     addContent,
@@ -95,6 +128,7 @@ const CoverLetterPallet = () => {
   } = useCV();
 
   const [expandedSections, setExpandedSections] = useState({
+    tone: true,
     page: true,
     layout: true,
     content: true,
@@ -129,6 +163,57 @@ const CoverLetterPallet = () => {
   };
 
   const sections = [
+    {
+      key: "tone" as const,
+      title: "Tone",
+      icon: Sparkles,
+      content: (
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="cover-letter-tone">Tone</Label>
+            <Select value={tone} onValueChange={(value) => onToneChange(value as CoverLetterTone)} disabled={isRegenerating}>
+              <SelectTrigger id="cover-letter-tone">
+                <SelectValue placeholder="Select tone" />
+              </SelectTrigger>
+              <SelectContent>
+                {COVER_LETTER_TONES.map((toneOption) => (
+                  <SelectItem key={toneOption.id} value={toneOption.id}>
+                    {toneOption.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {COVER_LETTER_TONES.find((toneOption) => toneOption.id === tone)?.description}
+            </p>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full justify-center gap-2"
+            onClick={onRegenerate}
+            disabled={!canRegenerate || isRegenerating}>
+            {isRegenerating ?
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Regenerating...
+              </>
+            : <>
+                <RefreshCw className="h-4 w-4" />
+                Regenerate letter
+              </>
+            }
+          </Button>
+
+          {!canRegenerate && (
+            <p className="text-xs text-muted-foreground">
+              Add a job summary when saving, or open a letter created from Summarize, to regenerate content.
+            </p>
+          )}
+        </div>
+      ),
+    },
     { key: "page" as const, title: "Page", icon: FileText, content: <PagePallet /> },
     {
       key: "layout" as const,
@@ -290,7 +375,7 @@ const CoverLetterPallet = () => {
           type="button"
           onClick={() => {
             const next = !isAnyExpanded;
-            setExpandedSections({ page: next, layout: next, content: next, format: next });
+            setExpandedSections({ tone: next, page: next, layout: next, content: next, format: next });
           }}
           className="ml-auto shrink-0 text-xs font-medium text-primary hover:text-primary/80 flex items-center gap-1">
           {isAnyExpanded ?

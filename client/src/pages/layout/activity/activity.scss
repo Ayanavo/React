@@ -9,7 +9,8 @@
     align-items: stretch;
   }
 
-  &__sidebar-column {
+  &__sidebar-column,
+  &__upcoming-column {
     display: none;
     min-height: 0;
 
@@ -19,7 +20,8 @@
     }
   }
 
-  &__sidebar {
+  &__sidebar,
+  &__upcoming {
     display: flex;
     flex: 1;
     flex-direction: column;

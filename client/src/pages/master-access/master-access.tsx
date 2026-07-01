@@ -229,6 +229,7 @@ const MasterAccess = () => {
         showAddButton={false}
         filterControls={filterControls}
         filterFn={filterFn}
+        bulkDeleteFilter={(row) => row._id !== currentUserId}
         />
       </div>
       {openPermissionsFor && selectedUserId && (

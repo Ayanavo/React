@@ -1,4 +1,5 @@
 import AddActionButton from "@/components/inbuild/add-action-button";
+import SelectionFloaterToolbar from "@/components/inbuild/selection-floater-toolbar";
 import IconsComponent from "@/common/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import showToast from "@/hooks/toast";
 import { formatAppDate } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
+import { useConfirmDialog } from "@/shared/confirmation";
 import { deleteActivity, fetchActivities, ActivityRecord } from "@/shared/services/activity";
 import { ApiMessageResponse } from "@/shared/types/api";
 import { useSidebarLayout } from "@/shared/sidebarlayout";
@@ -34,7 +36,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { CheckIcon, EllipsisIcon, EyeIcon, PencilIcon, Trash2Icon, XIcon } from "lucide-react";
-import React, { useEffect, useId, useState } from "react";
+import React, { useCallback, useEffect, useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ColumnComponent from "./column";
 import KanbanComponent from "./kanban";
@@ -72,6 +74,7 @@ function table() {
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const navigate = useNavigate();
   const { SidebarPanel } = useSidebarLayout();
+  const { confirm } = useConfirmDialog();
 
   const id = useId();
   useEffect(() => {
@@ -122,7 +125,43 @@ function table() {
     },
   });
 
-  const handleDelete = (_id: string) => {
+  const bulkDeleteMutation = useMutation<number, Error, string[]>({
+    mutationFn: async (ids) => {
+      const results = await Promise.allSettled(ids.map((id) => deleteActivity(id)));
+      const succeeded = results.filter((result) => result.status === "fulfilled").length;
+      const failed = results.length - succeeded;
+
+      if (failed > 0 && succeeded === 0) {
+        const firstError = results.find((result) => result.status === "rejected") as PromiseRejectedResult | undefined;
+        throw new Error(firstError?.reason instanceof Error ? firstError.reason.message : "Bulk delete failed");
+      }
+
+      return succeeded;
+    },
+    onSuccess: (deletedCount) => {
+      setRowSelection({});
+      refetch();
+      const label = deletedCount === 1 ? "Activity" : "Activities";
+      showToast({ title: `${deletedCount} ${label} deleted successfully`, variant: "success" });
+    },
+    onError: (error: Error) => {
+      showToast({
+        title: "Activity bulk deletion failed",
+        description: error.message,
+        variant: "error",
+      });
+    },
+  });
+
+  const handleDelete = async (_id: string) => {
+    const ok = await confirm({
+      title: "Delete Activity",
+      message: "Are you sure you want to delete this activity?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      showLoadingOnConfirmClick: true,
+    });
+    if (!ok) return;
     mutation.mutate(_id);
     refetch();
   };
@@ -315,6 +354,30 @@ function table() {
     }
   }
 
+  const selectedRows = tableBody.getFilteredSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
+
+  const handleClearSelection = useCallback(() => {
+    setRowSelection({});
+  }, []);
+
+  const handleBulkDelete = useCallback(async () => {
+    const ids = selectedRows.map((row) => row.original._id);
+    if (ids.length === 0) return;
+
+    const label = ids.length === 1 ? "activity" : "activities";
+    const ok = await confirm({
+      title: ids.length === 1 ? "Delete Activity" : `Delete ${ids.length} Activities`,
+      message: `Are you sure you want to delete ${ids.length} selected ${label}? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      showLoadingOnConfirmClick: true,
+    });
+
+    if (!ok) return;
+    bulkDeleteMutation.mutate(ids);
+  }, [bulkDeleteMutation, confirm, selectedRows]);
+
   return (
     <>
       {SidebarPanel}
@@ -377,9 +440,17 @@ function table() {
         </div>
         {layout === "kanban" && (
           <div className="hidden min-h-0 min-w-0 flex-1 flex-col md:flex">
-            <KanbanComponent tableBody={tableBody} columns={[]} listableColumns={[]} groupByKey="" />
+            <KanbanComponent tableBody={tableBody} columns={columnConfig} listableColumns={[]} groupByKey="" />
           </div>
         )}
+
+        <SelectionFloaterToolbar
+          selectedCount={selectedCount}
+          onClear={handleClearSelection}
+          onDelete={handleBulkDelete}
+          isDeleting={bulkDeleteMutation.isPending}
+          resourceLabel="Activity"
+        />
       </div>
     </>
   );

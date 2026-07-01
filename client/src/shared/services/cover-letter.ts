@@ -1,4 +1,5 @@
 import type { CVElement, PageProperties } from "@/lib/useCV";
+import type { CoverLetterTone } from "@/shared/constants/cover-letter-tone";
 import { apiUrl, axiosInstance } from "@/shared/interceptors/auth-interceptor";
 import type { GeminiModelId } from "@/shared/services/summarize";
 
@@ -59,6 +60,7 @@ export const generateCoverLetterDraft = async (payload: {
   model?: GeminiModelId;
   applicantName?: string;
   applicantRole?: string;
+  tone?: CoverLetterTone;
 }) => {
   const response = await axiosInstance.post<CoverLetterDraftResponse>(`${apiUrl}cover-letter/generate-draft`, payload);
   return response.data;

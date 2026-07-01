@@ -12,7 +12,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import showToast from "@/hooks/toast";
 import { formatAppDate } from "@/lib/date-format";
-import ResourceGrid, { GridColumnConfig } from "@/pages/layout/grid/ResourceGrid";
+import ResourceGrid, { buildTagKanbanColumns, GridColumnConfig } from "@/pages/layout/grid/ResourceGrid";
 import { useConfirmDialog } from "@/shared/confirmation";
 import {
   CoverLetterRecord,
@@ -23,7 +23,7 @@ import {
 import { getTags } from "@/shared/services/tag";
 import { useQuery } from "@tanstack/react-query";
 import { DownloadIcon, EllipsisIcon, EyeIcon, ListFilterIcon, Trash2Icon } from "lucide-react";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 type UserRef = string | { firstName?: string; lastName?: string; email?: string };
@@ -71,41 +71,6 @@ const fetchCoverLetterAccessList = async (): Promise<CoverLetterAccessRecord[]> 
   });
 };
 
-const columns: GridColumnConfig<CoverLetterAccessRecord>[] = [
-  { key: "select", label: "Select" },
-  {
-    key: "name",
-    label: "Name",
-    width: 180,
-    minWidth: 140,
-    render: (value) => <span className="font-semibold text-foreground">{value}</span>,
-  },
-  { key: "job", label: "Job", width: 160, minWidth: 120 },
-  {
-    key: "tagName",
-    label: "Tag",
-    width: 120,
-    minWidth: 100,
-    listable: true,
-    render: (value, row) => {
-      const tagStyle =
-        row.tagColor ? { borderColor: `${row.tagColor}4f`, backgroundColor: `${row.tagColor}40` } : undefined;
-
-      return (
-        <Badge variant="secondary" className="cursor-default gap-2 rounded-lg" style={tagStyle}>
-          {row.tagColor ?
-            <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.tagColor }} />
-          : null}
-          {value}
-        </Badge>
-      );
-    },
-  },
-  { key: "createdAt", label: "Created Date", width: 150, minWidth: 130 },
-  { key: "modifiedAt", label: "Modified Date", width: 150, minWidth: 130 },
-  { key: "action", label: "Actions" },
-];
-
 const CoverLetterAccessGrid = () => {
   const navigate = useNavigate();
   const { confirm } = useConfirmDialog();
@@ -115,6 +80,47 @@ const CoverLetterAccessGrid = () => {
     queryKey: ["tags"],
     queryFn: getTags,
   });
+
+  const columns = useMemo<GridColumnConfig<CoverLetterAccessRecord>[]>(
+    () => [
+      { key: "select", label: "Select" },
+      {
+        key: "name",
+        label: "Name",
+        width: 180,
+        minWidth: 140,
+        render: (value) => <span className="font-semibold text-foreground">{value}</span>,
+      },
+      { key: "job", label: "Job", width: 160, minWidth: 120 },
+      {
+        key: "tagName",
+        label: "Tag",
+        width: 120,
+        minWidth: 100,
+        listable: true,
+        kanbanIdKey: "tagId",
+        kanbanColorKey: "tagColor",
+        kanbanColumns: buildTagKanbanColumns(tags),
+        render: (value, row) => {
+          const tagStyle =
+            row.tagColor ? { borderColor: `${row.tagColor}4f`, backgroundColor: `${row.tagColor}40` } : undefined;
+
+          return (
+            <Badge variant="secondary" className="cursor-default gap-2 rounded-lg" style={tagStyle}>
+              {row.tagColor ?
+                <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.tagColor }} />
+              : null}
+              {value}
+            </Badge>
+          );
+        },
+      },
+      { key: "createdAt", label: "Created Date", width: 150, minWidth: 130 },
+      { key: "modifiedAt", label: "Modified Date", width: 150, minWidth: 130 },
+      { key: "action", label: "Actions" },
+    ],
+    [tags]
+  );
 
   const filterFn = useCallback(
     (row: CoverLetterAccessRecord) => selectedTagId === "all" || row.tagId === selectedTagId,

@@ -9,12 +9,16 @@ function gridlayout({
   noteListing,
   onSelect,
   isLoading,
+  selectedNoteIds,
+  onToggleSelect,
 }: {
   setIsOpen: (arg: boolean) => void;
   isOpen: boolean;
   noteListing: State[];
   onSelect: (note: State) => void;
   isLoading?: boolean;
+  selectedNoteIds: Set<string>;
+  onToggleSelect: (noteId: string) => void;
 }) {
   useEffect(() => {
     return () => {
@@ -34,6 +38,8 @@ function gridlayout({
           item={item}
           onSelect={onSelect}
           className="mb-4 break-inside-avoid w-full"
+          isSelected={item?._id ? selectedNoteIds.has(item._id) : false}
+          onToggleSelect={onToggleSelect}
         />
       ))}
     </div>

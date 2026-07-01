@@ -7,10 +7,14 @@ function listinglayout({
   noteListing,
   onSelect,
   isLoading,
+  selectedNoteIds,
+  onToggleSelect,
 }: {
   noteListing: State[];
   onSelect: (note: State) => void;
   isLoading?: boolean;
+  selectedNoteIds: Set<string>;
+  onToggleSelect: (noteId: string) => void;
 }) {
   if (isLoading) {
     return <NoteListSkeleton />;
@@ -24,6 +28,8 @@ function listinglayout({
           item={item}
           onSelect={onSelect}
           className="m-3"
+          isSelected={item?._id ? selectedNoteIds.has(item._id) : false}
+          onToggleSelect={onToggleSelect}
         />
       ))}
     </>

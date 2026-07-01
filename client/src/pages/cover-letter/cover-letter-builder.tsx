@@ -43,6 +43,7 @@ import { useParams } from "react-router-dom";
 import BuilderWorkspace from "../cv-builder/builder-workspace";
 import { CvCanvasOverlayProvider } from "../cv-builder/cv-canvas-overlay";
 import CoverLetterPallet from "./cover-letter-pallet";
+import { DEFAULT_COVER_LETTER_TONE, type CoverLetterTone } from "@/shared/constants/cover-letter-tone";
 import { applyDraftToTemplate, createCoverLetterTemplate } from "./cover-letter-template";
 import "./cover-letter.scss";
 
@@ -102,6 +103,7 @@ const CoverLetterBuilderContent = () => {
   const [name, setName] = useState("");
   const [job, setJob] = useState("");
   const [tag, setTag] = useState<CoverLetterTag>("");
+  const [tone, setTone] = useState<CoverLetterTone>(DEFAULT_COVER_LETTER_TONE);
   const draftInitializedRef = useRef(false);
 
   const { data: currentUser, isLoading: isProfileLoading } = useQuery({
@@ -140,6 +142,86 @@ const CoverLetterBuilderContent = () => {
     }
   }, [coverLetter, loadCVState, setCvName, tags]);
 
+  const runCoverLetterGeneration = useCallback(
+    async ({
+      jobSummary,
+      sourceText,
+      model,
+      preserveTemplate = false,
+    }: {
+      jobSummary: string;
+      sourceText?: string;
+      model?: GeminiModelId;
+      preserveTemplate?: boolean;
+    }) => {
+      setGenerationError(null);
+      setGenerationSteps(createCoverLetterGenerationSteps());
+      setIsGenerationDialogOpen(true);
+
+      const setStep = (id: string, status: GenerationStepStatus) => {
+        setGenerationSteps((current) => updateGenerationStep(current, id, status));
+      };
+
+      setStep("profile", "complete");
+      setStep("template", "active");
+
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => resolve());
+      });
+
+      const template = preserveTemplate ?
+        { elements, pageProperties }
+      : createCoverLetterTemplate(contactInfo);
+      const defaultName =
+        name.trim() ||
+        cvName.trim() ||
+        (contactInfo?.fullName ? `${contactInfo.fullName} Cover Letter` : "Cover Letter Draft");
+
+      setStep("template", "complete");
+      setStep("generate", "active");
+
+      try {
+        const draft = await generateCoverLetterDraft({
+          jobSummary,
+          sourceText,
+          model,
+          tone,
+          applicantName: contactInfo?.fullName,
+          applicantRole: contactInfo?.designation,
+        });
+
+        setStep("generate", "complete");
+        setStep("apply", "active");
+
+        const seeded = applyDraftToTemplate(template.elements, draft.sections, contactInfo);
+        loadCVState(seeded, template.pageProperties);
+        if (!preserveTemplate) {
+          setName(defaultName);
+          setCvName(defaultName);
+        }
+
+        setStep("apply", "complete");
+      } catch (error) {
+        setStep("generate", "error");
+        if (!preserveTemplate) {
+          loadCVState(template.elements, template.pageProperties);
+          setName(defaultName);
+          setCvName(defaultName);
+        }
+        const message = error instanceof Error ? error.message : "Could not regenerate the cover letter.";
+        setGenerationError(message);
+        showToast({
+          title: preserveTemplate ? "Regeneration failed" : "Draft generation failed",
+          description: message,
+          variant: "warning",
+        });
+      } finally {
+        setIsGenerationDialogOpen(false);
+      }
+    },
+    [contactInfo, elements, loadCVState, name, cvName, pageProperties, setCvName, tone]
+  );
+
   useEffect(() => {
     if (isEditMode || draftInitializedRef.current || isProfileLoading) return;
     draftInitializedRef.current = true;
@@ -161,62 +243,25 @@ const CoverLetterBuilderContent = () => {
       setJob(jobText);
     }
 
-    const runGeneration = async () => {
-      setGenerationError(null);
-      setGenerationSteps(createCoverLetterGenerationSteps());
-      setIsGenerationDialogOpen(true);
+    void runCoverLetterGeneration({
+      jobSummary: jobContext.summary,
+      sourceText: jobContext.sourceText,
+      model: jobContext.model as GeminiModelId | undefined,
+    });
+  }, [isEditMode, isProfileLoading, contactInfo, loadCVState, setCvName, runCoverLetterGeneration]);
 
-      const setStep = (id: string, status: GenerationStepStatus) => {
-        setGenerationSteps((current) => updateGenerationStep(current, id, status));
-      };
+  const canRegenerate = Boolean(job.trim() || coverLetter?.job?.trim());
 
-      setStep("profile", "complete");
-      setStep("template", "active");
+  const handleRegenerate = useCallback(() => {
+    const jobSummary = job.trim() || coverLetter?.job?.trim() || "";
+    if (!jobSummary) return;
 
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => resolve());
-      });
-
-      setStep("template", "complete");
-      setStep("generate", "active");
-
-      try {
-        const draft = await generateCoverLetterDraft({
-          jobSummary: jobContext.summary,
-          sourceText: jobContext.sourceText,
-          model: jobContext.model as GeminiModelId | undefined,
-          applicantName: contactInfo?.fullName,
-          applicantRole: contactInfo?.designation,
-        });
-
-        setStep("generate", "complete");
-        setStep("apply", "active");
-
-        const seeded = applyDraftToTemplate(template.elements, draft.sections, contactInfo);
-        loadCVState(seeded, template.pageProperties);
-        setName(defaultName);
-        setCvName(defaultName);
-
-        setStep("apply", "complete");
-      } catch (error) {
-        setStep("generate", "error");
-        loadCVState(template.elements, template.pageProperties);
-        setName(defaultName);
-        setCvName(defaultName);
-        const message = error instanceof Error ? error.message : "Loaded blank template instead.";
-        setGenerationError(message);
-        showToast({
-          title: "Draft generation failed",
-          description: message,
-          variant: "warning",
-        });
-      } finally {
-        setIsGenerationDialogOpen(false);
-      }
-    };
-
-    void runGeneration();
-  }, [isEditMode, isProfileLoading, contactInfo, loadCVState, setCvName]);
+    commitEdits();
+    void runCoverLetterGeneration({
+      jobSummary,
+      preserveTemplate: true,
+    });
+  }, [job, coverLetter?.job, commitEdits, runCoverLetterGeneration]);
 
   const buildSubmitPayload = useCallback(
     (): CoverLetterSubmitPayload => ({
@@ -326,7 +371,17 @@ const CoverLetterBuilderContent = () => {
           "flex min-h-0 flex-1 flex-col overflow-hidden",
           isGenerationDialogOpen && "pointer-events-none opacity-60"
         )}>
-        <BuilderWorkspace pallet={<CoverLetterPallet />} />
+        <BuilderWorkspace
+          pallet={
+            <CoverLetterPallet
+              tone={tone}
+              onToneChange={setTone}
+              onRegenerate={handleRegenerate}
+              isRegenerating={isGenerationDialogOpen}
+              canRegenerate={canRegenerate}
+            />
+          }
+        />
       </div>
 
       <GenerationProgressDialog

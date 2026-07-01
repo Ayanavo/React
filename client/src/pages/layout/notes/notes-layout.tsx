@@ -1,6 +1,7 @@
 import IconsComponent from "@/common/icons";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import AddActionButton from "@/components/inbuild/add-action-button";
+import SelectionFloaterToolbar from "@/components/inbuild/selection-floater-toolbar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -15,11 +16,12 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
 import { cn } from "@/lib/utils";
-import { getNoteById, getNotes } from "@/shared/services/note";
+import { useConfirmDialog } from "@/shared/confirmation";
+import { deleteNote, getNoteById, getNotes } from "@/shared/services/note";
 import { getTags } from "@/shared/services/tag";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowDownUpIcon, FileText, ListFilterIcon } from "lucide-react";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import GridLayoutComponent from "./grid-layout";
 import ListingLayoutComponent from "./listing-layout";
 import NoteEditorComponent from "./note-editor";
@@ -47,12 +49,14 @@ function note() {
   ];
 
   const queryClient = useQueryClient();
+  const { confirm } = useConfirmDialog();
   const [layout, setLayout] = useState<string>("list");
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [selectedNote, setSelectedNote] = useState<State | undefined>(undefined);
   const [isLoadingNote, setIsLoadingNote] = useState(false);
   const [selectedTagId, setSelectedTagId] = useState("all");
   const [sortBy, setSortBy] = useState<NoteSortOption>("updated-desc");
+  const [selectedNoteIds, setSelectedNoteIds] = useState<Set<string>>(new Set());
 
   const { data: notes = [], isLoading } = useQuery({
     queryKey: ["notes"],
@@ -75,6 +79,68 @@ function note() {
   );
 
   const hasActiveFilter = selectedTagId !== "all";
+  const selectedCount = selectedNoteIds.size;
+
+  const bulkDeleteMutation = useMutation<number, Error, string[]>({
+    mutationFn: async (ids) => {
+      const results = await Promise.allSettled(ids.map((id) => deleteNote(id)));
+      const succeeded = results.filter((result) => result.status === "fulfilled").length;
+      const failed = results.length - succeeded;
+
+      if (failed > 0 && succeeded === 0) {
+        const firstError = results.find((result) => result.status === "rejected") as PromiseRejectedResult | undefined;
+        throw new Error(firstError?.reason instanceof Error ? firstError.reason.message : "Bulk delete failed");
+      }
+
+      return succeeded;
+    },
+    onSuccess: (deletedCount) => {
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      setSelectedNoteIds(new Set());
+      const label = deletedCount === 1 ? "Note" : "Notes";
+      showToast({ title: `${deletedCount} ${label} deleted successfully`, variant: "success" });
+    },
+    onError: (error: Error) => {
+      showToast({
+        title: "Note bulk deletion failed",
+        description: error.message,
+        variant: "error",
+      });
+    },
+  });
+
+  const handleToggleSelect = useCallback((noteId: string) => {
+    setSelectedNoteIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(noteId)) {
+        next.delete(noteId);
+      } else {
+        next.add(noteId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedNoteIds(new Set());
+  }, []);
+
+  const handleBulkDelete = useCallback(async () => {
+    const ids = Array.from(selectedNoteIds);
+    if (ids.length === 0) return;
+
+    const label = ids.length === 1 ? "note" : "notes";
+    const ok = await confirm({
+      title: ids.length === 1 ? "Delete Note" : `Delete ${ids.length} Notes`,
+      message: `Are you sure you want to delete ${ids.length} selected ${label}? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      showLoadingOnConfirmClick: true,
+    });
+
+    if (!ok) return;
+    bulkDeleteMutation.mutate(ids);
+  }, [bulkDeleteMutation, confirm, selectedNoteIds]);
 
   const handleCreate = () => {
     setSelectedNote(undefined);
@@ -259,7 +325,13 @@ function note() {
             </div>
           )}
           {layout === "list" && (
-            <ListingLayoutComponent noteListing={filteredNoteListing} onSelect={handleSelect} isLoading={isLoading} />
+            <ListingLayoutComponent
+              noteListing={filteredNoteListing}
+              onSelect={handleSelect}
+              isLoading={isLoading}
+              selectedNoteIds={selectedNoteIds}
+              onToggleSelect={handleToggleSelect}
+            />
           )}
           {layout === "grid" && (
             <GridLayoutComponent
@@ -268,9 +340,19 @@ function note() {
               setIsOpen={setIsOpen}
               isOpen={isOpen}
               isLoading={isLoading}
+              selectedNoteIds={selectedNoteIds}
+              onToggleSelect={handleToggleSelect}
             />
           )}
         </div>
+
+        <SelectionFloaterToolbar
+          selectedCount={selectedCount}
+          onClear={handleClearSelection}
+          onDelete={handleBulkDelete}
+          isDeleting={bulkDeleteMutation.isPending}
+          resourceLabel="Note"
+        />
       </div>
     </>
   );

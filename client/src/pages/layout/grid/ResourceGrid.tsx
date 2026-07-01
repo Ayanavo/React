@@ -32,7 +32,8 @@ import {
 } from "@tanstack/react-table";
 import { EllipsisIcon, PencilIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
 import AddActionButton from "@/components/inbuild/add-action-button";
-import React, { useEffect, useId, useMemo, useState } from "react";
+import SelectionFloaterToolbar from "@/components/inbuild/selection-floater-toolbar";
+import React, { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { resolveGridColumnSizing, normalizeColumnSizingFromConfig } from "./grid-column-sizing";
 import ColumnComponent from "./table/column";
@@ -41,6 +42,23 @@ import PaginationComponent from "./table/pagination";
 import "./table/table.css";
 
 export type GridColumnType = "text" | "date" | "color";
+
+export type KanbanColumnOption = {
+  key: string;
+  label: string;
+  color?: string;
+};
+
+export const KANBAN_UNGROUPED_KEY = "__ungrouped__";
+
+export function buildTagKanbanColumns(
+  tags: Array<{ _id: string; name: string; color?: string }>
+): KanbanColumnOption[] {
+  return [
+    { key: KANBAN_UNGROUPED_KEY, label: "Unassigned" },
+    ...tags.map((tag) => ({ key: tag._id, label: tag.name, color: tag.color })),
+  ];
+}
 
 export type GridColumnConfig<T> = {
   key: (keyof T & string) | "select" | "action";
@@ -54,6 +72,7 @@ export type GridColumnConfig<T> = {
   listable?: boolean;
   kanbanIdKey?: keyof T & string;
   kanbanColorKey?: keyof T & string;
+  kanbanColumns?: KanbanColumnOption[];
   render?: (value: any, row: T) => React.ReactNode;
 };
 
@@ -84,6 +103,8 @@ type ResourceGridProps<T extends { _id: string }> = {
   };
   filterControls?: React.ReactNode;
   filterFn?: (row: T) => boolean;
+  bulkDeleteFilter?: (row: T) => boolean;
+  enableBulkDelete?: boolean;
 };
 
 function ResourceGrid<T extends { _id: string }>({
@@ -100,6 +121,8 @@ function ResourceGrid<T extends { _id: string }>({
   actionConfig,
   filterControls,
   filterFn,
+  bulkDeleteFilter,
+  enableBulkDelete = true,
 }: ResourceGridProps<T>) {
   const columnHelper = createColumnHelper<T>();
   const navigate = useNavigate();
@@ -147,6 +170,37 @@ function ResourceGrid<T extends { _id: string }>({
     onError: (error: Error) => {
       showToast({
         title: `${resourceLabel} deletion failed`,
+        description: error.message,
+        variant: "error",
+      });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation<number, Error, string[]>({
+    mutationFn: async (ids) => {
+      const results = await Promise.allSettled(ids.map((id) => deleteResource(id)));
+      const succeeded = results.filter((result) => result.status === "fulfilled").length;
+      const failed = results.length - succeeded;
+
+      if (failed > 0 && succeeded === 0) {
+        const firstError = results.find((result) => result.status === "rejected") as PromiseRejectedResult | undefined;
+        throw new Error(firstError?.reason instanceof Error ? firstError.reason.message : "Bulk delete failed");
+      }
+
+      return succeeded;
+    },
+    onSuccess: (deletedCount) => {
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      setRowSelection({});
+      const label = deletedCount === 1 ? resourceLabel : `${resourceLabel}s`;
+      showToast({
+        title: `${deletedCount} ${label} deleted successfully`,
+        variant: "success",
+      });
+    },
+    onError: (error: Error) => {
+      showToast({
+        title: `${resourceLabel} bulk deletion failed`,
         description: error.message,
         variant: "error",
       });
@@ -341,6 +395,36 @@ function ResourceGrid<T extends { _id: string }>({
     columnResizeMode: "onEnd",
   });
 
+  const hasSelectColumn = columnConfig.some((column) => column.key === "select");
+  const selectedRows = tableBody.getFilteredSelectedRowModel().rows;
+  const selectedCount = selectedRows.length;
+
+  const getDeletableSelectedIds = useCallback(() => {
+    const rows = bulkDeleteFilter ? selectedRows.filter((row) => bulkDeleteFilter(row.original)) : selectedRows;
+    return rows.map((row) => row.original._id);
+  }, [bulkDeleteFilter, selectedRows]);
+
+  const handleClearSelection = useCallback(() => {
+    setRowSelection({});
+  }, []);
+
+  const handleBulkDelete = useCallback(async () => {
+    const ids = getDeletableSelectedIds();
+    if (ids.length === 0) return;
+
+    const label = ids.length === 1 ? resourceLabel.toLowerCase() : `${resourceLabel.toLowerCase()}s`;
+    const ok = await confirm({
+      title: ids.length === 1 ? `Delete ${resourceLabel}` : `Delete ${ids.length} ${resourceLabel}s`,
+      message: `Are you sure you want to delete ${ids.length} selected ${label}? This action cannot be undone.`,
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      showLoadingOnConfirmClick: true,
+    });
+
+    if (!ok) return;
+    bulkDeleteMutation.mutate(ids);
+  }, [bulkDeleteMutation, confirm, getDeletableSelectedIds, resourceLabel]);
+
   const handleSearchKey = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
       setGlobalFilter(event.currentTarget.value ?? "");
@@ -447,6 +531,16 @@ function ResourceGrid<T extends { _id: string }>({
           />
         </div>
       )}
+
+      {hasSelectColumn && enableBulkDelete ?
+        <SelectionFloaterToolbar
+          selectedCount={selectedCount}
+          onClear={handleClearSelection}
+          onDelete={handleBulkDelete}
+          isDeleting={bulkDeleteMutation.isPending}
+          resourceLabel={resourceLabel}
+        />
+      : null}
     </div>
   );
 }
