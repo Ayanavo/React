@@ -8,13 +8,40 @@ import {
   sendGoogleError,
 } from "./summarizeController.js";
 
-const COVER_LETTER_DRAFT_PROMPT =
-  "You are a professional cover letter writer. Given a job summary, write a tailored cover letter draft. " +
-  "Write entirely in the first person from the applicant's perspective (use I, me, and my; never refer to the applicant by name or in third person). " +
-  "Respond ONLY with valid JSON (no markdown fences) in this exact shape:\n" +
-  '{"salutation":"Dear Hiring Manager,","body":["paragraph 1","paragraph 2"],"closing":"Sincerely,"}\n' +
-  "Rules: body must contain only the main letter paragraphs. Do not repeat the salutation or any sign-off in body. " +
-  "closing must be only the sign-off line such as Sincerely, without the applicant name.";
+const COVER_LETTER_TONE_INSTRUCTIONS: Record<string, string> = {
+  professional:
+    "Use a balanced, polished tone that is professional and suitable for most employers.",
+  formal: "Use a formal, traditional tone with respectful and structured language.",
+  friendly: "Use a warm, approachable tone while remaining professional and appropriate.",
+  enthusiastic:
+    "Use an energetic, motivated tone that conveys genuine excitement about the opportunity.",
+  confident: "Use a direct, assertive tone that clearly communicates the applicant's fit for the role.",
+  concise: "Use a brief, to-the-point tone with minimal filler and focused paragraphs.",
+};
+
+const DEFAULT_COVER_LETTER_TONE = "professional";
+
+function resolveCoverLetterTone(value: unknown) {
+  if (typeof value === "string" && value in COVER_LETTER_TONE_INSTRUCTIONS) {
+    return value;
+  }
+  return DEFAULT_COVER_LETTER_TONE;
+}
+
+function buildCoverLetterDraftPrompt(tone: string) {
+  const toneInstruction =
+    COVER_LETTER_TONE_INSTRUCTIONS[tone] ?? COVER_LETTER_TONE_INSTRUCTIONS[DEFAULT_COVER_LETTER_TONE];
+
+  return (
+    "You are a professional cover letter writer. Given a job summary, write a tailored cover letter draft. " +
+    `${toneInstruction} ` +
+    "Write entirely in the first person from the applicant's perspective (use I, me, and my; never refer to the applicant by name or in third person). " +
+    "Respond ONLY with valid JSON (no markdown fences) in this exact shape:\n" +
+    '{"salutation":"Dear Hiring Manager,","body":["paragraph 1","paragraph 2"],"closing":"Sincerely,"}\n' +
+    "Rules: body must contain only the main letter paragraphs. Do not repeat the salutation or any sign-off in body. " +
+    "closing must be only the sign-off line such as Sincerely, without the applicant name."
+  );
+}
 
 function getApiKey() {
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
@@ -69,6 +96,7 @@ export const generateCoverLetterDraft = async (req: Request, res: Response) => {
     const sourceText = typeof req.body?.sourceText === "string" ? req.body.sourceText.trim() : "";
     const applicantName = typeof req.body?.applicantName === "string" ? req.body.applicantName.trim() : "";
     const applicantRole = typeof req.body?.applicantRole === "string" ? req.body.applicantRole.trim() : "";
+    const tone = resolveCoverLetterTone(req.body?.tone);
 
     if (!jobSummary && !sourceText) {
       return res.status(400).json({ message: "jobSummary or sourceText is required", code: "MISSING_DATA" });
@@ -84,7 +112,10 @@ export const generateCoverLetterDraft = async (req: Request, res: Response) => {
       .join("\n\n");
 
     const genAI = new GoogleGenerativeAI(getApiKey());
-    const model = genAI.getGenerativeModel({ model: modelId, systemInstruction: COVER_LETTER_DRAFT_PROMPT });
+    const model = genAI.getGenerativeModel({
+      model: modelId,
+      systemInstruction: buildCoverLetterDraftPrompt(tone),
+    });
     const result = await model.generateContent(content);
     const text = result.response.text();
     const parsed = parseDraftResponse(text || "");
