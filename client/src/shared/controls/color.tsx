@@ -45,7 +45,7 @@ function color({ form, schema }: { form: FieldValue<any>; schema: ColorSchema })
                 <OpacityIcon className="ml-auto h-4 w-4 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 pointer-events-auto" align="start">
+            <PopoverContent className="w-auto border-0 bg-transparent p-0 shadow-none pointer-events-auto" align="start">
               <ColorPickerPanel color={field.value} onChange={handleColorChange} />
             </PopoverContent>
           </Popover>

@@ -530,7 +530,7 @@ function noteeditor({
         <CustomPopover
           controlRef={popoverRef}
           anchorRef={colorButtonRef}
-          className="w-auto p-0 pointer-events-auto"
+          className="w-auto border-0 bg-transparent p-0 shadow-none pointer-events-auto"
           content={<ColorPickerPanel color={noteColor} onChange={setNoteColor} />}
         />
         <CustomPopover
