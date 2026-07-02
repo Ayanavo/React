@@ -103,7 +103,7 @@ function menu({
         {showLabels && <span className="app-sidebar__brand-text">Notofy</span>}
       </button>
 
-      <ul className="app-sidebar__nav">
+      <ul className="app-sidebar__nav" data-tutorial="app-menu">
         {isLoadingPermissions ?
           Array.from({ length: 7 }).map((_, index) => (
             <li key={index} className="app-sidebar__skeleton">

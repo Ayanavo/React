@@ -522,7 +522,7 @@ const Canvas = () => {
 
   return (
     <aside className="relative flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
-      <div className="absolute top-4 right-4 z-30 flex flex-col gap-2" data-cv-capture-ignore>
+      <div className="absolute top-4 right-4 z-30 flex flex-col gap-2" data-cv-capture-ignore data-tutorial="builder-preview-download">
         <button
           type="button"
           onClick={() => void openPreview()}

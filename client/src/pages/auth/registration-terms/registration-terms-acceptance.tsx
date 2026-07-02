@@ -5,7 +5,8 @@ import { ParticleLoader } from "@/components/particle-loader/ParticleLoader";
 import showToast from "@/hooks/toast";
 import { useFullPageScroll } from "@/hooks/use-full-page-scroll";
 import { TermsContent } from "@/pages/layout/terms/terms";
-import { acceptTermsAPI } from "@/shared/services/auth.ts";
+import { acceptTermsAPI, REGISTRATION_AWAITING_TERMS_KEY } from "@/shared/services/auth.ts";
+import { markTutorialPending } from "@/shared/tutorial/tutorial-storage";
 import { usePermissions } from "@/shared/context/PermissionsContext";
 import { PRIVACY_PATH } from "@/shared/utils/policy-paths";
 import { LoaderCircleIcon } from "lucide-react";
@@ -33,7 +34,8 @@ function RegistrationTermsAcceptance() {
   useEffect(() => {
     if (!isReady || isLoading) return;
 
-    if (!requiresTermsAcceptance) {
+    const awaitingTerms = sessionStorage.getItem(REGISTRATION_AWAITING_TERMS_KEY) === "true";
+    if (!requiresTermsAcceptance && !awaitingTerms) {
       navigate("/dashboard", { replace: true });
     }
   }, [isLoading, isReady, navigate, requiresTermsAcceptance]);
@@ -45,6 +47,7 @@ function RegistrationTermsAcceptance() {
     try {
       await acceptTermsAPI();
       await refetchPermissions();
+      markTutorialPending();
       showToast({ title: "Terms accepted. Welcome to Notofy!", variant: "success" });
       navigate("/dashboard", { replace: true });
     } catch (error: any) {
@@ -55,7 +58,10 @@ function RegistrationTermsAcceptance() {
     }
   };
 
-  if (!isReady || isLoading || !requiresTermsAcceptance) {
+  const awaitingTerms = sessionStorage.getItem(REGISTRATION_AWAITING_TERMS_KEY) === "true";
+  const shouldShowTerms = requiresTermsAcceptance || awaitingTerms;
+
+  if (!isReady || isLoading || !shouldShowTerms) {
     return <ParticleLoader statusText="Loading terms..." />;
   }
 

@@ -441,7 +441,7 @@ function SummarizeComponent() {
           <div ref={endRef} />
         </div>
 
-        <form className="summarize-composer" onSubmit={handleSend}>
+        <form className="summarize-composer" onSubmit={handleSend} data-tutorial="summarize-composer">
           {selectedFile && (
             <div className="summarize-composer__attachment">
               <FileText className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -511,7 +511,7 @@ function SummarizeComponent() {
         </form>
       </section>
 
-      <aside className="summarize-history" aria-label="Chat history">
+      <aside className="summarize-history" aria-label="Chat history" data-tutorial="summarize-history">
         <div className="summarize-history__header">
           <div className="summarize-history__title-row">
             <History className="h-4 w-4 shrink-0" aria-hidden="true" />

@@ -1,9 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { fetchPermissionsByToken } from "@/shared/services/masterAccess";
-import { getCurrentUserAPI } from "@/shared/services/auth.ts";
+import { getCurrentUserAPI, REGISTRATION_AWAITING_TERMS_KEY } from "@/shared/services/auth.ts";
 import { defaultMenuOrder } from "@/config/nav-order";
 import { connectSocket, disconnectSocket } from "@/shared/services/socket";
 import { AUTH_CHANGED_EVENT, getAuthToken, isAuthenticated } from "@/shared/utils/auth-token";
+
+const isAwaitingRegistrationTerms = (): boolean =>
+  sessionStorage.getItem(REGISTRATION_AWAITING_TERMS_KEY) === "true";
 
 type PermissionsContextType = {
   permissions: string[];
@@ -40,15 +43,48 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
     try {
       setIsLoading(true);
       setError(null);
-      const [result, profile] = await Promise.all([fetchPermissionsByToken(), getCurrentUserAPI()]);
-      setPermissions(result.allowedRoutes || []);
-      setMenuOrder(result.menuOrder?.length ? result.menuOrder : defaultMenuOrder);
-      setRequiresTermsAcceptance(Boolean(profile.requiresTermsAcceptance));
+
+      const [permissionsResult, profileResult] = await Promise.allSettled([
+        fetchPermissionsByToken(),
+        getCurrentUserAPI(),
+      ]);
+
+      if (permissionsResult.status === "fulfilled") {
+        const result = permissionsResult.value;
+        setPermissions(result.allowedRoutes || []);
+        setMenuOrder(result.menuOrder?.length ? result.menuOrder : defaultMenuOrder);
+      } else {
+        setPermissions([]);
+        setMenuOrder(defaultMenuOrder);
+      }
+
+      if (profileResult.status === "fulfilled") {
+        const profile = profileResult.value;
+        setRequiresTermsAcceptance(
+          Boolean(profile.requiresTermsAcceptance) || isAwaitingRegistrationTerms()
+        );
+      } else {
+        setRequiresTermsAcceptance(isAwaitingRegistrationTerms());
+      }
+
+      const errors = [permissionsResult, profileResult].filter(
+        (result): result is PromiseRejectedResult => result.status === "rejected"
+      );
+
+      if (errors.length === 2) {
+        const reason = errors[0].reason;
+        throw reason instanceof Error ? reason : new Error("Failed to fetch permissions");
+      }
+
+      if (errors.length === 1) {
+        const reason = errors[0].reason;
+        setError(reason instanceof Error ? reason : new Error("Failed to fetch account data"));
+      }
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to fetch permissions"));
-      setPermissions([]);
-      setMenuOrder(defaultMenuOrder);
-      setRequiresTermsAcceptance(false);
+      if (!isAwaitingRegistrationTerms()) {
+        setRequiresTermsAcceptance(false);
+      }
     } finally {
       setIsLoading(false);
       setIsInitialized(true);

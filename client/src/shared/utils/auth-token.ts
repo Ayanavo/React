@@ -24,14 +24,32 @@ export const clearAuthToken = (): void => {
 
 export const isAuthenticated = (): boolean => Boolean(getAuthToken());
 
+const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
+  try {
+    const base64Url = token.split(".")[1];
+    if (!base64Url) return null;
+
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+    return JSON.parse(atob(padded)) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+};
+
 export const getUserIdFromToken = (): string | null => {
   const token = getAuthToken();
   if (!token) return null;
 
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1] ?? "")) as { id?: string };
-    return payload.id ?? null;
-  } catch {
-    return null;
+  const payload = decodeJwtPayload(token);
+  if (!payload) return null;
+
+  const id = payload.id;
+  if (typeof id === "string" && id.length > 0) return id;
+  if (id && typeof id === "object" && "toString" in id) {
+    const asString = String(id);
+    return asString.length > 0 ? asString : null;
   }
+
+  return null;
 };

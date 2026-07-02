@@ -2,6 +2,7 @@ import { ParticleLoader } from "@/components/particle-loader/ParticleLoader";
 import showToast from "@/hooks/toast";
 import { showCacheUseWarning } from "@/shared/utils/cache-warning";
 import { LOGIN_PATH } from "@/shared/utils/auth-paths";
+import { markTutorialPending } from "@/shared/tutorial/tutorial-storage";
 import { setAuthToken } from "@/shared/utils/auth-token";
 import React, { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -37,6 +38,9 @@ function OAuthCallback() {
     }
 
     setAuthToken(token);
+    if (isNewUser) {
+      markTutorialPending();
+    }
     showCacheUseWarning();
     showToast({
       title: isNewUser ? "Account created successfully" : "Successfully signed in",

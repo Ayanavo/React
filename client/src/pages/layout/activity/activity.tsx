@@ -260,7 +260,7 @@ function ActivityPage() {
           </div>
         </section>
 
-        <div className="activity-page__workspace grid min-h-0 flex-1 gap-4 xl:grid-cols-[20rem_minmax(0,1fr)_20rem]">
+        <div className="activity-page__workspace grid min-h-0 flex-1 gap-4 xl:grid-cols-[20rem_minmax(0,1fr)_20rem]" data-tutorial="activity-workspace">
           <div className="activity-page__sidebar-column">{dateSidebar}</div>
 
           <main className="activity-page__main">

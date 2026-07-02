@@ -197,7 +197,7 @@ function note() {
           <div className="flex items-center justify-between px-2 pt-3">
             <BreadcrumbInbuild />
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-2 px-3 pb-1">
+          <div className="flex flex-wrap items-center justify-end gap-2 px-3 pb-1" data-tutorial="notes-toolbar">
             <div className="m-1 flex flex-wrap items-center justify-center gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

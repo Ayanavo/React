@@ -366,7 +366,7 @@ const CoverLetterPallet = ({
   const isAnyExpanded = Object.values(expandedSections).some(Boolean);
 
   return (
-    <div className="cover-letter-pallet w-full md:w-[20rem] h-full bg-background border-r shadow-sm flex-shrink-0 overflow-hidden flex flex-col">
+    <div className="cover-letter-pallet w-full md:w-[20rem] h-full bg-background border-r shadow-sm flex-shrink-0 overflow-hidden flex flex-col" data-tutorial="cover-letter-pallet">
       <div className="flex w-full items-center gap-3 border-b bg-card px-4 py-3">
         <span className="min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           Cover Letter

@@ -4,12 +4,14 @@ import React from "react";
 import { useLocation } from "react-router-dom";
 import packageJson from "../../../../package.json";
 import GlobalSearch from "./global-search";
+import NotificationSidebar from "./notification-sidebar";
 
 type NavItem = { label: string; icon: string; route: string };
 
 function header({ NavList }: { NavList: Array<NavItem> }) {
   const { pathname } = useLocation();
   const NavObj = NavList.find((item) => pathname.includes(item.route));
+  const hasActivityAccess = NavList.some((item) => item.route === "/activities");
 
   return (
     <GlobalSearch navList={NavList}>
@@ -25,26 +27,12 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
           <div className="col-start-2 flex shrink-0 items-center justify-end gap-1 sm:gap-2 md:col-start-3 md:row-start-1">
             <GlobalSearch.IconButton className="md:hidden" />
 
+            <NotificationSidebar enabled={hasActivityAccess} />
+
             <Badge variant="outline" className="shrink-0 px-2 py-1 text-[10px] font-medium sm:text-xs rounded-full">
               v{packageJson.version}
             </Badge>
-{/* 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="More options">
-                  <EllipsisVerticalIcon className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem>
-                  <InfoIcon className="mr-2 h-4 w-4" />
-                  <span>Help</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem disabled className="text-xs text-muted-foreground">
-                  Version {packageJson.version}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu> */}
+
           </div>
         </div>
       </header>

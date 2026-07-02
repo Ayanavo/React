@@ -1,6 +1,9 @@
 import { apiUrl, axiosInstance, createChatTransport } from "@/shared/interceptors/auth-interceptor";
 import { disconnectSocket } from "@/shared/services/socket";
+import { markTutorialPending } from "@/shared/tutorial/tutorial-storage";
 import { clearAuthToken, setAuthToken } from "@/shared/utils/auth-token";
+
+export const REGISTRATION_AWAITING_TERMS_KEY = "registration:awaiting-terms";
 
 export type RegisterPayload = {
   photoURL: string;
@@ -95,12 +98,15 @@ export const registerAPI = async (payload: RegisterPayload) => {
   const response = await axiosInstance.post(apiUrl + "auth/register", payload);
   if (response.data.token) {
     setAuthToken(response.data.token);
+    sessionStorage.setItem(REGISTRATION_AWAITING_TERMS_KEY, "true");
+    markTutorialPending();
   }
   return response.data;
 };
 
 export const acceptTermsAPI = async () => {
   const response = await axiosInstance.post(apiUrl + "auth/accept-terms");
+  sessionStorage.removeItem(REGISTRATION_AWAITING_TERMS_KEY);
   return response.data;
 };
 

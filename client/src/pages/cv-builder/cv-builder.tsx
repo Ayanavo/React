@@ -495,6 +495,7 @@ const CVBuilderContent = () => {
           "flex flex-none flex-col gap-2 border-b border-border/60 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-6",
           isGenerationDialogOpen && "pointer-events-none opacity-60"
         )}
+        data-tutorial="cv-toolbar"
         aria-hidden={isGenerationDialogOpen}>
         <BreadcrumbInbuild isEditMode={isEditMode} className="w-full min-w-0" />
 

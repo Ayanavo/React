@@ -20,7 +20,7 @@ function tagslayout() {
       <div className="flex flex-none items-center justify-between px-3 pt-3 sm:px-6 sm:pt-4">
         <BreadcrumbInbuild />
       </div>
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1" data-tutorial="tags-grid">
         <ResourceGrid<Tag>
         queryKey="tags"
         resourceLabel="Tag"
