@@ -9,6 +9,13 @@ import {
   resolveMenuOrder,
 } from "../services/userPermissions.js";
 
+const toObjectId = (userId: unknown): Types.ObjectId | null => {
+  if (!userId) return null;
+  if (userId instanceof Types.ObjectId) return userId;
+  const asString = String(userId);
+  return Types.ObjectId.isValid(asString) ? new Types.ObjectId(asString) : null;
+};
+
 const defaultMenuOrder = [
   "/master-access",
   "/activities",
@@ -117,7 +124,11 @@ export const getPermissionsByToken = async (req: Request, res: Response) => {
     if (decoded === null) {
       return res.status(401).json({ message: "Invalid token" });
     }
-    const userId = decoded._id;
+    const userId = toObjectId(decoded._id);
+    if (!userId) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
+
     const record = await MasterAccess.findOne({ userId }).select("allowedRoutes menuOrder").lean();
     res.status(200).json({
       allowedRoutes: resolveAllowedRoutes(record?.allowedRoutes),

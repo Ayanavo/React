@@ -70,6 +70,7 @@ export const signUp = async (req: Request, res: Response) => {
     res.status(201).json({
       ...authResponse,
       message: "User created successfully",
+      requiresTermsAcceptance: true,
     });
   } catch (error: any) {
     console.error("Error creating user:", error);
