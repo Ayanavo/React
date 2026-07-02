@@ -10,12 +10,11 @@ import { createProfileSchemaWithValidation } from "@/shared/validation/schema";
 import { updateProfileAPI, validatePincodeAPI } from "@/shared/services/profile";
 import { Button } from "@/components/ui/button";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import PageBreadcrumbBar from "@/components/inbuild/page-breadcrumb-bar";
 import { getCurrentUserAPI } from "@/shared/services/auth";
 import showToast from "@/hooks/toast";
 import axios from "axios";
 import { getAxiosErrorMessage } from "@/shared/interceptors/auth-interceptor";
-import { Link } from "react-router-dom";
-import { PRIVACY_PATH, TERMS_PATH } from "@/shared/utils/policy-paths";
 import { EMPTY_COMPANY_ENTRY, normalizeCompanies } from "@/shared/utils/work-experience";
 import { BriefcaseBusiness, MapPin, UserRound } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -221,9 +220,9 @@ function profile() {
   return (
     <div className="h-full min-h-0 overflow-y-auto scrollbar-none">
       <div className="flex flex-col">
-        <div className="flex items-center justify-between px-6 pt-3">
+        <PageBreadcrumbBar>
           <BreadcrumbInbuild />
-        </div>
+        </PageBreadcrumbBar>
 
         <div className="mx-4 my-2 mb-5 space-y-4">
           <div className={cn("rounded-lg border border-dashed border-border px-6 py-5 shadow-sm", profileCardClass)}>
@@ -315,22 +314,13 @@ function profile() {
                   />
                 </ProfileSection>
 
-                <div className={cn("space-y-2 rounded-lg border border-dashed border-border p-5 shadow-sm", profileCardClass)}>
+                <div className={cn("rounded-lg border border-dashed border-border p-5 shadow-sm", profileCardClass)}>
                   <Button
                     type="submit"
                     className="w-full"
                     disabled={!form.formState.isDirty || form.formState.isSubmitting || !form.formState.isValid}>
                     {form.formState.isSubmitting ? "Updating..." : "Update profile"}
                   </Button>
-                  <p className="text-center text-sm text-muted-foreground">
-                    <Link to={TERMS_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
-                      Terms & Conditions
-                    </Link>
-                    {" · "}
-                    <Link to={PRIVACY_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
-                      Privacy Policy
-                    </Link>
-                  </p>
                 </div>
               </form>
             </FormProvider>

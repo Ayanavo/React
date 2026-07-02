@@ -1,5 +1,6 @@
 import moment from "moment";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import PageBreadcrumbBar from "@/components/inbuild/page-breadcrumb-bar";
 import { Button } from "@/components/ui/button";
 import {
   AlertTriangle,
@@ -226,9 +227,9 @@ function TermsAndConditions() {
   return (
     <div className="h-full min-h-0 overflow-y-auto scrollbar-none">
       <div className="flex flex-col">
-        <div className="flex items-center justify-between px-6 pt-3">
+        <PageBreadcrumbBar>
           <BreadcrumbInbuild />
-        </div>
+        </PageBreadcrumbBar>
 
         <div className="mx-4 my-2 mb-5">
           <TermsContent />

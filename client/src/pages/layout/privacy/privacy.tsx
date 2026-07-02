@@ -1,5 +1,6 @@
 import moment from "moment";
 import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
+import PageBreadcrumbBar from "@/components/inbuild/page-breadcrumb-bar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { TERMS_PATH } from "@/shared/utils/policy-paths";
@@ -333,9 +334,9 @@ function PrivacyPolicy() {
   return (
     <div className="h-full min-h-0 overflow-y-auto scrollbar-none">
       <div className="flex flex-col">
-        <div className="flex items-center justify-between px-6 pt-3">
+        <PageBreadcrumbBar>
           <BreadcrumbInbuild />
-        </div>
+        </PageBreadcrumbBar>
 
         <div className="mx-4 my-2 mb-5 space-y-4">
           <div className={cn("rounded-lg border border-dashed border-border px-6 py-5 shadow-sm", policyCardClass)}>

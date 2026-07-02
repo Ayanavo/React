@@ -1,10 +1,9 @@
-import { Badge } from "@/components/ui/badge";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import React from "react";
 import { useLocation } from "react-router-dom";
-import packageJson from "../../../../package.json";
 import GlobalSearch from "./global-search";
 import NotificationSidebar from "./notification-sidebar";
+import AppInfoDialog from "./app-info-dialog";
 
 type NavItem = { label: string; icon: string; route: string };
 
@@ -29,9 +28,7 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
 
             <NotificationSidebar enabled={hasActivityAccess} />
 
-            <Badge variant="outline" className="shrink-0 px-2 py-1 text-[10px] font-medium sm:text-xs rounded-full">
-              v{packageJson.version}
-            </Badge>
+            <AppInfoDialog />
 
           </div>
         </div>
