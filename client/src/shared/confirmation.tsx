@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { LoaderCircleIcon } from "lucide-react";
-import React, { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useState } from "react";
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 type DialogType = "confirm" | "info";
 
@@ -46,6 +46,10 @@ function ConfirmationDialog({
   showLoadingOnConfirmClick?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) setLoading(false);
+  }, [isOpen]);
 
   // IMPORTANT: handle close (ESC / backdrop) as "Cancel"
   const handleOpenChange = (open: boolean) => {

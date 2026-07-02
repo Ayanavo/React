@@ -60,7 +60,7 @@ function notecard({ item, onSelect, className, isSelected = false, onToggleSelec
 
       <CardContent className="flex flex-1 flex-col gap-3 pt-0">
         {item?.image?.[0] && (
-          <img alt="" className="max-h-40 w-full rounded-md border object-cover" src={item.image[0]} />
+          <img alt="" className="max-h-24 w-full rounded-md border object-cover" src={item.image[0]} />
         )}
         {item?.description ?
           <p className={cn("text-sm whitespace-pre-wrap break-words line-clamp-6", hasCustomBackground ? "note-muted" : "text-muted-foreground")}>
