@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 
 /* ---------------- TYPES ---------------- */
 export type PaginationLocation = "top-left" | "top" | "top-right" | "bottom-left" | "bottom" | "bottom-right";
+export type PaginationFormat = "page-fraction" | "fraction" | "current" | "page-current";
 
 export type PageProperties = {
   backgroundColor?: string;
@@ -143,6 +144,8 @@ interface CVContextType {
   togglePagination: () => void;
   paginationLocation: PaginationLocation;
   setPaginationLocation: (location: PaginationLocation) => void;
+  paginationFormat: PaginationFormat;
+  setPaginationFormat: (format: PaginationFormat) => void;
   addPage: (value: number) => void;
   removePage: (pageId?: string) => void;
   showSideBar: boolean;
@@ -278,6 +281,7 @@ export function CVProvider({
   const [showSectionDividers, setShowSectionDividers] = useState(false);
   const [showPagination, setShowPagination] = useState(false);
   const [paginationLocation, setPaginationLocation] = useState<PaginationLocation>("bottom-right");
+  const [paginationFormat, setPaginationFormat] = useState<PaginationFormat>("page-fraction");
   const [showSideBar, setShowSideBar] = useState(false);
   const [pageProperties, setPageProperties] = useState<PageProperties>(() => {
     try {
@@ -704,6 +708,8 @@ export function CVProvider({
         togglePagination,
         paginationLocation,
         setPaginationLocation,
+        paginationFormat,
+        setPaginationFormat,
 
         showSideBar,
         toggleSideBar,

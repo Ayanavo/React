@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useCV } from "@/lib/useCV";
+import { PAGINATION_FORMAT_OPTIONS } from "./cv-page-pagination";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { Minus, Plus } from "lucide-react";
 import React, { useState } from "react";
@@ -18,6 +19,8 @@ const PagePallet = () => {
     togglePagination,
     paginationLocation,
     setPaginationLocation,
+    paginationFormat,
+    setPaginationFormat,
     MAX_PAGES,
     elements,
   } = useCV();
@@ -118,27 +121,49 @@ const PagePallet = () => {
       </div>
 
       {showPagination && (
-        <div className="space-y-2 flex items-center justify-between">
-          <Label className="text-xs font-medium text-muted-foreground text-nowrap"> Pagination Location</Label>
-          <Select
-            value={paginationLocation}
-            onValueChange={(value) => {
-              setPaginationLocation(value as typeof paginationLocation);
-            }}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {PaginationLocationConfig.map((item) => {
-                return (
-                  <SelectItem key={item.name} value={item.name}>
+        <>
+          <div className="space-y-2 flex items-center justify-between">
+            <Label className="text-xs font-medium text-muted-foreground text-nowrap"> Pagination Location</Label>
+            <Select
+              value={paginationLocation}
+              onValueChange={(value) => {
+                setPaginationLocation(value as typeof paginationLocation);
+              }}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PaginationLocationConfig.map((item) => {
+                  return (
+                    <SelectItem key={item.name} value={item.name}>
+                      {item.label}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2 flex items-center justify-between">
+            <Label className="text-xs font-medium text-muted-foreground text-nowrap">Page</Label>
+            <Select
+              value={paginationFormat}
+              onValueChange={(value) => {
+                setPaginationFormat(value as typeof paginationFormat);
+              }}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGINATION_FORMAT_OPTIONS.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </>
       )}
     </div>
   );

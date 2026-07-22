@@ -1,7 +1,29 @@
-import type { CVElement } from "@/lib/useCV";
+import type { CVElement, PaginationFormat } from "@/lib/useCV";
 
 /** Usable content height inside an A4 page (px). */
 export const CV_PAGE_USABLE_HEIGHT = 1060;
+
+export const PAGINATION_FORMAT_OPTIONS: Array<{ value: PaginationFormat; label: string }> = [
+  { value: "page-fraction", label: "Page (current)/(total)" },
+  { value: "fraction", label: "(current)/(total)" },
+  { value: "current", label: "Current" },
+  { value: "page-current", label: "Page current" },
+];
+
+export function formatCvPageLabel(format: PaginationFormat, current: number, total: number): string {
+  switch (format) {
+    case "page-fraction":
+      return `Page ${current} / ${total}`;
+    case "fraction":
+      return `${current} / ${total}`;
+    case "current":
+      return `${current}`;
+    case "page-current":
+      return `Page ${current}`;
+    default:
+      return `Page ${current} / ${total}`;
+  }
+}
 
 const BLOCK_PADDING_PX = 32;
 const SECTION_GAP_PX = 4;

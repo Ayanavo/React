@@ -14,9 +14,25 @@ import moment from "moment";
 import { Download, Eye, GripHorizontal, GripVertical, Hand, Minus, Plus, Maximize2, Trash, X } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import CVElementRenderer from "./cv-element-renderer";
+import { formatCvPageLabel } from "./cv-page-pagination";
 import { useParams } from "react-router-dom";
+import "./cv-canvas.scss";
 
 const MIN_SECTION_HEIGHT = 80;
+const DEFAULT_CV_PAGE_BACKGROUND = "#ffffff";
+
+const resolveCvPageBackground = (color?: string) => {
+  const normalized = color?.trim();
+  if (!normalized || normalized === "transparent") {
+    return DEFAULT_CV_PAGE_BACKGROUND;
+  }
+  return normalized;
+};
+
+const CV_PAGE_PAGINATION_STYLE: React.CSSProperties = {
+  backgroundColor: "transparent",
+  color: "#64748b",
+};
 const MOBILE_CANVAS_PADDING = 16;
 const DESKTOP_CANVAS_PADDING = 32;
 const MIN_BLOCK_WIDTH = 60;
@@ -71,6 +87,7 @@ const Canvas = () => {
     pageProperties,
     showPagination,
     paginationLocation,
+    paginationFormat,
     updateElement,
     showSectionDividers,
     cvName,
@@ -194,7 +211,7 @@ const Canvas = () => {
           const canvas = await html2canvas(pageEl, {
             scale: captureScale,
             useCORS: true,
-            backgroundColor: pageProperties.backgroundColor ?? "#ffffff",
+            backgroundColor: resolveCvPageBackground(pageProperties.backgroundColor),
             scrollX: 0,
             scrollY: 0,
             onclone: (clonedDoc, clonedPageEl) => {
@@ -690,31 +707,34 @@ const Canvas = () => {
                   ref={(node) => setPageRef(page.id, node)}
                   data-cv-page={page.id}
                   onClick={(e) => e.stopPropagation()}
-                  className="absolute top-0 left-0 bg-background"
+                  className="absolute top-0 left-0"
                   style={{
                     width: A4_WIDTH,
                     height: A4_HEIGHT,
                     overflow: "hidden",
                     transform: `scale(${canvasScale})`,
                     transformOrigin: "top left",
-                    backgroundColor: pageProperties.backgroundColor ?? "#ffffff",
+                    backgroundColor: resolveCvPageBackground(pageProperties.backgroundColor),
                     color: pageProperties.color ?? "#000000",
+                    colorScheme: "light",
                     boxShadow: isMobile ?
                       "rgba(0, 0, 0, 0.12) 0px 8px 16px, rgba(0, 0, 0, 0.06) 0px 2px 6px"
                     : "rgba(0, 0, 0, 0.15) 0px 15px 25px, rgba(0, 0, 0, 0.05) 0px 5px 10px",
                   }}>
-                  <div className="relative flex flex-col w-full h-full">
+                  <div
+                    className="relative flex h-full w-full flex-col">
                     {showPagination && (
                       <div
-                        className={`absolute z-20 rounded-md bg-background/90 px-2 py-1 text-xs font-medium text-muted-foreground ${
+                        className={`absolute z-20 px-2 py-1 text-xs font-medium ${
                           paginationLocation === "top-left" ? "top-4 left-4"
                           : paginationLocation === "top" ? "top-4 left-1/2 -translate-x-1/2"
                           : paginationLocation === "top-right" ? "top-4 right-4"
                           : paginationLocation === "bottom-left" ? "bottom-4 left-4"
                           : paginationLocation === "bottom" ? "bottom-4 left-1/2 -translate-x-1/2"
                           : "bottom-4 right-4"
-                        }`}>
-                        Page {pageIndex + 1} / {elements.length}
+                        }`}
+                        style={CV_PAGE_PAGINATION_STYLE}>
+                        {formatCvPageLabel(paginationFormat, pageIndex + 1, elements.length)}
                       </div>
                     )}
                     {sections.map((section, sectionIndex) => {
