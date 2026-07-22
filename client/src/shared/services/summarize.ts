@@ -111,8 +111,9 @@ export const parseSummarizeError = (error: unknown, model?: GeminiModelId): Summ
       return {
         title: "Rate limit reached",
         message,
-        hint: activeModel
-          ? `"${activeModel}" hit its quota. Try Gemini 1.5 Flash or wait about a minute before retrying.`
+        hint:
+          activeModel ?
+            `"${activeModel}" hit its quota. Try Gemini 1.5 Flash or wait about a minute before retrying.`
           : "Try Gemini 1.5 Flash or wait about a minute before retrying.",
         status,
         code,

@@ -170,9 +170,7 @@ function NotificationSidebarContent({
         </span>
         <div className="space-y-1">
           <p className="text-sm font-medium text-foreground">No activity notifications</p>
-          <p className="text-xs text-muted-foreground">
-            Scheduled and overdue activities will appear here.
-          </p>
+          <p className="text-xs text-muted-foreground">Scheduled and overdue activities will appear here.</p>
         </div>
         <Button type="button" variant="outline" size="sm" onClick={handleSelect}>
           Go to Activities

@@ -1,10 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { AlertCircle, CheckCircle2, Circle, Loader2 } from "lucide-react";
@@ -42,13 +36,7 @@ function StepIcon({ status }: { status: GenerationStepStatus }) {
   return <Circle className="h-4 w-4 shrink-0 text-muted-foreground/50" aria-hidden="true" />;
 }
 
-const GenerationProgressDialog = ({
-  open,
-  title,
-  description,
-  steps,
-  errorMessage,
-}: GenerationProgressDialogProps) => {
+const GenerationProgressDialog = ({ open, title, description, steps, errorMessage }: GenerationProgressDialogProps) => {
   const completedCount = steps.filter((step) => step.status === "complete").length;
   const progressValue = steps.length ? Math.round((completedCount / steps.length) * 100) : 0;
   const activeStep = steps.find((step) => step.status === "active");
@@ -94,7 +82,9 @@ const GenerationProgressDialog = ({
           : null}
 
           {errorMessage ?
-            <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+            <p
+              className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+              role="alert">
               {errorMessage}
             </p>
           : null}

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LoaderCircleIcon, Trash2Icon, XIcon } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 type SelectionFloaterToolbarProps = {
   selectedCount: number;
@@ -20,18 +20,33 @@ function SelectionFloaterToolbar({
   resourceLabel = "item",
   className,
 }: SelectionFloaterToolbarProps) {
-  if (selectedCount <= 0) return null;
+  const isOpen = selectedCount > 0;
+  const [visibleCount, setVisibleCount] = useState(selectedCount);
 
-  const label = selectedCount === 1 ? resourceLabel : `${resourceLabel}s`;
+  useEffect(() => {
+    if (selectedCount > 0) setVisibleCount(selectedCount);
+  }, [selectedCount]);
+
+  const label = visibleCount === 1 ? resourceLabel : `${resourceLabel}s`;
 
   return (
     <div
-      className={cn("pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-4", className)}
+      className={cn(
+        "pointer-events-none fixed inset-x-0 bottom-24 z-50 flex justify-center px-4",
+        "transition-[opacity,transform] duration-300 ease-out",
+        isOpen ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
+        className
+      )}
       role="toolbar"
-      aria-label="Selection actions">
-      <div className="pointer-events-auto flex items-center gap-3 rounded-xl border border-border/70 bg-background/95 px-4 py-2.5 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      aria-label="Selection actions"
+      aria-hidden={!isOpen}>
+      <div
+        className={cn(
+          "flex items-center gap-3 rounded-xl border border-border/70 bg-background/95 px-4 py-2.5 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80",
+          isOpen ? "pointer-events-auto" : "pointer-events-none"
+        )}>
         <span className="text-sm font-medium text-foreground">
-          {selectedCount} {label} selected
+          {visibleCount} {label} selected
         </span>
         <div className="h-5 w-px bg-border" aria-hidden="true" />
         <Button variant="ghost" size="sm" className="h-8 gap-1.5" onClick={onClear} disabled={isDeleting}>

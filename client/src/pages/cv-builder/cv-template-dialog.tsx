@@ -1,10 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import showToast from "@/hooks/toast";
 import type { CVTemplateRecord } from "@/shared/services/cvbuilder";
@@ -39,7 +33,11 @@ type CvTemplateDialogProps = {
 };
 
 const CvTemplateDialog = ({ open, onOpenChange, onSelect }: CvTemplateDialogProps) => {
-  const { data: templates = [], isLoading, isError } = useQuery({
+  const {
+    data: templates = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["cv-templates"],
     queryFn: fetchCVTemplates,
     enabled: open,

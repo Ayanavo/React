@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import GlobalSearch from "./global-search";
 import NotificationSidebar from "./notification-sidebar";
 import AppInfoDialog from "./app-info-dialog";
+import ThemeModeMenu from "./theme-mode-menu";
 
 type NavItem = { label: string; icon: string; route: string };
 
@@ -26,10 +27,11 @@ function header({ NavList }: { NavList: Array<NavItem> }) {
           <div className="col-start-2 flex shrink-0 items-center justify-end gap-1 sm:gap-2 md:col-start-3 md:row-start-1">
             <GlobalSearch.IconButton className="md:hidden" />
 
+            <ThemeModeMenu />
+
             <NotificationSidebar enabled={hasActivityAccess} />
 
             <AppInfoDialog />
-
           </div>
         </div>
       </header>

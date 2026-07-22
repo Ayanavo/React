@@ -5,12 +5,12 @@ import GenerationProgressDialog, {
 } from "@/components/inbuild/generation-progress-dialog";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,23 +21,22 @@ import { CVElement, CVProvider, useCV } from "@/lib/useCV";
 import { cn } from "@/lib/utils";
 import { getCurrentUserAPI } from "@/shared/services/auth";
 import {
-    fetchCoverLetterById,
-    generateCoverLetterDraft,
-    submitCoverLetter,
-    updateCoverLetter,
-    type CoverLetterSubmitPayload,
+  fetchCoverLetterById,
+  generateCoverLetterDraft,
+  submitCoverLetter,
+  updateCoverLetter,
+  type CoverLetterSubmitPayload,
 } from "@/shared/services/cover-letter";
 import type { GeminiModelId } from "@/shared/services/summarize";
 import { getTags, type TagRecord } from "@/shared/services/tag";
+import { useConfirmDialog } from "@/shared/confirmation";
 import { ApiMessageResponse } from "@/shared/types/api";
 import { consumeJobSummaryContext } from "@/shared/utils/job-summary-context";
-import {
-    mapProfileUserToContactInfo,
-    type UserContactInfo,
-} from "@/shared/utils/profile-contact";
+import { mapProfileUserToContactInfo, type UserContactInfo } from "@/shared/utils/profile-contact";
+import { syncCoverLetterWithProfile } from "@/shared/utils/profile-sync";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import moment from "moment";
-import { FilePlus, Loader2, Save } from "lucide-react";
+import { FilePlus, Loader2, Save, UserRoundPen } from "lucide-react";
 import React, { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import BuilderWorkspace from "../cv-builder/builder-workspace";
@@ -95,8 +94,10 @@ const CoverLetterBuilderContent = () => {
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const queryClient = useQueryClient();
+  const { confirm } = useConfirmDialog();
   const { elements, pageProperties, commitEdits, loadCVState, setCvName, cvName, setOnRequestSave } = useCV();
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  const [isProfileSyncing, setIsProfileSyncing] = useState(false);
   const [isGenerationDialogOpen, setIsGenerationDialogOpen] = useState(false);
   const [generationSteps, setGenerationSteps] = useState<GenerationStep[]>(createCoverLetterGenerationSteps);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -112,9 +113,7 @@ const CoverLetterBuilderContent = () => {
     staleTime: 1000 * 60 * 5,
   });
 
-  const contactInfo: UserContactInfo | null = currentUser?.user ?
-    mapProfileUserToContactInfo(currentUser.user)
-  : null;
+  const contactInfo: UserContactInfo | null = currentUser?.user ? mapProfileUserToContactInfo(currentUser.user) : null;
 
   const { data: coverLetter, isFetching } = useQuery({
     queryKey: ["cover-letter", id],
@@ -169,9 +168,7 @@ const CoverLetterBuilderContent = () => {
         requestAnimationFrame(() => resolve());
       });
 
-      const template = preserveTemplate ?
-        { elements, pageProperties }
-      : createCoverLetterTemplate(contactInfo);
+      const template = preserveTemplate ? { elements, pageProperties } : createCoverLetterTemplate(contactInfo);
       const defaultName =
         name.trim() ||
         cvName.trim() ||
@@ -228,8 +225,7 @@ const CoverLetterBuilderContent = () => {
 
     const jobContext = consumeJobSummaryContext();
     const template = createCoverLetterTemplate(contactInfo);
-    const defaultName =
-      contactInfo?.fullName ? `${contactInfo.fullName} Cover Letter` : "Cover Letter Draft";
+    const defaultName = contactInfo?.fullName ? `${contactInfo.fullName} Cover Letter` : "Cover Letter Draft";
 
     if (!jobContext) {
       loadCVState(template.elements, template.pageProperties);
@@ -262,6 +258,76 @@ const CoverLetterBuilderContent = () => {
       preserveTemplate: true,
     });
   }, [job, coverLetter?.job, commitEdits, runCoverLetterGeneration]);
+
+  const handleUpdateFromProfile = async () => {
+    commitEdits();
+
+    const accepted = await confirm({
+      title: "Update from profile?",
+      message:
+        "This will refresh your header contact details and closing signature from your latest profile. The letter body will be kept.",
+      confirmText: "Update information",
+      cancelText: "Cancel",
+    });
+
+    if (!accepted) return;
+
+    setIsProfileSyncing(true);
+
+    try {
+      const profile = await queryClient.fetchQuery({
+        queryKey: ["current-user-profile"],
+        queryFn: getCurrentUserAPI,
+      });
+
+      if (!profile?.user) {
+        showToast({
+          title: "Profile unavailable",
+          description: "Could not load your profile. Please try again.",
+          variant: "error",
+        });
+        return;
+      }
+
+      const contactInfo = mapProfileUserToContactInfo(profile.user);
+      const result = syncCoverLetterWithProfile(elements, contactInfo);
+
+      if (result.updatedSections.length === 0) {
+        showToast({
+          title: "Nothing to update",
+          description: "No profile-linked sections were found in this cover letter.",
+          variant: "warning",
+        });
+        return;
+      }
+
+      loadCVState(result.elements, pageProperties);
+
+      if (contactInfo.fullName) {
+        const nextName = `${contactInfo.fullName} Cover Letter`;
+        if (!name.trim()) {
+          setName(nextName);
+        }
+        if (!cvName.trim()) {
+          setCvName(nextName);
+        }
+      }
+
+      showToast({
+        title: "Profile information updated",
+        description: `Updated ${result.updatedSections.join(", ")} from your profile.`,
+        variant: "success",
+      });
+    } catch (error) {
+      showToast({
+        title: "Update failed",
+        description: error instanceof Error ? error.message : "Could not update from profile.",
+        variant: "error",
+      });
+    } finally {
+      setIsProfileSyncing(false);
+    }
+  };
 
   const buildSubmitPayload = useCallback(
     (): CoverLetterSubmitPayload => ({
@@ -341,16 +407,32 @@ const CoverLetterBuilderContent = () => {
         )}
         aria-hidden={isGenerationDialogOpen}>
         <BreadcrumbInbuild isEditMode={isEditMode} className="w-full min-w-0" />
-        <Button
-          type="button"
-          onClick={openSubmitDialog}
-          disabled={mutation.isPending || isFetching || isGenerationDialogOpen}
-          className="ml-auto h-9 shrink-0 gap-2 self-end px-2.5 md:self-auto md:px-4">
+        <div className="ml-auto flex w-full shrink-0 items-center justify-end gap-2 overflow-x-auto md:w-auto">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void handleUpdateFromProfile()}
+            disabled={isFetching || isProfileSyncing || isGenerationDialogOpen}
+            className="h-9 shrink-0 gap-2 px-2.5 md:px-4">
+            {isProfileSyncing ?
+              <Loader2 className="h-4 w-4 animate-spin" />
+            : <UserRoundPen className="h-4 w-4" />}
+            <span className="hidden md:inline">Update Information</span>
+          </Button>
+          <Button
+            type="button"
+            onClick={openSubmitDialog}
+            disabled={mutation.isPending || isFetching || isGenerationDialogOpen}
+            className="h-9 shrink-0 gap-2 self-end px-2.5 md:self-auto md:px-4">
           {mutation.isPending || isGenerationDialogOpen ?
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="hidden md:inline">
-                {isGenerationDialogOpen ? "Generating draft..." : isEditMode ? "Updating..." : "Saving..."}
+                {isGenerationDialogOpen ?
+                  "Generating draft..."
+                : isEditMode ?
+                  "Updating..."
+                : "Saving..."}
               </span>
             </>
           : isEditMode ?
@@ -363,7 +445,8 @@ const CoverLetterBuilderContent = () => {
               <span className="hidden md:inline">Save Cover Letter</span>
             </>
           }
-        </Button>
+          </Button>
+        </div>
       </div>
 
       <div
@@ -424,7 +507,10 @@ const CoverLetterBuilderContent = () => {
 
             <div className="space-y-2">
               <Label>Tag</Label>
-              <Select value={tag} onValueChange={(value) => setTag(value as CoverLetterTag)} disabled={tags.length === 0}>
+              <Select
+                value={tag}
+                onValueChange={(value) => setTag(value as CoverLetterTag)}
+                disabled={tags.length === 0}>
                 <SelectTrigger>
                   <SelectValue placeholder={isTagsFetching ? "Loading tags..." : "Select tag"} />
                 </SelectTrigger>

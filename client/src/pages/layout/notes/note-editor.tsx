@@ -1,13 +1,7 @@
 import IconsComponent from "@/common/icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import imageFile from "@/hooks/image-file";
@@ -19,7 +13,12 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import "./note.scss";
 import { State } from "./state";
 import { CustomPopover } from "@/hooks/popover-content";
-import { ColorPickerPanel, getNoteThemeStyle, hasExplicitNoteBackground, useColorPicker } from "@/shared/color-picker";
+import {
+  ColorPickerPopover,
+  getNoteThemeStyle,
+  hasExplicitNoteBackground,
+  useColorPicker,
+} from "@/shared/color-picker";
 import showToast from "@/hooks/toast";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { createNote, deleteNote, updateNote } from "@/shared/services/note";
@@ -83,6 +82,15 @@ function noteeditor({
     queryKey: ["tags"],
     queryFn: getTags,
   });
+
+  const selectedTagRecord = tags.find((tag) => tag._id === selectedTag);
+  const selectedTagStyle =
+    selectedTagRecord?.color ?
+      {
+        borderColor: `${selectedTagRecord.color}4f`,
+        backgroundColor: `${selectedTagRecord.color}40`,
+      }
+    : undefined;
 
   const applyVoiceText = (target: "title" | "description", text: string) => {
     setValue(target, text);
@@ -192,8 +200,7 @@ function noteeditor({
 
     try {
       setIsSaving(true);
-      const response =
-        formData?._id ? await updateNote(formData._id, payload) : await createNote(payload);
+      const response = formData?._id ? await updateNote(formData._id, payload) : await createNote(payload);
       onSave();
       showToast({
         title: response?.message || (formData?._id ? "Note updated successfully" : "Note created successfully"),
@@ -412,7 +419,25 @@ function noteeditor({
             Modified {modifiedDate}
           </p>
         )}
-        <form className={cn("min-w-0 flex flex-col", isMaximized && "min-h-0 flex-1")} onSubmit={handleSubmit(onSubmit)}>
+        {selectedTagRecord ?
+          <div className="mb-2">
+            <Badge
+              variant="secondary"
+              className="cursor-default gap-1.5 rounded-lg text-xs"
+              style={selectedTagStyle}>
+              {selectedTagRecord.color ?
+                <span
+                  className="inline-flex h-2 w-2 rounded-full"
+                  style={{ backgroundColor: selectedTagRecord.color }}
+                />
+              : null}
+              {selectedTagRecord.name}
+            </Badge>
+          </div>
+        : null}
+        <form
+          className={cn("min-w-0 flex flex-col", isMaximized && "min-h-0 flex-1")}
+          onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
             <DialogTitle className="p-0 text-left">
               {(() => {
@@ -445,7 +470,10 @@ function noteeditor({
                     descriptionReg.ref(e);
                     (textareaRef as any).current = e as HTMLTextAreaElement;
                   }}
-                  className={cn("note-field note-description", isMaximized && "note-description--expanded flex-1 min-h-0")}
+                  className={cn(
+                    "note-field note-description",
+                    isMaximized && "note-description--expanded flex-1 min-h-0"
+                  )}
                   onFocus={() => {
                     voiceTargetRef.current = "description";
                   }}
@@ -479,7 +507,10 @@ function noteeditor({
                               variant="outline"
                               size="icon"
                               type="button"
-                              className={cn(hasCustomBackground && "note-action-btn", listening && "border-primary text-primary")}
+                              className={cn(
+                                hasCustomBackground && "note-action-btn",
+                                listening && "border-primary text-primary"
+                              )}
                               onClick={(event) => event.preventDefault()}>
                               <IconsComponent customClass="cursor-pointer" icon={item.icon} />
                             </Button>
@@ -496,7 +527,8 @@ function noteeditor({
                         <Button
                           ref={
                             item.name === "color" ? colorButtonRef
-                            : item.name === "tag" ? tagButtonRef
+                            : item.name === "tag" ?
+                              tagButtonRef
                             : undefined
                           }
                           variant="outline"
@@ -517,21 +549,26 @@ function noteeditor({
                 })}
             </div>
             <div className="flex shrink-0 items-center gap-2">
-            <Button type="reset" variant="outline" size="sm" className={cn("h-9 px-3 sm:h-10 sm:px-4", hasCustomBackground && "note-action-btn")} onClick={handleReset}>
-              Cancel
-            </Button>
-            <Button type="submit" size="sm" className="h-9 px-3 sm:h-10 sm:px-4" disabled={isSaving}>
-              {isSaving ? "Saving..." : "Submit"}
-            </Button>
+              <Button
+                type="reset"
+                variant="outline"
+                size="sm"
+                className={cn("h-9 px-3 sm:h-10 sm:px-4", hasCustomBackground && "note-action-btn")}
+                onClick={handleReset}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" className="h-9 px-3 sm:h-10 sm:px-4" disabled={isSaving}>
+                {isSaving ? "Saving..." : "Submit"}
+              </Button>
             </div>
           </DialogFooter>
         </form>
 
-        <CustomPopover
+        <ColorPickerPopover
           controlRef={popoverRef}
           anchorRef={colorButtonRef}
-          className="w-auto border-0 bg-transparent p-0 shadow-none pointer-events-auto"
-          content={<ColorPickerPanel color={noteColor} onChange={setNoteColor} />}
+          color={noteColor}
+          onChange={setNoteColor}
         />
         <CustomPopover
           controlRef={tagPopoverRef}

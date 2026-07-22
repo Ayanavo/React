@@ -10,13 +10,8 @@ type MobileGridListProps<TData> = {
   className?: string;
 };
 
-function getColumnLabel<TData>(
-  tableBody: TableModel<TData>,
-  columnId: string
-): string {
-  const header = tableBody
-    .getHeaderGroups()[0]
-    ?.headers.find((item) => item.column.id === columnId);
+function getColumnLabel<TData>(tableBody: TableModel<TData>, columnId: string): string {
+  const header = tableBody.getHeaderGroups()[0]?.headers.find((item) => item.column.id === columnId);
 
   if (!header) return columnId;
 
@@ -39,18 +34,10 @@ function getCellTitle(value: unknown): string | undefined {
   return undefined;
 }
 
-function MobileGridCard<TData>({
-  row,
-  columnLabels,
-}: {
-  row: Row<TData>;
-  columnLabels: Record<string, string>;
-}) {
+function MobileGridCard<TData>({ row, columnLabels }: { row: Row<TData>; columnLabels: Record<string, string> }) {
   const selectCell = row.getVisibleCells().find((cell) => cell.column.id === "select");
   const actionCell = row.getVisibleCells().find((cell) => cell.column.id === "action");
-  const dataCells = row
-    .getVisibleCells()
-    .filter((cell) => !["select", "action"].includes(cell.column.id));
+  const dataCells = row.getVisibleCells().filter((cell) => !["select", "action"].includes(cell.column.id));
 
   return (
     <article
@@ -59,9 +46,7 @@ function MobileGridCard<TData>({
       {(selectCell || actionCell) && (
         <div className="mb-3 flex items-center justify-between gap-2 border-b border-border/50 pb-2">
           {selectCell ?
-            <div className="shrink-0">
-              {flexRender(selectCell.column.columnDef.cell, selectCell.getContext())}
-            </div>
+            <div className="shrink-0">{flexRender(selectCell.column.columnDef.cell, selectCell.getContext())}</div>
           : <div />}
           {actionCell ?
             <div className="grid-table-cell--action shrink-0 [&>div]:opacity-100">
@@ -98,12 +83,7 @@ function MobileGridCard<TData>({
   );
 }
 
-function MobileGridList<TData>({
-  tableBody,
-  isLoading = false,
-  pageSize = 10,
-  className,
-}: MobileGridListProps<TData>) {
+function MobileGridList<TData>({ tableBody, isLoading = false, pageSize = 10, className }: MobileGridListProps<TData>) {
   const rows = tableBody.getRowModel().rows;
   const visibleColumns = tableBody.getVisibleLeafColumns();
   const skeletonRows = Array.from({ length: Math.min(Math.max(pageSize, 1), 8) });
@@ -119,7 +99,11 @@ function MobileGridList<TData>({
   }, [tableBody, visibleColumns]);
 
   return (
-    <div className={cn("grid-row-view flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card dark:bg-background", className)}>
+    <div
+      className={cn(
+        "grid-row-view flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border bg-card dark:bg-background",
+        className
+      )}>
       <div className="grid-row-view__scroll min-h-0 flex-1 overflow-y-auto bg-transparent p-2 dark:bg-background">
         {isLoading ?
           <div className="space-y-3">

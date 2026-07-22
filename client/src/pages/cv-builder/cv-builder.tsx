@@ -34,13 +34,11 @@ import { ApiMessageResponse } from "@/shared/types/api";
 import { getTags, type TagRecord } from "@/shared/services/tag";
 import { useConfirmDialog } from "@/shared/confirmation";
 import { consumeJobSummaryContext, type JobSummaryContext } from "@/shared/utils/job-summary-context";
-import {
-  mapProfileUserToContactInfo,
-  seedEmptyCvWithProfile,
-} from "@/shared/utils/profile-contact";
+import { mapProfileUserToContactInfo, seedEmptyCvWithProfile } from "@/shared/utils/profile-contact";
+import { syncCvWithProfile } from "@/shared/utils/profile-sync";
 import { getCurrentUserAPI } from "@/shared/services/auth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { FilePlus, LayoutTemplate, Loader2, Save, ScanSearch } from "lucide-react";
+import { FilePlus, LayoutTemplate, Loader2, Save, ScanSearch, UserRoundPen } from "lucide-react";
 import React, { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import BuilderWorkspace from "./builder-workspace";
@@ -52,10 +50,7 @@ import { atsBadgeClassName, atsRecordToResponse, formatAtsBadgeLabel, toAtsAnaly
 import { buildSummarizeCvAsync, type CvBuildPhase } from "./cv-summary-seed";
 import { extractCVContent } from "./cv-extractor";
 import { hasMeaningfulCvContent, regenerateElementIds } from "./cv-template-utils";
-import {
-  buildCvPdfFileName,
-  extractCompanyNameFromJobText,
-} from "@/shared/utils/cv-export-filename";
+import { buildCvPdfFileName, extractCompanyNameFromJobText } from "@/shared/utils/cv-export-filename";
 
 type CVTag = string;
 
@@ -126,7 +121,16 @@ const CVBuilderContent = () => {
   const isEditMode = Boolean(id);
   const queryClient = useQueryClient();
   const { confirm } = useConfirmDialog();
-  const { elements, pageProperties, commitEdits, loadCVState, setCvName, cvName, setOnRequestSave, setResolveExportFileName } = useCV();
+  const {
+    elements,
+    pageProperties,
+    commitEdits,
+    loadCVState,
+    setCvName,
+    cvName,
+    setOnRequestSave,
+    setResolveExportFileName,
+  } = useCV();
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
   const [isAtsDialogOpen, setIsAtsDialogOpen] = useState(false);
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false);
@@ -135,6 +139,7 @@ const CVBuilderContent = () => {
   const [tag, setTag] = useState<CVTag>("");
   const [atsResult, setAtsResult] = useState<AtsCheckResponse | null>(null);
   const [isAtsChecking, setIsAtsChecking] = useState(false);
+  const [isProfileSyncing, setIsProfileSyncing] = useState(false);
   const [isGenerationDialogOpen, setIsGenerationDialogOpen] = useState(false);
   const [generationSteps, setGenerationSteps] = useState<GenerationStep[]>(createCvGenerationSteps);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -287,16 +292,7 @@ const CVBuilderContent = () => {
     };
 
     void runSummarizeInitialization(jobContext);
-  }, [
-    isEditMode,
-    isProfileLoading,
-    isFetching,
-    currentUser,
-    elements,
-    pageProperties,
-    loadCVState,
-    setCvName,
-  ]);
+  }, [isEditMode, isProfileLoading, isFetching, currentUser, elements, pageProperties, loadCVState, setCvName]);
 
   const buildSubmitPayload = useCallback(
     (ats: AtsCheckResponse | null): CVSubmitPayload => ({
@@ -437,9 +433,7 @@ const CVBuilderContent = () => {
         name.trim().replace(/\s+CV$/i, "") ||
         cvName.trim().replace(/\s+CV$/i, "") ||
         cvBuilder?.name?.trim().replace(/\s+CV$/i, "") ||
-        (currentUser?.user ?
-          mapProfileUserToContactInfo(currentUser.user).fullName
-        : "") ||
+        (currentUser?.user ? mapProfileUserToContactInfo(currentUser.user).fullName : "") ||
         "User";
 
       const companyName =
@@ -453,20 +447,14 @@ const CVBuilderContent = () => {
     return () => setResolveExportFileName(null);
   }, [name, cvName, job, cvBuilder, currentUser, setResolveExportFileName]);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // Sync the name to the context so Canvas can use it for PDF filename
-    setCvName(name.trim());
-    mutation.mutate(buildSubmitPayload(atsResult));
-  };
-
   const handleTemplateSelect = async (template: CVTemplateRecord) => {
     commitEdits();
 
     if (hasMeaningfulCvContent(elements)) {
       const accepted = await confirm({
         title: "Replace CV content?",
-        message: "Applying a template will replace your current canvas content. This cannot be undone unless you save first.",
+        message:
+          "Applying a template will replace your current canvas content. This cannot be undone unless you save first.",
         confirmText: "Apply template",
         cancelText: "Cancel",
       });
@@ -488,6 +476,83 @@ const CVBuilderContent = () => {
     });
   };
 
+  const handleUpdateFromProfile = async () => {
+    commitEdits();
+
+    const accepted = await confirm({
+      title: "Update from profile?",
+      message:
+        "This will refresh your contact details, professional summary, and work experience from your latest profile. Other sections will be kept.",
+      confirmText: "Update information",
+      cancelText: "Cancel",
+    });
+
+    if (!accepted) return;
+
+    setIsProfileSyncing(true);
+
+    try {
+      const profile = await queryClient.fetchQuery({
+        queryKey: ["current-user-profile"],
+        queryFn: getCurrentUserAPI,
+      });
+
+      if (!profile?.user) {
+        showToast({
+          title: "Profile unavailable",
+          description: "Could not load your profile. Please try again.",
+          variant: "error",
+        });
+        return;
+      }
+
+      const result = syncCvWithProfile(elements, profile.user);
+
+      if (result.updatedSections.length === 0) {
+        showToast({
+          title: "Nothing to update",
+          description: "No profile-linked sections were found in this CV.",
+          variant: "warning",
+        });
+        return;
+      }
+
+      loadCVState(result.elements, pageProperties);
+
+      const contactInfo = mapProfileUserToContactInfo(profile.user);
+      if (contactInfo.fullName) {
+        const nextName = `${contactInfo.fullName} CV`;
+        if (!name.trim()) {
+          setName(nextName);
+        }
+        if (!cvName.trim()) {
+          setCvName(nextName);
+        }
+      }
+
+      showToast({
+        title: "Profile information updated",
+        description: `Updated ${result.updatedSections.join(", ")} from your profile.`,
+        variant: "success",
+      });
+    } catch (error) {
+      showToast({
+        title: "Update failed",
+        description: error instanceof Error ? error.message : "Could not update from profile.",
+        variant: "error",
+      });
+    } finally {
+      setIsProfileSyncing(false);
+    }
+  };
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    // Sync the name to the context so Canvas can use it for PDF filename
+    setCvName(name.trim());
+    mutation.mutate(buildSubmitPayload(atsResult));
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-background">
       <div
@@ -500,6 +565,17 @@ const CVBuilderContent = () => {
         <BreadcrumbInbuild isEditMode={isEditMode} className="w-full min-w-0" />
 
         <div className="ml-auto flex w-full shrink-0 items-center justify-end gap-2 overflow-x-auto md:w-auto">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => void handleUpdateFromProfile()}
+            disabled={isFetching || isProfileSyncing || isGenerationDialogOpen}
+            className="h-9 shrink-0 gap-2 px-2.5 md:px-4">
+            {isProfileSyncing ?
+              <Loader2 className="h-4 w-4 animate-spin" />
+            : <UserRoundPen className="h-4 w-4" />}
+            <span className="hidden md:inline">Update Information</span>
+          </Button>
           <Button
             type="button"
             variant="outline"

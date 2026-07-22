@@ -187,7 +187,10 @@ const CVElementRenderer = ({
                     className="cursor-text outline-none leading-snug"
                     style={{
                       color: line.color ?? headerStyle?.color ?? "inherit",
-                      fontSize: line.fontSize ? `${line.fontSize}px` : headerStyle?.fontSize ? `${headerStyle.fontSize}px` : undefined,
+                      fontSize:
+                        line.fontSize ? `${line.fontSize}px`
+                        : headerStyle?.fontSize ? `${headerStyle.fontSize}px`
+                        : undefined,
                       fontWeight: line.fontWeight ? fontWeightMap[line.fontWeight] : undefined,
                       whiteSpace: "pre-wrap",
                       cursor: readonly ? "default" : "text",
@@ -264,8 +267,7 @@ const CVElementRenderer = ({
   // ---------- BLOCK ----------
   if (element.type === "block") {
     return (
-      <div
-        className={`relative p-4 overflow-visible ${selectedBlockId === element.id ? "bg-zinc-50" : ""}`}>
+      <div className={`relative p-4 overflow-visible ${selectedBlockId === element.id ? "bg-zinc-50" : ""}`}>
         {!readonly && selectedBlockId === element.id && (blockCount ?? 0) > 1 && (
           <TooltipProvider>
             <Tooltip>

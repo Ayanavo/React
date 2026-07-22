@@ -1,11 +1,4 @@
-export type SocketType =
-  | "exec"
-  | "string"
-  | "date"
-  | "tag"
-  | "notePayload"
-  | "activityPayload"
-  | "cvPayload";
+export type SocketType = "exec" | "string" | "date" | "tag" | "notePayload" | "activityPayload" | "cvPayload";
 
 export type SocketDefinition = {
   id: string;
@@ -40,7 +33,9 @@ export function getSocketType(handleId: string | null | undefined, nodeType: str
 
 let socketRegistryRef: Record<string, { inputs: SocketDefinition[]; outputs: SocketDefinition[] }> | null = null;
 
-export function registerSocketRegistry(registry: Record<string, { inputs: SocketDefinition[]; outputs: SocketDefinition[] }>) {
+export function registerSocketRegistry(
+  registry: Record<string, { inputs: SocketDefinition[]; outputs: SocketDefinition[] }>
+) {
   socketRegistryRef = registry;
 }
 

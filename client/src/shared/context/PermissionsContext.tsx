@@ -5,8 +5,7 @@ import { defaultMenuOrder } from "@/config/nav-order";
 import { connectSocket, disconnectSocket } from "@/shared/services/socket";
 import { AUTH_CHANGED_EVENT, getAuthToken, isAuthenticated } from "@/shared/utils/auth-token";
 
-const isAwaitingRegistrationTerms = (): boolean =>
-  sessionStorage.getItem(REGISTRATION_AWAITING_TERMS_KEY) === "true";
+const isAwaitingRegistrationTerms = (): boolean => sessionStorage.getItem(REGISTRATION_AWAITING_TERMS_KEY) === "true";
 
 type PermissionsContextType = {
   permissions: string[];
@@ -60,9 +59,7 @@ export const PermissionsProvider: React.FC<{ children: ReactNode }> = ({ childre
 
       if (profileResult.status === "fulfilled") {
         const profile = profileResult.value;
-        setRequiresTermsAcceptance(
-          Boolean(profile.requiresTermsAcceptance) || isAwaitingRegistrationTerms()
-        );
+        setRequiresTermsAcceptance(Boolean(profile.requiresTermsAcceptance) || isAwaitingRegistrationTerms());
       } else {
         setRequiresTermsAcceptance(isAwaitingRegistrationTerms());
       }

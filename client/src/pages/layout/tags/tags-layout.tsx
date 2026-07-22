@@ -22,22 +22,22 @@ function tagslayout() {
       </div>
       <div className="min-h-0 flex-1" data-tutorial="tags-grid">
         <ResourceGrid<Tag>
-        queryKey="tags"
-        resourceLabel="Tag"
-        basePath="/tags"
-        addLabel="Add Tag"
-        columns={tagColumns}
-        fetchList={getTags}
-        deleteResource={deleteTag}
-        actionConfig={{
-          deleteConfirmOptions: {
-            title: "Delete Tag",
-            message: "Are you sure you want to delete this tag?",
-            confirmText: "Delete",
-            cancelText: "Cancel",
-            showLoadingOnConfirmClick: true,
-          },
-        }}
+          queryKey="tags"
+          resourceLabel="Tag"
+          basePath="/tags"
+          addLabel="Add Tag"
+          columns={tagColumns}
+          fetchList={getTags}
+          deleteResource={deleteTag}
+          actionConfig={{
+            deleteConfirmOptions: {
+              title: "Delete Tag",
+              message: "Are you sure you want to delete this tag?",
+              confirmText: "Delete",
+              cancelText: "Cancel",
+              showLoadingOnConfirmClick: true,
+            },
+          }}
         />
       </div>
     </div>

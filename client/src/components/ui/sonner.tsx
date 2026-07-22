@@ -12,8 +12,7 @@ function getEffectiveTheme(theme: "dark" | "light" | "system"): "dark" | "light"
   return theme;
 }
 
-const toastVariantForeground =
-  "[&_[data-title]]:font-medium [&_[data-icon]]:shrink-0";
+const toastVariantForeground = "[&_[data-title]]:font-medium [&_[data-icon]]:shrink-0";
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme } = useTheme();
@@ -41,18 +40,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
           description: "group-[.toast]:text-muted-foreground",
           actionButton: "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
-          success: cn(
-            toastVariantForeground,
-            "[&_[data-title]]:!text-chart-2 [&_[data-icon]]:!text-chart-2"
-          ),
-          error: cn(
-            toastVariantForeground,
-            "[&_[data-title]]:!text-destructive [&_[data-icon]]:!text-destructive"
-          ),
-          warning: cn(
-            toastVariantForeground,
-            "[&_[data-title]]:!text-chart-4 [&_[data-icon]]:!text-chart-4"
-          ),
+          success: cn(toastVariantForeground, "[&_[data-title]]:!text-chart-2 [&_[data-icon]]:!text-chart-2"),
+          error: cn(toastVariantForeground, "[&_[data-title]]:!text-destructive [&_[data-icon]]:!text-destructive"),
+          warning: cn(toastVariantForeground, "[&_[data-title]]:!text-chart-4 [&_[data-icon]]:!text-chart-4"),
         },
       }}
       {...props}

@@ -8,11 +8,6 @@ type AppLogoProps = {
 
 export function AppLogo({ className }: AppLogoProps) {
   return (
-    <img
-      src={faviconUrl}
-      alt=""
-      className={cn("block h-full w-full object-contain", className)}
-      aria-hidden="true"
-    />
+    <img src={faviconUrl} alt="" className={cn("block h-full w-full object-contain", className)} aria-hidden="true" />
   );
 }

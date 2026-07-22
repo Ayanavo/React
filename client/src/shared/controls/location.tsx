@@ -168,7 +168,7 @@ function location({
     <FormField
       control={form.control}
       name={schema.name}
-      render={({ field }: { field: ControllerRenderProps<any, string>}) => (
+      render={({ field }: { field: ControllerRenderProps<any, string> }) => (
         <FormItem className="relative">
           <FormLabel>
             {schema.label} {schema.validation?.required && <span className="text-destructive">*</span>}

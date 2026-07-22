@@ -10,7 +10,7 @@ import { loginAPI } from "@/shared/services/auth.ts";
 import { showCacheUseWarning } from "@/shared/utils/cache-warning";
 import "@ayanavo/locusjs";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { LoaderCircleIcon } from "lucide-react";
+import { LayoutDashboardIcon, LoaderCircleIcon, LockIcon, ShieldCheckIcon, StickyNoteIcon } from "lucide-react";
 import React, { useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
@@ -36,6 +36,24 @@ const formSchemaObj = [
     validation: { required: true, minLength: 6 },
   },
 ];
+
+const FEATURES = [
+  {
+    icon: StickyNoteIcon,
+    title: "Unified notes",
+    description: "Ideas, tasks, and documents in one place.",
+  },
+  {
+    icon: LayoutDashboardIcon,
+    title: "Smart dashboards",
+    description: "Track activity and progress at a glance.",
+  },
+  {
+    icon: LockIcon,
+    title: "Enterprise security",
+    description: "Encrypted sessions and secure auth.",
+  },
+] as const;
 
 function login() {
   const navigate = useNavigate();
@@ -83,86 +101,101 @@ function login() {
   }
 
   return (
-    <div className="relative flex h-[100dvh] min-h-0 w-full items-center justify-center overflow-hidden p-4 md:p-6">
+    <div className="relative flex h-[100dvh] min-h-0 w-full items-center justify-center overflow-hidden p-3 sm:p-4">
       <InfinityBackground />
 
       <div className="relative z-10 w-full max-w-[720px]">
-        <Card className="login-card overflow-hidden border shadow-lg">
-          <div className="grid min-h-0 items-stretch lg:grid-cols-2">
+        <Card className="login-card">
+          <div className="login-card__grid grid min-h-0 items-stretch lg:grid-cols-2">
             <div className="login-form-column flex flex-col">
-              <CardHeader className="space-y-4 border-b px-5 pb-4 pt-5 md:px-6 md:pt-6">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[calc(var(--radius)*2)] bg-primary text-primary-foreground shadow-sm">
-                    <AppLogo className="h-4 w-4" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold tracking-tight text-foreground">Notofy</p>
-                    <p className="text-xs text-muted-foreground">Your note workspace</p>
+              <CardHeader className="login-form-header space-y-3 px-5 pb-3.5 pt-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="login-brand-mark">
+                      <AppLogo className="h-3.5 w-3.5" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold tracking-tight text-foreground">Notofy</p>
+                      <p className="text-[0.6875rem] text-muted-foreground">Enterprise workspace</p>
+                    </div>
                   </div>
+                  <span className="login-trust-badge">
+                    <ShieldCheckIcon className="h-3 w-3" aria-hidden="true" />
+                    Secure sign-in
+                  </span>
                 </div>
 
                 <div className="space-y-1">
-                  <CardTitle className="text-xl font-semibold tracking-tight md:text-2xl">Welcome back</CardTitle>
-                  <CardDescription>Sign in to pick up where you left off.</CardDescription>
+                  <CardTitle className="text-xl font-semibold tracking-tight">Welcome back</CardTitle>
+                  <CardDescription className="text-sm">Sign in to your account to continue.</CardDescription>
                 </div>
               </CardHeader>
 
               <FormProvider {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-1 flex-col">
-                  <CardContent className="space-y-3 px-5 py-4 md:px-6">
+                  <CardContent className="space-y-2.5 px-5 py-3.5">
                     <div className="grid gap-3">{formSchemaObj.map(renderField)}</div>
 
                     <div className="flex justify-end">
                       <Link
                         to={FORGOT_PASSWORD_PATH}
-                        className="text-xs text-muted-foreground underline-offset-4 hover:text-primary hover:underline">
+                        className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
                         Forgot password?
                       </Link>
                     </div>
                   </CardContent>
 
-                  <CardFooter className="mt-auto flex-col gap-3 border-t px-5 py-4 md:px-6">
-                    <Button className="w-full" type="submit" disabled={loader}>
+                  <CardFooter className="mt-auto flex-col gap-2.5 px-5 pb-5 pt-0">
+                    <Button className="h-9 w-full text-sm font-medium" type="submit" disabled={loader}>
                       {loader && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
                       Sign in
                     </Button>
 
-                    <div className="relative w-full">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-muted-foreground/40" />
-                      </div>
-                      <div className="relative flex justify-center">
-                        <span className="bg-card px-2 text-xs uppercase tracking-wide text-muted-foreground">
-                          Or continue with
-                        </span>
-                      </div>
+                    <div className="login-divider w-full">
+                      <span>Or continue with</span>
                     </div>
 
-                    <div className="grid w-full grid-cols-2 gap-3">
-                      <Button type="button" variant="outline" disabled={loader} onClick={() => startOAuthLogin("google")}>
+                    <div className="grid w-full grid-cols-2 gap-2.5">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="login-oauth-btn"
+                        disabled={loader}
+                        onClick={() => startOAuthLogin("google")}>
                         <GoogleIcon />
                         Google
                       </Button>
-                      <Button type="button" variant="outline" disabled={loader} onClick={() => startOAuthLogin("github")}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="login-oauth-btn"
+                        disabled={loader}
+                        onClick={() => startOAuthLogin("github")}>
                         <GitHubLogoIcon />
-                        Github
+                        GitHub
                       </Button>
                     </div>
 
-                    <p className="text-center text-sm text-muted-foreground">
+                    <p className="text-center text-xs text-muted-foreground">
                       Don&apos;t have an account?{" "}
-                      <Link to={REGISTER_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+                      <Link
+                        to={REGISTER_PATH}
+                        className="font-medium text-foreground underline-offset-4 transition-colors hover:underline">
                         Create one
                       </Link>
                     </p>
 
-                    <p className="text-center text-xs text-muted-foreground">
+                    <p className="text-center text-[0.625rem] leading-snug text-muted-foreground">
                       By signing in, you agree to our{" "}
-                      <Link to={TERMS_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+                      <Link
+                        to={TERMS_PATH}
+                        className="underline-offset-4 transition-colors hover:text-foreground hover:underline">
                         Terms & Conditions
                       </Link>{" "}
                       and{" "}
-                      <Link to={PRIVACY_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+                      <Link
+                        to={PRIVACY_PATH}
+                        className="underline-offset-4 transition-colors hover:text-foreground hover:underline">
                         Privacy Policy
                       </Link>
                       .
@@ -179,9 +212,30 @@ function login() {
                 className="login-visual-panel__image"
               />
               <div className="login-visual-panel__overlay" aria-hidden="true" />
+
               <div className="login-visual-panel__content">
-                <p className="login-visual-panel__eyebrow">Workspace</p>
-                <h2 className="login-visual-panel__headline">All your note needs in one place</h2>
+                <div className="login-visual-panel__intro">
+                  <p className="login-visual-panel__eyebrow">
+                    <span className="login-visual-panel__eyebrow-dot" />
+                    Workspace
+                  </p>
+                  <h2 className="login-visual-panel__headline">Built for focused teams</h2>
+                  <p className="login-visual-panel__subline">Notes, activities, and collaboration in one platform.</p>
+                </div>
+
+                <ul className="login-visual-panel__features">
+                  {FEATURES.map(({ icon: Icon, title, description }) => (
+                    <li key={title} className="login-visual-panel__feature">
+                      <span className="login-visual-panel__feature-icon">
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <span className="login-visual-panel__feature-text">
+                        <span className="login-visual-panel__feature-title">{title}</span>
+                        <span className="login-visual-panel__feature-desc">{description}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </aside>
           </div>

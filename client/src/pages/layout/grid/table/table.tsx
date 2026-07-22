@@ -434,7 +434,11 @@ function table() {
             <AddActionButton label="Add Activity" onClick={openAddPanel} />
           </div>
         </div>
-        <div className={cn("grid-table-viewport flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl", layout !== "column" && "md:hidden")}>
+        <div
+          className={cn(
+            "grid-table-viewport flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl",
+            layout !== "column" && "md:hidden"
+          )}>
           <ColumnComponent tableBody={tableBody} setSorting={setSorting} />
           <PaginationComponent tableBody={tableBody} pagination={pagination} setPagination={setPagination} />
         </div>

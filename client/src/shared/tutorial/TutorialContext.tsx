@@ -51,10 +51,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const hasAutoStartedRef = useRef(false);
 
-  const steps = useMemo(
-    () => getTutorialStepsForPermissions(permissions ?? []),
-    [permissions]
-  );
+  const steps = useMemo(() => getTutorialStepsForPermissions(permissions ?? []), [permissions]);
 
   const currentStep = steps[stepIndex] ?? null;
   const totalSteps = steps.length;
@@ -120,8 +117,7 @@ export function TutorialProvider({ children }: TutorialProviderProps) {
   useEffect(() => {
     if (!isActive || !currentStep) return;
 
-    const matchesRoute =
-      pathname === currentStep.route || pathname.startsWith(`${currentStep.route}/`);
+    const matchesRoute = pathname === currentStep.route || pathname.startsWith(`${currentStep.route}/`);
 
     if (!matchesRoute) {
       navigate(currentStep.route);

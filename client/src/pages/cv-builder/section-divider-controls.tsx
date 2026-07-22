@@ -37,9 +37,7 @@ const SectionDividerControls = () => {
             <Label className="text-xs text-muted-foreground">Divider style</Label>
             <Select
               value={pageProperties.dividerStyle ?? "solid"}
-              onValueChange={(value) =>
-                updatePageProperties({ dividerStyle: value as "solid" | "dashed" | "dotted" })
-              }>
+              onValueChange={(value) => updatePageProperties({ dividerStyle: value as "solid" | "dashed" | "dotted" })}>
               <SelectTrigger className="w-32 h-8 text-xs bg-card">
                 <SelectValue />
               </SelectTrigger>

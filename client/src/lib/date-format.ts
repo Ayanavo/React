@@ -1,10 +1,59 @@
 import moment, { MomentInput } from "moment";
 
 export const DEFAULT_DATE_FORMAT = "DD/MM/YYYY";
+export const DEFAULT_WEEK_START = "sunday";
+export const DEFAULT_TIME_FORMAT = "12";
+
+export type WeekStart = "sunday" | "monday" | "saturday";
+export type TimeFormat = "12" | "24";
+
+const WEEK_START_DOW: Record<WeekStart, number> = {
+  sunday: 0,
+  monday: 1,
+  saturday: 6,
+};
+
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 export function getSessionDateFormat() {
   return sessionStorage.getItem("date_format") ?? DEFAULT_DATE_FORMAT;
 }
+
+export function getSessionWeekStart(): WeekStart {
+  const value = sessionStorage.getItem("week_start");
+  if (value === "monday" || value === "saturday" || value === "sunday") return value;
+  return DEFAULT_WEEK_START;
+}
+
+export function getSessionTimeFormat(): TimeFormat {
+  const value = sessionStorage.getItem("time_format");
+  if (value === "12" || value === "24") return value;
+  return DEFAULT_TIME_FORMAT;
+}
+
+export function getMomentTimeFormat(timeFormat: TimeFormat = getSessionTimeFormat()) {
+  return timeFormat === "24" ? "HH:mm" : "h:mm A";
+}
+
+export function getMomentHourFormat(timeFormat: TimeFormat = getSessionTimeFormat()) {
+  return timeFormat === "24" ? "HH:00" : "h A";
+}
+
+export function getWeekdayLabels(weekStart: WeekStart = getSessionWeekStart()) {
+  const dow = WEEK_START_DOW[weekStart];
+  return [...WEEKDAY_LABELS.slice(dow), ...WEEKDAY_LABELS.slice(0, dow)];
+}
+
+export function applySessionWeekStart(weekStart: WeekStart = getSessionWeekStart()) {
+  moment.updateLocale(moment.locale(), {
+    week: {
+      dow: WEEK_START_DOW[weekStart],
+      doy: weekStart === "monday" ? 4 : 6,
+    },
+  });
+}
+
+applySessionWeekStart();
 
 function toMoment(date?: MomentInput) {
   if (!date) return null;
@@ -21,14 +70,19 @@ export function formatAppDate(date?: MomentInput, includeTimeOrFallback: boolean
 
   const dateFormat = getSessionDateFormat();
   if (includeTime) {
-    return parsed.format(`${dateFormat} hh:mm A`);
+    return parsed.format(`${dateFormat} ${getMomentTimeFormat()}`);
   }
   return parsed.format(dateFormat);
 }
 
 export function formatAppDateTime(date?: MomentInput, fallback = "") {
   const parsed = toMoment(date);
-  return parsed ? parsed.format(`${getSessionDateFormat()} hh:mm A`) : fallback;
+  return parsed ? parsed.format(`${getSessionDateFormat()} ${getMomentTimeFormat()}`) : fallback;
+}
+
+export function formatAppTime(date?: MomentInput, fallback = "") {
+  const parsed = toMoment(date);
+  return parsed ? parsed.format(getMomentTimeFormat()) : fallback;
 }
 
 export function formatDuration(ms?: number | null, fallback = "—") {

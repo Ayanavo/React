@@ -33,10 +33,7 @@ function BuilderWorkspace({ pallet }: BuilderWorkspaceProps) {
 
       {isMobile ?
         <Sheet open={palletOpen} onOpenChange={setPalletOpen}>
-          <SheetContent
-            side="left"
-            hideClose
-            className="flex h-full w-[min(100%,20rem)] flex-col p-0 sm:max-w-sm">
+          <SheetContent side="left" hideClose className="flex h-full w-[min(100%,20rem)] flex-col p-0 sm:max-w-sm">
             {pallet}
           </SheetContent>
         </Sheet>

@@ -34,7 +34,7 @@ function dropdown({ form, schema }: { form: FieldValue<any>; schema: DropdownSch
             {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
           </FormLabel>
 
-          <Select onValueChange={field.onChange} value={field.value}>
+          <Select onValueChange={field.onChange} value={field.value || undefined}>
             <SelectTrigger>
               <SelectValue placeholder={schema.placeholder} />
             </SelectTrigger>

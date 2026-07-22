@@ -18,8 +18,7 @@ export const Layout = () => {
     const orderMap = new Map(menuOrder.map((route, index) => [route, index]));
 
     return [...allowed].sort(
-      (a, b) =>
-        (orderMap.get(a.route) ?? Number.MAX_SAFE_INTEGER) - (orderMap.get(b.route) ?? Number.MAX_SAFE_INTEGER)
+      (a, b) => (orderMap.get(a.route) ?? Number.MAX_SAFE_INTEGER) - (orderMap.get(b.route) ?? Number.MAX_SAFE_INTEGER)
     );
   }, [permissions, menuOrder]);
 

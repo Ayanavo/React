@@ -20,9 +20,7 @@ function notecard({ item, onSelect, className, isSelected = false, onToggleSelec
   const hasCustomBackground = hasExplicitNoteBackground(item?.backgroundColor);
   const noteThemeStyle = getNoteThemeStyle(item?.backgroundColor);
   const tagStyle =
-    item?.tagColor ?
-      { borderColor: `${item.tagColor}4f`, backgroundColor: `${item.tagColor}40` }
-    : undefined;
+    item?.tagColor ? { borderColor: `${item.tagColor}4f`, backgroundColor: `${item.tagColor}40` } : undefined;
 
   const cardStyle = {
     ...noteThemeStyle,
@@ -41,9 +39,7 @@ function notecard({ item, onSelect, className, isSelected = false, onToggleSelec
       style={cardStyle}
       onClick={() => item && onSelect(item)}>
       {item?._id && onToggleSelect ?
-        <div
-          className="absolute left-3 top-3 z-10"
-          onClick={(event) => event.stopPropagation()}>
+        <div className="absolute left-3 top-3 z-10" onClick={(event) => event.stopPropagation()}>
           <Checkbox
             className="border-primary/60 bg-background shadow-sm"
             checked={isSelected}
@@ -63,10 +59,17 @@ function notecard({ item, onSelect, className, isSelected = false, onToggleSelec
           <img alt="" className="max-h-24 w-full rounded-md border object-cover" src={item.image[0]} />
         )}
         {item?.description ?
-          <p className={cn("text-sm whitespace-pre-wrap break-words line-clamp-6", hasCustomBackground ? "note-muted" : "text-muted-foreground")}>
+          <p
+            className={cn(
+              "text-sm whitespace-pre-wrap break-words line-clamp-6",
+              hasCustomBackground ? "note-muted" : "text-muted-foreground"
+            )}>
             {item.description}
           </p>
-        : <p className={cn("text-sm italic", hasCustomBackground ? "note-muted" : "text-muted-foreground/60")}>No description</p>}
+        : <p className={cn("text-sm italic", hasCustomBackground ? "note-muted" : "text-muted-foreground/60")}>
+            No description
+          </p>
+        }
 
         <div className="note-card__footer mt-auto flex flex-wrap items-center justify-between gap-2">
           {item?.tagName ?

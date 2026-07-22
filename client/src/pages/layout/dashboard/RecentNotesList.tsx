@@ -28,9 +28,8 @@ const RecentNotesList: React.FC<RecentNotesListProps> = ({ notes, isLoading, com
     );
   }
 
-  const listClass = compact ?
-    "dashboard__list gap-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
-  : "dashboard__list";
+  const listClass =
+    compact ? "dashboard__list gap-2 sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5" : "dashboard__list";
 
   return (
     <div className={listClass}>
@@ -46,7 +45,9 @@ const RecentNotesList: React.FC<RecentNotesListProps> = ({ notes, isLoading, com
                   <span className="shrink-0 text-xs text-muted-foreground">{updatedLabel}</span>
                 : null}
               </div>
-              <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">{note.description?.trim() || "No description"}</p>
+              <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
+                {note.description?.trim() || "No description"}
+              </p>
               {note.tagName ?
                 <span
                   className="dashboard__tag mt-1.5"

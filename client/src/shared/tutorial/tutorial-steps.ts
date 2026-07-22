@@ -62,8 +62,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     route: "/cv-builder/create",
     target: "builder-preview-download",
     title: "Preview and download",
-    description:
-      "Preview your CV on the canvas, then download it as a PDF when you are satisfied with the result.",
+    description: "Preview your CV on the canvas, then download it as a PDF when you are satisfied with the result.",
     placement: "left",
     requiredPermission: "/cv-builder",
   },
@@ -138,7 +137,5 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
 
 export function getTutorialStepsForPermissions(permissions: string[]): TutorialStep[] {
   const allowed = new Set(permissions);
-  return TUTORIAL_STEPS.filter(
-    (step) => !step.requiredPermission || allowed.has(step.requiredPermission)
-  );
+  return TUTORIAL_STEPS.filter((step) => !step.requiredPermission || allowed.has(step.requiredPermission));
 }

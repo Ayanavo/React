@@ -4,11 +4,7 @@ import React from "react";
 
 export function StatCardSkeleton({ featured = false }: { featured?: boolean }) {
   return (
-    <div
-      className={cn(
-        "dashboard__stat",
-        featured && "border-primary/20 bg-primary/5"
-      )}>
+    <div className={cn("dashboard__stat", featured && "border-primary/20 bg-primary/5")}>
       <Skeleton className="h-7 w-7 shrink-0 rounded-md" />
       <div className="min-w-0 flex-1 space-y-1.5">
         <Skeleton className="h-7 w-10" />
@@ -36,10 +32,7 @@ export function BarChartSkeleton({ bars = 7 }: { bars?: number }) {
     <div className="dashboard__chart flex items-end justify-between gap-2 px-1 pb-1">
       {Array.from({ length: bars }).map((_, index) => (
         <div key={index} className="flex flex-1 flex-col items-center gap-2">
-          <Skeleton
-            className="w-full max-w-8 rounded-full"
-            style={{ height: `${heights[index % heights.length]}%` }}
-          />
+          <Skeleton className="w-full max-w-8 rounded-full" style={{ height: `${heights[index % heights.length]}%` }} />
           <Skeleton className="h-2.5 w-6" />
         </div>
       ))}

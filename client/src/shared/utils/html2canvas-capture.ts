@@ -243,7 +243,7 @@ export function prepareHtml2CanvasClone(
   clonedDoc: Document,
   clonedRoot: HTMLElement,
   sourceRoot: HTMLElement,
-  captureDimensions?: { width: number; height: number },
+  captureDimensions?: { width: number; height: number }
 ) {
   clonedDoc.querySelectorAll("[data-cv-capture-ignore]").forEach((node) => node.remove());
 

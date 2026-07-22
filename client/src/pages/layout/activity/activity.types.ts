@@ -2,6 +2,7 @@ export type ActivityStatus = "todo" | "in_progress" | "done" | "cancelled";
 export type ActivityPriority = "low" | "medium" | "high" | "urgent";
 export type ActivityType = "task" | "event" | "meeting" | "holiday";
 export type ActivitySource = "local" | "api" | "holiday";
+export type ConferenceProvider = "none" | "zoom" | "google_meet";
 
 export type ActivityItem = {
   id: string;
@@ -15,6 +16,9 @@ export type ActivityItem = {
   priority: ActivityPriority;
   type: ActivityType;
   location?: string;
+  conferenceProvider?: ConferenceProvider;
+  conferenceLink?: string;
+  conferenceMeetingId?: string;
   tag?: string;
   source: ActivitySource;
 };
@@ -30,11 +34,26 @@ export type ActivityFormValues = {
   color: string;
   priority: ActivityPriority;
   location?: string;
+  conferenceProvider?: ConferenceProvider;
+  conferenceLink?: string;
+  conferenceMeetingId?: string;
   tag?: string;
   recurring?: boolean;
   recurrenceCount?: number;
   recurrenceInterval?: RecurrenceInterval;
   recurrenceEndDate?: Date;
+};
+
+export const CONFERENCE_PROVIDER_LABELS: Record<Exclude<ConferenceProvider, "none">, string> = {
+  zoom: "Zoom",
+  google_meet: "Google Meet",
+};
+
+export type ConferenceLinkResponse = {
+  provider: Exclude<ConferenceProvider, "none">;
+  link: string;
+  meetingId?: string;
+  calendarEventId?: string;
 };
 
 export const RECURRENCE_INTERVAL_LABELS: Record<RecurrenceInterval, string> = {

@@ -48,7 +48,13 @@ function ToolbarIconButton({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button type="button" variant={variant} size="sm" className="h-8 shrink-0 gap-1.5 px-2 md:px-3" onClick={onClick} disabled={disabled}>
+        <Button
+          type="button"
+          variant={variant}
+          size="sm"
+          className="h-8 shrink-0 gap-1.5 px-2 md:px-3"
+          onClick={onClick}
+          disabled={disabled}>
           {icon}
           <span className="workflow-page__toolbar-label">{label}</span>
         </Button>
@@ -87,7 +93,12 @@ function WorkflowToolbar({
           <div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button type="button" variant="outline" size="sm" className="h-8 shrink-0 gap-1.5 px-2 md:px-3" disabled={disabled}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-8 shrink-0 gap-1.5 px-2 md:px-3"
+                  disabled={disabled}>
                   <Plus className="h-4 w-4" />
                   <span className="workflow-page__toolbar-label">Add node</span>
                 </Button>

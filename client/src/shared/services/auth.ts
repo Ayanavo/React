@@ -36,6 +36,8 @@ export type LoginPayload = {
 
 export type SaveSettingsPayload = {
   date_format: string;
+  week_start: string;
+  time_format: string;
   currency_format: string;
   font_style: string;
   theme: string;
@@ -47,7 +49,11 @@ export type ProfileResponse = {
     photoURL?: string;
     firstName: string;
     lastName: string;
+    gender?: string;
     mobile: string;
+    mobileIsd?: string;
+    mobileVerified?: boolean;
+    mobileVerifiedAt?: string | null;
     address: {
       addressLine1: string;
       addressLine2?: string;
@@ -78,12 +84,16 @@ export const loginAPI = async (payload: LoginPayload) => {
 };
 
 export const sendVerificationEmailAPI = async (email: string) => {
-  const response = await axiosInstance.post<VerificationEmailResponse>(apiUrl + "auth/send-verification-email", { email });
+  const response = await axiosInstance.post<VerificationEmailResponse>(apiUrl + "auth/send-verification-email", {
+    email,
+  });
   return response.data;
 };
 
 export const resendVerificationEmailAPI = async (email: string) => {
-  const response = await axiosInstance.post<VerificationEmailResponse>(apiUrl + "auth/resend-verification-email", { email });
+  const response = await axiosInstance.post<VerificationEmailResponse>(apiUrl + "auth/resend-verification-email", {
+    email,
+  });
   return response.data;
 };
 

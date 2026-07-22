@@ -21,10 +21,7 @@ import { Table } from "@tanstack/react-table";
 import React, { useMemo } from "react";
 import { User } from "./user.model";
 
-function getVisiblePages(
-  pageIndex: number,
-  pageCount: number
-): Array<number | "ellipsis"> {
+function getVisiblePages(pageIndex: number, pageCount: number): Array<number | "ellipsis"> {
   if (pageCount <= 0) return [];
   if (pageCount === 1) return [0];
 

@@ -16,9 +16,7 @@ export function createWorkflowNode(type: WorkflowNodeType): Node {
 }
 
 export function updateWorkflowNodeData(nodes: Node[], nodeId: string, patch: Record<string, unknown>) {
-  return nodes.map((node) =>
-    node.id === nodeId ? { ...node, data: { ...(node.data ?? {}), ...patch } } : node
-  );
+  return nodes.map((node) => (node.id === nodeId ? { ...node, data: { ...(node.data ?? {}), ...patch } } : node));
 }
 
 export function removeWorkflowNode(nodes: Node[], edges: Edge[], nodeId: string) {
@@ -28,7 +26,7 @@ export function removeWorkflowNode(nodes: Node[], edges: Edge[], nodeId: string)
   };
 }
 
-export function addWorkflowEdge( edges: Edge[], connection: Omit<Edge, "id">) {
+export function addWorkflowEdge(edges: Edge[], connection: Omit<Edge, "id">) {
   const id = `edge-${crypto.randomUUID()}`;
   return [...edges, { ...connection, id }];
 }

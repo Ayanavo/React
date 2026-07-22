@@ -6,7 +6,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import showToast from "@/hooks/toast";
 import { formatAppMonthYear } from "@/lib/date-format";
 import { useConfirmDialog } from "@/shared/confirmation";
-import { CalendarClock, ChevronLeft, ChevronRight, PanelLeft } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { CalendarClock, ChevronLeft, ChevronRight, PanelLeft, PanelLeftClose } from "lucide-react";
 import moment from "moment";
 import React, { useEffect, useMemo, useState } from "react";
 import ActivityCalendar, { CalendarEvent, CalendarView } from "./activity-calendar";
@@ -26,16 +27,10 @@ function ActivityPage() {
   const [selectedActivity, setSelectedActivity] = useState<ActivityItem | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(moment().toDate());
   const [focusedDate, setFocusedDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(true);
 
-  const {
-    activities,
-    calendarEvents,
-    isLoading,
-    createActivity,
-    updateActivity,
-    deleteActivity,
-    findActivity,
-  } = useActivityManager(focusDate, calendarView);
+  const { activities, calendarEvents, isLoading, createActivity, updateActivity, deleteActivity, findActivity } =
+    useActivityManager(focusDate, calendarView);
 
   const activeLabel = useMemo(() => {
     if (calendarView === "dayGridYear") {
@@ -157,9 +152,18 @@ function ActivityPage() {
     setFocusedDate(null);
   }
 
+  const sidebarPickerType = calendarView === "dayGridMonth" || calendarView === "dayGridYear" ? "date" : "datetime";
+
+  const sidebarWidth = sidebarPickerType === "datetime" ? "22.5rem" : "15rem";
+
   const dateSidebar = (
     <aside className="activity-page__sidebar">
-      <DatePickerComponent type="datetime" onSendData={handleSidebarDateChange} date={sidebarDate} />
+      <DatePickerComponent
+        key={sidebarPickerType}
+        type={sidebarPickerType}
+        onSendData={handleSidebarDateChange}
+        date={sidebarDate}
+      />
     </aside>
   );
 
@@ -186,56 +190,127 @@ function ActivityPage() {
 
       <div className="activity-page__content flex flex-1 flex-col gap-3 overflow-hidden p-3 sm:gap-4 sm:p-4">
         <section className="activity-page__toolbar flex flex-col gap-3 rounded-xl border bg-card p-3 shadow-sm sm:p-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="activity-page__toolbar-period flex min-w-0 items-center justify-between gap-2">
-            <h2 className="activity-page__toolbar-title min-w-0 truncate text-base font-semibold text-foreground sm:mr-2 sm:text-lg">
-              {activeLabel}
-            </h2>
-            <div className="activity-page__toolbar-nav flex shrink-0 items-center gap-1.5">
-              <Button variant="outline" size="sm" className="h-8 shrink-0 px-2.5 sm:px-3" onClick={() => handleNavigate("today")}>
-                <span className="activity-page__toolbar-label">Today</span>
-                <span className="activity-page__toolbar-label-short">Now</span>
-              </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleNavigate("prev")} aria-label="Previous period">
+          <div className="activity-page__toolbar-period min-w-0">
+            <div className="activity-page__toolbar-period-mobile md:hidden">
+              <Button
+                variant="outline"
+                size="icon"
+                className="activity-page__toolbar-chevron h-8 w-8 shrink-0"
+                onClick={() => handleNavigate("prev")}
+                aria-label="Previous period">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => handleNavigate("next")} aria-label="Next period">
+
+              <div className="activity-page__toolbar-period-label min-w-0">
+                <h2 className="activity-page__toolbar-title truncate text-center text-base font-bold text-foreground">
+                  {activeLabel}
+                </h2>
+              </div>
+
+              <Button
+                variant="outline"
+                size="icon"
+                className="activity-page__toolbar-chevron h-8 w-8 shrink-0"
+                onClick={() => handleNavigate("next")}
+                aria-label="Next period">
                 <ChevronRight className="h-4 w-4" />
               </Button>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                className="activity-page__toolbar-today-mobile h-8 shrink-0 px-2.5 text-xs font-semibold"
+                onClick={() => handleNavigate("today")}>
+                Today
+              </Button>
+            </div>
+
+            <div className="activity-page__toolbar-period-desktop hidden min-w-0 items-center justify-between gap-2 md:flex">
+              <h2 className="activity-page__toolbar-title min-w-0 truncate text-base font-bold text-foreground sm:mr-2 sm:text-lg">
+                {activeLabel}
+              </h2>
+              <div className="activity-page__toolbar-nav flex shrink-0 items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 shrink-0 px-2.5 sm:px-3"
+                  onClick={() => handleNavigate("today")}>
+                  <span className="activity-page__toolbar-label">Today</span>
+                  <span className="activity-page__toolbar-label-short">Today</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => handleNavigate("prev")}
+                  aria-label="Previous period">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 shrink-0"
+                  onClick={() => handleNavigate("next")}
+                  aria-label="Next period">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
-          <div className="activity-page__toolbar-actions flex min-w-0 items-center gap-2 overflow-x-auto">
+          <div className="activity-page__toolbar-actions flex min-w-0 items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="activity-page__sidebar-toggle hidden h-8 shrink-0 px-2.5 xl:inline-flex"
+                  onClick={() => setShowDatePicker((prev) => !prev)}
+                  aria-label={showDatePicker ? "Hide date picker" : "Show date picker"}
+                  aria-pressed={showDatePicker}>
+                  {showDatePicker ?
+                    <PanelLeftClose className="h-4 w-4" />
+                  : <PanelLeft className="h-4 w-4" />}
+                  <span className="activity-page__toolbar-label ml-2">Date picker</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{showDatePicker ? "Hide date picker" : "Show date picker"}</TooltipContent>
+            </Tooltip>
+
             <ToggleGroup
               type="single"
               value={calendarView}
               variant="outline"
-              className="activity-page__view-toggle shrink-0"
+              className="activity-page__view-toggle min-w-0 flex-1"
               onValueChange={(value) => value && setCalendarView(value as CalendarView)}>
-              <ToggleGroupItem value="dayGridDay" className="h-8 px-2.5 text-xs sm:px-3 sm:text-sm">
+              <ToggleGroupItem value="dayGridDay" className="activity-page__view-toggle-item h-9 flex-1 px-1 text-xs sm:h-8 sm:flex-none sm:px-3 sm:text-sm">
                 Day
               </ToggleGroupItem>
-              <ToggleGroupItem value="dayGridWeek" className="h-8 px-2.5 text-xs sm:px-3 sm:text-sm">
+              <ToggleGroupItem value="dayGridWeek" className="activity-page__view-toggle-item h-9 flex-1 px-1 text-xs sm:h-8 sm:flex-none sm:px-3 sm:text-sm">
                 <span className="sm:hidden">Wk</span>
                 <span className="hidden sm:inline">Week</span>
               </ToggleGroupItem>
-              <ToggleGroupItem value="dayGridMonth" className="h-8 px-2.5 text-xs sm:px-3 sm:text-sm">
+              <ToggleGroupItem value="dayGridMonth" className="activity-page__view-toggle-item h-9 flex-1 px-1 text-xs sm:h-8 sm:flex-none sm:px-3 sm:text-sm">
                 <span className="sm:hidden">Mo</span>
                 <span className="hidden sm:inline">Month</span>
               </ToggleGroupItem>
-              <ToggleGroupItem value="dayGridYear" className="h-8 px-2.5 text-xs sm:px-3 sm:text-sm">
+              <ToggleGroupItem value="dayGridYear" className="activity-page__view-toggle-item h-9 flex-1 px-1 text-xs sm:h-8 sm:flex-none sm:px-3 sm:text-sm">
                 <span className="sm:hidden">Yr</span>
                 <span className="hidden sm:inline">Year</span>
               </ToggleGroupItem>
             </ToggleGroup>
 
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 shrink-0 px-2.5 xl:hidden">
-                  <PanelLeft className="h-4 w-4" />
-                  <span className="activity-page__toolbar-label ml-2">Date</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" hideClose className="scrollbar-none w-[min(100vw-2rem,22rem)] overflow-y-auto p-0">
+            <div className="activity-page__toolbar-sheets flex shrink-0 items-center gap-1.5 xl:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="icon" className="activity-page__toolbar-sheet-btn h-9 w-9 shrink-0" aria-label="Open date picker">
+                    <PanelLeft className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+              <SheetContent
+                side="left"
+                hideClose
+                className="scrollbar-none w-[min(100vw-2rem,22rem)] overflow-y-auto p-0">
                 <SheetHeader className="border-b px-4 py-3 text-left">
                   <SheetTitle>Pick a date</SheetTitle>
                 </SheetHeader>
@@ -245,22 +320,30 @@ function ActivityPage() {
 
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 shrink-0 px-2.5 xl:hidden">
+                <Button variant="outline" size="icon" className="activity-page__toolbar-sheet-btn h-9 w-9 shrink-0" aria-label="Open upcoming events">
                   <CalendarClock className="h-4 w-4" />
-                  <span className="activity-page__toolbar-label ml-2">Upcoming</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" hideClose className="scrollbar-none w-[min(100vw-2rem,22rem)] overflow-y-auto p-0">
+              <SheetContent
+                side="right"
+                hideClose
+                className="scrollbar-none w-[min(100vw-2rem,22rem)] overflow-y-auto p-0">
                 <SheetHeader className="border-b px-4 py-3 text-left">
                   <SheetTitle>Upcoming events</SheetTitle>
                 </SheetHeader>
                 <div className="p-4">{upcomingPanel}</div>
               </SheetContent>
             </Sheet>
+            </div>
           </div>
         </section>
 
-        <div className="activity-page__workspace grid min-h-0 flex-1 gap-4 xl:grid-cols-[20rem_minmax(0,1fr)_20rem]" data-tutorial="activity-workspace">
+        <div
+          className="activity-page__workspace min-h-0 flex-1"
+          data-sidebar-open={showDatePicker}
+          data-sidebar-picker={sidebarPickerType}
+          style={{ "--activity-sidebar-width": sidebarWidth } as React.CSSProperties}
+          data-tutorial="activity-workspace">
           <div className="activity-page__sidebar-column">{dateSidebar}</div>
 
           <main className="activity-page__main">

@@ -1,12 +1,12 @@
 import {
-    ActivityPayload,
-    ActivityRecord,
-    createActivity as createActivityApi,
-    deleteActivity as deleteActivityApi,
-    fetchActivities,
-    GoogleCalendarEvent,
-    updateActivity as updateActivityApi,
-    useHolidayEvents,
+  ActivityPayload,
+  ActivityRecord,
+  createActivity as createActivityApi,
+  deleteActivity as deleteActivityApi,
+  fetchActivities,
+  GoogleCalendarEvent,
+  updateActivity as updateActivityApi,
+  useHolidayEvents,
 } from "@/shared/services/activity";
 import { getTags } from "@/shared/services/tag";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,13 +14,13 @@ import moment from "moment";
 import { useCallback, useMemo } from "react";
 import { CalendarEvent, CalendarView } from "./activity-calendar";
 import {
-    ActivityFormValues,
-    ActivityItem,
-    ActivityPriority,
-    ActivitySource,
-    ActivityStatus,
-    ActivityType,
-    DEFAULT_ACTIVITY_COLOR
+  ActivityFormValues,
+  ActivityItem,
+  ActivityPriority,
+  ActivitySource,
+  ActivityStatus,
+  ActivityType,
+  DEFAULT_ACTIVITY_COLOR,
 } from "./activity.types";
 
 function formValuesToPayload(values: ActivityFormValues): ActivityPayload {
@@ -36,6 +36,11 @@ function formValuesToPayload(values: ActivityFormValues): ActivityPayload {
     color: values.color || DEFAULT_ACTIVITY_COLOR,
     priority: values.priority,
     location: values.location?.trim() ?? "",
+    conferenceProvider: values.conferenceProvider && values.conferenceProvider !== "none" ? values.conferenceProvider : undefined,
+    conferenceLink:
+      values.conferenceProvider && values.conferenceProvider !== "none" ? values.conferenceLink?.trim() ?? "" : undefined,
+    conferenceMeetingId:
+      values.conferenceProvider === "zoom" ? values.conferenceMeetingId?.trim() || undefined : undefined,
     tag: values.tag || undefined,
   };
 
@@ -64,6 +69,9 @@ function mapApiActivities(records: ActivityRecord[]): ActivityItem[] {
     priority: (record.priority as ActivityPriority) ?? "medium",
     type: "event" as ActivityType,
     location: record.location,
+    conferenceProvider: record.conferenceProvider,
+    conferenceLink: record.conferenceLink,
+    conferenceMeetingId: record.conferenceMeetingId,
     tag: record.tag ? String(record.tag) : undefined,
     source: "api" as ActivitySource,
   }));
@@ -79,6 +87,9 @@ function activityToFormValues(activity: ActivityItem | null, fallbackDate: Date)
       color: DEFAULT_ACTIVITY_COLOR,
       priority: "medium",
       location: "",
+      conferenceProvider: "none",
+      conferenceLink: "",
+      conferenceMeetingId: "",
       tag: "",
       recurring: false,
       recurrenceCount: 1,
@@ -96,14 +107,14 @@ function activityToFormValues(activity: ActivityItem | null, fallbackDate: Date)
     color: activity.color ?? DEFAULT_ACTIVITY_COLOR,
     priority: activity.priority,
     location: activity.location ?? "",
+    conferenceProvider: activity.conferenceProvider ?? "none",
+    conferenceLink: activity.conferenceLink ?? "",
+    conferenceMeetingId: activity.conferenceMeetingId ?? "",
     tag: activity.tag ?? "",
   };
 }
 
-function activityToCalendarEvent(
-  activity: ActivityItem,
-  tagNameById: Map<string, string> = new Map()
-): CalendarEvent {
+function activityToCalendarEvent(activity: ActivityItem, tagNameById: Map<string, string> = new Map()): CalendarEvent {
   const tagId = activity.tag?.trim();
 
   return {
@@ -114,7 +125,7 @@ function activityToCalendarEvent(
     allDay: activity.allDay,
     color: activity.color,
     location: activity.location?.trim() || undefined,
-    tagName: tagId ? tagNameById.get(tagId) ?? tagId : undefined,
+    tagName: tagId ? (tagNameById.get(tagId) ?? tagId) : undefined,
   };
 }
 

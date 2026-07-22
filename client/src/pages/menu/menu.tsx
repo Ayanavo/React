@@ -1,5 +1,6 @@
 import { AppLogo } from "@/components/app-logo";
 import { Sidebar, useSidebar } from "@/components/ui/sidebar";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
 import { usePersistedState } from "@/hooks/usePersistedState";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,51 @@ type NavItem = { label: string; icon: string; route: string };
 const BOTTOM_ROUTES = new Set(["/profile", "/settings"]);
 const BOTTOM_ROUTE_ORDER = ["/profile", "/settings"];
 
+type NavMenuButtonProps = {
+  label: string;
+  icon: string;
+  isActive?: boolean;
+  className?: string;
+  showLabels: boolean;
+  tooltipSide: "left" | "right";
+  onClick: () => void;
+};
+
+function NavMenuButton({
+  label,
+  icon,
+  isActive = false,
+  className,
+  showLabels,
+  tooltipSide,
+  onClick,
+}: NavMenuButtonProps) {
+  const button = (
+    <button
+      type="button"
+      className={cn("app-sidebar__link", className)}
+      aria-current={isActive ? "page" : undefined}
+      aria-label={showLabels ? undefined : label}
+      onClick={onClick}>
+      <IconsComponent customClass="app-sidebar__icon" icon={icon} />
+      {showLabels && <span>{label}</span>}
+    </button>
+  );
+
+  if (showLabels) {
+    return button;
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent side={tooltipSide} align="center" sideOffset={15}>
+        {label}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 function menu({
   NavList,
   isLoadingPermissions = false,
@@ -31,10 +77,11 @@ function menu({
   const { confirm } = useConfirmDialog();
   const { isMobile, setOpenMobile, state: sidebarState, toggleSidebar } = useSidebar();
   const showLabels = isMobile || sidebarState === "expanded";
+  const tooltipSide = sidebarSide === "right" ? "left" : "right";
 
   const mainNav = NavList.filter((item) => !BOTTOM_ROUTES.has(item.route));
   const bottomNav = NavList.filter((item) => BOTTOM_ROUTES.has(item.route)).sort(
-    (a, b) => BOTTOM_ROUTE_ORDER.indexOf(a.route) - BOTTOM_ROUTE_ORDER.indexOf(b.route),
+    (a, b) => BOTTOM_ROUTE_ORDER.indexOf(a.route) - BOTTOM_ROUTE_ORDER.indexOf(b.route)
   );
 
   const closeMobileMenu = () => {
@@ -77,15 +124,14 @@ function menu({
 
     return (
       <li key={route} className={cn("app-sidebar__item", isActive && "app-sidebar__item--active")}>
-        <button
-          type="button"
-          className="app-sidebar__link"
-          title={showLabels ? undefined : label}
-          aria-current={isActive ? "page" : undefined}
-          onClick={() => handleNavigate(route)}>
-          <IconsComponent customClass="app-sidebar__icon" icon={icon} />
-          {showLabels && <span>{label}</span>}
-        </button>
+        <NavMenuButton
+          label={label}
+          icon={icon}
+          isActive={isActive}
+          showLabels={showLabels}
+          tooltipSide={tooltipSide}
+          onClick={() => handleNavigate(route)}
+        />
       </li>
     );
   };
@@ -121,28 +167,28 @@ function menu({
                     "app-sidebar__item",
                     "app-sidebar__item--bottom",
                     isRouteActive(item.route) && "app-sidebar__item--active",
-                    index === 0 && "app-sidebar__item--push-bottom",
+                    index === 0 && "app-sidebar__item--push-bottom"
                   )}>
-                  <button
-                    type="button"
-                    className="app-sidebar__link"
-                    title={showLabels ? undefined : item.label}
-                    aria-current={isRouteActive(item.route) ? "page" : undefined}
-                    onClick={() => handleNavigate(item.route)}>
-                    <IconsComponent customClass="app-sidebar__icon" icon={item.icon} />
-                    {showLabels && <span>{item.label}</span>}
-                  </button>
+                  <NavMenuButton
+                    label={item.label}
+                    icon={item.icon}
+                    isActive={isRouteActive(item.route)}
+                    showLabels={showLabels}
+                    tooltipSide={tooltipSide}
+                    onClick={() => handleNavigate(item.route)}
+                  />
                 </li>
               ))}
             {!isLoadingPermissions && (
               <li className="app-sidebar__item app-sidebar__item--bottom">
-                <button
-                  type="button"
-                  className="app-sidebar__link app-sidebar__link--danger"
-                  onClick={handleConfirmation}>
-                  <IconsComponent customClass="app-sidebar__icon" icon="LogOutIcon" />
-                  {showLabels && <span>Sign Out</span>}
-                </button>
+                <NavMenuButton
+                  label="Sign Out"
+                  icon="LogOutIcon"
+                  className="app-sidebar__link--danger"
+                  showLabels={showLabels}
+                  tooltipSide={tooltipSide}
+                  onClick={handleConfirmation}
+                />
               </li>
             )}
           </>

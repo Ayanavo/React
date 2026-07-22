@@ -68,10 +68,7 @@ function note() {
     queryFn: getTags,
   });
 
-  const noteListing = useMemo(
-    () => notes.map((note) => mapNoteRecordToState(note, tags)),
-    [notes, tags]
-  );
+  const noteListing = useMemo(() => notes.map((note) => mapNoteRecordToState(note, tags)), [notes, tags]);
 
   const filteredNoteListing = useMemo(
     () => sortNotes(filterNotesByTag(noteListing, selectedTagId), sortBy),
@@ -224,7 +221,10 @@ function note() {
                           <SelectItem key={tag._id} value={tag._id}>
                             <span className="flex items-center gap-2">
                               {tag.color ?
-                                <span className="inline-flex h-2.5 w-2.5 rounded-full" style={{ backgroundColor: tag.color }} />
+                                <span
+                                  className="inline-flex h-2.5 w-2.5 rounded-full"
+                                  style={{ backgroundColor: tag.color }}
+                                />
                               : null}
                               {tag.name}
                             </span>
@@ -309,8 +309,8 @@ function note() {
                 <div className="relative z-10 mt-5 space-y-2">
                   <h3 className="text-base font-semibold tracking-tight">No notes created yet</h3>
                   <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-                    Start building your knowledge base by creating reusable notes for resumes, projects, experience, skills,
-                    and more.
+                    Start building your knowledge base by creating reusable notes for resumes, projects, experience,
+                    skills, and more.
                   </p>
                 </div>
 
@@ -321,7 +321,9 @@ function note() {
           {noteListing.length > 0 && !filteredNoteListing.length && !isLoading && (
             <div className="m-3 rounded-xl border bg-muted/20 px-6 py-10 text-center">
               <h3 className="text-base font-semibold tracking-tight">No notes match this filter</h3>
-              <p className="mt-2 text-sm text-muted-foreground">Try a different tag filter or clear the current filter.</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Try a different tag filter or clear the current filter.
+              </p>
             </div>
           )}
           {layout === "list" && (

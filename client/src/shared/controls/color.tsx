@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { OpacityIcon } from "@radix-ui/react-icons";
 import React from "react";
-import { ColorPickerPanel } from "@/shared/color-picker";
+import { ColorPickerPopover } from "@/shared/color-picker";
 import { FieldValue } from "react-hook-form";
 
 type ColorSchema = {
@@ -31,9 +30,12 @@ function color({ form, schema }: { form: FieldValue<any>; schema: ColorSchema })
               {schema.label} {schema.validation.required && <span className="text-destructive">*</span>}
             </FormLabel>
           )}
-          <Popover>
-            <PopoverTrigger asChild>
+          <ColorPickerPopover
+            color={field.value}
+            onChange={handleColorChange}
+            trigger={
               <Button
+                type="button"
                 variant={"outline"}
                 className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
                 {field.value ?
@@ -44,11 +46,8 @@ function color({ form, schema }: { form: FieldValue<any>; schema: ColorSchema })
                 : <span>{schema.label}</span>}
                 <OpacityIcon className="ml-auto h-4 w-4 opacity-50" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto border-0 bg-transparent p-0 shadow-none pointer-events-auto" align="start">
-              <ColorPickerPanel color={field.value} onChange={handleColorChange} />
-            </PopoverContent>
-          </Popover>
+            }
+          />
           <FormMessage />
         </FormItem>
       )}

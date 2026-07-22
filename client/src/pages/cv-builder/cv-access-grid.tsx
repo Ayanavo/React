@@ -260,17 +260,17 @@ const CVAccessGrid = () => {
       </div>
       <div className="min-h-0 flex-1 overflow-hidden pb-2">
         <ResourceGrid<CVAccessRecord>
-        queryKey="cv-builder-list"
-        resourceLabel="CV"
-        basePath="/cv-builder"
-        addLabel="Create New"
-        columns={columns}
-        fetchList={fetchCVAccessList}
-        deleteResource={deleteCVBuilder}
-        actionRenderer={actionRenderer}
-        onAddClick={openBuilder}
-        filterControls={filterControls}
-        filterFn={filterFn}
+          queryKey="cv-builder-list"
+          resourceLabel="CV"
+          basePath="/cv-builder"
+          addLabel="Create New"
+          columns={columns}
+          fetchList={fetchCVAccessList}
+          deleteResource={deleteCVBuilder}
+          actionRenderer={actionRenderer}
+          onAddClick={openBuilder}
+          filterControls={filterControls}
+          filterFn={filterFn}
         />
       </div>
     </div>

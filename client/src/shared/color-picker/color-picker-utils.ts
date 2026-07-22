@@ -113,8 +113,7 @@ export function rgbToHsva(r: number, g: number, b: number, alpha = 100): HsvaCol
 
 export function hexToHsva(hex?: string): HsvaColor {
   const normalized = hex?.replace("#", "").trim() ?? "";
-  const alpha =
-    normalized.length === 8 ? Math.round((parseInt(normalized.slice(6, 8), 16) / 255) * 100) : 100;
+  const alpha = normalized.length === 8 ? Math.round((parseInt(normalized.slice(6, 8), 16) / 255) * 100) : 100;
   const rgb = hexToRgb(hex ?? "");
   if (!rgb) return { h: 0, s: 0, v: 100, a: alpha };
   return rgbToHsva(rgb.r, rgb.g, rgb.b, alpha);

@@ -152,7 +152,6 @@ const STATIC_ROUTES: RouteConfig[] = [
 
   { path: "/terms", element: <Navigate to="/legal/terms" replace /> },
   { path: "/privacy", element: <Navigate to="/legal/privacy" replace /> },
-
 ];
 
 /** Protected layout routes */

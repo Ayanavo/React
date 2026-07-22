@@ -69,10 +69,7 @@ const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof
   <PaginationLink
     aria-label="Go to previous page"
     size="default"
-    className={cn(
-      "h-9 gap-1 px-2.5 max-sm:w-9 max-sm:justify-center max-sm:px-0",
-      className
-    )}
+    className={cn("h-9 gap-1 px-2.5 max-sm:w-9 max-sm:justify-center max-sm:px-0", className)}
     {...props}>
     <ChevronLeftIcon className="h-4 w-4 shrink-0" />
     <span className="hidden sm:inline">Previous</span>
@@ -84,10 +81,7 @@ const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof Pag
   <PaginationLink
     aria-label="Go to next page"
     size="default"
-    className={cn(
-      "h-9 gap-1 px-2.5 max-sm:w-9 max-sm:justify-center max-sm:px-0",
-      className
-    )}
+    className={cn("h-9 gap-1 px-2.5 max-sm:w-9 max-sm:justify-center max-sm:px-0", className)}
     {...props}>
     <span className="hidden sm:inline">Next</span>
     <ChevronRightIcon className="h-4 w-4 shrink-0" />
@@ -96,10 +90,7 @@ const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof Pag
 PaginationNext.displayName = "PaginationNext";
 
 const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<"span">) => (
-  <span
-    aria-hidden
-    className={cn("flex h-9 w-9 shrink-0 items-center justify-center", className)}
-    {...props}>
+  <span aria-hidden className={cn("flex h-9 w-9 shrink-0 items-center justify-center", className)} {...props}>
     <DotsHorizontalIcon className="h-4 w-4" />
     <span className="sr-only">More pages</span>
   </span>

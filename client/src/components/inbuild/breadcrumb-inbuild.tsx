@@ -9,6 +9,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type BreadcrumbInbuildProps = {
   isEditMode?: boolean;
@@ -44,7 +45,10 @@ const formatRouteLabel = (segment: string) => {
     .join(" ");
 };
 
-function BreadcrumbInbuild({ isEditMode = false, className = "flex w-full min-w-0 items-center" }: BreadcrumbInbuildProps) {
+function BreadcrumbInbuild({
+  isEditMode = false,
+  className = "flex w-full min-w-0 items-center",
+}: BreadcrumbInbuildProps) {
   const { pathname } = useLocation();
   const segments = pathname.split("/").filter(Boolean);
 
@@ -68,11 +72,18 @@ function BreadcrumbInbuild({ isEditMode = false, className = "flex w-full min-w-
     <Breadcrumb className={className}>
       <BreadcrumbList>
         <BreadcrumbItem className="shrink-0">
-          <BreadcrumbLink asChild>
-            <Link to="/" aria-label="Home">
-              <House className="h-5 w-5" />
-            </Link>
-          </BreadcrumbLink>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <BreadcrumbLink asChild>
+                  <Link to="/" aria-label="Dashboard">
+                    <House className="h-5 w-5" />
+                  </Link>
+                </BreadcrumbLink>
+              </TooltipTrigger>
+              <TooltipContent>Dashboard</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </BreadcrumbItem>
 
         {segments.map((segment, index) => {
@@ -84,9 +95,7 @@ function BreadcrumbInbuild({ isEditMode = false, className = "flex w-full min-w-
             <React.Fragment key={href}>
               <BreadcrumbSeparator />
               <BreadcrumbItem
-                className={
-                  isLastSegment ? "min-w-0 flex-1 overflow-hidden" : "max-w-[45%] shrink overflow-hidden"
-                }>
+                className={isLastSegment ? "min-w-0 flex-1 overflow-hidden" : "max-w-[45%] shrink overflow-hidden"}>
                 {isLastSegment ?
                   <BreadcrumbPage title={label}>{label}</BreadcrumbPage>
                 : <BreadcrumbLink asChild>

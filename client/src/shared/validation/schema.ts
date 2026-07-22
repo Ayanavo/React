@@ -162,17 +162,25 @@ export const createProfileBaseSchema = (mobileSingle: boolean) =>
     profile_image: z.string().optional(),
     firstName: z.string().min(1, "First name is required"),
     lastName: z.string().min(1, "Last name is required"),
+    gender: z.enum(["male", "female", "non-binary", "prefer-not-to-say"]).or(z.literal("")).optional(),
+    mobileIsd: z
+      .string()
+      .regex(/^\d{1,4}$/, "ISD code is invalid")
+      .default("91"),
+    mobileCountry: z.string().default("IN"),
     mobile:
       mobileSingle ?
-        z.string().min(1, "Mobile number is required")
+        z.string().refine((val) => !val.trim() || /^[1-9]\d{5,14}$/.test(val.trim()), "Mobile number format is invalid")
       : z
           .array(
             z.object({
-              phone: z.string().min(1, "Mobile number is required"),
+              phone: z
+                .string()
+                .refine((val) => !val.trim() || /^[1-9]\d{5,14}$/.test(val.trim()), "Mobile number format is invalid"),
               isPrimary: z.boolean(),
             })
           )
-          .min(1, "At least one mobile number is required"),
+          .default([]),
 
     // Address fields
     addressLine1: z.string().min(1, "Address line 1 is required"),

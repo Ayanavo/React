@@ -36,7 +36,7 @@ export default function ActivityUpcomingList({
         .filter((item) => moment(item.start).isSameOrAfter(moment(), "day"))
         .sort((a, b) => moment(a.start).valueOf() - moment(b.start).valueOf())
         .slice(0, 6),
-    [activities],
+    [activities]
   );
 
   return (

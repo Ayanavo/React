@@ -253,7 +253,10 @@ export function ColorPickerPanel({ color, onChange, onChangeComplete }: ColorPic
               emitChange(hsvaRef.current, true);
             }}
             onPointerCancel={hueDrag.end}>
-            <div className="color-picker-slider__thumb" style={{ left: `${(hsva.h / 360) * 100}%` }} />
+            <div
+              className="color-picker-slider__thumb"
+              style={{ left: `calc((100% - var(--color-picker-thumb-size)) * ${hsva.h / 360})` }}
+            />
           </div>
 
           <div
@@ -273,7 +276,10 @@ export function ColorPickerPanel({ color, onChange, onChangeComplete }: ColorPic
                 background: `linear-gradient(to right, transparent, ${solidHex})`,
               }}
             />
-            <div className="color-picker-slider__thumb" style={{ left: `${hsva.a}%` }} />
+            <div
+              className="color-picker-slider__thumb"
+              style={{ left: `calc((100% - var(--color-picker-thumb-size)) * ${hsva.a / 100})` }}
+            />
           </div>
         </div>
       </div>
@@ -289,7 +295,7 @@ export function ColorPickerPanel({ color, onChange, onChangeComplete }: ColorPic
           <SelectTrigger className="color-picker-format-trigger">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent position="popper">
+          <SelectContent position="popper" data-color-picker-select="">
             <SelectItem value="hex">Hex</SelectItem>
             <SelectItem value="rgb">RGB</SelectItem>
             <SelectItem value="hsl">HSL</SelectItem>

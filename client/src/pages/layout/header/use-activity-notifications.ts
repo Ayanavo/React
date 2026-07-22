@@ -38,19 +38,13 @@ export function useActivityNotifications(enabled = true) {
     enabled,
   });
 
-  const activities = useMemo(
-    () => mapApiActivities(apiQuery.data?.activities ?? []),
-    [apiQuery.data]
-  );
+  const activities = useMemo(() => mapApiActivities(apiQuery.data?.activities ?? []), [apiQuery.data]);
 
   const grouped = useMemo(() => {
     const today = moment().startOf("day");
 
     const overdue = activities
-      .filter(
-        (item) =>
-          isActionable(item) && moment(item.start).isBefore(today, "day")
-      )
+      .filter((item) => isActionable(item) && moment(item.start).isBefore(today, "day"))
       .sort((a, b) => moment(a.start).valueOf() - moment(b.start).valueOf());
 
     const todayItems = activities
@@ -58,10 +52,7 @@ export function useActivityNotifications(enabled = true) {
       .sort((a, b) => moment(a.start).valueOf() - moment(b.start).valueOf());
 
     const upcoming = activities
-      .filter(
-        (item) =>
-          isActionable(item) && moment(item.start).isAfter(today, "day")
-      )
+      .filter((item) => isActionable(item) && moment(item.start).isAfter(today, "day"))
       .sort((a, b) => moment(a.start).valueOf() - moment(b.start).valueOf())
       .slice(0, 10);
 

@@ -199,7 +199,9 @@ const MasterAccess = () => {
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuLabel>Filters</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuCheckboxItem checked={activeLoginOnly} onCheckedChange={(checked) => setActiveLoginOnly(checked === true)}>
+        <DropdownMenuCheckboxItem
+          checked={activeLoginOnly}
+          onCheckedChange={(checked) => setActiveLoginOnly(checked === true)}>
           Active users only
         </DropdownMenuCheckboxItem>
         {activeLoginOnly ?
@@ -219,17 +221,17 @@ const MasterAccess = () => {
       </div>
       <div className="min-h-0 flex-1">
         <ResourceGrid
-        queryKey="master-access-users"
-        resourceLabel="User"
-        basePath="/master-access"
-        columns={columns}
-        fetchList={fetchUsers}
-        deleteResource={deleteUser}
-        actionRenderer={actionRenderer}
-        showAddButton={false}
-        filterControls={filterControls}
-        filterFn={filterFn}
-        bulkDeleteFilter={(row) => row._id !== currentUserId}
+          queryKey="master-access-users"
+          resourceLabel="User"
+          basePath="/master-access"
+          columns={columns}
+          fetchList={fetchUsers}
+          deleteResource={deleteUser}
+          actionRenderer={actionRenderer}
+          showAddButton={false}
+          filterControls={filterControls}
+          filterFn={filterFn}
+          bulkDeleteFilter={(row) => row._id !== currentUserId}
         />
       </div>
       {openPermissionsFor && selectedUserId && (
@@ -241,7 +243,6 @@ const MasterAccess = () => {
       )}
     </div>
   );
-
 };
 
 export default MasterAccess;

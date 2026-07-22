@@ -26,12 +26,7 @@ const StatsGrid: React.FC<StatsGridProps> = ({ stats, isLoading }) => {
       {statItems.map((item) => {
         const Icon = item.icon;
         return (
-          <div
-            key={item.key}
-            className={cn(
-              "dashboard__stat",
-              item.featured && "border-primary/30 bg-primary/5"
-            )}>
+          <div key={item.key} className={cn("dashboard__stat", item.featured && "border-primary/30 bg-primary/5")}>
             <span className="dashboard__stat-icon">
               <Icon className="h-3.5 w-3.5" />
             </span>

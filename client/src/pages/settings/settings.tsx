@@ -2,22 +2,19 @@ import BreadcrumbInbuild from "@/components/inbuild/breadcrumb-inbuild";
 import PageBreadcrumbBar from "@/components/inbuild/page-breadcrumb-bar";
 import { Button } from "@/components/ui/button";
 import showToast from "@/hooks/toast";
-import { DEFAULT_DATE_FORMAT } from "@/lib/date-format";
+import {
+  applySessionWeekStart,
+  DEFAULT_DATE_FORMAT,
+  DEFAULT_TIME_FORMAT,
+  DEFAULT_WEEK_START,
+  type TimeFormat,
+  type WeekStart,
+} from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import DropdownComponent from "@/shared/controls/dropdown";
 import ImageComponent from "@/shared/controls/image";
 import { saveSettingsAPI } from "@/shared/services/auth";
-import {
-  CalendarDays,
-  Check,
-  ImageIcon,
-  Monitor,
-  Moon,
-  Palette,
-  Sun,
-  Type,
-  type LucideIcon,
-} from "lucide-react";
+import { CalendarDays, Check, ImageIcon, Palette, Type, type LucideIcon } from "lucide-react";
 import moment from "moment";
 import React from "react";
 import { FormProvider } from "react-hook-form";
@@ -59,6 +56,17 @@ const dateFormatOptions = ["/", "-", "."].flatMap((delimiter) =>
   )
 );
 
+const weekStartOptions = [
+  { label: "Sunday", value: "sunday" },
+  { label: "Monday", value: "monday" },
+  { label: "Saturday", value: "saturday" },
+];
+
+const timeFormatOptions = [
+  { label: `12-hour (${moment().format("h:mm A")})`, value: "12" },
+  { label: `24-hour (${moment().format("HH:mm")})`, value: "24" },
+];
+
 const getDelimiter = (dateFormat: string) => dateFormat.match(/[\/.-]/)?.[0] ?? "/";
 
 const settingsCardClass = "bg-white dark:bg-card";
@@ -73,11 +81,7 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <section
-      className={cn(
-        "rounded-lg border border-dashed border-border p-5 shadow-sm",
-        settingsCardClass
-      )}>
+    <section className={cn("rounded-lg border border-dashed border-border p-5 shadow-sm", settingsCardClass)}>
       <div className="mb-5 flex items-start gap-3 border-b border-dotted border-border pb-4">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-dotted border-border bg-muted/40 text-muted-foreground">
           <Icon className="h-4 w-4" aria-hidden="true" />
@@ -91,12 +95,14 @@ function SettingsSection({
 }
 
 function settings() {
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
   const { color, setColor } = useColor();
   const { font, setFont } = useFont();
   const [isSaving, setIsSaving] = React.useState(false);
   const [savedSettings, setSavedSettings] = React.useState(() => ({
     date_format: sessionStorage.getItem("date_format") ?? DEFAULT_DATE_FORMAT,
+    week_start: (sessionStorage.getItem("week_start") as WeekStart | null) ?? DEFAULT_WEEK_START,
+    time_format: (sessionStorage.getItem("time_format") as TimeFormat | null) ?? DEFAULT_TIME_FORMAT,
     currency_format: sessionStorage.getItem("currency_code") ?? "INR",
     font_style: sessionStorage.getItem("font_style") ?? font,
     theme: sessionStorage.getItem("theme") ?? theme,
@@ -109,6 +115,30 @@ function settings() {
     type: "list" as "list",
     options: dateFormatOptions,
     default: sessionStorage.getItem("date_format") ?? DEFAULT_DATE_FORMAT,
+    validation: {
+      required: true,
+    },
+  };
+
+  const weekStartSchema = {
+    name: "week_start",
+    label: "Week Starts On",
+    placeholder: "Select week start",
+    type: "list" as "list",
+    options: weekStartOptions,
+    default: sessionStorage.getItem("week_start") ?? DEFAULT_WEEK_START,
+    validation: {
+      required: true,
+    },
+  };
+
+  const timeFormatSchema = {
+    name: "time_format",
+    label: "Time Format",
+    placeholder: "Select time format",
+    type: "list" as "list",
+    options: timeFormatOptions,
+    default: sessionStorage.getItem("time_format") ?? DEFAULT_TIME_FORMAT,
     validation: {
       required: true,
     },
@@ -158,6 +188,8 @@ function settings() {
 
   const settingsSchema = [
     dateFormatSchema,
+    weekStartSchema,
+    timeFormatSchema,
     currencyFormatSchema,
     fontSchema,
     {
@@ -173,6 +205,8 @@ function settings() {
 
   const form = generateControl(settingsSchema);
   const selectedDateFormat = form.watch("date_format");
+  const selectedWeekStart = form.watch("week_start");
+  const selectedTimeFormat = form.watch("time_format");
   const selectedCurrencyCode = form.watch("currency_format");
   const selectedFontStyle = form.watch("font_style");
 
@@ -184,15 +218,18 @@ function settings() {
 
   const hasUpdates =
     selectedDateFormat !== savedSettings.date_format ||
+    selectedWeekStart !== savedSettings.week_start ||
+    selectedTimeFormat !== savedSettings.time_format ||
     selectedCurrencyCode !== savedSettings.currency_format ||
-    selectedFontStyle !== savedSettings.font_style ||
-    theme !== savedSettings.theme;
+    selectedFontStyle !== savedSettings.font_style;
 
   const saveSettings = async () => {
     try {
       setIsSaving(true);
       const response = await saveSettingsAPI({
         date_format: selectedDateFormat,
+        week_start: selectedWeekStart,
+        time_format: selectedTimeFormat,
         currency_format: selectedCurrencyCode,
         font_style: selectedFontStyle,
         theme,
@@ -200,11 +237,16 @@ function settings() {
 
       sessionStorage.setItem("date_format", selectedDateFormat);
       sessionStorage.setItem("delimiter", getDelimiter(selectedDateFormat));
+      sessionStorage.setItem("week_start", selectedWeekStart);
+      sessionStorage.setItem("time_format", selectedTimeFormat);
       sessionStorage.setItem("currency_code", selectedCurrencyCode);
       sessionStorage.setItem("font_style", selectedFontStyle);
       sessionStorage.setItem("theme", theme);
+      applySessionWeekStart(selectedWeekStart as WeekStart);
       setSavedSettings({
         date_format: selectedDateFormat,
+        week_start: selectedWeekStart,
+        time_format: selectedTimeFormat,
         currency_format: selectedCurrencyCode,
         font_style: selectedFontStyle,
         theme,
@@ -234,24 +276,6 @@ function settings() {
     { color: "yellow", hexcode: "#FFC107" },
   ];
 
-  const themeModes = [
-    {
-      type: "system",
-      label: "System Mode",
-      icon: Monitor,
-    },
-    {
-      type: "light",
-      label: "Light Mode",
-      icon: Sun,
-    },
-    {
-      type: "dark",
-      label: "Dark Mode",
-      icon: Moon,
-    },
-  ];
-
   return (
     <div className="h-full min-h-0 overflow-y-auto scrollbar-none">
       <div className="flex flex-col">
@@ -275,8 +299,10 @@ function settings() {
               }}
               className="space-y-4">
               <SettingsSection title="Regional preferences" icon={CalendarDays}>
-                <div className="grid gap-4 sm:max-w-md">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <DropdownComponent form={form} schema={dateFormatSchema} />
+                  <DropdownComponent form={form} schema={weekStartSchema} />
+                  <DropdownComponent form={form} schema={timeFormatSchema} />
                   <DropdownComponent form={form} schema={currencyFormatSchema} />
                 </div>
               </SettingsSection>
@@ -288,68 +314,35 @@ function settings() {
               </SettingsSection>
 
               <SettingsSection title="Appearance" icon={Palette}>
-                <div className="space-y-6">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-3">
-                      {colorNameConfig.map((type) => (
-                        <button
-                          type="button"
-                          key={type.color}
-                          onClick={() => setColor(type.color)}
-                          className={cn(
-                            "relative flex h-10 w-10 items-center justify-center rounded-xl border-2 transition-all duration-200 hover:scale-105",
-                            color === type.color ?
-                              "border-primary ring-2 ring-primary/20"
-                            : "border-border"
-                          )}
-                          style={{ backgroundColor: type.hexcode }}>
-                          {color === type.color && (
-                            <Check className="h-4 w-4 text-white drop-shadow-sm" aria-hidden="true" />
-                          )}
-                        </button>
-                      ))}
+                <div className="flex flex-wrap items-center gap-3">
+                  {colorNameConfig.map((type) => (
+                    <button
+                      type="button"
+                      key={type.color}
+                      onClick={() => setColor(type.color)}
+                      className={cn(
+                        "relative flex h-10 w-10 items-center justify-center rounded-xl border-2 transition-all duration-200 hover:scale-105",
+                        color === type.color ? "border-primary ring-2 ring-primary/20" : "border-border"
+                      )}
+                      style={{ backgroundColor: type.hexcode }}>
+                      {color === type.color && (
+                        <Check className="h-4 w-4 text-white drop-shadow-sm" aria-hidden="true" />
+                      )}
+                    </button>
+                  ))}
 
-                      <button
-                        type="button"
-                        className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border-2 border-border transition-all duration-200 hover:scale-105"
-                        title="Custom Color Picker">
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            background:
-                              "conic-gradient(from 180deg at 50% 50%, #ff4d4d, #ff9900, #ffd500, #00d084, #00c2ff, #3b82f6, #8b5cf6, #ff4d9d, #ff4d4d)",
-                          }}
-                        />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:max-w-lg">
-                      {themeModes.map((mode) => {
-                        const Icon = mode.icon;
-                        const isSelected = theme === mode.type;
-
-                        return (
-                          <button
-                            key={mode.type}
-                            type="button"
-                            onClick={() => setTheme(mode.type as "system" | "light" | "dark")}
-                            className={cn(
-                              "rounded-lg border p-3 text-left transition-all duration-200 hover:shadow-sm",
-                              isSelected ?
-                                "border-primary ring-2 ring-primary/20"
-                              : "border-dashed border-border"
-                            )}>
-                            <div className="flex h-20 items-center justify-center rounded-md border border-dotted border-border bg-muted/40">
-                              <Icon className="h-8 w-8 text-foreground" aria-hidden="true" />
-                            </div>
-                            <p className="mt-3 text-center text-sm font-medium">{mode.label}</p>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+                  <button
+                    type="button"
+                    className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border-2 border-border transition-all duration-200 hover:scale-105"
+                    title="Custom Color Picker">
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background:
+                          "conic-gradient(from 180deg at 50% 50%, #ff4d4d, #ff9900, #ffd500, #00d084, #00c2ff, #3b82f6, #8b5cf6, #ff4d9d, #ff4d4d)",
+                      }}
+                    />
+                  </button>
                 </div>
               </SettingsSection>
 

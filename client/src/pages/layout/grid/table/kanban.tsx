@@ -28,9 +28,7 @@ function KanbanCardValue({
 }) {
   const truncate = shouldTruncateKanbanValue(value);
 
-  return (
-    <div className={cn(truncate && "kanban-card__value--truncate min-w-0 max-w-full", className)}>{children}</div>
-  );
+  return <div className={cn(truncate && "kanban-card__value--truncate min-w-0 max-w-full", className)}>{children}</div>;
 }
 
 type KanbanGroup<TData> = {
@@ -170,7 +168,10 @@ function KanbanColumnHeader<TData>({
               onCheckedChange={handleCheckedChange}
             />
           : null}
-          <Badge variant="secondary" className="min-w-0 max-w-full truncate rounded-lg font-semibold" style={accentStyle}>
+          <Badge
+            variant="secondary"
+            className="min-w-0 max-w-full truncate rounded-lg font-semibold"
+            style={accentStyle}>
             {label}
           </Badge>
         </div>
@@ -191,9 +192,7 @@ function KanbanCard<TData extends { _id: string }>({
   groupColumnKey: string;
   columnLabels: Record<string, string>;
 }) {
-  const cells = row
-    .getVisibleCells()
-    .filter((cell) => !["select", "action", groupColumnKey].includes(cell.column.id));
+  const cells = row.getVisibleCells().filter((cell) => !["select", "action", groupColumnKey].includes(cell.column.id));
 
   const titleCell = cells[0];
   const detailCells = cells.slice(1);
@@ -221,9 +220,7 @@ function KanbanCard<TData extends { _id: string }>({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1 space-y-2">
           {titleCell ?
-            <KanbanCardValue
-              value={titleCell.getValue()}
-              className="text-sm font-semibold text-foreground">
+            <KanbanCardValue value={titleCell.getValue()} className="text-sm font-semibold text-foreground">
               {flexRender(titleCell.column.columnDef.cell, titleCell.getContext())}
             </KanbanCardValue>
           : null}

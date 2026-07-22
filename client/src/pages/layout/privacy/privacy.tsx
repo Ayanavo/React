@@ -48,12 +48,14 @@ const POLICY_HIGHLIGHTS = [
   {
     icon: UserRound,
     title: "Account & profile data",
-    description: "We collect information you provide when registering, updating your profile, and using workspace features.",
+    description:
+      "We collect information you provide when registering, updating your profile, and using workspace features.",
   },
   {
     icon: Share2,
     title: "Selected third parties",
-    description: "OAuth providers, email delivery, cloud hosting, database storage, and AI services process data only as needed to operate features you use.",
+    description:
+      "OAuth providers, email delivery, cloud hosting, database storage, and AI services process data only as needed to operate features you use.",
   },
   {
     icon: Shield,
@@ -153,10 +155,9 @@ const THIRD_PARTY_SERVICES: ThirdPartyService[] = [
   },
   {
     name: "MongoDB (database hosting)",
-    purpose: "Persist account, profile, workspace, and application data so the service remains available across sessions and devices.",
-    dataShared: [
-      "All server-side data described in this policy that is stored for your account and workspace",
-    ],
+    purpose:
+      "Persist account, profile, workspace, and application data so the service remains available across sessions and devices.",
+    dataShared: ["All server-side data described in this policy that is stored for your account and workspace"],
     retention:
       "Data is retained for as long as your account is active or as needed to provide the service, unless you request deletion where applicable.",
   },
@@ -182,7 +183,8 @@ const THIRD_PARTY_SERVICES: ThirdPartyService[] = [
   },
   {
     name: "Cloud hosting & infrastructure",
-    purpose: "Host the Notofy API, serve static assets, and route traffic securely (including production deployment behind a reverse proxy).",
+    purpose:
+      "Host the Notofy API, serve static assets, and route traffic securely (including production deployment behind a reverse proxy).",
     dataShared: [
       "Standard request metadata (IP address, headers, timestamps) necessary to deliver the application",
       "Encrypted data in transit between your browser and our servers",
@@ -281,11 +283,7 @@ function PrivacySection({
   children: React.ReactNode;
 }) {
   return (
-    <section
-      className={cn(
-        "rounded-lg border border-dashed border-border p-5 shadow-sm",
-        policyCardClass
-      )}>
+    <section className={cn("rounded-lg border border-dashed border-border p-5 shadow-sm", policyCardClass)}>
       <div className="mb-5 flex items-start gap-3 border-b border-dotted border-border pb-4">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-dotted border-border bg-muted/40 text-muted-foreground">
           <Icon className="h-4 w-4" aria-hidden="true" />
@@ -342,9 +340,9 @@ function PrivacyPolicy() {
           <div className={cn("rounded-lg border border-dashed border-border px-6 py-5 shadow-sm", policyCardClass)}>
             <h1 className="text-xl font-semibold">Privacy Policy</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              This policy explains what information Notofy collects, how we use it, and which third-party services
-              may process your data when you use the application. By creating an account or continuing to use Notofy,
-              you acknowledge this policy alongside our{" "}
+              This policy explains what information Notofy collects, how we use it, and which third-party services may
+              process your data when you use the application. By creating an account or continuing to use Notofy, you
+              acknowledge this policy alongside our{" "}
               <Link to={TERMS_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
                 Terms & Conditions
               </Link>
@@ -374,9 +372,7 @@ function PrivacyPolicy() {
               {POLICY_HIGHLIGHTS.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div
-                    key={item.title}
-                    className="rounded-md border border-dotted border-border bg-muted/20 p-4">
+                  <div key={item.title} className="rounded-md border border-dotted border-border bg-muted/20 p-4">
                     <div className="mb-2 flex items-center gap-2">
                       <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                       <p className="text-sm font-medium">{item.title}</p>

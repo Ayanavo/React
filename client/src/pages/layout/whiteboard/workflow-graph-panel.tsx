@@ -57,23 +57,21 @@ function NodeDeleteButton({ label, onClick }: { label: string; onClick: () => vo
   );
 }
 
-function WorkflowNodeFields({
-  node,
-  onPatch,
-}: {
-  node: Node;
-  onPatch: (patch: Record<string, unknown>) => void;
-}) {
+function WorkflowNodeFields({ node, onPatch }: { node: Node; onPatch: (patch: Record<string, unknown>) => void }) {
   const data = (node.data ?? {}) as Record<string, unknown>;
   const [tags, setTags] = useState<{ _id: string; name: string }[]>([]);
   const [templates, setTemplates] = useState<CVTemplateRecord[]>([]);
 
   useEffect(() => {
     if (node.type === "tagInput") {
-      getTags().then(setTags).catch(() => setTags([]));
+      getTags()
+        .then(setTags)
+        .catch(() => setTags([]));
     }
     if (node.type === "cvTemplate") {
-      fetchCVTemplates().then(setTemplates).catch(() => setTemplates([]));
+      fetchCVTemplates()
+        .then(setTemplates)
+        .catch(() => setTemplates([]));
     }
   }, [node.type]);
 
@@ -128,7 +126,11 @@ function WorkflowNodeFields({
       return (
         <>
           <Label className="workflow-graph-panel__label">Fallback title</Label>
-          <Input value={String(data.title ?? "")} onChange={(e) => onPatch({ title: e.target.value })} className="h-8" />
+          <Input
+            value={String(data.title ?? "")}
+            onChange={(e) => onPatch({ title: e.target.value })}
+            className="h-8"
+          />
           <Label className="workflow-graph-panel__label">Fallback body</Label>
           <Input value={String(data.body ?? "")} onChange={(e) => onPatch({ body: e.target.value })} className="h-8" />
         </>
@@ -137,7 +139,11 @@ function WorkflowNodeFields({
       return (
         <>
           <Label className="workflow-graph-panel__label">Fallback title</Label>
-          <Input value={String(data.title ?? "")} onChange={(e) => onPatch({ title: e.target.value })} className="h-8" />
+          <Input
+            value={String(data.title ?? "")}
+            onChange={(e) => onPatch({ title: e.target.value })}
+            className="h-8"
+          />
           <Label className="workflow-graph-panel__label">Priority</Label>
           <Select
             value={String(data.priority ?? "medium")}
@@ -259,7 +265,12 @@ function WorkflowGraphPanel({ nodes, edges, onNodesChange, onEdgesChange, isLoad
             if (!definition) return null;
 
             return (
-              <article key={node.id} className={cn("workflow-graph-panel__node", definition.category === "output" && "workflow-graph-panel__node--output")}>
+              <article
+                key={node.id}
+                className={cn(
+                  "workflow-graph-panel__node",
+                  definition.category === "output" && "workflow-graph-panel__node--output"
+                )}>
                 <div className="workflow-graph-panel__node-header">
                   <div>
                     <span className="workflow-graph-panel__node-category">{definition.category}</span>
@@ -303,7 +314,10 @@ function WorkflowGraphPanel({ nodes, edges, onNodesChange, onEdgesChange, isLoad
                       {edge.sourceHandle} → {edge.targetHandle}
                     </span>
                   </div>
-                  <NodeDeleteButton label="Remove connection" onClick={() => onEdgesChange(removeWorkflowEdge(edges, edge.id))} />
+                  <NodeDeleteButton
+                    label="Remove connection"
+                    onClick={() => onEdgesChange(removeWorkflowEdge(edges, edge.id))}
+                  />
                 </li>
               );
             })}
@@ -311,7 +325,12 @@ function WorkflowGraphPanel({ nodes, edges, onNodesChange, onEdgesChange, isLoad
         )}
 
         <div className="workflow-graph-panel__connect-form">
-          <Select value={newSource} onValueChange={(value) => { setNewSource(value); setNewSourceHandle(""); }}>
+          <Select
+            value={newSource}
+            onValueChange={(value) => {
+              setNewSource(value);
+              setNewSourceHandle("");
+            }}>
             <SelectTrigger className="h-8">
               <SelectValue placeholder="Source node" />
             </SelectTrigger>
@@ -337,7 +356,12 @@ function WorkflowGraphPanel({ nodes, edges, onNodesChange, onEdgesChange, isLoad
             </SelectContent>
           </Select>
 
-          <Select value={newTarget} onValueChange={(value) => { setNewTarget(value); setNewTargetHandle(""); }}>
+          <Select
+            value={newTarget}
+            onValueChange={(value) => {
+              setNewTarget(value);
+              setNewTargetHandle("");
+            }}>
             <SelectTrigger className="h-8">
               <SelectValue placeholder="Target node" />
             </SelectTrigger>

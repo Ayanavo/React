@@ -36,7 +36,9 @@ function getIncomingEdges(nodeId: string, edges: Edge[]) {
 }
 
 function getExecOutgoing(nodeId: string, edges: Edge[]) {
-  return edges.filter((edge) => edge.source === nodeId && edge.sourceHandle === "out-exec" && edge.targetHandle === "in-exec");
+  return edges.filter(
+    (edge) => edge.source === nodeId && edge.sourceHandle === "out-exec" && edge.targetHandle === "in-exec"
+  );
 }
 
 function resolveInputValue(
@@ -113,7 +115,11 @@ function resolveUpstreamOutputs(
     .filter((sourceId): sourceId is string => Boolean(sourceId));
 
   return dependencies
-    .reduce((chain, sourceId) => chain.then(() => resolveUpstreamOutputs(sourceId, nodes, edges, nodeOutputs, templates, resolving)), Promise.resolve())
+    .reduce(
+      (chain, sourceId) =>
+        chain.then(() => resolveUpstreamOutputs(sourceId, nodes, edges, nodeOutputs, templates, resolving)),
+      Promise.resolve()
+    )
     .then(async () => {
       if (!nodeOutputs.has(nodeId)) {
         const outputs = await executeNode(node, edges, nodeOutputs, templates);
@@ -170,7 +176,10 @@ async function executeNode(
     case "activityBuilder": {
       const title = String(resolved["in-title"] ?? data.title ?? "Untitled activity");
       const start = String(resolved["in-start"] ?? data.start ?? moment().toISOString());
-      const end = resolved["in-end"] ? String(resolved["in-end"]) : data.end ? String(data.end) : undefined;
+      const end =
+        resolved["in-end"] ? String(resolved["in-end"])
+        : data.end ? String(data.end)
+        : undefined;
       const tag = resolved["in-tag"] ? String(resolved["in-tag"]) : undefined;
       const payload = buildActivityPayload({
         title,
@@ -304,7 +313,8 @@ export async function executeWorkflow(nodes: Node[], edges: Edge[]): Promise<Wor
   if (missingOutputs.length > 0) {
     return {
       results,
-      error: "Some output nodes are not connected to the trigger chain. Wire exec sockets from Manual Trigger through builders to outputs.",
+      error:
+        "Some output nodes are not connected to the trigger chain. Wire exec sockets from Manual Trigger through builders to outputs.",
     };
   }
 

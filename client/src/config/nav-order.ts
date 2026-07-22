@@ -32,5 +32,7 @@ export function sortNavItemsByOrder<T extends { route: string }>(
   const normalized = normalizeMenuOrder(menuOrder);
   const orderMap = new Map(normalized.map((route, index) => [route, index]));
 
-  return [...items].sort((a, b) => (orderMap.get(a.route) ?? Number.MAX_SAFE_INTEGER) - (orderMap.get(b.route) ?? Number.MAX_SAFE_INTEGER));
+  return [...items].sort(
+    (a, b) => (orderMap.get(a.route) ?? Number.MAX_SAFE_INTEGER) - (orderMap.get(b.route) ?? Number.MAX_SAFE_INTEGER)
+  );
 }

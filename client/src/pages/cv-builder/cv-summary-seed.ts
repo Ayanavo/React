@@ -169,8 +169,7 @@ function formatCompanyRange(company: CompanyEntry): string {
     : company.fromYear || "";
 
   const to =
-    company.isPresent ?
-      "Present"
+    company.isPresent ? "Present"
     : hasMonthYear(company.toMonth, company.toYear) ?
       moment(monthYearToDate(company.toMonth, company.toYear)!).format("MMM YYYY")
     : company.toYear || "";
@@ -207,7 +206,9 @@ function buildCareerHighlights(user: ProfileResponse["user"]): string[] {
 
   if (years > 0 || months > 0) {
     const tenure =
-      years > 0 && months > 0 ? `${years}+ years (${years}y ${months}m)` : years > 0 ? `${years}+ years` : `${months} months`;
+      years > 0 && months > 0 ? `${years}+ years (${years}y ${months}m)`
+      : years > 0 ? `${years}+ years`
+      : `${months} months`;
     highlights.push(`I bring ${tenure} of progressive professional experience`);
   }
 
@@ -277,9 +278,7 @@ function extractSkillTokens(summary: string, blocks: SummaryBlock[]): string[] {
     }
   }
 
-  const merged = [...fromBold, ...fromLists]
-    .map((term) => term.replace(/^[-•*]\s*/, "").trim())
-    .filter(Boolean);
+  const merged = [...fromBold, ...fromLists].map((term) => term.replace(/^[-•*]\s*/, "").trim()).filter(Boolean);
 
   return [...new Set(merged)].slice(0, 18);
 }
@@ -303,9 +302,8 @@ function reframeSummaryListItem(item: string, heading: string): string {
   const plain = stripSummaryMarkdown(item).trim();
   if (!plain || /^I[\s']|^My /i.test(plain)) return plain;
 
-  const isCandidateFitSection = /skill|qualification|requirement|competenc|experience|background|strength|highlight/i.test(
-    heading.toLowerCase()
-  );
+  const isCandidateFitSection =
+    /skill|qualification|requirement|competenc|experience|background|strength|highlight/i.test(heading.toLowerCase());
 
   if (!isCandidateFitSection) return plain;
 
@@ -373,9 +371,7 @@ function summaryBlocksToCvElements(blocks: SummaryBlock[]): CVElement[] {
     }
 
     isFirstParagraph = false;
-    const items = block.items
-      .map((item) => reframeSummaryListItem(item, currentHeading))
-      .filter(Boolean);
+    const items = block.items.map((item) => reframeSummaryListItem(item, currentHeading)).filter(Boolean);
     if (items.length === 0) continue;
 
     elements.push(listEl(items, { listIcon: block.type === "ol" ? "number" : "bullet" }));
@@ -384,7 +380,7 @@ function summaryBlocksToCvElements(blocks: SummaryBlock[]): CVElement[] {
   return elements;
 }
 
-function buildContactSection(user: ProfileResponse["user"]): CVElement {
+export function buildContactSection(user: ProfileResponse["user"]): CVElement {
   const contact = mapProfileUserToContactInfo(user);
   const fullAddress = formatFullAddress(user);
   const locationLine = [contact.city, contact.state].filter(Boolean).join(", ");
@@ -488,11 +484,7 @@ function buildSkillsBlock(summary: string, blocks: SummaryBlock[]): CVElement[] 
     "I am comfortable ramping up on new technologies and contributing quickly in collaborative teams",
   ];
 
-  return [
-    sectionHeader("Technical Skills & Keywords"),
-    tokenEl(tokens),
-    listEl(groupedList, { marginTop: GAP.sm }),
-  ];
+  return [sectionHeader("Technical Skills & Keywords"), tokenEl(tokens), listEl(groupedList, { marginTop: GAP.sm })];
 }
 
 function buildEducationBlock(): CVElement[] {
@@ -596,7 +588,7 @@ function buildExperienceParts(user: ProfileResponse["user"], includeSectionHeade
   return parts;
 }
 
-function buildExperienceSections(user: ProfileResponse["user"]): CVElement[] {
+export function buildExperienceSections(user: ProfileResponse["user"]): CVElement[] {
   const companies = normalizeCompanies(user.companies ?? []);
 
   if (companies.length <= 1) {
@@ -659,7 +651,7 @@ function buildCareerObjectivesParts(): CVElement[] {
   ];
 }
 
-function buildSummarySection(user: ProfileResponse["user"]): CVElement {
+export function buildSummarySection(user: ProfileResponse["user"]): CVElement {
   return createSection(null, [createBlock(buildCareerSummaryParts(user))]);
 }
 
@@ -800,7 +792,9 @@ export function buildSummarizeCv(user: ProfileResponse["user"], summary: string)
     ...buildExperienceSections(user),
     buildEducationSection(),
     ...(hasJobSummary ? [] : [buildCareerObjectivesSection()]),
-    ...(hasJobSummary ? [buildRoleAnalysisSection(summaryBlocks), buildSkillsSection(trimmedSummary, summaryBlocks)] : []),
+    ...(hasJobSummary ?
+      [buildRoleAnalysisSection(summaryBlocks), buildSkillsSection(trimmedSummary, summaryBlocks)]
+    : []),
   ].filter((section): section is CVElement => section !== null);
 
   const paginatedElements = paginateCvElements([

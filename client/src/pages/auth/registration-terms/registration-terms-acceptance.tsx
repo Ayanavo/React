@@ -89,8 +89,7 @@ function RegistrationTermsAcceptance() {
                 className="mt-0.5"
               />
               <span className="text-sm leading-relaxed text-muted-foreground">
-                I have read and agree to the{" "}
-                <span className="font-medium text-foreground">Terms & Conditions</span> and{" "}
+                I have read and agree to the <span className="font-medium text-foreground">Terms & Conditions</span> and{" "}
                 <Link to={PRIVACY_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
                   Privacy Policy
                 </Link>

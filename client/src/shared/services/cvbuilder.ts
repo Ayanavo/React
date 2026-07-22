@@ -91,7 +91,9 @@ export const fetchCVTemplates = async (): Promise<CVTemplateRecord[]> => {
 };
 
 export const fetchCVTemplateById = async (templateId: string): Promise<CVTemplateRecord> => {
-  const response = await axiosInstance.get<{ template: CVTemplateRecord }>(`${apiUrl}cv-builder/templates/${templateId}`);
+  const response = await axiosInstance.get<{ template: CVTemplateRecord }>(
+    `${apiUrl}cv-builder/templates/${templateId}`
+  );
   return response.data.template;
 };
 

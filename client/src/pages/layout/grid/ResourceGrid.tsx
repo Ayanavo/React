@@ -1,10 +1,13 @@
 import IconsComponent from "@/common/icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -29,8 +32,9 @@ import {
   SortingState,
   Updater,
   useReactTable,
+  VisibilityState,
 } from "@tanstack/react-table";
-import { EllipsisIcon, PencilIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
+import { Columns3Icon, EllipsisIcon, PencilIcon, ShieldCheckIcon, Trash2Icon } from "lucide-react";
 import AddActionButton from "@/components/inbuild/add-action-button";
 import SelectionFloaterToolbar from "@/components/inbuild/selection-floater-toolbar";
 import React, { useCallback, useEffect, useId, useMemo, useState } from "react";
@@ -146,6 +150,7 @@ function ResourceGrid<T extends { _id: string }>({
   const [globalFilter, setGlobalFilter] = useState("");
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 20 });
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [layout, setLayout] = useState<string>("column");
   const [kanbanGroupByKey, setKanbanGroupByKey] = useState<string>("");
 
@@ -217,6 +222,18 @@ function ResourceGrid<T extends { _id: string }>({
     [columnConfig]
   );
 
+  const toggleableColumns = useMemo(
+    () => columnConfig.filter((column) => column.key !== "select" && column.key !== "action"),
+    [columnConfig]
+  );
+
+  const visibleToggleableCount = useMemo(
+    () => toggleableColumns.filter((column) => columnVisibility[column.key] !== false).length,
+    [toggleableColumns, columnVisibility]
+  );
+
+  const hiddenToggleableCount = toggleableColumns.length - visibleToggleableCount;
+
   const resolvedKanbanGroupByKey = useMemo(() => {
     if (listableColumns.some((column) => column.key === kanbanGroupByKey)) {
       return kanbanGroupByKey;
@@ -232,12 +249,13 @@ function ResourceGrid<T extends { _id: string }>({
         return columnHelper.display({
           id: "action",
           ...sizing,
+          enableHiding: false,
           header: column.label,
-          meta: { align: column.align ?? "right" },
+          meta: { align: column.align ?? "center" },
           cell: ({ row }) => {
             if (actionRenderer) {
               return (
-                <div className="flex justify-end">
+                <div className="flex w-full justify-center">
                   {actionRenderer(row.original, (resourceId) => deleteMutation.mutate(resourceId))}
                 </div>
               );
@@ -268,7 +286,7 @@ function ResourceGrid<T extends { _id: string }>({
             };
 
             return (
-              <div className="grid-row-actions opacity-0 transition-opacity group-hover:opacity-100">
+              <div className="grid-row-actions flex w-full justify-center opacity-0 transition-opacity group-hover:opacity-100">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon" className="h-8 w-8">
@@ -309,6 +327,7 @@ function ResourceGrid<T extends { _id: string }>({
         return columnHelper.display({
           id: "select",
           ...sizing,
+          enableHiding: false,
           meta: { align: column.align ?? "center" },
           header: ({ table }) => (
             <Checkbox
@@ -381,11 +400,12 @@ function ResourceGrid<T extends { _id: string }>({
   const tableBody = useReactTable({
     data,
     columns: createColumns(),
-    state: { sorting, pagination, rowSelection, globalFilter, columnSizing },
+    state: { sorting, pagination, rowSelection, globalFilter, columnSizing, columnVisibility },
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
     onRowSelectionChange: setRowSelection,
     onColumnSizingChange: handleColumnSizingChange,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -453,7 +473,6 @@ function ResourceGrid<T extends { _id: string }>({
           {filterControls}
           {layout === "kanban" && listableColumns.length > 0 ?
             <div className="hidden items-center gap-1.5 md:flex">
-             
               <Select value={resolvedKanbanGroupByKey} onValueChange={setKanbanGroupByKey}>
                 <SelectTrigger className="h-9 w-[11.5rem] rounded-lg border-border/70 bg-card shadow-sm">
                   <SelectValue placeholder="Select column" />
@@ -471,6 +490,59 @@ function ResourceGrid<T extends { _id: string }>({
         </div>
 
         <div className="grid-toolbar__actions">
+          {layout === "column" && toggleableColumns.length > 0 ?
+            <DropdownMenu>
+              <TooltipProvider disableHoverableContent>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="relative h-9 w-9 shrink-0 rounded-lg border-border/70 bg-card shadow-sm">
+                        <Columns3Icon className="h-4 w-4" />
+                        {hiddenToggleableCount > 0 && (
+                          <Badge
+                            variant="default"
+                            className="pointer-events-none absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-card px-1 text-[10px] leading-none">
+                            {hiddenToggleableCount}
+                          </Badge>
+                        )}
+                        <span className="sr-only">Columns</span>
+                      </Button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Columns</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {toggleableColumns.map((column) => {
+                  const columnId = column.key;
+                  const isVisible = columnVisibility[columnId] !== false;
+                  const isLastVisible = isVisible && visibleToggleableCount === 1;
+                  return (
+                    <DropdownMenuCheckboxItem
+                      key={columnId}
+                      checked={isVisible}
+                      disabled={isLastVisible}
+                      onCheckedChange={(checked) => {
+                        if (checked === false && visibleToggleableCount <= 1) return;
+
+                        setColumnVisibility((prev) => ({
+                          ...prev,
+                          [columnId]: checked === true,
+                        }));
+                      }}
+                      onSelect={(event) => event.preventDefault()}>
+                      {column.label}
+                    </DropdownMenuCheckboxItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          : null}
           <TooltipProvider disableHoverableContent>
             <ToggleGroup
               className="hidden gap-0 md:flex"

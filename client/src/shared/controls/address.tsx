@@ -113,7 +113,10 @@ function address({ form, schema }: { form: UseFormReturn<any>; schema: AddressSc
       },
       (error) => {
         console.error("Error getting location:", error);
-        showToast({ title: "Unable to retrieve your location. Please check your browser permissions.", variant: "error" });
+        showToast({
+          title: "Unable to retrieve your location. Please check your browser permissions.",
+          variant: "error",
+        });
         setIsLoadingLocation(false);
       },
       {

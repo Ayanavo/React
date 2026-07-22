@@ -1,7 +1,13 @@
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import showToast from "@/hooks/toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useCV } from "@/lib/useCV";
-import { applyCaptureExpansion, getHtml2CanvasCaptureScale, prepareHtml2CanvasClone } from "@/shared/utils/html2canvas-capture";
+import { cn } from "@/lib/utils";
+import {
+  applyCaptureExpansion,
+  getHtml2CanvasCaptureScale,
+  prepareHtml2CanvasClone,
+} from "@/shared/utils/html2canvas-capture";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import moment from "moment";
@@ -10,8 +16,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import CVElementRenderer from "./cv-element-renderer";
 import { useParams } from "react-router-dom";
 
-const ZOOM = 1;
 const MIN_SECTION_HEIGHT = 80;
+const MOBILE_CANVAS_PADDING = 16;
+const DESKTOP_CANVAS_PADDING = 32;
 const MIN_BLOCK_WIDTH = 60;
 const PREVIEW_MIN_SCALE = 0.25;
 const PREVIEW_MAX_SCALE = 6;
@@ -72,6 +79,10 @@ const Canvas = () => {
     setIsCapturing,
   } = useCV();
   const { id } = useParams();
+  const isMobile = useIsMobile();
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+  const [canvasScale, setCanvasScale] = useState(1);
+  const canvasScaleRef = useRef(canvasScale);
   const [isDragging, setIsDragging] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [isBlockDragging, setIsBlockDragging] = useState(false);
@@ -108,6 +119,30 @@ const Canvas = () => {
     panOffsetRef.current = panOffset;
   }, [panOffset]);
 
+  useEffect(() => {
+    canvasScaleRef.current = canvasScale;
+  }, [canvasScale]);
+
+  useEffect(() => {
+    const container = canvasContainerRef.current;
+    if (!container) return;
+
+    const updateScale = () => {
+      const padding = isMobile ? MOBILE_CANVAS_PADDING : DESKTOP_CANVAS_PADDING;
+      const availableWidth = container.clientWidth - padding * 2;
+      const nextScale = isMobile ? Math.min(availableWidth / A4_WIDTH, 1) : 1;
+      setCanvasScale(nextScale > 0 ? nextScale : 1);
+    };
+
+    updateScale();
+    const observer = new ResizeObserver(updateScale);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [A4_WIDTH, isMobile]);
+
+  const scaledPageWidth = A4_WIDTH * canvasScale;
+  const scaledPageHeight = A4_HEIGHT * canvasScale;
+
   const prepareCanvasCapture = useCallback(async () => {
     commitEdits();
     clearSelection();
@@ -116,14 +151,11 @@ const Canvas = () => {
     });
   }, [clearSelection, commitEdits]);
 
-  const getScaleToFit = useCallback(
-    (logicalWidth: number, logicalHeight: number) => {
-      const maxW = window.innerWidth * 0.85;
-      const maxH = window.innerHeight * 0.85;
-      return Math.min(maxW / logicalWidth, maxH / logicalHeight, 1);
-    },
-    []
-  );
+  const getScaleToFit = useCallback((logicalWidth: number, logicalHeight: number) => {
+    const maxW = window.innerWidth * 0.85;
+    const maxH = window.innerHeight * 0.85;
+    return Math.min(maxW / logicalWidth, maxH / logicalHeight, 1);
+  }, []);
 
   const revokePreviewObjectUrl = useCallback(() => {
     if (previewObjectUrlRef.current) {
@@ -263,38 +295,38 @@ const Canvas = () => {
     () => setPreviewScale((s) => Math.min(s + PREVIEW_ZOOM_STEP, Math.max(PREVIEW_MAX_SCALE, previewCaptureScale))),
     [previewCaptureScale]
   );
-  const zoomOut = useCallback(
-    () => setPreviewScale((s) => Math.max(s - PREVIEW_ZOOM_STEP, PREVIEW_MIN_SCALE)),
-    []
+  const zoomOut = useCallback(() => setPreviewScale((s) => Math.max(s - PREVIEW_ZOOM_STEP, PREVIEW_MIN_SCALE)), []);
+
+  const handlePreviewWheel = useCallback(
+    (e: WheelEvent) => {
+      const overlay = previewOverlayRef.current;
+      if (!overlay) return;
+
+      e.preventDefault();
+
+      const rect = overlay.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      const currentPan = panOffsetRef.current;
+      const pointerX = e.clientX - rect.left - centerX - currentPan.x;
+      const pointerY = e.clientY - rect.top - centerY - currentPan.y;
+
+      const currentScale = previewScaleRef.current;
+      const zoomFactor = Math.exp(-e.deltaY * 0.002);
+      const maxZoom = Math.max(PREVIEW_MAX_SCALE, previewCaptureScale);
+      const nextScale = clamp(currentScale * zoomFactor, PREVIEW_MIN_SCALE, maxZoom);
+      const scaleRatio = nextScale / currentScale;
+
+      if (scaleRatio === 1) return;
+
+      setPanOffset({
+        x: currentPan.x - pointerX * (scaleRatio - 1),
+        y: currentPan.y - pointerY * (scaleRatio - 1),
+      });
+      setPreviewScale(nextScale);
+    },
+    [previewCaptureScale]
   );
-
-  const handlePreviewWheel = useCallback((e: WheelEvent) => {
-    const overlay = previewOverlayRef.current;
-    if (!overlay) return;
-
-    e.preventDefault();
-
-    const rect = overlay.getBoundingClientRect();
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const currentPan = panOffsetRef.current;
-    const pointerX = e.clientX - rect.left - centerX - currentPan.x;
-    const pointerY = e.clientY - rect.top - centerY - currentPan.y;
-
-    const currentScale = previewScaleRef.current;
-    const zoomFactor = Math.exp(-e.deltaY * 0.002);
-    const maxZoom = Math.max(PREVIEW_MAX_SCALE, previewCaptureScale);
-    const nextScale = clamp(currentScale * zoomFactor, PREVIEW_MIN_SCALE, maxZoom);
-    const scaleRatio = nextScale / currentScale;
-
-    if (scaleRatio === 1) return;
-
-    setPanOffset({
-      x: currentPan.x - pointerX * (scaleRatio - 1),
-      y: currentPan.y - pointerY * (scaleRatio - 1),
-    });
-    setPreviewScale(nextScale);
-  }, [previewCaptureScale]);
 
   useEffect(() => {
     if (!previewImage) return;
@@ -336,6 +368,36 @@ const Canvas = () => {
     setIsPanning(false);
   }, []);
 
+  const handleTouchPanStart = useCallback(
+    (e: React.TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      e.preventDefault();
+      setIsPanning(true);
+      panStart.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+        offsetX: panOffset.x,
+        offsetY: panOffset.y,
+      };
+    },
+    [panOffset]
+  );
+
+  const handleTouchPanMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isPanning || e.touches.length !== 1) return;
+      e.preventDefault();
+      const dx = e.touches[0].clientX - panStart.current.x;
+      const dy = e.touches[0].clientY - panStart.current.y;
+      setPanOffset({ x: panStart.current.offsetX + dx, y: panStart.current.offsetY + dy });
+    },
+    [isPanning]
+  );
+
+  const handleTouchPanEnd = useCallback(() => {
+    setIsPanning(false);
+  }, []);
+
   const generatePDF = useCallback(
     async (fileName: string) => {
       try {
@@ -371,7 +433,7 @@ const Canvas = () => {
         });
       }
     },
-    [captureAllPages],
+    [captureAllPages]
   );
 
   const resolvePdfFileName = useCallback(() => {
@@ -458,7 +520,7 @@ const Canvas = () => {
     setDraggingIndex(pageIndex);
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaPercent = ((moveEvent.clientY - startY) / A4_HEIGHT) * 100;
+      const deltaPercent = ((moveEvent.clientY - startY) / (A4_HEIGHT * canvasScaleRef.current)) * 100;
       const nextTopHeight = clamp(startHeights[sectionIndex] + deltaPercent, minPercent, pairTotal - minPercent);
       const nextHeights = [...startHeights];
       nextHeights[sectionIndex] = nextTopHeight;
@@ -498,7 +560,7 @@ const Canvas = () => {
     setBlockDraggingSectionId(sectionId);
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      const deltaPercent = ((moveEvent.clientX - startX) / A4_WIDTH) * 100;
+      const deltaPercent = ((moveEvent.clientX - startX) / (A4_WIDTH * canvasScaleRef.current)) * 100;
       const nextLeftWidth = clamp(startWidths[blockIndex] + deltaPercent, minPercent, pairTotal - minPercent);
       const nextWidths = [...startWidths];
       nextWidths[blockIndex] = nextLeftWidth;
@@ -521,12 +583,22 @@ const Canvas = () => {
   };
 
   return (
-    <aside className="relative flex flex-1 bg-secondary overflow-auto" onClick={() => clearSelection()}>
-      <div className="absolute top-4 right-4 z-30 flex flex-col gap-2" data-cv-capture-ignore data-tutorial="builder-preview-download">
+    <aside
+      ref={canvasContainerRef}
+      className={cn(
+        "relative flex flex-1 overflow-auto bg-secondary",
+        isMobile && "overflow-x-hidden touch-pan-y"
+      )}
+      onClick={() => clearSelection()}>
+      {/* Desktop: top-right action buttons */}
+      <div
+        className="absolute top-4 right-4 z-30 hidden flex-col gap-2 md:flex"
+        data-cv-capture-ignore
+        data-tutorial="builder-preview-download">
         <button
           type="button"
           onClick={() => void openPreview()}
-          className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition"
+          className="rounded-md bg-primary p-2 text-primary-foreground shadow transition hover:opacity-80"
           title="Preview CV">
           <Eye className="h-4 w-4" />
         </button>
@@ -534,18 +606,43 @@ const Canvas = () => {
         <button
           type="button"
           onClick={() => void downloadPDF()}
-          className="bg-primary text-primary-foreground rounded-md p-2 shadow hover:opacity-80 transition"
+          className="rounded-md bg-primary p-2 text-primary-foreground shadow transition hover:opacity-80"
           title="Download PDF">
           <Download className="h-4 w-4" />
         </button>
       </div>
 
+      {/* Mobile: bottom-right floating action bar */}
       <div
-        className="flex flex-col items-center justify-center gap-6 p-2 w-full relative md:gap-10 md:p-4"
-        style={{ pointerEvents: isDragging ? "none" : "auto", marginBlock: `${elements.length * 580}px` }} // Disable pointer events when dragging
-      >
-        {/* Render Pages Dynamically */}
-        {elements.map((page, pageIndex) => {
+        className="absolute right-4 bottom-[calc(1rem+env(safe-area-inset-bottom,0px))] z-30 flex items-center gap-1.5 rounded-full border border-border/60 bg-background/95 p-1 shadow-lg backdrop-blur-sm md:hidden"
+        data-cv-capture-ignore
+        data-tutorial="builder-preview-download">
+        <button
+          type="button"
+          onClick={() => void openPreview()}
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground transition active:opacity-80"
+          aria-label="Preview CV">
+          <Eye className="h-5 w-5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => void downloadPDF()}
+          className="flex h-11 w-11 items-center justify-center rounded-full bg-primary text-primary-foreground transition active:opacity-80"
+          aria-label="Download PDF">
+          <Download className="h-5 w-5" />
+        </button>
+      </div>
+
+      <div className="flex w-full min-h-full">
+        <div
+          className={cn(
+            "relative m-auto flex w-full flex-col items-center",
+            isMobile ? "gap-4 px-2 py-4 pb-24" : "gap-10 p-4"
+          )}
+          style={{ pointerEvents: isDragging ? "none" : "auto" }}>
+          {/* Render Pages Dynamically */}
+          {elements.map((page, pageIndex) => {
           const sections = page.children ?? [];
           const sectionHeights = getSectionHeights(sections);
 
@@ -554,42 +651,57 @@ const Canvas = () => {
               key={page.id}
               className="relative"
               style={{
+                width: scaledPageWidth,
+                height: scaledPageHeight,
                 zIndex: selectedPageId === page.id ? 40 : 1,
-                pointerEvents: isDragging && draggingIndex !== pageIndex ? "none" : "auto", // Disable pointer events for other pages when dragging
+                pointerEvents: isDragging && draggingIndex !== pageIndex ? "none" : "auto",
               }}>
               {selectedPageId === page.id && (
-                <div className="absolute top-4 right-2 z-20 md:-right-12">
+                <div
+                  className={cn(
+                    "absolute z-20",
+                    isMobile ? "-top-3 -right-3" : "top-4 -right-12"
+                  )}>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
+                          type="button"
                           onClick={() => removePage(page.id)}
-                          className="bg-primary text-primary-foreground p-2 rounded shadow hover:opacity-80">
-                          <Trash className="h-4 w-4" />
+                          className={cn(
+                            "rounded-full bg-primary text-primary-foreground shadow transition hover:opacity-80",
+                            isMobile ? "flex h-9 w-9 items-center justify-center" : "p-2"
+                          )}
+                          aria-label={elements.length === 1 ? "Reset page" : "Delete page"}>
+                          <Trash className={isMobile ? "h-4 w-4" : "h-4 w-4"} />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent side="right">
+                      <TooltipContent side={isMobile ? "bottom" : "right"}>
                         {elements.length === 1 ? "Reset Page" : "Delete Page"}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
               )}
-              <div className="flex w-full h-full">
+              <div
+                className="relative"
+                style={{ width: scaledPageWidth, height: scaledPageHeight }}>
                 <div
                   ref={(node) => setPageRef(page.id, node)}
                   data-cv-page={page.id}
                   onClick={(e) => e.stopPropagation()}
-                  className="bg-background relative"
+                  className="absolute top-0 left-0 bg-background"
                   style={{
                     width: A4_WIDTH,
                     height: A4_HEIGHT,
                     overflow: "hidden",
-                    transform: `scale(${ZOOM})`,
-                    transformOrigin: "top center",
+                    transform: `scale(${canvasScale})`,
+                    transformOrigin: "top left",
                     backgroundColor: pageProperties.backgroundColor ?? "#ffffff",
                     color: pageProperties.color ?? "#000000",
-                    boxShadow: "rgba(0, 0, 0, 0.15) 0px 15px 25px, rgba(0, 0, 0, 0.05) 0px 5px 10px",
+                    boxShadow: isMobile ?
+                      "rgba(0, 0, 0, 0.12) 0px 8px 16px, rgba(0, 0, 0, 0.06) 0px 2px 6px"
+                    : "rgba(0, 0, 0, 0.15) 0px 15px 25px, rgba(0, 0, 0, 0.05) 0px 5px 10px",
                   }}>
                   <div className="relative flex flex-col w-full h-full">
                     {showPagination && (
@@ -631,12 +743,17 @@ const Canvas = () => {
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <button
+                                    type="button"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       removeSection(section.id);
                                     }}
-                                    className="absolute top-1 left-1 z-20 bg-secondary text-primary p-1 rounded shadow flex items-center gap-1">
-                                    <Trash className="h-3 w-3" />
+                                    className={cn(
+                                      "absolute top-1 left-1 z-20 flex items-center gap-1 rounded bg-secondary text-primary shadow",
+                                      isMobile ? "p-1.5" : "p-1"
+                                    )}
+                                    aria-label="Delete section">
+                                    <Trash className={isMobile ? "h-3.5 w-3.5" : "h-3 w-3"} />
                                   </button>
                                 </TooltipTrigger>
                                 <TooltipContent>Delete section</TooltipContent>
@@ -679,14 +796,21 @@ const Canvas = () => {
                                       {/* ✅ VERTICAL BLOCK JOCKEY */}
                                       {!isLastBlock && isSectionSelected && (
                                         <div
-                                          className="group relative z-20 w-3 flex-shrink-0 cursor-ew-resize self-stretch"
-                                          style={{ marginInline: "-6px" }}
+                                          className={cn(
+                                            "group relative z-20 flex-shrink-0 cursor-ew-resize self-stretch touch-none",
+                                            isMobile ? "w-5" : "w-3"
+                                          )}
+                                          style={{ marginInline: isMobile ? "-8px" : "-6px" }}
                                           onMouseDown={(e) =>
                                             handleBlockResizeStart(section.id, blockChildren, blockIndex, e)
                                           }>
                                           <div className="absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-border transition-colors group-hover:bg-muted-foreground/60" />
-                                          <div className="absolute left-1/2 top-1/2 flex h-4 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2px] border border-border bg-card text-muted-foreground shadow-sm transition-colors group-hover:border-primary/30 group-hover:bg-muted group-hover:text-foreground">
-                                            <GripVertical className="h-3 w-3" />
+                                          <div
+                                            className={cn(
+                                              "absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2px] border border-border bg-card text-muted-foreground shadow-sm transition-colors group-hover:border-primary/30 group-hover:bg-muted group-hover:text-foreground",
+                                              isMobile ? "h-6 w-6" : "h-4 w-4"
+                                            )}>
+                                            <GripVertical className={isMobile ? "h-3.5 w-3.5" : "h-3 w-3"} />
                                           </div>
                                         </div>
                                       )}
@@ -712,11 +836,18 @@ const Canvas = () => {
                           {/* ✅ SECTION RESIZE JOCKEY */}
                           {isSectionSelected && !isLastSection && fixedHeight && (
                             <div
-                              className="group absolute inset-x-0 bottom-0 z-30 h-3 translate-y-1/2 cursor-ns-resize"
+                              className={cn(
+                                "group absolute inset-x-0 bottom-0 z-30 translate-y-1/2 cursor-ns-resize touch-none",
+                                isMobile ? "h-5" : "h-3"
+                              )}
                               onMouseDown={(e) => handleSectionResizeStart(pageIndex, sections, sectionIndex, e)}>
-                              <div className="pointer-events-none absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-border transition-colors group-hover:bg-muted-foreground/60" />
-                              <div className="absolute right-4 top-1/2 flex h-4 w-4 -translate-y-1/2 items-center justify-center rounded-[2px] border border-border bg-card text-muted-foreground shadow-sm transition-colors group-hover:border-primary/30 group-hover:bg-muted group-hover:text-foreground">
-                                <GripHorizontal className="h-3 w-3" />
+                              <div className="pointer-events-none absolute top-1/2 right-0 left-0 h-px -translate-y-1/2 bg-border transition-colors group-hover:bg-muted-foreground/60" />
+                              <div
+                                className={cn(
+                                  "absolute top-1/2 right-4 flex -translate-y-1/2 items-center justify-center rounded-[2px] border border-border bg-card text-muted-foreground shadow-sm transition-colors group-hover:border-primary/30 group-hover:bg-muted group-hover:text-foreground",
+                                  isMobile ? "h-6 w-6" : "h-4 w-4"
+                                )}>
+                                <GripHorizontal className={isMobile ? "h-3.5 w-3.5" : "h-3 w-3"} />
                               </div>
                             </div>
                           )}
@@ -728,48 +859,77 @@ const Canvas = () => {
               </div>
             </div>
           );
-        })}
+          })}
+        </div>
       </div>
 
       {/* Preview Overlay – renders the captured canvas image */}
       {previewImage && (
         <div
           ref={previewOverlayRef}
-          className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-hidden"
-          style={{ cursor: isPanning ? "grabbing" : "grab" }}
+          className="fixed inset-0 z-50 overflow-hidden bg-black/60 backdrop-blur-sm"
+          style={{ cursor: isPanning ? "grabbing" : "grab", touchAction: "none" }}
           onMouseDown={handlePanStart}
           onMouseMove={handlePanMove}
           onMouseUp={handlePanEnd}
-          onMouseLeave={handlePanEnd}>
+          onMouseLeave={handlePanEnd}
+          onTouchStart={handleTouchPanStart}
+          onTouchMove={handleTouchPanMove}
+          onTouchEnd={handleTouchPanEnd}
+          onTouchCancel={handleTouchPanEnd}>
           {/* Zoom & pan toolbar */}
           <div
-            className="absolute top-4 right-4 z-[60] flex items-center gap-1 rounded-lg bg-black/70 px-3 py-1.5 shadow-lg"
-            onMouseDown={(e) => e.stopPropagation()}>
-            <button onClick={zoomOut} className="text-white/80 hover:text-white p-1 transition" title="Zoom out">
+            className={cn(
+              "absolute z-[60] flex items-center gap-1 rounded-lg bg-black/70 px-3 py-1.5 shadow-lg",
+              isMobile ?
+                "top-[max(1rem,env(safe-area-inset-top,0px))] right-4 left-4 justify-between"
+              : "top-4 right-4"
+            )}
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={zoomOut}
+              className="p-1 text-white/80 transition hover:text-white"
+              title="Zoom out"
+              aria-label="Zoom out">
               <Minus className="h-4 w-4" />
             </button>
-            <span className="text-white text-xs min-w-[3rem] text-center select-none">
+            <span className="min-w-[3rem] text-center text-xs text-white select-none">
               {Math.round(previewScale * 100)}%
             </span>
-            <button onClick={zoomIn} className="text-white/80 hover:text-white p-1 transition" title="Zoom in">
+            <button
+              type="button"
+              onClick={zoomIn}
+              className="p-1 text-white/80 transition hover:text-white"
+              title="Zoom in"
+              aria-label="Zoom in">
               <Plus className="h-4 w-4" />
             </button>
-            <div className="w-px h-4 bg-white/30 mx-1" />
-            <button onClick={resetZoom} className="text-white/80 hover:text-white p-1 transition" title="Fit to screen">
+            <div className="mx-1 h-4 w-px bg-white/30" />
+            <button
+              type="button"
+              onClick={resetZoom}
+              className="p-1 text-white/80 transition hover:text-white"
+              title="Fit to screen"
+              aria-label="Fit to screen">
               <Maximize2 className="h-4 w-4" />
             </button>
-            <div className="w-px h-4 bg-white/30 mx-1" />
+            <div className="mx-1 h-4 w-px bg-white/30" />
             <button
+              type="button"
               onClick={closePreview}
-              className="text-white/80 hover:text-white p-1 transition"
-              title="Close (Esc)">
+              className="p-1 text-white/80 transition hover:text-white"
+              title="Close (Esc)"
+              aria-label="Close preview">
               <X className="h-4 w-4" />
             </button>
           </div>
 
           {/* Hint */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1.5 bg-black/50 text-white/60 text-xs px-3 py-1.5 rounded-full select-none pointer-events-none">
-            <Hand className="h-3 w-3" /> Scroll to zoom · Drag to pan
+          <div className="pointer-events-none absolute bottom-[max(1rem,env(safe-area-inset-bottom,0px))] left-1/2 z-[60] flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-black/50 px-3 py-1.5 text-xs text-white/60 select-none">
+            <Hand className="h-3 w-3" />
+            {isMobile ? "Use +/- to zoom · Drag to pan" : "Scroll to zoom · Drag to pan"}
           </div>
 
           {/* Preview image — zoom via rendered size (keeps high-DPI source sharp) */}

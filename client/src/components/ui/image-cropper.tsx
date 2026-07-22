@@ -82,15 +82,7 @@ const ImageCropper = ({ open, image, aspect = 1, onClose, onCropped }: ImageCrop
         </div>
 
         <div className="pt-4">
-          <NumericSliderField
-            label="Zoom"
-            value={zoom}
-            min={0.5}
-            max={3}
-            step={0.05}
-            unit="x"
-            onChange={setZoom}
-          />
+          <NumericSliderField label="Zoom" value={zoom} min={0.5} max={3} step={0.05} unit="x" onChange={setZoom} />
         </div>
 
         <DialogFooter className="gap-2">

@@ -78,8 +78,6 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
 
     const syncLayout = () => {
       headerScroll.scrollLeft = bodyScroll.scrollLeft;
-      const scrollbarWidth = bodyScroll.offsetWidth - bodyScroll.clientWidth;
-      headerScroll.style.paddingRight = scrollbarWidth > 0 ? `${scrollbarWidth}px` : "";
     };
 
     syncLayout();
@@ -104,23 +102,18 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
     const heads = tableRef.current?.querySelectorAll<HTMLTableCellElement>("thead [data-column-id]");
     if (!heads?.length) return;
 
-    widthSnapshotRef.current = Object.fromEntries(
-      [...heads].map((head) => [head.dataset.columnId!, head.offsetWidth])
-    );
+    widthSnapshotRef.current = Object.fromEntries([...heads].map((head) => [head.dataset.columnId!, head.offsetWidth]));
     forceSnapshotRender((value) => value + 1);
   };
 
-  const handleResizeStart =
-    (handler: (event: unknown) => void) => (event: React.MouseEvent | React.TouchEvent) => {
-      captureWidthSnapshot();
-      handler(event);
-    };
+  const handleResizeStart = (handler: (event: unknown) => void) => (event: React.MouseEvent | React.TouchEvent) => {
+    captureWidthSnapshot();
+    handler(event);
+  };
 
   const activeSnapshot = widthSnapshotRef.current;
 
-  const renderHeaderLabel = (label: React.ReactNode) => (
-    <span className="grid-table-head-label truncate">{label}</span>
-  );
+  const renderHeaderLabel = (label: React.ReactNode) => <span className="grid-table-head-label truncate">{label}</span>;
 
   const getFixedColumnWidth = (columnId: string, size: number) => {
     if (columnId === "select") return GRID_COLUMN_SELECT_WIDTH;
@@ -177,10 +170,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
   const getStickyCellClass = (columnId: string) => {
     const pinSide = getPinSide(columnId);
 
-    return cn(
-      pinSide === "left" && "grid-table-sticky-left",
-      pinSide === "right" && "grid-table-sticky-right"
-    );
+    return cn(pinSide === "left" && "grid-table-sticky-left", pinSide === "right" && "grid-table-sticky-right");
   };
 
   const tableStyle: React.CSSProperties = {
@@ -236,9 +226,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
                     align === "right" && "ml-auto justify-end text-right",
                     align === "left" && "text-left"
                   )}>
-                  <span className="truncate">
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </span>
+                  <span className="truncate">{flexRender(header.column.columnDef.header, header.getContext())}</span>
                   {isSorted ?
                     sortDirection ?
                       <ArrowDownIcon className="grid-table-head-sort__icon" aria-hidden="true" />
@@ -274,9 +262,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
           : isSelectColumn ?
             flexRender(header.column.columnDef.header, header.getContext())
           : isActionColumn ?
-            <span className="sr-only">
-              {flexRender(header.column.columnDef.header, header.getContext())}
-            </span>
+            <span className="sr-only">{flexRender(header.column.columnDef.header, header.getContext())}</span>
           : renderHeaderLabel(flexRender(header.column.columnDef.header, header.getContext()))}
         </div>
         {canResize && (
@@ -287,10 +273,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
             onDoubleClick={() => header.column.resetSize()}
             onMouseDown={handleResizeStart(header.getResizeHandler())}
             onTouchStart={handleResizeStart(header.getResizeHandler())}
-            className={cn(
-              "grid-table-resizer",
-              header.column.getIsResizing() && "grid-table-resizer--active"
-            )}
+            className={cn("grid-table-resizer", header.column.getIsResizing() && "grid-table-resizer--active")}
             onClick={(e) => e.stopPropagation()}
           />
         )}
@@ -303,7 +286,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
     const isSelectColumn = columnId === "select";
     const isActionColumn = columnId === "action";
     const columnMeta = cell.column.columnDef.meta as { align?: "left" | "center" | "right" } | undefined;
-    const align = columnMeta?.align ?? (isSelectColumn ? "center" : "left");
+    const align = columnMeta?.align ?? (isSelectColumn || isActionColumn ? "center" : "left");
     const isFillColumn = fillColumnId === columnId;
     const columnMinSize = cell.column.columnDef.minSize ?? 80;
 
@@ -317,7 +300,7 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
           isSelectColumn && "grid-table-cell--select px-3",
           isActionColumn && "grid-table-cell--action px-2 text-center",
           align === "center" && "text-center",
-          align === "right" && "text-right",
+          align === "right" && !isActionColumn && "text-right",
           align === "left" && !isSelectColumn && !isActionColumn && "truncate",
           getStickyCellClass(columnId)
         )}>
@@ -325,10 +308,15 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
           className={cn(
             "flex min-h-8 w-full items-center",
             (align === "center" || isActionColumn) && "justify-center",
-            align === "right" && "justify-end",
+            align === "right" && !isActionColumn && "justify-end",
             align === "left" && !isActionColumn && "min-w-0"
           )}>
-          <div className={cn("min-w-0", align === "left" && !isActionColumn && "truncate")}>
+          <div
+            className={cn(
+              "min-w-0",
+              isActionColumn && "flex w-full justify-center",
+              align === "left" && !isActionColumn && "truncate"
+            )}>
             {flexRender(cell.column.columnDef.cell, cell.getContext())}
           </div>
         </div>
@@ -343,81 +331,73 @@ function column<TData>({ tableBody, setSorting, isLoading = false, pageSize = 10
           "grid-table-shell hidden min-h-0 min-w-0 flex-1 flex-col overflow-hidden md:flex",
           isResizing && "grid-table-shell--resizing"
         )}>
-      <div ref={headerScrollRef} className="grid-table-header-band flex-none overflow-hidden">
-        <Table
-          ref={tableRef}
-          className="relative table-fixed"
-          style={tableStyle}>
-          <TableHeader className="grid-table-header">
-            {tableBody.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="grid-table-header-row hover:bg-transparent">
-                {headerGroup.headers.map((header) => renderHeader(header))}
-              </TableRow>
-            ))}
-          </TableHeader>
-        </Table>
+        <div ref={headerScrollRef} className="grid-table-header-band flex-none overflow-hidden">
+          <Table ref={tableRef} className="relative table-fixed" style={tableStyle}>
+            <TableHeader className="grid-table-header">
+              {tableBody.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="grid-table-header-row hover:bg-transparent">
+                  {headerGroup.headers.map((header) => renderHeader(header))}
+                </TableRow>
+              ))}
+            </TableHeader>
+          </Table>
+        </div>
+
+        <div ref={scrollHostRef} className="grid-table-scroll-host min-h-0 flex-1 basis-0">
+          <Table className="relative table-fixed" style={tableStyle}>
+            <TableBody>
+              {isLoading ?
+                skeletonRows.map((_, rowIndex) => (
+                  <TableRow key={`skeleton-${rowIndex}`} className="grid-table-row h-11">
+                    {visibleColumns.map((column, columnIndex) => (
+                      <TableCell
+                        key={column.id}
+                        style={getColumnSizeStyle(
+                          column.id,
+                          column.getSize(),
+                          column.columnDef.minSize ?? 80,
+                          fillColumnId === column.id
+                        )}
+                        className={cn(
+                          "px-4 py-2 align-middle",
+                          column.id === "select" && "grid-table-cell--select px-3",
+                          column.id === "action" && "grid-table-cell--action px-2 text-center",
+                          getStickyCellClass(column.id)
+                        )}>
+                        <div className="flex min-h-8 w-full items-center justify-center">
+                          <Skeleton
+                            className={cn(
+                              "h-4",
+                              column.id === "select" && "h-4 w-4 rounded-sm",
+                              column.id === "action" && "mx-auto h-8 w-8",
+                              column.id !== "select" &&
+                                column.id !== "action" &&
+                                (columnIndex === 1 ? "w-36"
+                                : columnIndex === 2 ? "w-28"
+                                : columnIndex === 3 ? "w-44"
+                                : "w-24")
+                            )}
+                          />
+                        </div>
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              : tableBody.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    className="grid-table-row group h-11 cursor-pointer data-[state=selected]:bg-primary/5"
+                    data-state={row.getIsSelected() && "selected"}>
+                    {row.getVisibleCells().map((cell) => renderCell(cell))}
+                  </TableRow>
+                ))
+              }
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
-      <div ref={scrollHostRef} className="grid-table-scroll-host min-h-0 flex-1 basis-0">
-        <Table className="relative table-fixed" style={tableStyle}>
-          <TableBody>
-            {isLoading ?
-              skeletonRows.map((_, rowIndex) => (
-                <TableRow key={`skeleton-${rowIndex}`} className="grid-table-row h-11">
-                  {visibleColumns.map((column, columnIndex) => (
-                    <TableCell
-                      key={column.id}
-                      style={getColumnSizeStyle(
-                        column.id,
-                        column.getSize(),
-                        column.columnDef.minSize ?? 80,
-                        fillColumnId === column.id
-                      )}
-                      className={cn(
-                        "px-4 py-2 align-middle",
-                        column.id === "select" && "grid-table-cell--select px-3",
-                        column.id === "action" && "grid-table-cell--action px-2 text-center",
-                        getStickyCellClass(column.id)
-                      )}>
-                      <div className="flex min-h-8 w-full items-center justify-center">
-                        <Skeleton
-                          className={cn(
-                            "h-4",
-                            column.id === "select" && "h-4 w-4 rounded-sm",
-                            column.id === "action" && "mx-auto h-8 w-8",
-                            column.id !== "select" &&
-                              column.id !== "action" &&
-                              (columnIndex === 1 ? "w-36"
-                              : columnIndex === 2 ? "w-28"
-                              : columnIndex === 3 ? "w-44"
-                              : "w-24")
-                          )}
-                        />
-                      </div>
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            : tableBody.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className="grid-table-row group h-11 cursor-pointer data-[state=selected]:bg-primary/5"
-                  data-state={row.getIsSelected() && "selected"}>
-                  {row.getVisibleCells().map((cell) => renderCell(cell))}
-                </TableRow>
-              ))
-            }
-          </TableBody>
-        </Table>
-      </div>
-      </div>
-
-      <MobileGridList
-        tableBody={tableBody}
-        isLoading={isLoading}
-        pageSize={pageSize}
-        className="md:hidden"
-      />
+      <MobileGridList tableBody={tableBody} isLoading={isLoading} pageSize={pageSize} className="md:hidden" />
     </>
   );
 }

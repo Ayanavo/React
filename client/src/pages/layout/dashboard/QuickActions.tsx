@@ -12,11 +12,19 @@ const QuickActions: React.FC = () => {
         <Plus className="h-4 w-4" />
         <span className="dashboard__quick-actions-label">New Note</span>
       </Button>
-      <Button size="sm" variant="outline" className="h-9 shrink-0 gap-2 px-2.5 md:px-3" onClick={() => navigate("/activities")}>
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-9 shrink-0 gap-2 px-2.5 md:px-3"
+        onClick={() => navigate("/activities")}>
         <CalendarDays className="h-4 w-4" />
         <span className="dashboard__quick-actions-label">Activities</span>
       </Button>
-      <Button size="sm" variant="outline" className="h-9 shrink-0 gap-2 px-2.5 md:px-3" onClick={() => navigate("/summarize")}>
+      <Button
+        size="sm"
+        variant="outline"
+        className="h-9 shrink-0 gap-2 px-2.5 md:px-3"
+        onClick={() => navigate("/summarize")}>
         <Sparkles className="h-4 w-4" />
         <span className="dashboard__quick-actions-label">AI Summary</span>
       </Button>

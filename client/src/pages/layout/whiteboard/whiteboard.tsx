@@ -240,10 +240,9 @@ function WhiteboardComponent() {
         <div className="workflow-page__header">
           <BreadcrumbInbuild className="w-full min-w-0" />
           <div className="workflow-page__title-row">
-            {isWorkspaceLoading ? (
+            {isWorkspaceLoading ?
               <Skeleton className="h-9 w-full max-w-md" />
-            ) : (
-              <Input
+            : <Input
                 value={workflowName}
                 onChange={(event) => {
                   setWorkflowName(event.target.value);
@@ -253,7 +252,7 @@ function WhiteboardComponent() {
                 placeholder="Workflow name"
                 aria-label="Workflow name"
               />
-            )}
+            }
           </div>
         </div>
 
@@ -284,10 +283,7 @@ function WhiteboardComponent() {
 
         {isMobile ?
           <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-            <SheetContent
-              side="left"
-              hideClose
-              className="flex h-full w-[min(100%,17rem)] flex-col p-0 sm:max-w-xs">
+            <SheetContent side="left" hideClose className="flex h-full w-[min(100%,17rem)] flex-col p-0 sm:max-w-xs">
               {sidebar}
             </SheetContent>
           </Sheet>

@@ -153,10 +153,7 @@ function collectSections(elements: CVElement[]): CVElement[] {
     .flatMap((page) => page.children?.filter((child) => child.type === "section") ?? []);
 }
 
-export function paginateCvElements(
-  elements: CVElement[],
-  pageHeight = CV_PAGE_USABLE_HEIGHT
-): CVElement[] {
+export function paginateCvElements(elements: CVElement[], pageHeight = CV_PAGE_USABLE_HEIGHT): CVElement[] {
   const sections = collectSections(elements);
   if (sections.length === 0) return elements;
 

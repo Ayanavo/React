@@ -22,7 +22,6 @@ export type CoverLetterHeaderLine = {
 const CLOSING_LINE_PATTERN =
   /^(sincerely|best regards|kind regards|warm regards|regards|yours truly|respectfully|thank you)[,.!\s]*$/i;
 
-
 export function mapProfileUserToContactInfo(user: ProfileResponse["user"] & { email?: string }): UserContactInfo {
   const currentCompany = user.companies?.find((company) => company.isPresent) ?? user.companies?.[0];
 
@@ -57,9 +56,7 @@ export function buildCoverLetterHeaderLines(info?: UserContactInfo | null): Cove
     ];
   }
 
-  const lines: CoverLetterHeaderLine[] = [
-    { text: info.fullName, fontSize: 22, fontWeight: "bold", color: "#0f172a" },
-  ];
+  const lines: CoverLetterHeaderLine[] = [{ text: info.fullName, fontSize: 22, fontWeight: "bold", color: "#0f172a" }];
 
   if (info.designation) {
     lines.push({ text: info.designation, fontSize: 14, fontWeight: "medium", color: "#2563eb" });
@@ -112,7 +109,10 @@ export function normalizeCoverLetterClosing(closing: string | undefined, info?: 
     return trimmed;
   }
 
-  const closingLine = CLOSING_LINE_PATTERN.test(trimmed) || /^sincerely,/i.test(trimmed) ? trimmed.replace(/\n.*/s, "").trim() : "Sincerely,";
+  const closingLine =
+    CLOSING_LINE_PATTERN.test(trimmed) || /^sincerely,/i.test(trimmed) ?
+      trimmed.replace(/\n.*/s, "").trim()
+    : "Sincerely,";
   const normalizedLine = closingLine.endsWith(",") ? closingLine : `${closingLine},`;
 
   return name ? `${normalizedLine}\n${name}` : `${normalizedLine}\n[Your Name]`;

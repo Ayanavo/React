@@ -1,9 +1,9 @@
-import { formatAppDate } from "@/lib/date-format";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatAppTime, getMomentHourFormat, getWeekdayLabels } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { Clock } from "lucide-react";
 import moment from "moment";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import "./activity-calendar.scss";
 
 export type CalendarView = "dayGridMonth" | "dayGridWeek" | "dayGridDay" | "dayGridYear";
@@ -28,7 +28,42 @@ type ActivityCalendarProps = {
   onEventClick: (event: CalendarEvent, date: Date) => void;
 };
 
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEK_HOURS = Array.from({ length: 24 }, (_, index) => index);
+const WEEK_HOUR_HEIGHT_REM = 3.5;
+
+function getTimedEventsForDay(events: CalendarEvent[], day: moment.Moment) {
+  return getEventsForDay(events, day).filter((event) => !event.allDay);
+}
+
+function getAllDayEventsForDay(events: CalendarEvent[], day: moment.Moment) {
+  return getEventsForDay(events, day).filter((event) => event.allDay);
+}
+
+function getTimedEventStyle(event: CalendarEvent, day: moment.Moment): React.CSSProperties {
+  const dayStart = day.clone().startOf("day");
+  const dayEnd = day.clone().endOf("day");
+  let start = moment(event.start);
+  let end = event.end ? moment(event.end) : start.clone().add(1, "hour");
+
+  if (start.isBefore(dayStart)) start = dayStart.clone();
+  if (end.isAfter(dayEnd)) end = dayEnd.clone();
+  if (!end.isAfter(start)) end = start.clone().add(15, "minutes");
+
+  const totalMinutes = 24 * 60;
+  const startMinutes = start.diff(dayStart, "minutes");
+  const durationMinutes = Math.max(15, end.diff(start, "minutes"));
+
+  return {
+    top: `${(startMinutes / totalMinutes) * 100}%`,
+    height: `${(durationMinutes / totalMinutes) * 100}%`,
+    backgroundColor: event.color ?? "hsl(var(--primary))",
+  };
+}
+
+function getCurrentTimeOffset() {
+  const minutes = moment().diff(moment().startOf("day"), "minutes");
+  return `${(minutes / (24 * 60)) * 100}%`;
+}
 
 function eventOccursOnDay(event: CalendarEvent, day: moment.Moment) {
   const start = moment(event.start).startOf("day");
@@ -86,9 +121,7 @@ function isSameDay(a: moment.Moment, b: Date | null | undefined) {
 
 function getEventTimeLabel(event: CalendarEvent) {
   if (event.allDay) return "All day";
-
-  const parsed = moment(event.start);
-  return parsed.isValid() ? parsed.format("h:mm A") : "";
+  return formatAppTime(event.start);
 }
 
 function EventTooltipContent({ event }: { event: CalendarEvent }) {
@@ -123,13 +156,7 @@ function EventTimeRow({ event, className }: { event: CalendarEvent; className?: 
   );
 }
 
-function EventChip({
-  event,
-  onClick,
-}: {
-  event: CalendarEvent;
-  onClick: (event: React.MouseEvent) => void;
-}) {
+function EventChip({ event, onClick }: { event: CalendarEvent; onClick: (event: React.MouseEvent) => void }) {
   return (
     <CalendarTooltip content={getEventTooltipContent(event)}>
       <button
@@ -147,11 +174,12 @@ function EventChip({
 function MonthView({ focusDate, events, focusedDate, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
   const focus = moment(focusDate);
   const days = useMemo(() => getMonthDays(focus), [focusDate]);
+  const weekdays = getWeekdayLabels();
 
   return (
     <div className="activity-calendar__month">
       <div className="activity-calendar__weekdays">
-        {WEEKDAYS.map((day) => (
+        {weekdays.map((day) => (
           <div key={day} className="activity-calendar__weekday">
             {day}
           </div>
@@ -160,33 +188,157 @@ function MonthView({ focusDate, events, focusedDate, onDateClick, onEventClick }
 
       <div className="activity-calendar__body scrollbar-none">
         <div className="activity-calendar__grid">
-        {days.map((day) => {
-          const dayEvents = getEventsForDay(events, day);
-          const isToday = day.isSame(moment(), "day");
-          const isCurrentMonth = day.isSame(focus, "month");
-          const isFocused = isSameDay(day, focusedDate);
-          const visibleEvents = dayEvents.slice(0, 3);
-          const hiddenCount = dayEvents.length - visibleEvents.length;
+          {days.map((day) => {
+            const dayEvents = getEventsForDay(events, day);
+            const isToday = day.isSame(moment(), "day");
+            const isCurrentMonth = day.isSame(focus, "month");
+            const isFocused = isSameDay(day, focusedDate);
+            const visibleEvents = dayEvents.slice(0, 3);
+            const hiddenCount = dayEvents.length - visibleEvents.length;
 
-          return (
-            <button
-              key={day.format("YYYY-MM-DD")}
-              type="button"
-              aria-current={isToday ? "date" : undefined}
-              className={cn(
-                "activity-calendar__cell",
-                !isCurrentMonth && "activity-calendar__cell--outside",
-                isToday && "activity-calendar__cell--today",
-                isFocused && "activity-calendar__cell--focused",
-              )}
-              onClick={() => onDateClick(day.toDate())}
-            >
-              <span className={cn("activity-calendar__day-number", isToday && "activity-calendar__day-number--today")}>
-                {day.format("D")}
-              </span>
+            return (
+              <button
+                key={day.format("YYYY-MM-DD")}
+                type="button"
+                aria-current={isToday ? "date" : undefined}
+                className={cn(
+                  "activity-calendar__cell",
+                  !isCurrentMonth && "activity-calendar__cell--outside",
+                  isToday && "activity-calendar__cell--today",
+                  isFocused && "activity-calendar__cell--focused"
+                )}
+                onClick={() => onDateClick(day.toDate())}>
+                <span
+                  className={cn("activity-calendar__day-number", isToday && "activity-calendar__day-number--today")}>
+                  {day.format("D")}
+                </span>
 
-              <div className="activity-calendar__events">
-                {visibleEvents.map((event) => (
+                <div className="activity-calendar__events">
+                  {visibleEvents.map((event) => (
+                    <EventChip
+                      key={event.id ?? `${event.title}-${event.start}`}
+                      event={event}
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        onEventClick(event, day.toDate());
+                      }}
+                    />
+                  ))}
+                  {hiddenCount > 0 && (
+                    <CalendarTooltip
+                      content={
+                        <div className="activity-calendar__tooltip flex max-w-56 flex-col gap-1.5">
+                          {dayEvents.slice(3).map((event) => (
+                            <EventTooltipContent key={event.id ?? `${event.title}-${event.start}`} event={event} />
+                          ))}
+                        </div>
+                      }>
+                      <span className="activity-calendar__more">+{hiddenCount} more</span>
+                    </CalendarTooltip>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WeekTimedEvent({
+  event,
+  day,
+  onEventClick,
+}: {
+  event: CalendarEvent;
+  day: moment.Moment;
+  onEventClick: (event: CalendarEvent, date: Date) => void;
+}) {
+  const style = getTimedEventStyle(event, day);
+  const timeLabel = getEventTimeLabel(event);
+
+  return (
+    <CalendarTooltip content={getEventTooltipContent(event)}>
+      <button
+        type="button"
+        className="activity-calendar__week-event"
+        style={style}
+        onClick={(clickEvent) => {
+          clickEvent.stopPropagation();
+          onEventClick(event, day.toDate());
+        }}>
+        <span className="activity-calendar__week-event-title">{event.title}</span>
+        <span className="activity-calendar__week-event-time">{timeLabel}</span>
+      </button>
+    </CalendarTooltip>
+  );
+}
+
+function WeekView({ focusDate, events, focusedDate, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
+  const days = useMemo(() => getWeekDays(moment(focusDate)), [focusDate]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const currentHour = moment().hour();
+    const targetHour = Math.max(0, currentHour - 1);
+    container.scrollTop = targetHour * WEEK_HOUR_HEIGHT_REM * 16;
+  }, [focusDate]);
+
+  return (
+    <div className="activity-calendar__week">
+      <div className="activity-calendar__week-sticky">
+        <div className="activity-calendar__week-header">
+          <div className="activity-calendar__week-gutter activity-calendar__week-gutter--header" aria-hidden="true" />
+
+          {days.map((day) => {
+            const isToday = day.isSame(moment(), "day");
+            const isFocused = isSameDay(day, focusedDate);
+
+            return (
+              <button
+                key={day.format("YYYY-MM-DD")}
+                type="button"
+                aria-current={isToday ? "date" : undefined}
+                className={cn(
+                  "activity-calendar__week-day-header",
+                  isToday && "activity-calendar__week-day-header--today",
+                  isFocused && "activity-calendar__week-day-header--focused"
+                )}
+                onClick={() => onDateClick(day.toDate())}>
+                <span className="activity-calendar__week-day-name">{day.format("ddd")}</span>
+                <span
+                  className={cn(
+                    "activity-calendar__week-day-date",
+                    isToday && "activity-calendar__week-day-date--today"
+                  )}>
+                  {day.format("D")}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="activity-calendar__week-all-day">
+          <div className="activity-calendar__week-gutter activity-calendar__week-gutter--all-day">All-day</div>
+
+          {days.map((day) => {
+            const allDayEvents = getAllDayEventsForDay(events, day);
+            const isToday = day.isSame(moment(), "day");
+            const isFocused = isSameDay(day, focusedDate);
+
+            return (
+              <div
+                key={day.format("YYYY-MM-DD")}
+                className={cn(
+                  "activity-calendar__week-all-day-cell",
+                  isToday && "activity-calendar__week-all-day-cell--today",
+                  isFocused && "activity-calendar__week-all-day-cell--focused"
+                )}>
+                {allDayEvents.map((event) => (
                   <EventChip
                     key={event.id ?? `${event.title}-${event.start}`}
                     event={event}
@@ -196,96 +348,66 @@ function MonthView({ focusDate, events, focusedDate, onDateClick, onEventClick }
                     }}
                   />
                 ))}
-                {hiddenCount > 0 && (
-                  <CalendarTooltip
-                    content={
-                      <div className="activity-calendar__tooltip flex max-w-56 flex-col gap-1.5">
-                        {dayEvents.slice(3).map((event) => (
-                          <EventTooltipContent key={event.id ?? `${event.title}-${event.start}`} event={event} />
-                        ))}
-                      </div>
-                    }>
-                    <span className="activity-calendar__more">+{hiddenCount} more</span>
-                  </CalendarTooltip>
-                )}
               </div>
-            </button>
-          );
-        })}
+            );
+          })}
         </div>
       </div>
-    </div>
-  );
-}
 
-function WeekView({ focusDate, events, focusedDate, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
-  const days = useMemo(() => getWeekDays(moment(focusDate)), [focusDate]);
+      <div ref={scrollRef} className="activity-calendar__body scrollbar-none">
+        <div className="activity-calendar__week-grid">
+          <div className="activity-calendar__week-time-column" aria-hidden="true">
+            {WEEK_HOURS.map((hour) => (
+              <div key={hour} className="activity-calendar__week-hour-label">
+                {hour === 0 ? null : moment().hour(hour).minute(0).format(getMomentHourFormat())}
+              </div>
+            ))}
+          </div>
 
-  return (
-    <div className="activity-calendar__week">
-      <div className="activity-calendar__week-header">
-        {days.map((day) => {
-          const isToday = day.isSame(moment(), "day");
-          const isFocused = isSameDay(day, focusedDate);
+          <div className="activity-calendar__week-columns">
+            {days.map((day) => {
+              const timedEvents = getTimedEventsForDay(events, day);
+              const isToday = day.isSame(moment(), "day");
+              const isFocused = isSameDay(day, focusedDate);
 
-          return (
-            <button
-              key={day.format("YYYY-MM-DD")}
-              type="button"
-              aria-current={isToday ? "date" : undefined}
-              className={cn(
-                "activity-calendar__week-day-header",
-                isToday && "activity-calendar__week-day-header--today",
-                isFocused && "activity-calendar__week-day-header--focused",
-              )}
-              onClick={() => onDateClick(day.toDate())}>
-              <span className="activity-calendar__week-day-name">{day.format("ddd")}</span>
-              <span className={cn("activity-calendar__week-day-date", isToday && "activity-calendar__week-day-date--today")}>
-                {day.format("D")}
-              </span>
-              {isToday ?
-                <span className="activity-calendar__today-label">Today</span>
-              : null}
-            </button>
-          );
-        })}
-      </div>
+              return (
+                <div
+                  key={day.format("YYYY-MM-DD")}
+                  className={cn(
+                    "activity-calendar__week-day-column",
+                    isToday && "activity-calendar__week-day-column--today",
+                    isFocused && "activity-calendar__week-day-column--focused"
+                  )}>
+                  {WEEK_HOURS.map((hour) => (
+                    <button
+                      key={hour}
+                      type="button"
+                      className="activity-calendar__week-hour-slot"
+                      aria-label={`Add event on ${day.format("dddd, MMMM D")} at ${moment().hour(hour).minute(0).format(getMomentHourFormat())}`}
+                      onClick={() => onDateClick(day.clone().hour(hour).minute(0).second(0).millisecond(0).toDate())}
+                    />
+                  ))}
 
-      <div className="activity-calendar__body scrollbar-none">
-        <div className="activity-calendar__week-body">
-        {days.map((day) => {
-          const dayEvents = getEventsForDay(events, day);
-          const isToday = day.isSame(moment(), "day");
-          const isFocused = isSameDay(day, focusedDate);
+                  {timedEvents.map((event) => (
+                    <WeekTimedEvent
+                      key={event.id ?? `${event.title}-${event.start}`}
+                      event={event}
+                      day={day}
+                      onEventClick={onEventClick}
+                    />
+                  ))}
 
-          return (
-            <button
-              key={day.format("YYYY-MM-DD")}
-              type="button"
-              aria-current={isToday ? "date" : undefined}
-              className={cn(
-                "activity-calendar__week-column",
-                isToday && "activity-calendar__week-column--today",
-                isFocused && "activity-calendar__week-column--focused",
-              )}
-              onClick={() => onDateClick(day.toDate())}
-            >
-              {dayEvents.length === 0 ?
-                <span className="activity-calendar__empty-slot">Add event</span>
-              : dayEvents.map((event) => (
-                  <EventChip
-                    key={event.id ?? `${event.title}-${event.start}`}
-                    event={event}
-                    onClick={(clickEvent) => {
-                      clickEvent.stopPropagation();
-                      onEventClick(event, day.toDate());
-                    }}
-                  />
-                ))
-              }
-            </button>
-          );
-        })}
+                  {isToday && (
+                    <div
+                      className="activity-calendar__week-now-indicator"
+                      style={{ top: getCurrentTimeOffset() }}
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -294,56 +416,110 @@ function WeekView({ focusDate, events, focusedDate, onDateClick, onEventClick }:
 
 function DayView({ focusDate, events, focusedDate, onDateClick, onEventClick }: Omit<ActivityCalendarProps, "view">) {
   const day = moment(focusDate);
-  const dayEvents = getEventsForDay(events, day);
+  const allDayEvents = getAllDayEventsForDay(events, day);
+  const timedEvents = getTimedEventsForDay(events, day);
   const isToday = day.isSame(moment(), "day");
   const isFocused = isSameDay(day, focusedDate);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const currentHour = moment().hour();
+    const targetHour = Math.max(0, currentHour - 1);
+    container.scrollTop = targetHour * WEEK_HOUR_HEIGHT_REM * 16;
+  }, [focusDate]);
 
   return (
     <div className="activity-calendar__day">
-      <button
-        type="button"
-        aria-current={isToday ? "date" : undefined}
-        className={cn(
-          "activity-calendar__day-banner",
-          isToday && "activity-calendar__day-banner--today",
-          isFocused && "activity-calendar__day-banner--focused",
-        )}
-        onClick={() => onDateClick(day.toDate())}>
-        <span className="activity-calendar__day-banner-weekday">
-          {isToday ? "Today" : day.format("dddd")}
-        </span>
-        <span className={cn("activity-calendar__day-banner-date", isToday && "activity-calendar__day-banner-date--today")}>
-          {formatAppDate(day.toDate())}
-        </span>
-      </button>
+      <div className="activity-calendar__day-sticky">
+        <div className="activity-calendar__day-header">
+          <div className="activity-calendar__week-gutter activity-calendar__week-gutter--header" aria-hidden="true" />
 
-      <div className="activity-calendar__body scrollbar-none">
-        <div
-          className={cn("activity-calendar__day-events", isFocused && "activity-calendar__day-events--focused")}
-          onClick={() => onDateClick(day.toDate())}>
-        {dayEvents.length === 0 ?
-          <span className="activity-calendar__empty-day">No events scheduled. Click to add one.</span>
-        : dayEvents.map((event) => (
-            <button
-              key={event.id ?? `${event.title}-${event.start}`}
-              type="button"
-              className="activity-calendar__day-event-card"
-              onClick={(clickEvent) => {
-                clickEvent.stopPropagation();
-                onEventClick(event, day.toDate());
-              }}
-            >
-              <span
-                className="activity-calendar__day-event-dot"
-                style={{ backgroundColor: event.color ?? "hsl(var(--primary))" }}
+          <button
+            type="button"
+            aria-current={isToday ? "date" : undefined}
+            className={cn(
+              "activity-calendar__day-day-header",
+              isToday && "activity-calendar__day-day-header--today",
+              isFocused && "activity-calendar__day-day-header--focused"
+            )}
+            onClick={() => onDateClick(day.toDate())}>
+            <span className="activity-calendar__week-day-name">{day.format("ddd")}</span>
+            <span
+              className={cn("activity-calendar__week-day-date", isToday && "activity-calendar__week-day-date--today")}>
+              {day.format("D")}
+            </span>
+          </button>
+        </div>
+
+        <div className="activity-calendar__day-all-day">
+          <div className="activity-calendar__week-gutter activity-calendar__week-gutter--all-day">All-day</div>
+
+          <div
+            className={cn(
+              "activity-calendar__day-all-day-cell",
+              isToday && "activity-calendar__day-all-day-cell--today",
+              isFocused && "activity-calendar__day-all-day-cell--focused"
+            )}>
+            {allDayEvents.map((event) => (
+              <EventChip
+                key={event.id ?? `${event.title}-${event.start}`}
+                event={event}
+                onClick={(clickEvent) => {
+                  clickEvent.stopPropagation();
+                  onEventClick(event, day.toDate());
+                }}
               />
-              <span className="activity-calendar__day-event-content">
-                <span className="activity-calendar__day-event-title">{event.title}</span>
-                <EventTimeRow event={event} className="activity-calendar__day-event-meta" />
-              </span>
-            </button>
-          ))
-        }
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div ref={scrollRef} className="activity-calendar__body scrollbar-none">
+        <div className="activity-calendar__day-grid">
+          <div className="activity-calendar__week-time-column" aria-hidden="true">
+            {WEEK_HOURS.map((hour) => (
+              <div key={hour} className="activity-calendar__week-hour-label">
+                {hour === 0 ? null : moment().hour(hour).minute(0).format(getMomentHourFormat())}
+              </div>
+            ))}
+          </div>
+
+          <div
+            className={cn(
+              "activity-calendar__day-column",
+              isToday && "activity-calendar__day-column--today",
+              isFocused && "activity-calendar__day-column--focused"
+            )}>
+            {WEEK_HOURS.map((hour) => (
+              <button
+                key={hour}
+                type="button"
+                className="activity-calendar__week-hour-slot"
+                aria-label={`Add event on ${day.format("dddd, MMMM D")} at ${moment().hour(hour).minute(0).format(getMomentHourFormat())}`}
+                onClick={() => onDateClick(day.clone().hour(hour).minute(0).second(0).millisecond(0).toDate())}
+              />
+            ))}
+
+            {timedEvents.map((event) => (
+              <WeekTimedEvent
+                key={event.id ?? `${event.title}-${event.start}`}
+                event={event}
+                day={day}
+                onEventClick={onEventClick}
+              />
+            ))}
+
+            {isToday && (
+              <div
+                className="activity-calendar__week-now-indicator"
+                style={{ top: getCurrentTimeOffset() }}
+                aria-hidden="true"
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -365,12 +541,13 @@ function MiniMonth({
 }) {
   const days = useMemo(() => getMonthDays(month), [month]);
   const isCurrentMonth = month.isSame(moment(), "month");
+  const weekdays = getWeekdayLabels();
 
   return (
     <div className={cn("activity-calendar__year-month", isCurrentMonth && "activity-calendar__year-month--current")}>
       <div className="activity-calendar__year-month-title">{month.format("MMMM")}</div>
       <div className="activity-calendar__year-weekdays" aria-hidden="true">
-        {WEEKDAYS.map((day) => (
+        {weekdays.map((day) => (
           <span key={day}>{day.charAt(0)}</span>
         ))}
       </div>
@@ -390,7 +567,7 @@ function MiniMonth({
                 !inMonth && "activity-calendar__year-day--outside",
                 isToday && "activity-calendar__year-day--today",
                 dayEvents.length > 0 && "activity-calendar__year-day--has-events",
-                isFocused && "activity-calendar__year-day--focused",
+                isFocused && "activity-calendar__year-day--focused"
               )}
               onClick={() => {
                 if (dayEvents.length === 1) {
@@ -400,7 +577,11 @@ function MiniMonth({
 
                 onDateClick(day.toDate());
               }}>
-              <span className={cn("activity-calendar__year-day-number", isToday && "activity-calendar__year-day-number--today")}>
+              <span
+                className={cn(
+                  "activity-calendar__year-day-number",
+                  isToday && "activity-calendar__year-day-number--today"
+                )}>
                 {day.format("D")}
               </span>
               {dayEvents.length > 0 && (
@@ -444,7 +625,7 @@ function YearView({ focusDate, events, focusedDate, onDateClick, onEventClick }:
   const year = moment(focusDate).year();
   const months = useMemo(
     () => Array.from({ length: 12 }, (_, index) => moment({ year, month: index, day: 1 })),
-    [year],
+    [year]
   );
 
   return (

@@ -16,14 +16,7 @@ type WorkflowSidebarProps = {
   onDelete: (id: string) => void;
 };
 
-function WorkflowSidebar({
-  workflows,
-  activeId,
-  isLoading,
-  onSelect,
-  onCreate,
-  onDelete,
-}: WorkflowSidebarProps) {
+function WorkflowSidebar({ workflows, activeId, isLoading, onSelect, onCreate, onDelete }: WorkflowSidebarProps) {
   return (
     <aside className="workflow-page__sidebar h-full w-full md:w-[17rem]">
       <div className="workflow-page__sidebar-header">
@@ -57,12 +50,13 @@ function WorkflowSidebar({
           workflows.map((workflow) => (
             <div
               key={workflow._id}
-              className={cn("workflow-page__sidebar-item", activeId === workflow._id && "workflow-page__sidebar-item--active")}>
+              className={cn(
+                "workflow-page__sidebar-item",
+                activeId === workflow._id && "workflow-page__sidebar-item--active"
+              )}>
               <button type="button" className="workflow-page__sidebar-item-main" onClick={() => onSelect(workflow._id)}>
                 <span className="workflow-page__sidebar-item-title">{workflow.name}</span>
-                <span className="workflow-page__sidebar-item-meta">
-                  Updated {formatAppDate(workflow.updatedAt)}
-                </span>
+                <span className="workflow-page__sidebar-item-meta">Updated {formatAppDate(workflow.updatedAt)}</span>
               </button>
               <Tooltip>
                 <TooltipTrigger asChild>

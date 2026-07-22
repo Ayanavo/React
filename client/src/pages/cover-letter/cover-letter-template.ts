@@ -51,7 +51,7 @@ function buildCoverLetterBodyElements(paragraphs: string[]) {
   }));
 }
 
-function applyProfileToCoverLetterHeader(
+export function applyProfileToCoverLetterHeader(
   headerStyle: NonNullable<CVElement["properties"]>["headerStyle"],
   profile?: UserContactInfo | null
 ) {

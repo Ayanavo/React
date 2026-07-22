@@ -4,16 +4,7 @@ import type { CVElement } from "@/lib/useCV";
 export const ELEMENT_GAP_MAX = 32;
 export const TEXT_INDENT_MAX = 72;
 
-export const SPACED_ELEMENT_TYPES = new Set([
-  "text",
-  "list",
-  "date",
-  "token",
-  "image",
-  "icon",
-  "location",
-  "quote",
-]);
+export const SPACED_ELEMENT_TYPES = new Set(["text", "list", "date", "token", "image", "icon", "location", "quote"]);
 
 export function getElementSpacingStyle(properties?: CVElement["properties"]): CSSProperties {
   return {

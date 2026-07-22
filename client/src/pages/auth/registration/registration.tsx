@@ -1,12 +1,14 @@
 import profile from "@/assets/profile.jpg";
+import imgUrl from "@/assets/Notebook.jpeg";
 import GoogleIcon from "@/assets/google.svg";
+import { AppLogo } from "@/components/app-logo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import showToast from "@/hooks/toast";
-import { useFullPageScroll } from "@/hooks/use-full-page-scroll";
 import { cn } from "@/lib/utils";
 import PasswordStrengthField from "@/pages/auth/registration/password-strength-field";
 import { startOAuthLogin } from "@/pages/auth/use-oauth-login";
+import InfinityBackground from "@/pages/auth/login/infinity-background";
 import { componentMap } from "@/pages/layout/grid/form/field-map";
 import generateControl from "@/pages/layout/grid/form/validation";
 import {
@@ -20,10 +22,20 @@ import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN } from "@/shared/utils/password-s
 import { LOGIN_PATH, ACCEPT_TERMS_PATH } from "@/shared/utils/auth-paths";
 import { PRIVACY_PATH, TERMS_PATH } from "@/shared/utils/policy-paths";
 import { GitHubLogoIcon } from "@radix-ui/react-icons";
-import { BadgeAlert, LoaderCircleIcon, MailIcon, ShieldCheckIcon, UserPlusIcon } from "lucide-react";
+import {
+  BadgeAlert,
+  CheckIcon,
+  LoaderCircleIcon,
+  MailIcon,
+  ShieldCheckIcon,
+  UserCheckIcon,
+  UserPlusIcon,
+  ZapIcon,
+} from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FormProvider } from "react-hook-form";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import "./registration.scss";
 
 type RegistrationStep = "email" | "verify" | "details";
 
@@ -32,6 +44,24 @@ const STEPS: { key: RegistrationStep; label: string; icon: React.ElementType }[]
   { key: "verify", label: "Verify", icon: ShieldCheckIcon },
   { key: "details", label: "Profile", icon: UserPlusIcon },
 ];
+
+const BENEFITS = [
+  {
+    icon: ShieldCheckIcon,
+    title: "Verified onboarding",
+    description: "Secure email verification before account creation.",
+  },
+  {
+    icon: UserCheckIcon,
+    title: "Personalized profile",
+    description: "Set up your workspace with a complete profile.",
+  },
+  {
+    icon: ZapIcon,
+    title: "Ready in minutes",
+    description: "Start collaborating as soon as you sign up.",
+  },
+] as const;
 
 const emailFieldSchema = [
   {
@@ -81,7 +111,7 @@ function StepIndicator({ currentStep }: { currentStep: RegistrationStep }) {
   const currentIndex = STEPS.findIndex((step) => step.key === currentStep);
 
   return (
-    <div className="flex items-center justify-between gap-2">
+    <div className="registration-steps">
       {STEPS.map((step, index) => {
         const Icon = step.icon;
         const isActive = index === currentIndex;
@@ -89,20 +119,23 @@ function StepIndicator({ currentStep }: { currentStep: RegistrationStep }) {
 
         return (
           <React.Fragment key={step.key}>
-            <div className="flex min-w-0 flex-1 flex-col items-center gap-1.5">
-              <div
-                className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-full border text-sm transition-colors",
-                  isComplete && "border-primary bg-primary text-primary-foreground",
-                  isActive && "border-primary bg-primary/10 text-primary",
-                  !isActive && !isComplete && "border-muted-foreground/30 text-muted-foreground"
-                )}>
-                <Icon className="h-4 w-4" />
+            <div
+              className={cn(
+                "registration-step",
+                isActive && "registration-step--active",
+                isComplete && "registration-step--complete"
+              )}>
+              <div className="registration-step__indicator">
+                {isComplete ?
+                  <CheckIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                : <Icon className="h-3.5 w-3.5" aria-hidden="true" />}
               </div>
-              <span className={cn("text-xs font-medium", isActive ? "text-foreground" : "text-muted-foreground")}>{step.label}</span>
+              <span className="registration-step__label">{step.label}</span>
             </div>
             {index < STEPS.length - 1 && (
-              <div className={cn("mb-5 h-px flex-1", index < currentIndex ? "bg-primary" : "bg-border")} />
+              <div
+                className={cn("registration-step__connector", index < currentIndex && "registration-step__connector--complete")}
+              />
             )}
           </React.Fragment>
         );
@@ -112,7 +145,6 @@ function StepIndicator({ currentStep }: { currentStep: RegistrationStep }) {
 }
 
 function registration() {
-  useFullPageScroll();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [step, setStep] = useState<RegistrationStep>("email");
@@ -353,44 +385,52 @@ function registration() {
   };
 
   const stepDescription = {
-    email: "Enter your email to receive a verification link.",
+    email: "Enter your work email to begin secure onboarding.",
     verify: "Check your inbox and open the link we sent you.",
     details: "Set your password and complete your profile.",
   }[step];
 
   const renderAuthFooter = () => (
     <>
-      <div className="relative w-full my-4">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-muted-foreground/40" />
-        </div>
-        <div className="relative flex justify-center">
-          <span className="bg-card px-2 text-xs uppercase text-muted-foreground">Or register with</span>
-        </div>
+      <div className="login-divider w-full">
+        <span>Or register with</span>
       </div>
-      <div className="grid w-full grid-cols-2 gap-3">
-        <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => startOAuthLogin("google")}>
+      <div className="grid w-full grid-cols-2 gap-2.5">
+        <Button
+          type="button"
+          variant="outline"
+          className="login-oauth-btn"
+          disabled={isSubmitting}
+          onClick={() => startOAuthLogin("google")}>
           <GoogleIcon />
           Google
         </Button>
-        <Button type="button" variant="outline" disabled={isSubmitting} onClick={() => startOAuthLogin("github")}>
+        <Button
+          type="button"
+          variant="outline"
+          className="login-oauth-btn"
+          disabled={isSubmitting}
+          onClick={() => startOAuthLogin("github")}>
           <GitHubLogoIcon />
-          Github
+          GitHub
         </Button>
       </div>
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-xs text-muted-foreground">
         Already have an account?{" "}
-        <Link to={LOGIN_PATH} className="underline underline-offset-4 hover:text-primary" preventScrollReset={true}>
+        <Link
+          to={LOGIN_PATH}
+          className="font-medium text-foreground underline-offset-4 transition-colors hover:underline"
+          preventScrollReset={true}>
           Log in
         </Link>
       </p>
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-center text-[0.625rem] leading-snug text-muted-foreground">
         By registering, you agree to our{" "}
-        <Link to={TERMS_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+        <Link to={TERMS_PATH} className="underline-offset-4 transition-colors hover:text-foreground hover:underline">
           Terms & Conditions
         </Link>{" "}
         and{" "}
-        <Link to={PRIVACY_PATH} className="font-medium underline underline-offset-4 hover:text-primary">
+        <Link to={PRIVACY_PATH} className="underline-offset-4 transition-colors hover:text-foreground hover:underline">
           Privacy Policy
         </Link>
         .
@@ -399,103 +439,178 @@ function registration() {
   );
 
   return (
-    <div className="min-h-screen w-full bg-muted/60 px-4 py-6 md:px-6 md:py-10">
-      <div className="mx-auto w-full max-w-2xl">
-        <Card className="border shadow-lg">
-          <CardHeader className="space-y-4 border-b pb-5">
-            <div className="space-y-1">
-              <CardTitle className="text-2xl">Create an account</CardTitle>
-              <CardDescription>{stepDescription}</CardDescription>
-            </div>
-            <StepIndicator currentStep={step} />
-          </CardHeader>
+    <div className="relative flex h-[100dvh] min-h-0 w-full items-center justify-center overflow-hidden p-3 sm:p-4">
+      <InfinityBackground />
 
-          <CardContent className="py-6">
-            {step === "email" && (
-              <FormProvider {...emailForm}>
-                <form id="registration-email-form" onSubmit={emailForm.handleSubmit(onSendVerification)} className="space-y-4">
-                  <div className="grid gap-4">{emailFieldSchema.map((field) => renderField(emailForm, field))}</div>
-                </form>
-              </FormProvider>
-            )}
-
-            {step === "verify" && (
-              <div className="space-y-4">
-                <div className="rounded-lg border bg-muted/40 p-4">
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    We sent a verification link to{" "}
-                    <span className="font-medium text-foreground">{verifiedEmail}</span>. Open it to continue — this page updates
-                    automatically.
-                  </p>
+      <div className="relative z-10 w-full max-w-[780px]">
+        <Card className="login-card">
+          <div className="login-card__grid grid min-h-0 items-stretch lg:grid-cols-2">
+            <div className="login-form-column flex flex-col">
+              <CardHeader className="login-form-header space-y-3 px-5 pb-3.5 pt-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="login-brand-mark">
+                      <AppLogo className="h-3.5 w-3.5" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold tracking-tight text-foreground">Notofy</p>
+                      <p className="text-[0.6875rem] text-muted-foreground">Enterprise workspace</p>
+                    </div>
+                  </div>
+                  <span className="login-trust-badge">
+                    <ShieldCheckIcon className="h-3 w-3" aria-hidden="true" />
+                    Secure signup
+                  </span>
                 </div>
-                {isResendDisabled && (
-                  <div className="flex items-start gap-2 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-200">
-                    <BadgeAlert className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>Verification email sent. Waiting for confirmation…</span>
+
+                <div className="space-y-1">
+                  <CardTitle className="text-xl font-semibold tracking-tight">Create an account</CardTitle>
+                  <CardDescription className="text-sm">{stepDescription}</CardDescription>
+                </div>
+
+                <StepIndicator currentStep={step} />
+              </CardHeader>
+
+              <CardContent className="space-y-3 px-5 py-3.5">
+                {step === "email" && (
+                  <FormProvider {...emailForm}>
+                    <form
+                      id="registration-email-form"
+                      onSubmit={emailForm.handleSubmit(onSendVerification)}
+                      className="space-y-3">
+                      <div className="grid gap-3">{emailFieldSchema.map((field) => renderField(emailForm, field))}</div>
+                    </form>
+                  </FormProvider>
+                )}
+
+                {step === "verify" && (
+                  <div className="space-y-3">
+                    <div className="registration-info">
+                      We sent a verification link to{" "}
+                      <span className="font-semibold text-foreground">{verifiedEmail}</span>. Open it to continue —
+                      this page updates automatically.
+                    </div>
+                    {isResendDisabled && (
+                      <div className="registration-status">
+                        <BadgeAlert className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+                        <span>Verification email sent. Waiting for confirmation…</span>
+                      </div>
+                    )}
                   </div>
                 )}
+
+                {step === "details" && (
+                  <FormProvider {...detailsForm}>
+                    <form
+                      id="registration-details-form"
+                      onSubmit={detailsForm.handleSubmit(onSubmitDetails)}
+                      className="space-y-3.5">
+                      <div className="registration-info">
+                        Registering as <span className="font-semibold text-foreground">{verifiedEmail}</span>
+                      </div>
+
+                      {detailsFieldSchema
+                        .filter((field) => field.name === "photoURL")
+                        .map((field) => renderField(detailsForm, field))}
+
+                      <PasswordStrengthField form={detailsForm} />
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {detailsFieldSchema
+                          .filter((field) => field.name === "firstName" || field.name === "lastName")
+                          .map((field) => renderField(detailsForm, field))}
+                      </div>
+                    </form>
+                  </FormProvider>
+                )}
+              </CardContent>
+
+              <CardFooter className="mt-auto flex-col gap-2.5 px-5 pb-5 pt-0">
+                {step === "email" && (
+                  <>
+                    <Button
+                      className="h-9 w-full text-sm font-medium"
+                      type="submit"
+                      form="registration-email-form"
+                      disabled={isSubmitting}>
+                      {isSubmitting && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
+                      Send verification email
+                    </Button>
+                    {renderAuthFooter()}
+                  </>
+                )}
+
+                {step === "verify" && (
+                  <>
+                    <Button
+                      className="h-9 w-full text-sm font-medium"
+                      type="button"
+                      onClick={onResendVerification}
+                      disabled={isResendDisabled || isSubmitting}>
+                      {isResendDisabled ? `Resend in ${resendTimer}s` : "Resend verification email"}
+                    </Button>
+                    <button
+                      type="button"
+                      className="text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+                      onClick={handleChangeEmail}>
+                      Change email
+                    </button>
+                    {renderAuthFooter()}
+                  </>
+                )}
+
+                {step === "details" && (
+                  <>
+                    <Button
+                      className="h-9 w-full text-sm font-medium"
+                      type="submit"
+                      form="registration-details-form"
+                      disabled={isSubmitting}>
+                      {isSubmitting && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
+                      Create account
+                    </Button>
+                    {renderAuthFooter()}
+                  </>
+                )}
+              </CardFooter>
+            </div>
+
+            <aside className="login-visual-panel hidden lg:block">
+              <img
+                src={`${imgUrl}?height=640&width=360`}
+                alt="Notebook workspace preview"
+                className="login-visual-panel__image"
+              />
+              <div className="login-visual-panel__overlay" aria-hidden="true" />
+
+              <div className="login-visual-panel__content">
+                <div className="login-visual-panel__intro">
+                  <p className="login-visual-panel__eyebrow">
+                    <span className="login-visual-panel__eyebrow-dot" />
+                    Onboarding
+                  </p>
+                  <h2 className="login-visual-panel__headline">Join your team workspace</h2>
+                  <p className="login-visual-panel__subline">
+                    A streamlined signup built for professionals and growing teams.
+                  </p>
+                </div>
+
+                <ul className="login-visual-panel__features">
+                  {BENEFITS.map(({ icon: Icon, title, description }) => (
+                    <li key={title} className="login-visual-panel__feature">
+                      <span className="login-visual-panel__feature-icon">
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                      </span>
+                      <span className="login-visual-panel__feature-text">
+                        <span className="login-visual-panel__feature-title">{title}</span>
+                        <span className="login-visual-panel__feature-desc">{description}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            )}
-
-            {step === "details" && (
-              <FormProvider {...detailsForm}>
-                <form id="registration-details-form" onSubmit={detailsForm.handleSubmit(onSubmitDetails)} className="space-y-5">
-                  <div className="rounded-lg border bg-muted/40 px-3 py-2.5 text-sm">
-                    Registering as <span className="font-medium text-foreground">{verifiedEmail}</span>
-                  </div>
-
-                  {detailsFieldSchema
-                    .filter((field) => field.name === "photoURL")
-                    .map((field) => renderField(detailsForm, field))}
-
-                  <PasswordStrengthField form={detailsForm} />
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {detailsFieldSchema
-                      .filter((field) => field.name === "firstName" || field.name === "lastName")
-                      .map((field) => renderField(detailsForm, field))}
-                  </div>
-                </form>
-              </FormProvider>
-            )}
-          </CardContent>
-
-          <CardFooter className="flex-col gap-2 border-t px-6 py-4">
-            {step === "email" && (
-              <>
-                <Button className="w-full" type="submit" form="registration-email-form" disabled={isSubmitting}>
-                  {isSubmitting && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
-                  Send verification email
-                </Button>
-                {renderAuthFooter()}
-              </>
-            )}
-
-            {step === "verify" && (
-              <>
-                <Button className="w-full" type="button" onClick={onResendVerification} disabled={isResendDisabled || isSubmitting}>
-                  {isResendDisabled ? `Resend in ${resendTimer}s` : "Resend verification email"}
-                </Button>
-                <button
-                  type="button"
-                  className="text-sm text-muted-foreground underline underline-offset-4 hover:text-primary"
-                  onClick={handleChangeEmail}>
-                  Change email
-                </button>
-                {renderAuthFooter()}
-              </>
-            )}
-
-            {step === "details" && (
-              <>
-                <Button className="w-full" type="submit" form="registration-details-form" disabled={isSubmitting}>
-                  {isSubmitting && <LoaderCircleIcon className="-ms-1 animate-spin" size={16} aria-hidden="true" />}
-                  Create account
-                </Button>
-                {renderAuthFooter()}
-              </>
-            )}
-          </CardFooter>
+            </aside>
+          </div>
         </Card>
       </div>
     </div>

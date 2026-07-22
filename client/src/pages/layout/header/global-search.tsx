@@ -92,7 +92,10 @@ function GlobalSearchRoot({ navList, children }: GlobalSearchProps) {
           {mainNav.length > 0 && (
             <CommandGroup heading="Pages">
               {mainNav.map((item) => (
-                <CommandItem key={item.route} value={`${item.label} ${item.route}`} onSelect={() => handleSelect(item.route)}>
+                <CommandItem
+                  key={item.route}
+                  value={`${item.label} ${item.route}`}
+                  onSelect={() => handleSelect(item.route)}>
                   <IconsComponent icon={item.icon} customClass="opacity-70" />
                   <span>{item.label}</span>
                   <CommandShortcut>{item.route.replace("/", "")}</CommandShortcut>
@@ -106,7 +109,10 @@ function GlobalSearchRoot({ navList, children }: GlobalSearchProps) {
           {accountNav.length > 0 && (
             <CommandGroup heading="Account">
               {accountNav.map((item) => (
-                <CommandItem key={item.route} value={`${item.label} ${item.route}`} onSelect={() => handleSelect(item.route)}>
+                <CommandItem
+                  key={item.route}
+                  value={`${item.label} ${item.route}`}
+                  onSelect={() => handleSelect(item.route)}>
                   <IconsComponent icon={item.icon} customClass="opacity-70" />
                   <span>{item.label}</span>
                   <CommandShortcut>{item.route.replace("/", "")}</CommandShortcut>

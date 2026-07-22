@@ -10,22 +10,22 @@ import { cn } from "@/lib/utils";
 import { fetchPermissions } from "@/shared/services/masterAccess";
 import { getUserIdFromToken } from "@/shared/utils/auth-token";
 import {
-    DndContext,
-    DragEndEvent,
-    DragOverlay,
-    DragStartEvent,
-    KeyboardSensor,
-    PointerSensor,
-    closestCenter,
-    useSensor,
-    useSensors,
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
 } from "@dnd-kit/core";
 import {
-    SortableContext,
-    arrayMove,
-    sortableKeyboardCoordinates,
-    useSortable,
-    verticalListSortingStrategy,
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, ShieldCheckIcon } from "lucide-react";
@@ -123,12 +123,7 @@ const LockedMenuRow = ({ item }: { item: NavListItem }) => (
         <div className="truncate text-xs text-muted-foreground">{item.route}</div>
       </div>
     </div>
-    <Checkbox
-      className="ml-3 border-primary/60 shadow-none"
-      checked
-      disabled
-      aria-label={`${item.label} permission`}
-    />
+    <Checkbox className="ml-3 border-primary/60 shadow-none" checked disabled aria-label={`${item.label} permission`} />
   </div>
 );
 

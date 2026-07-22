@@ -171,7 +171,10 @@ const CoverLetterPallet = ({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="cover-letter-tone">Tone</Label>
-            <Select value={tone} onValueChange={(value) => onToneChange(value as CoverLetterTone)} disabled={isRegenerating}>
+            <Select
+              value={tone}
+              onValueChange={(value) => onToneChange(value as CoverLetterTone)}
+              disabled={isRegenerating}>
               <SelectTrigger id="cover-letter-tone">
                 <SelectValue placeholder="Select tone" />
               </SelectTrigger>
@@ -366,7 +369,9 @@ const CoverLetterPallet = ({
   const isAnyExpanded = Object.values(expandedSections).some(Boolean);
 
   return (
-    <div className="cover-letter-pallet w-full md:w-[20rem] h-full bg-background border-r shadow-sm flex-shrink-0 overflow-hidden flex flex-col" data-tutorial="cover-letter-pallet">
+    <div
+      className="cover-letter-pallet w-full md:w-[20rem] h-full bg-background border-r shadow-sm flex-shrink-0 overflow-hidden flex flex-col"
+      data-tutorial="cover-letter-pallet">
       <div className="flex w-full items-center gap-3 border-b bg-card px-4 py-3">
         <span className="min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           Cover Letter

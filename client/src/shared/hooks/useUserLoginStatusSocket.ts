@@ -33,16 +33,18 @@ export const useUserLoginStatusSocket = <T extends UserLoginTrackable>({
 
       queryClient.setQueryData<T[]>([queryKey], (users) =>
         users?.map((user) =>
-          user._id === userId
-            ? {
-                ...user,
-                isLoggedIn,
-                ...(lastLoginAt !== undefined ? { lastLoginAt } : isLoggedIn ? { lastLoginAt: moment().toISOString() } : {}),
-                ...(lastLogoutAt !== undefined ? { lastLogoutAt } : {}),
-                ...(totalTimeSpentMs !== undefined ? { totalTimeSpentMs } : {}),
-                ...(currentSessionStartedAt !== undefined ? { currentSessionStartedAt } : {}),
-              }
-            : user
+          user._id === userId ?
+            {
+              ...user,
+              isLoggedIn,
+              ...(lastLoginAt !== undefined ? { lastLoginAt }
+              : isLoggedIn ? { lastLoginAt: moment().toISOString() }
+              : {}),
+              ...(lastLogoutAt !== undefined ? { lastLogoutAt } : {}),
+              ...(totalTimeSpentMs !== undefined ? { totalTimeSpentMs } : {}),
+              ...(currentSessionStartedAt !== undefined ? { currentSessionStartedAt } : {}),
+            }
+          : user
         )
       );
     };

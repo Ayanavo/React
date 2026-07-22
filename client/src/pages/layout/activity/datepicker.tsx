@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { formatAppDate, formatAppMonthYear } from "@/lib/date-format";
+import { formatAppDate, formatAppMonthYear, formatAppTime, getSessionTimeFormat } from "@/lib/date-format";
 import { cn } from "@/lib/utils";
 import { ChevronLeftIcon, ChevronRightIcon } from "@radix-ui/react-icons";
 import { CalendarIcon, Clock } from "lucide-react";
@@ -38,14 +38,15 @@ function getDefaultType(mode: DatePickerMode): DatePickerType {
 
 function getFooterSummary(date: Date, type: DatePickerType): string {
   const m = moment(date);
+  const timeLabel = formatAppTime(date);
 
   switch (type) {
     case "datetime":
-      return `Your meeting is booked for ${m.format("dddd, MMMM D")} at ${m.format("HH:mm")}.`;
+      return `Your meeting is booked for ${m.format("dddd, MMMM D")} at ${timeLabel}.`;
     case "date":
       return `Selected date: ${m.format("dddd, MMMM D")}.`;
     case "time":
-      return `Selected time: ${m.format("HH:mm")}.`;
+      return `Selected time: ${timeLabel}.`;
     case "month":
       return `Selected month: ${m.format("MMMM YYYY")}.`;
     case "year":
@@ -54,13 +55,15 @@ function getFooterSummary(date: Date, type: DatePickerType): string {
 }
 
 function getPickerProps(type: DatePickerType, timeIntervals: number) {
+  const pickerTimeFormat = getSessionTimeFormat() === "24" ? "HH:mm" : "h:mm aa";
+
   switch (type) {
     case "datetime":
       return {
         showTimeSelect: true,
         timeIntervals,
         timeCaption: "Time",
-        timeFormat: "h:mm aa",
+        timeFormat: pickerTimeFormat,
         dateFormat: "Pp",
       };
     case "date":
@@ -73,7 +76,7 @@ function getPickerProps(type: DatePickerType, timeIntervals: number) {
         showTimeSelectOnly: true,
         timeIntervals,
         timeCaption: "Time",
-        timeFormat: "h:mm aa",
+        timeFormat: pickerTimeFormat,
         dateFormat: "p",
       };
     case "month":
@@ -229,12 +232,25 @@ function PickerCore({
   const nextDisabled =
     maxDate ? moment(viewDate).startOf(viewBoundary).isSameOrAfter(moment(maxDate).startOf(viewBoundary)) : false;
   const showNavigation = type !== "time";
+  const showToday = type !== "time";
 
   const handleMonthSelect = (nextDate: Date | null) => {
     if (!nextDate) return;
 
     setViewDate(nextDate);
     setDrillView("day");
+  };
+
+  const handleTodayClick = () => {
+    const now = moment();
+    const today =
+      type === "month" ? now.clone().startOf("month").toDate()
+      : type === "year" ? now.clone().startOf("year").toDate()
+      : now.toDate();
+
+    setViewDate(today);
+    setDrillView("day");
+    onChange(today);
   };
 
   return (
@@ -283,6 +299,14 @@ function PickerCore({
           />
         }
       </div>
+
+      {showToday && (
+        <div className="activity-picker__today">
+          <Button type="button" variant="default" className="w-full" onClick={handleTodayClick}>
+            Today
+          </Button>
+        </div>
+      )}
 
       {showFooter && (
         <div className="activity-picker__footer">
@@ -378,7 +402,7 @@ function DateTimePicker({
               {(resolvedType === "datetime" || resolvedType === "time") && (
                 <span className="flex items-center gap-1 text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" />
-                  {moment(selectedDate).format("h:mm A")}
+                  {formatAppTime(selectedDate)}
                 </span>
               )}
             </span>
@@ -392,9 +416,7 @@ function DateTimePicker({
     );
   }
 
-  return (
-    <div className="overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">{picker}</div>
-  );
+  return <div className="overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">{picker}</div>;
 }
 
 export default DateTimePicker;

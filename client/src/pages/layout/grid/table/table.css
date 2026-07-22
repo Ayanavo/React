@@ -19,33 +19,14 @@
   min-height: 0;
   min-width: 0;
   flex: 1 1 0%;
-  scrollbar-gutter: stable;
-  scrollbar-width: auto;
-  scrollbar-color: hsl(var(--muted-foreground) / 0.55) hsl(var(--muted) / 0.5);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .grid-table-scroll-host::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
-}
-
-.grid-table-scroll-host::-webkit-scrollbar-track {
-  border-radius: 9999px;
-  background: hsl(var(--muted) / 0.55);
-}
-
-.grid-table-scroll-host::-webkit-scrollbar-thumb {
-  border-radius: 9999px;
-  background: hsl(var(--muted-foreground) / 0.45);
-  border: 2px solid hsl(var(--muted) / 0.55);
-}
-
-.grid-table-scroll-host::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.65);
-}
-
-.grid-table-scroll-host::-webkit-scrollbar-corner {
-  background: hsl(var(--muted) / 0.55);
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .grid-table-shell--resizing {
@@ -141,12 +122,19 @@
 
 .grid-table-row:hover .grid-table-sticky-left,
 .grid-table-row:hover .grid-table-sticky-right {
-  background: hsl(var(--muted) / 0.35);
+  /* Match TableRow hover:bg-muted/50 (was 0.35, which looked darker on sticky cells). */
+  background: hsl(var(--muted) / 0.5);
 }
 
 .grid-table-row[data-state="selected"] .grid-table-sticky-left,
 .grid-table-row[data-state="selected"] .grid-table-sticky-right {
-  background: hsl(var(--primary) / 0.06);
+  /* Match data-[state=selected]:bg-primary/5 */
+  background: hsl(var(--primary) / 0.05);
+}
+
+.grid-table-row[data-state="selected"]:hover .grid-table-sticky-left,
+.grid-table-row[data-state="selected"]:hover .grid-table-sticky-right {
+  background: hsl(var(--primary) / 0.05);
 }
 
 .grid-table-header-row > .grid-table-head:first-child {
@@ -279,11 +267,12 @@
 }
 
 .grid-table-row:hover {
-  background: hsl(var(--muted) / 0.35);
+  background: hsl(var(--muted) / 0.5);
 }
 
-.grid-table-row[data-state="selected"] {
-  background: hsl(var(--primary) / 0.06);
+.grid-table-row[data-state="selected"],
+.grid-table-row[data-state="selected"]:hover {
+  background: hsl(var(--primary) / 0.05);
 }
 
 .grid-toolbar {

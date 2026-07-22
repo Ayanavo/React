@@ -9,14 +9,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useCV } from "@/lib/useCV";
 import moment from "moment";
 import * as Iconlist from "lucide-react";
-import {
-  Columns2,
-  Italic,
-  Rows2,
-  Strikethrough,
-  Underline,
-  X,
-} from "lucide-react";
+import { Columns2, Italic, Rows2, Strikethrough, Underline, X } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { BUILDER_TOGGLE_GROUP_CLASS, BUILDER_TOGGLE_GROUP_WIDE_CLASS } from "./builder-control-styles";
 import { ListIcon } from "./list-icons";

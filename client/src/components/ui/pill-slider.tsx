@@ -14,7 +14,12 @@ const PillSlider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root
     const stepVal = Number(step) || 1;
     const tickCount = Math.max(2, Math.floor((maxVal - minVal) / stepVal) + 1);
     const shouldShowTicks = showTicks ?? (stepVal >= 1 && tickCount <= 12);
-    const dotCount = shouldShowTicks ? (tickCount <= 12 ? tickCount : 8) : 0;
+    const dotCount =
+      shouldShowTicks ?
+        tickCount <= 12 ?
+          tickCount
+        : 8
+      : 0;
     const activeValue = value?.[0] ?? minVal;
     const isAtMin = activeValue <= minVal;
 
@@ -54,13 +59,13 @@ const PillSlider = React.forwardRef<React.ElementRef<typeof SliderPrimitive.Root
           />
         </SliderPrimitive.Thumb>
 
-        {valueDisplay ? (
+        {valueDisplay ?
           <span
             className="pointer-events-none absolute inset-y-0 right-2 z-[5] flex items-center text-xs font-medium tabular-nums text-muted-foreground"
             aria-hidden="true">
             {valueDisplay}
           </span>
-        ) : null}
+        : null}
       </SliderPrimitive.Root>
     );
   }

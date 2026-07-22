@@ -16,4 +16,6 @@ export {
 export type { ColorFormat, HsvaColor, NoteThemeColors } from "./color-picker-utils";
 export { ColorPickerPanel } from "./color-picker-panel";
 export type { ColorPickerPanelProps } from "./color-picker-panel";
+export { ColorPickerPopover } from "./color-picker-popover";
+export type { ColorPickerPopoverHandle, ColorPickerPopoverProps } from "./color-picker-popover";
 export { useColorPicker } from "./use-color-picker";

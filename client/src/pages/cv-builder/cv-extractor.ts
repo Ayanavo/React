@@ -22,7 +22,10 @@ function collectElementText(element: CVElement, lines: string[]) {
     });
   }
 
-  if ((element.type === "date" || element.type === "location" || element.type === "token") && typeof element.content === "string") {
+  if (
+    (element.type === "date" || element.type === "location" || element.type === "token") &&
+    typeof element.content === "string"
+  ) {
     if (element.content.trim()) {
       lines.push(element.content.trim());
     }

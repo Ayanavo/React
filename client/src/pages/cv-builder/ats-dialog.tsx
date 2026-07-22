@@ -102,9 +102,7 @@ const AtsDialog = ({
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>ATS Compatibility Check</DialogTitle>
-          <DialogDescription>
-            Paste a job description to score how well your current CV matches it.
-          </DialogDescription>
+          <DialogDescription>Paste a job description to score how well your current CV matches it.</DialogDescription>
         </DialogHeader>
 
         {!result ?

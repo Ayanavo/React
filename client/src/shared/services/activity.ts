@@ -136,6 +136,9 @@ export type ActivityPayload = {
   color?: string;
   priority?: ActivityPriority;
   location?: string;
+  conferenceProvider?: "none" | "zoom" | "google_meet";
+  conferenceLink?: string;
+  conferenceMeetingId?: string;
   tag?: string;
   recurrence?: RecurrencePayload;
 };
@@ -149,7 +152,9 @@ export type ActivityRecord = ActivityPayload & {
 };
 
 export const fetchActivities = async (page: number, limit: number) => {
-  const response = await axiosInstance.get<{ activities: ActivityRecord[] }>(`${activityURL}?page=${page}&limit=${limit}`);
+  const response = await axiosInstance.get<{ activities: ActivityRecord[] }>(
+    `${activityURL}?page=${page}&limit=${limit}`
+  );
   return response.data;
 };
 
@@ -177,6 +182,26 @@ export const updateActivity = async (activityId: string, postData: ActivityPaylo
 
 export const deleteActivity = async (activityId: string) => {
   const response = await axiosInstance.delete<{ message: string }>(`${activityURL}/delete/${activityId}`);
+  return response.data;
+};
+
+export type CreateConferenceLinkPayload = {
+  provider: "zoom" | "google_meet";
+  title: string;
+  start: string;
+  end?: string;
+  allDay?: boolean;
+  description?: string;
+  previousMeetingId?: string;
+};
+
+export const createConferenceLink = async (payload: CreateConferenceLinkPayload) => {
+  const response = await axiosInstance.post<{
+    provider: "zoom" | "google_meet";
+    link: string;
+    meetingId?: string;
+    calendarEventId?: string;
+  }>(`${activityURL}/conference-link`, payload);
   return response.data;
 };
 

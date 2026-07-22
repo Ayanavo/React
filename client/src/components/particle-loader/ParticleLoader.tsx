@@ -35,7 +35,9 @@ export function ParticleLoader({
     <div className={rootClass} role="status" aria-live="polite" aria-busy="true" aria-label={statusText}>
       <div className="particle-loader-container" style={{ width: size, height: size }}>
         <canvas ref={canvasRef} className="particle-loader-canvas" />
-        {statusText ? <div className="particle-loader-status">{statusText}</div> : null}
+        {statusText ?
+          <div className="particle-loader-status">{statusText}</div>
+        : null}
       </div>
     </div>
   );

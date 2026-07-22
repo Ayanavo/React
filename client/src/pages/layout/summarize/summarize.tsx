@@ -4,7 +4,9 @@ import SummaryContent from "@/components/summary/summary-content";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import showToast from "@/hooks/toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_GEMINI_MODEL,
@@ -17,7 +19,21 @@ import {
   type SummarizeErrorInfo,
 } from "@/shared/services/summarize";
 import { setJobSummaryContext } from "@/shared/utils/job-summary-context";
-import { AlertCircle, Bot, FileText, History, Loader2, Mail, MessageSquare, Paperclip, Plus, Send, Sparkles, Trash2, X } from "lucide-react";
+import {
+  AlertCircle,
+  Bot,
+  FileText,
+  History,
+  Loader2,
+  Mail,
+  MessageSquare,
+  Paperclip,
+  Plus,
+  Send,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./summarize.scss";
@@ -47,7 +63,8 @@ function Bubble({ role, children, meta }: { role: "user" | "assistant"; children
   const isUser = role === "user";
 
   return (
-    <div className={cn("summarize-bubble-row", isUser ? "summarize-bubble-row--user" : "summarize-bubble-row--assistant")}>
+    <div
+      className={cn("summarize-bubble-row", isUser ? "summarize-bubble-row--user" : "summarize-bubble-row--assistant")}>
       {!isUser && (
         <span className="summarize-avatar" aria-hidden="true">
           <Bot size={16} />
@@ -72,7 +89,13 @@ function ErrorBanner({ error, onDismiss }: { error: SummarizeErrorInfo; onDismis
         <p className="summarize-error__message">{error.message}</p>
         {error.hint && <p className="summarize-error__hint">{error.hint}</p>}
       </div>
-      <Button type="button" variant="ghost" size="icon" className="summarize-error__dismiss" aria-label="Dismiss error" onClick={onDismiss}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="summarize-error__dismiss"
+        aria-label="Dismiss error"
+        onClick={onDismiss}>
         <X className="h-4 w-4" />
       </Button>
     </div>
@@ -80,6 +103,90 @@ function ErrorBanner({ error, onDismiss }: { error: SummarizeErrorInfo; onDismis
 }
 
 const ACCEPTED_FILES = ".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt";
+
+type ChatHistoryPanelProps = {
+  sortedSessions: ChatSession[];
+  activeSessionId: string | null;
+  isLoading: boolean;
+  onNewChat: () => void;
+  onSelectSession: (session: ChatSession) => void;
+  onDeleteSession: (sessionId: string, event: React.MouseEvent) => void;
+  className?: string;
+};
+
+function ChatHistoryPanel({
+  sortedSessions,
+  activeSessionId,
+  isLoading,
+  onNewChat,
+  onSelectSession,
+  onDeleteSession,
+  className,
+}: ChatHistoryPanelProps) {
+  return (
+    <div className={cn("summarize-history", className)} aria-label="Chat history" data-tutorial="summarize-history">
+      <div className="summarize-history__header">
+        <div className="summarize-history__title-row">
+          <History className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <h2 className="summarize-history__title">Chat history</h2>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="summarize-history__new"
+          disabled={isLoading}
+          onClick={onNewChat}>
+          <Plus className="h-3.5 w-3.5 mr-1" />
+          New chat
+        </Button>
+      </div>
+
+      <div className="summarize-history__list">
+        {sortedSessions.length === 0 ?
+          <div className="summarize-history__empty">
+            <MessageSquare className="summarize-history__empty-icon" aria-hidden="true" />
+            <p className="summarize-history__empty-title">No conversations yet</p>
+            <p className="summarize-history__empty-text">
+              Your summarize chats are saved here so you can return to them later.
+            </p>
+          </div>
+        : sortedSessions.map((session) => {
+            const isActive = session.id === activeSessionId;
+            const modelLabel =
+              GEMINI_MODEL_OPTIONS.find((option) => option.id === session.model)?.label ?? session.model;
+
+            return (
+              <button
+                key={session.id}
+                type="button"
+                className={cn("summarize-history__item", isActive && "summarize-history__item--active")}
+                disabled={isLoading}
+                onClick={() => onSelectSession(session)}>
+                <div className="summarize-history__item-main">
+                  <p className="summarize-history__item-title">{session.title}</p>
+                  <p className="summarize-history__item-meta">
+                    {formatSessionTime(session.updatedAt)} · {session.messages.length} messages · {modelLabel}
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="summarize-history__delete"
+                  aria-label={`Delete ${session.title}`}
+                  disabled={isLoading}
+                  onClick={(event) => onDeleteSession(session.id, event)}>
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </button>
+            );
+          })
+        }
+      </div>
+    </div>
+  );
+}
 
 function readStoredModel(): GeminiModelId {
   const stored = sessionStorage.getItem(MODEL_STORAGE_KEY);
@@ -124,9 +231,11 @@ function formatSessionTime(iso: string): string {
 
 function SummarizeComponent() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [sessions, setSessions] = useState<ChatSession[]>(loadChatSessions);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(
-    () => sessionStorage.getItem(ACTIVE_SESSION_KEY)
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(() =>
+    sessionStorage.getItem(ACTIVE_SESSION_KEY)
   );
   const [messages, setMessages] = useState<Message[]>(() => {
     const storedSessions = loadChatSessions();
@@ -147,9 +256,7 @@ function SummarizeComponent() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const selectedModelOption = GEMINI_MODEL_OPTIONS.find((option) => option.id === selectedModel);
-  const sortedSessions = [...sessions].sort(
-    (a, b) => moment(b.updatedAt).valueOf() - moment(a.updatedAt).valueOf()
-  );
+  const sortedSessions = [...sessions].sort((a, b) => moment(b.updatedAt).valueOf() - moment(a.updatedAt).valueOf());
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -174,8 +281,9 @@ function SummarizeComponent() {
 
     setSessions((prev) => {
       const existing = prev.find((session) => session.id === id);
-      const nextSession: ChatSession = existing
-        ? {
+      const nextSession: ChatSession =
+        existing ?
+          {
             ...existing,
             title,
             messages: nextMessages,
@@ -211,6 +319,7 @@ function SummarizeComponent() {
     setInput("");
     setSelectedFile(null);
     setLastError(null);
+    setHistoryOpen(false);
   };
 
   const handleSelectSession = (session: ChatSession) => {
@@ -221,6 +330,7 @@ function SummarizeComponent() {
     setInput("");
     setSelectedFile(null);
     setLastError(null);
+    setHistoryOpen(false);
   };
 
   const handleDeleteSession = (sessionId: string, event: React.MouseEvent) => {
@@ -335,9 +445,7 @@ function SummarizeComponent() {
   };
 
   const firstUserMessage = messages.find((msg) => msg.role === "user");
-  const firstSummaryMessage = messages.find(
-    (msg) => msg.role === "assistant" && msg.meta?.startsWith("Summary")
-  );
+  const firstSummaryMessage = messages.find((msg) => msg.role === "assistant" && msg.meta?.startsWith("Summary"));
 
   const handleCreateFromSummary = (target: "cv" | "cover-letter") => {
     if (!firstSummaryMessage) return;
@@ -367,13 +475,11 @@ function SummarizeComponent() {
       return <SummaryContent content={message.content} />;
     }
 
-    return message.content.split("\n").map((line, index) => (
-      <p key={index}>{line || "\u00A0"}</p>
-    ));
+    return message.content.split("\n").map((line, index) => <p key={index}>{line || "\u00A0"}</p>);
   };
 
   return (
-    <div className="summarize-page">
+    <div className={cn("summarize-page", isMobile && "summarize-page--mobile")}>
       <div className="summarize-page__header">
         <BreadcrumbInbuild />
         <div className="summarize-page__title-row">
@@ -383,196 +489,204 @@ function SummarizeComponent() {
           <div className="summarize-page__title-copy">
             <h1 className="summarize-page__title">AI Summarize</h1>
             <p className="summarize-page__subtitle">
-              Paste text or upload a PDF, Word, or Excel file to generate a summary. Ask follow-up questions in the chat.
+              Paste text or upload a PDF, Word, or Excel file to generate a summary. Ask follow-up questions in the
+              chat.
             </p>
           </div>
+          {isMobile ?
+            <div className="summarize-page__header-actions">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 shrink-0"
+                aria-label="Open chat history"
+                onClick={() => setHistoryOpen(true)}>
+                <History className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="h-10 w-10 shrink-0"
+                aria-label="Start new chat"
+                disabled={isLoading}
+                onClick={handleNewChat}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          : null}
         </div>
       </div>
 
       <div className="summarize-page__body">
-      <section className="summarize-chat" aria-label="Summarize chat">
-        <div className="summarize-chat__messages">
-          {messages.length === 0 && !lastError ?
-            <div className="summarize-empty">
-              <FileText className="summarize-empty__icon" aria-hidden="true" />
-              <p className="summarize-empty__title">Start summarizing</p>
-              <p className="summarize-empty__text">
-                Paste your content in the box below, or attach a document. Supported formats: PDF, DOC, DOCX, XLS, XLSX,
-                CSV, TXT.
-              </p>
-              {selectedModelOption && (
-                <p className="summarize-empty__model">Using {selectedModelOption.label}</p>
-              )}
-            </div>
-          : messages.map((message) => (
-              <Bubble key={message.id} role={message.role} meta={message.meta}>
-                {renderMessageContent(message)}
-                {message.id === firstSummaryMessage?.id && (
-                  <div className="summarize-actions">
-                    <span className="summarize-actions__label">Turn this job summary into:</span>
-                    <Button type="button" size="sm" variant="outline" onClick={() => handleCreateFromSummary("cv")}>
-                      <FileText className="h-3.5 w-3.5 mr-1" />
-                      Create CV
-                    </Button>
-                    <Button type="button" size="sm" variant="outline" onClick={() => handleCreateFromSummary("cover-letter")}>
-                      <Mail className="h-3.5 w-3.5 mr-1" />
-                      Create Cover Letter
-                    </Button>
-                  </div>
-                )}
-              </Bubble>
-            ))
-          }
-
-          {lastError && <ErrorBanner error={lastError} onDismiss={() => setLastError(null)} />}
-
-          {isLoading && (
-            <div className="summarize-bubble-row summarize-bubble-row--assistant">
-              <span className="summarize-avatar" aria-hidden="true">
-                <Bot size={16} />
-              </span>
-              <div className="summarize-bubble summarize-bubble--assistant summarize-bubble--loading">
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                <span>Generating with {selectedModelOption?.label ?? selectedModel}…</span>
+        <section className="summarize-chat" aria-label="Summarize chat">
+          <div className="summarize-chat__messages">
+            {messages.length === 0 && !lastError ?
+              <div className="summarize-empty">
+                <FileText className="summarize-empty__icon" aria-hidden="true" />
+                <p className="summarize-empty__title">Start summarizing</p>
+                <p className="summarize-empty__text">
+                  Paste your content in the box below, or attach a document. Supported formats: PDF, DOC, DOCX, XLS,
+                  XLSX, CSV, TXT.
+                </p>
+                {selectedModelOption && <p className="summarize-empty__model">Using {selectedModelOption.label}</p>}
               </div>
-            </div>
-          )}
+            : messages.map((message) => (
+                <Bubble key={message.id} role={message.role} meta={message.meta}>
+                  {renderMessageContent(message)}
+                  {message.id === firstSummaryMessage?.id && (
+                    <div className="summarize-actions">
+                      <span className="summarize-actions__label">Turn this job summary into:</span>
+                      <Button type="button" size="sm" variant="outline" onClick={() => handleCreateFromSummary("cv")}>
+                        <FileText className="h-3.5 w-3.5 mr-1" />
+                        Create CV
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCreateFromSummary("cover-letter")}>
+                        <Mail className="h-3.5 w-3.5 mr-1" />
+                        Create Cover Letter
+                      </Button>
+                    </div>
+                  )}
+                </Bubble>
+              ))
+            }
 
-          <div ref={endRef} />
-        </div>
+            {lastError && <ErrorBanner error={lastError} onDismiss={() => setLastError(null)} />}
 
-        <form className="summarize-composer" onSubmit={handleSend} data-tutorial="summarize-composer">
-          {selectedFile && (
-            <div className="summarize-composer__attachment">
-              <FileText className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span className="truncate">{selectedFile.name}</span>
+            {isLoading && (
+              <div className="summarize-bubble-row summarize-bubble-row--assistant">
+                <span className="summarize-avatar" aria-hidden="true">
+                  <Bot size={16} />
+                </span>
+                <div className="summarize-bubble summarize-bubble--assistant summarize-bubble--loading">
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  <span>Generating with {selectedModelOption?.label ?? selectedModel}…</span>
+                </div>
+              </div>
+            )}
+
+            <div ref={endRef} />
+          </div>
+
+          <form className="summarize-composer" onSubmit={handleSend} data-tutorial="summarize-composer">
+            {selectedFile && (
+              <div className="summarize-composer__attachment">
+                <FileText className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span className="truncate">{selectedFile.name}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 shrink-0"
+                  aria-label="Remove file"
+                  onClick={() => setSelectedFile(null)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            <div className="summarize-composer__row">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ACCEPTED_FILES}
+                className="hidden"
+                aria-hidden="true"
+                onChange={onFileChange}
+              />
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="icon"
-                className="h-7 w-7 shrink-0"
-                aria-label="Remove file"
-                onClick={() => setSelectedFile(null)}>
-                <X className="h-4 w-4" />
+                className="summarize-composer__attach shrink-0"
+                aria-label="Attach file"
+                disabled={isLoading}
+                onClick={() => fileInputRef.current?.click()}>
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <Input
+                value={input}
+                onChange={(event) => {
+                  setInput(event.target.value);
+                  if (lastError) setLastError(null);
+                }}
+                placeholder={
+                  selectedFile ?
+                    "Add a note (optional)…"
+                  : isMobile ?
+                    "Ask a follow-up…"
+                  : "Paste text to summarize or ask a follow-up…"
+                }
+                aria-label="Message"
+                disabled={isLoading}
+                className="summarize-composer__input"
+              />
+              <Select
+                value={selectedModel}
+                onValueChange={(value) => setSelectedModel(value as GeminiModelId)}
+                disabled={isLoading}>
+                <SelectTrigger
+                  id="summarize-model"
+                  className="summarize-composer__agent-trigger"
+                  aria-label="Select agent">
+                  <SelectValue placeholder="Agent">{selectedModelOption?.label}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {GEMINI_MODEL_OPTIONS.map((option) => (
+                    <SelectItem key={option.id} value={option.id} textValue={option.label}>
+                      <span className="summarize-model-option">
+                        <span className="summarize-model-option__label">{option.label}</span>
+                        <span className="summarize-model-option__desc">{option.description}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="submit"
+                disabled={isLoading || (!input.trim() && !selectedFile)}
+                className="summarize-composer__send shrink-0"
+                aria-label="Send message">
+                <Send className="h-4 w-4" />
+                <span className="summarize-composer__send-label">Send</span>
               </Button>
             </div>
-          )}
+          </form>
+        </section>
 
-          <div className="summarize-composer__row">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={ACCEPTED_FILES}
-              className="hidden"
-              aria-hidden="true"
-              onChange={onFileChange}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="shrink-0"
-              aria-label="Attach file"
-              disabled={isLoading}
-              onClick={() => fileInputRef.current?.click()}>
-              <Paperclip className="h-4 w-4" />
-            </Button>
-            <Input
-              value={input}
-              onChange={(event) => {
-                setInput(event.target.value);
-                if (lastError) setLastError(null);
-              }}
-              placeholder={selectedFile ? "Add a note (optional)…" : "Paste text to summarize or ask a follow-up…"}
-              aria-label="Message"
-              disabled={isLoading}
-              className="summarize-composer__input"
-            />
-            <Select value={selectedModel} onValueChange={(value) => setSelectedModel(value as GeminiModelId)} disabled={isLoading}>
-              <SelectTrigger id="summarize-model" className="summarize-composer__agent-trigger" aria-label="Select agent">
-                <SelectValue placeholder="Agent">{selectedModelOption?.label}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {GEMINI_MODEL_OPTIONS.map((option) => (
-                  <SelectItem key={option.id} value={option.id} textValue={option.label}>
-                    <span className="summarize-model-option">
-                      <span className="summarize-model-option__label">{option.label}</span>
-                      <span className="summarize-model-option__desc">{option.description}</span>
-                    </span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button type="submit" disabled={isLoading || (!input.trim() && !selectedFile)} className="shrink-0">
-              <Send className="h-4 w-4 mr-1" />
-              Send
-            </Button>
-          </div>
-        </form>
-      </section>
-
-      <aside className="summarize-history" aria-label="Chat history" data-tutorial="summarize-history">
-        <div className="summarize-history__header">
-          <div className="summarize-history__title-row">
-            <History className="h-4 w-4 shrink-0" aria-hidden="true" />
-            <h2 className="summarize-history__title">Chat history</h2>
-          </div>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            className="summarize-history__new"
-            disabled={isLoading}
-            onClick={handleNewChat}>
-            <Plus className="h-3.5 w-3.5 mr-1" />
-            New chat
-          </Button>
-        </div>
-
-        <div className="summarize-history__list">
-          {sortedSessions.length === 0 ?
-            <div className="summarize-history__empty">
-              <MessageSquare className="summarize-history__empty-icon" aria-hidden="true" />
-              <p className="summarize-history__empty-title">No conversations yet</p>
-              <p className="summarize-history__empty-text">
-                Your summarize chats are saved here so you can return to them later.
-              </p>
-            </div>
-          : sortedSessions.map((session) => {
-              const isActive = session.id === activeSessionId;
-              const modelLabel =
-                GEMINI_MODEL_OPTIONS.find((option) => option.id === session.model)?.label ?? session.model;
-
-              return (
-                <button
-                  key={session.id}
-                  type="button"
-                  className={cn("summarize-history__item", isActive && "summarize-history__item--active")}
-                  disabled={isLoading}
-                  onClick={() => handleSelectSession(session)}>
-                  <div className="summarize-history__item-main">
-                    <p className="summarize-history__item-title">{session.title}</p>
-                    <p className="summarize-history__item-meta">
-                      {formatSessionTime(session.updatedAt)} · {session.messages.length} messages · {modelLabel}
-                    </p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="summarize-history__delete"
-                    aria-label={`Delete ${session.title}`}
-                    disabled={isLoading}
-                    onClick={(event) => handleDeleteSession(session.id, event)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </button>
-              );
-            })
-          }
-        </div>
-      </aside>
+        {!isMobile ?
+          <ChatHistoryPanel
+            className="summarize-history--desktop"
+            sortedSessions={sortedSessions}
+            activeSessionId={activeSessionId}
+            isLoading={isLoading}
+            onNewChat={handleNewChat}
+            onSelectSession={handleSelectSession}
+            onDeleteSession={handleDeleteSession}
+          />
+        : null}
       </div>
+
+      {isMobile ?
+        <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+          <SheetContent side="left" hideClose className="flex h-full w-[min(100%,20rem)] flex-col p-0 sm:max-w-sm">
+            <ChatHistoryPanel
+              className="summarize-history--sheet h-full rounded-none border-0 shadow-none"
+              sortedSessions={sortedSessions}
+              activeSessionId={activeSessionId}
+              isLoading={isLoading}
+              onNewChat={handleNewChat}
+              onSelectSession={handleSelectSession}
+              onDeleteSession={handleDeleteSession}
+            />
+          </SheetContent>
+        </Sheet>
+      : null}
     </div>
   );
 }

@@ -106,21 +106,9 @@ const POLICY_HIGHLIGHTS = [
   },
 ] as const;
 
-function TermsSection({
-  title,
-  icon: Icon,
-  children,
-}: {
-  title: string;
-  icon: LucideIcon;
-  children: React.ReactNode;
-}) {
+function TermsSection({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: React.ReactNode }) {
   return (
-    <section
-      className={cn(
-        "rounded-lg border border-dashed border-border p-5 shadow-sm",
-        termsCardClass
-      )}>
+    <section className={cn("rounded-lg border border-dashed border-border p-5 shadow-sm", termsCardClass)}>
       <div className="mb-5 flex items-start gap-3 border-b border-dotted border-border pb-4">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-dotted border-border bg-muted/40 text-muted-foreground">
           <Icon className="h-4 w-4" aria-hidden="true" />
@@ -172,8 +160,8 @@ export function TermsContent({
           <div className="min-w-0">
             <h2 className="text-base font-semibold">Important notice</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Notofy relies on browser cache and local storage. Disabling site data or using restrictive
-              privacy modes may break core functionality including authentication and saved preferences.
+              Notofy relies on browser cache and local storage. Disabling site data or using restrictive privacy modes
+              may break core functionality including authentication and saved preferences.
             </p>
           </div>
         </div>
@@ -182,9 +170,7 @@ export function TermsContent({
           {POLICY_HIGHLIGHTS.map((item) => {
             const Icon = item.icon;
             return (
-              <div
-                key={item.title}
-                className="rounded-md border border-dotted border-border bg-muted/20 p-4">
+              <div key={item.title} className="rounded-md border border-dotted border-border bg-muted/20 p-4">
                 <div className="mb-2 flex items-center gap-2">
                   <Icon className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   <p className="text-sm font-medium">{item.title}</p>
@@ -211,8 +197,8 @@ export function TermsContent({
       <TermsSection title="Contact & support" icon={Mail}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm leading-relaxed text-muted-foreground">
-            If you have questions about these terms, contact your workspace administrator or reach out to our
-            support team using the button below.
+            If you have questions about these terms, contact your workspace administrator or reach out to our support
+            team using the button below.
           </p>
           <Button type="button" variant="outline" className="shrink-0" onClick={openSupportEmail}>
             Email support

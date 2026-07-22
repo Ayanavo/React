@@ -17,16 +17,22 @@ import LocationComponent from "@/shared/controls/location";
 import TextComponent from "@/shared/controls/text";
 import TextAreaComponent from "@/shared/controls/textarea";
 import { getTags, type TagRecord } from "@/shared/services/tag";
+import { createConferenceLink } from "@/shared/services/activity";
+import showToast from "@/hooks/toast";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { Save, Trash2 } from "lucide-react";
+import axios from "axios";
+import { Copy, Loader2, Save, Trash2, Video } from "lucide-react";
 import moment from "moment";
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import DateTimePicker from "./datepicker";
 import {
   ActivityFormValues,
   ActivityItem,
   ActivityPriority,
+  CONFERENCE_PROVIDER_LABELS,
+  ConferenceProvider,
   PRIORITY_COLORS,
   PRIORITY_LABELS,
   RECURRENCE_INTERVAL_LABELS,
@@ -52,6 +58,9 @@ function buildDefaultValues(activity: ActivityItem | null, defaultDate: Date): A
       color: "#6366f1",
       priority: "medium",
       location: "",
+      conferenceProvider: "none",
+      conferenceLink: "",
+      conferenceMeetingId: "",
       tag: "",
       recurring: false,
       recurrenceCount: 1,
@@ -69,6 +78,9 @@ function buildDefaultValues(activity: ActivityItem | null, defaultDate: Date): A
     color: activity.color ?? "#6366f1",
     priority: activity.priority,
     location: activity.location ?? "",
+    conferenceProvider: activity.conferenceProvider ?? "none",
+    conferenceLink: activity.conferenceLink ?? "",
+    conferenceMeetingId: activity.conferenceMeetingId ?? "",
     tag: activity.tag ?? "",
   };
 }
@@ -95,6 +107,56 @@ export default function ActivityFormDialog({
   });
 
   const isAllDay = Boolean(form.watch("allDay"));
+  const conferenceProvider = form.watch("conferenceProvider") ?? "none";
+  const conferenceLink = form.watch("conferenceLink") ?? "";
+  const [isGeneratingConferenceLink, setIsGeneratingConferenceLink] = useState(false);
+
+  const requestConferenceLink = useCallback(
+    async (provider: Exclude<ConferenceProvider, "none">, options?: { force?: boolean }) => {
+      const title = form.getValues("title")?.trim();
+      if (!title) {
+        form.setError("title", { type: "manual", message: "Enter a title before generating a conference link" });
+        showToast({ title: "Add a title first", description: "Conference links are scheduled using the activity title.", variant: "error" });
+        return;
+      }
+
+      const date = form.getValues("date");
+      const endDate = form.getValues("endDate");
+      const allDay = Boolean(form.getValues("allDay"));
+      const start = moment(date);
+      const end = endDate ? moment(endDate) : start.clone().add(1, "hour");
+
+      setIsGeneratingConferenceLink(true);
+      form.clearErrors("conferenceLink");
+
+      try {
+        const result = await createConferenceLink({
+          provider,
+          title,
+          start: start.toISOString(),
+          end: allDay ? start.clone().add(1, "day").format("YYYY-MM-DD") : end.toISOString(),
+          allDay,
+          description: form.getValues("description"),
+          previousMeetingId: options?.force ? form.getValues("conferenceMeetingId") : undefined,
+        });
+
+        form.setValue("conferenceLink", result.link, { shouldDirty: true, shouldValidate: true });
+        form.setValue("conferenceMeetingId", result.meetingId ?? "", { shouldDirty: true });
+        form.clearErrors("conferenceLink");
+      } catch (error) {
+        const message =
+          axios.isAxiosError(error) ?
+            (error.response?.data as { message?: string } | undefined)?.message || error.message
+          : error instanceof Error ? error.message
+          : "Failed to generate conference link";
+        form.setError("conferenceLink", { type: "manual", message });
+        showToast({ title: "Could not create conference link", description: message, variant: "error" });
+      } finally {
+        setIsGeneratingConferenceLink(false);
+      }
+    },
+    [form]
+  );
 
   useEffect(() => {
     if (open) {
@@ -120,6 +182,16 @@ export default function ActivityFormDialog({
       }
     }
 
+    if (values.conferenceProvider && values.conferenceProvider !== "none" && !values.conferenceLink?.trim()) {
+      form.setError("conferenceLink", { type: "manual", message: "Conference link is required" });
+      return;
+    }
+
+    if (isGeneratingConferenceLink) {
+      showToast({ title: "Conference link is still being created", variant: "error" });
+      return;
+    }
+
     onSubmit(values, activity?.id);
     onOpenChange(false);
   }
@@ -131,7 +203,13 @@ export default function ActivityFormDialog({
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader className="space-y-1.5 text-left">
-          <DialogTitle>{isReadOnly ? "Holiday details" : isEditing ? "Edit activity" : "Create activity"}</DialogTitle>
+          <DialogTitle>
+            {isReadOnly ?
+              "Holiday details"
+            : isEditing ?
+              "Edit activity"
+            : "Create activity"}
+          </DialogTitle>
           <DialogDescription>
             {isReadOnly ?
               "Public holidays are read-only and synced from the holiday calendar."
@@ -297,6 +375,54 @@ export default function ActivityFormDialog({
               }}
             />
 
+            {!isReadOnly ?
+              <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
+                <div className="space-y-2">
+                  <Label>Conference</Label>
+                  <Select
+                    value={conferenceProvider}
+                    disabled={isGeneratingConferenceLink}
+                    onValueChange={(value) => {
+                      const nextProvider = value as ConferenceProvider;
+                      const previousProvider = form.getValues("conferenceProvider") ?? "none";
+                      form.setValue("conferenceProvider", nextProvider, { shouldDirty: true });
+
+                      if (nextProvider === "none") {
+                        form.setValue("conferenceLink", "", { shouldDirty: true, shouldValidate: true });
+                        form.setValue("conferenceMeetingId", "", { shouldDirty: true });
+                        form.clearErrors("conferenceLink");
+                        return;
+                      }
+
+                      const existingLink = form.getValues("conferenceLink")?.trim();
+                      if (!existingLink || previousProvider !== nextProvider) {
+                        void requestConferenceLink(nextProvider);
+                      }
+                    }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select conference" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="zoom">{CONFERENCE_PROVIDER_LABELS.zoom}</SelectItem>
+                      <SelectItem value="google_meet">{CONFERENCE_PROVIDER_LABELS.google_meet}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {conferenceProvider !== "none" && (conferenceLink || isGeneratingConferenceLink) ?
+                  <ConferenceLinkPreview
+                    provider={conferenceProvider}
+                    link={conferenceLink}
+                    isLoading={isGeneratingConferenceLink}
+                    onRegenerate={() => void requestConferenceLink(conferenceProvider, { force: true })}
+                  />
+                : null}
+              </div>
+            : activity?.conferenceProvider && activity.conferenceProvider !== "none" && activity.conferenceLink ?
+              <ConferenceLinkPreview provider={activity.conferenceProvider} link={activity.conferenceLink} readOnly />
+            : null}
+
             <ColorComponent
               form={form}
               schema={{
@@ -324,10 +450,7 @@ export default function ActivityFormDialog({
                 Cancel
               </Button>
               {isEditing && !isReadOnly && onDelete && activity ?
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => onDelete(activity.id)}>
+                <Button type="button" variant="destructive" onClick={() => onDelete(activity.id)}>
                   <Trash2 className="h-4 w-4" />
                   Delete
                 </Button>
@@ -345,6 +468,89 @@ export default function ActivityFormDialog({
         </FormProvider>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function ConferenceProviderIcon({ provider }: { provider: Exclude<ConferenceProvider, "none"> }) {
+  return (
+    <div
+      className={cn(
+        "flex h-11 w-11 items-center justify-center rounded-full",
+        provider === "zoom" ?
+          "bg-[#2D8CFF]/15 text-[#2D8CFF]"
+        : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+      )}>
+      <Video className="h-5 w-5" aria-hidden="true" />
+    </div>
+  );
+}
+
+function ConferenceLinkPreview({
+  provider,
+  link,
+  onRegenerate,
+  readOnly = false,
+  isLoading = false,
+}: {
+  provider: Exclude<ConferenceProvider, "none">;
+  link: string;
+  onRegenerate?: () => void;
+  readOnly?: boolean;
+  isLoading?: boolean;
+}) {
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(link);
+      showToast({ title: "Conference link copied", variant: "success" });
+    } catch {
+      showToast({ title: "Unable to copy link", variant: "error" });
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-2 rounded-lg border bg-background px-3 py-3 text-center">
+      <ConferenceProviderIcon provider={provider} />
+      <p className="text-xs font-medium text-muted-foreground">{CONFERENCE_PROVIDER_LABELS[provider]}</p>
+      {isLoading ?
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          Scheduling conference link...
+        </div>
+      : link ?
+        <a
+          href={link}
+          target="_blank"
+          rel="noreferrer"
+          className="w-full break-all text-xs text-primary underline-offset-4 hover:underline">
+          {link}
+        </a>
+      : null}
+      {!readOnly ?
+        <div className="flex items-center gap-2 pt-1">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-7 gap-1.5 px-2.5 text-xs"
+            onClick={handleCopy}
+            disabled={!link || isLoading}>
+            <Copy className="h-3.5 w-3.5" />
+            Copy
+          </Button>
+          {onRegenerate ?
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2.5 text-xs"
+              onClick={onRegenerate}
+              disabled={isLoading}>
+              New link
+            </Button>
+          : null}
+        </div>
+      : null}
+    </div>
   );
 }
 

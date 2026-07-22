@@ -121,7 +121,9 @@ function initParticles(config: ParticleLoaderConfig): Particle[] {
         ringIndex: orbitIndex,
         phase: angle,
         colorOverride:
-          orbitIndex === 0 ? config.color : orbitIndex === 1 ? "#38bdf8" : "#fb7185",
+          orbitIndex === 0 ? config.color
+          : orbitIndex === 1 ? "#38bdf8"
+          : "#fb7185",
       });
     }
   }
@@ -129,11 +131,7 @@ function initParticles(config: ParticleLoaderConfig): Particle[] {
   return particles;
 }
 
-function drawParticle(
-  ctx: CanvasRenderingContext2D,
-  p: ProjectedParticle,
-  config: ParticleLoaderConfig
-) {
+function drawParticle(ctx: CanvasRenderingContext2D, p: ProjectedParticle, config: ParticleLoaderConfig) {
   ctx.fillStyle = p.color;
   ctx.globalAlpha = p.opacity;
   const renderSize = Math.max(0.4, config.particleSize * p.scale);
@@ -327,8 +325,7 @@ export function startParticleLoader(
             const limit = config.connectionDistance;
 
             if (d2 < limit * limit) {
-              const connectionOpacity =
-                (1.0 - Math.sqrt(d2) / limit) * ((p1.opacity + p2.opacity) * 0.5) * 0.25;
+              const connectionOpacity = (1.0 - Math.sqrt(d2) / limit) * ((p1.opacity + p2.opacity) * 0.5) * 0.25;
               ctx.strokeStyle = config.color;
               ctx.globalAlpha = connectionOpacity;
               ctx.beginPath();

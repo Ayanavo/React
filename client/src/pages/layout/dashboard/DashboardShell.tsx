@@ -34,7 +34,9 @@ function Panel({
       <div className="dashboard__panel-head">
         <div className="min-w-0 flex-1 space-y-1">
           <h2 className="truncate text-base font-semibold">{title}</h2>
-          {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
+          {description ?
+            <p className="text-sm text-muted-foreground">{description}</p>
+          : null}
         </div>
         {linkTo ?
           <Link to={linkTo} className="shrink-0 text-xs font-medium text-primary hover:underline">
@@ -53,16 +55,8 @@ const DashboardShell: React.FC = () => {
   const [isDaytime, setIsDaytime] = useState(true);
   const [timeText, setTimeText] = useState("");
 
-  const {
-    isLoading,
-    recentNotes,
-    upcomingActivities,
-    activitiesByTag,
-    notesPerDay,
-    stats,
-    insights,
-    tagById,
-  } = useDashboardData();
+  const { isLoading, recentNotes, upcomingActivities, activitiesByTag, notesPerDay, stats, insights, tagById } =
+    useDashboardData();
 
   useEffect(() => {
     let isMounted = true;
@@ -139,7 +133,11 @@ const DashboardShell: React.FC = () => {
             <UpcomingActivitiesList activities={upcomingActivities} tagById={tagById} isLoading={isLoading} />
           </Panel>
 
-          <Panel title="Recent Notes" description="Quick access to what you worked on last" linkTo="/notes" span="span-12">
+          <Panel
+            title="Recent Notes"
+            description="Quick access to what you worked on last"
+            linkTo="/notes"
+            span="span-12">
             <RecentNotesList notes={recentNotes} isLoading={isLoading} compact />
           </Panel>
         </div>

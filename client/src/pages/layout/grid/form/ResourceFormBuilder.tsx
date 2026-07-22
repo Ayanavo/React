@@ -84,7 +84,8 @@ function ResourceFormBuilder<T extends Record<string, unknown>>({
       queryClient.invalidateQueries({ queryKey: [queryKey] });
       navigate(listPath);
       showToast({
-        title: data?.message || (id ? `${resourceLabel} updated successfully` : `${resourceLabel} created successfully`),
+        title:
+          data?.message || (id ? `${resourceLabel} updated successfully` : `${resourceLabel} created successfully`),
         variant: "success",
       });
     },

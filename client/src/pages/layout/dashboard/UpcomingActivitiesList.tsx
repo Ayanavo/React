@@ -61,7 +61,9 @@ const UpcomingActivitiesList: React.FC<UpcomingActivitiesListProps> = ({ activit
             className={cn("dashboard__list-item", isToday && "dashboard__list-item--today")}>
             <div className="dashboard__date-chip">
               <span className="text-lg font-semibold leading-none text-foreground">{start.format("D")}</span>
-              <span className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{start.format("MMM")}</span>
+              <span className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                {start.format("MMM")}
+              </span>
             </div>
 
             <div className="min-w-0 flex-1">

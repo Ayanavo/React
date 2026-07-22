@@ -54,7 +54,10 @@ function PasswordStrengthField({ form }: PasswordStrengthFieldProps) {
                 <span className={cn("font-medium", strength.textClass)}>{strength.label}</span>
               </div>
               <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-primary/20">
-                <div className={cn("h-full transition-all duration-300", strength.barClass)} style={{ width: `${strength.score}%` }} />
+                <div
+                  className={cn("h-full transition-all duration-300", strength.barClass)}
+                  style={{ width: `${strength.score}%` }}
+                />
               </div>
               <ul className="grid gap-1.5 pt-1">
                 {PASSWORD_RULES.map((rule) => {
