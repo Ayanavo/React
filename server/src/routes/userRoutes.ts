@@ -23,6 +23,13 @@ import {
   verifyPasswordResetLinkHandler,
 } from "../controllers/passwordResetController.js";
 import { oauthCallbackHandler, startOAuthHandler } from "../controllers/oauthController.js";
+import {
+  handleMobileVerificationValidation,
+  sendMobileOtpHandler,
+  sendMobileOtpValidators,
+  verifyMobileOtpHandler,
+  verifyMobileOtpValidators,
+} from "../controllers/mobileVerificationController.js";
 import { handleSaveUserProfileValidation, saveUserProfileValidators } from "../utils/profileValidation.js";
 import { authenticateToken } from "../controllers/userController.js";
 
@@ -46,6 +53,20 @@ router.post("/logout", logout as RequestHandler);
 router.post("/refresh-token", refreshToken as RequestHandler);
 router.get("/getUserProfile", getUserProfile as RequestHandler);
 router.post("/saveUserProfile", ...saveUserProfileValidators, handleSaveUserProfileValidation, saveUserProfile as RequestHandler);
+router.post(
+  "/send-mobile-otp",
+  authenticateToken,
+  ...sendMobileOtpValidators,
+  handleMobileVerificationValidation,
+  sendMobileOtpHandler as unknown as RequestHandler
+);
+router.post(
+  "/verify-mobile-otp",
+  authenticateToken,
+  ...verifyMobileOtpValidators,
+  handleMobileVerificationValidation,
+  verifyMobileOtpHandler as unknown as RequestHandler
+);
 router.get("/saveSetting", saveSettings as RequestHandler);
 router.post("/SaveSettings", saveSettings as RequestHandler);
 

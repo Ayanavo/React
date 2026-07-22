@@ -13,6 +13,9 @@ type ActivityBody = {
   color?: string;
   priority?: string;
   location?: string;
+  conferenceProvider?: "none" | "zoom" | "google_meet";
+  conferenceLink?: string;
+  conferenceMeetingId?: string;
   tag?: string;
   recurrence?: {
     enabled?: boolean;
@@ -38,6 +41,9 @@ function parseActivityInput(body: ActivityBody) {
     color: body.color ?? "#6366f1",
     priority: body.priority ?? "medium",
     location: body.location?.trim() ?? "",
+    conferenceProvider: body.conferenceProvider ?? "none",
+    conferenceLink: body.conferenceLink?.trim() ?? "",
+    conferenceMeetingId: body.conferenceMeetingId?.trim() ?? "",
     tag: body.tag?.trim() || undefined,
     recurrence: body.recurrence,
   };
@@ -104,6 +110,9 @@ function buildActivityDocument(
     status: "todo",
     priority: parsed.priority,
     location: parsed.location,
+    conferenceProvider: parsed.conferenceProvider,
+    conferenceLink: parsed.conferenceLink,
+    conferenceMeetingId: parsed.conferenceMeetingId,
     tag: tagId,
     createdBy: userId,
   };
@@ -231,6 +240,9 @@ export const updateActivity = async (req: Request, res: Response) => {
         color: parsed.color,
         priority: parsed.priority,
         location: parsed.location,
+        conferenceProvider: parsed.conferenceProvider,
+        conferenceLink: parsed.conferenceLink,
+        conferenceMeetingId: parsed.conferenceMeetingId,
         tag: tagId ?? null,
       },
       { new: true }

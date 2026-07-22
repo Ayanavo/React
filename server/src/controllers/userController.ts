@@ -10,13 +10,21 @@ import { assertEmailVerifiedForRegistration, clearVerificationRecord } from "./e
 import { PASSWORD_MIN_LENGTH, PASSWORD_PATTERN, PASSWORD_PATTERN_MESSAGE } from "../utils/passwordValidation.js";
 import { grantDefaultUserAccess } from "../services/userPermissions.js";
 import { CompanyProfile, formatCompaniesForResponse, sanitizeCompanies } from "../utils/profileValidation.js";
+import { normalizeIsdCode, resolveIsdFromPincode, splitMobileAndIsd } from "../utils/mobileIsd.js";
 
 const formatCompanies = (companies: unknown): CompanyProfile[] => formatCompaniesForResponse(companies);
 
-const formatUserProfileResponse = (user: Record<string, any>) => ({
-  ...user,
-  companies: formatCompanies(user.companies),
-});
+const formatUserProfileResponse = (user: Record<string, any>) => {
+  const pincode = user.address?.pincode ?? "";
+  const { mobileIsd, mobile } = splitMobileAndIsd(user.mobile, user.mobileIsd, pincode);
+
+  return {
+    ...user,
+    mobile,
+    mobileIsd,
+    companies: formatCompanies(user.companies),
+  };
+};
 
 //Sign Up
 export const signUp = async (req: Request, res: Response) => {
@@ -300,8 +308,21 @@ export const saveUserProfile = async (req: Request, res: Response) => {
     if (decoded === null) return res.status(401).json({ message: "Invalid token" });
 
     const userId = decoded._id;
-    const { photoURL, firstName, lastName, mobile, addressLine1, addressLine2, landmark, city, state, pincode, companies } =
-      req.body;
+    const {
+      photoURL,
+      firstName,
+      lastName,
+      gender,
+      mobile,
+      mobileIsd,
+      addressLine1,
+      addressLine2,
+      landmark,
+      city,
+      state,
+      pincode,
+      companies,
+    } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
@@ -309,17 +330,28 @@ export const saveUserProfile = async (req: Request, res: Response) => {
     }
 
     const sanitizedCompanies = sanitizeCompanies(companies);
+    const nextPincode = typeof pincode === "string" ? pincode.trim() : "";
+    const nextMobileIsd = normalizeIsdCode(
+      typeof mobileIsd === "string" && mobileIsd.trim() ? mobileIsd : resolveIsdFromPincode(nextPincode)
+    );
+    const nextMobile = typeof mobile === "string" ? mobile.replace(/\D/g, "") : "";
 
     user.firstName = firstName;
     user.lastName = lastName;
+    user.gender = gender ?? "";
     user.photoURL = photoURL ?? "";
-    user.mobile = mobile;
+    if (user.mobile !== nextMobile || user.mobileIsd !== nextMobileIsd) {
+      user.mobileVerified = false;
+      user.mobileVerifiedAt = null;
+    }
+    user.mobile = nextMobile;
+    user.mobileIsd = nextMobileIsd;
     user.address.addressLine1 = addressLine1;
     user.address.addressLine2 = addressLine2 ?? "";
     user.address.landmark = landmark ?? "";
     user.address.city = city;
     user.address.state = state;
-    user.address.pincode = pincode;
+    user.address.pincode = nextPincode;
     user.companies = sanitizedCompanies;
     user.markModified("companies");
 
@@ -327,6 +359,10 @@ export const saveUserProfile = async (req: Request, res: Response) => {
     res.status(200).json({
       message: "Profile updated successfully",
       companies: sanitizedCompanies,
+      mobile: user.mobile,
+      mobileIsd: user.mobileIsd,
+      mobileVerified: user.mobileVerified,
+      mobileVerifiedAt: user.mobileVerifiedAt,
     });
   } catch (error: any) {
     if (error?.name === "ValidationError") {
@@ -353,8 +389,12 @@ export const saveSettings = async (req: Request, res: Response) => {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) return res.status(401).json({ message: "Not authenticated" });
 
-    const { date_format, currency_format, font_style, theme } = req.body;
-    if ([date_format, currency_format, font_style, theme].some((field) => field === undefined || field === "")) {
+    const { date_format, week_start, time_format, currency_format, font_style, theme } = req.body;
+    if (
+      [date_format, week_start, time_format, currency_format, font_style, theme].some(
+        (field) => field === undefined || field === ""
+      )
+    ) {
       return res.status(400).json({ message: "Required fields are missing" });
     }
 
@@ -370,6 +410,8 @@ export const saveSettings = async (req: Request, res: Response) => {
 
     user.settings = {
       date_format,
+      week_start,
+      time_format,
       currency_format,
       font_style,
       theme,

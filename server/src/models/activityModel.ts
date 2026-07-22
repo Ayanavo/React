@@ -13,6 +13,9 @@ export interface IActivity extends Document {
   status: ActivityStatus;
   priority: ActivityPriority;
   location?: string;
+  conferenceProvider?: "none" | "zoom" | "google_meet";
+  conferenceLink?: string;
+  conferenceMeetingId?: string;
   tag?: mongoose.Types.ObjectId;
   createdBy?: mongoose.Types.ObjectId;
   createdAt: Date;
@@ -38,6 +41,9 @@ const activitySchema: Schema<IActivity> = new Schema(
       default: "medium",
     },
     location: { type: String, default: "" },
+    conferenceProvider: { type: String, enum: ["none", "zoom", "google_meet"], default: "none" },
+    conferenceLink: { type: String, default: "" },
+    conferenceMeetingId: { type: String, default: "" },
     tag: { type: Schema.Types.ObjectId, ref: "Tag" },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
   },

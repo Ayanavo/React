@@ -51,8 +51,12 @@ const companySchema = new Schema(
 export interface IUser extends Document {
   photoURL?: string;
   mobile?: string;
+  mobileIsd?: string;
+  mobileVerified: boolean;
+  mobileVerifiedAt?: Date | null;
   firstName: string;
   lastName: string;
+  gender?: string;
   email: string;
   password: string;
   oauthProvider?: "google" | "github";
@@ -85,6 +89,8 @@ export interface IUser extends Document {
   }>;
   settings: {
     date_format: string;
+    week_start: string;
+    time_format: string;
     currency_format: string;
     font_style: string;
     theme: string;
@@ -99,16 +105,23 @@ const userSchema: Schema = new Schema(
     photoURL: { type: String, default: "" },
     firstName: { type: String, required: true, trim: true, maxlength: 100 },
     lastName: { type: String, required: true, trim: true, maxlength: 100 },
+    gender: {
+      type: String,
+      enum: ["male", "female", "non-binary", "prefer-not-to-say", ""],
+      default: "",
+    },
     mobile: {
       type: String,
       default: "",
-      unique: true,
       trim: true,
       validate: {
         validator: (value: string) => !value || MOBILE_PATTERN.test(value),
         message: "Mobile number format is invalid",
       },
     },
+    mobileIsd: { type: String, default: "91", trim: true },
+    mobileVerified: { type: Boolean, default: false },
+    mobileVerifiedAt: { type: Date, default: null },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     oauthProvider: { type: String, enum: ["google", "github"], default: null },
@@ -142,12 +155,22 @@ const userSchema: Schema = new Schema(
     },
     settings: {
       date_format: { type: String, default: "DD/MM/YYYY" },
+      week_start: { type: String, default: "sunday" },
+      time_format: { type: String, default: "12" },
       currency_format: { type: String, default: "INR" },
       font_style: { type: String, default: "system" },
       theme: { type: String, default: "system" },
     },
   },
   { timestamps: true }
+);
+
+userSchema.index(
+  { mobileIsd: 1, mobile: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { mobile: { $type: "string", $gt: "" } },
+  }
 );
 
 // Add the matchPassword method to the schema

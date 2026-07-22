@@ -11,7 +11,6 @@ export type CompanyProfile = {
   isPresent: boolean;
 };
 
-const MOBILE_PATTERN = /^[\+]?[1-9][\d]{0,15}$/;
 const MONTH_PATTERN = /^(0[1-9]|1[0-2])$/;
 const YEAR_PATTERN = /^\d{4}$/;
 const PINCODE_PATTERN = /^\d{6}$/;
@@ -167,7 +166,20 @@ export const saveUserProfileValidators = [
   body("photoURL").optional({ values: "falsy" }).isString().withMessage("Photo URL must be a string").isLength({ max: 2_000_000 }),
   body("firstName").trim().notEmpty().withMessage("First name is required").isLength({ max: 100 }),
   body("lastName").trim().notEmpty().withMessage("Last name is required").isLength({ max: 100 }),
-  body("mobile").trim().notEmpty().withMessage("Mobile number is required").matches(MOBILE_PATTERN).withMessage("Mobile number format is invalid"),
+  body("gender")
+    .optional({ values: "falsy" })
+    .isIn(["male", "female", "non-binary", "prefer-not-to-say"])
+    .withMessage("Gender must be male, female, non-binary, or prefer not to say"),
+  body("mobile")
+    .optional({ values: "falsy" })
+    .trim()
+    .matches(/^[1-9]\d{5,14}$/)
+    .withMessage("Mobile number format is invalid"),
+  body("mobileIsd")
+    .optional({ values: "falsy" })
+    .trim()
+    .matches(/^\d{1,4}$/)
+    .withMessage("ISD code is invalid"),
   body("addressLine1").trim().notEmpty().withMessage("Address line 1 is required").isLength({ max: 255 }),
   body("addressLine2").optional({ values: "falsy" }).isString().isLength({ max: 255 }),
   body("landmark").optional({ values: "falsy" }).isString().isLength({ max: 255 }),
